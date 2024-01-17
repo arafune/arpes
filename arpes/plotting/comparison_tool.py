@@ -9,7 +9,7 @@ import numpy as np
 import scipy.ndimage.interpolation
 import xarray as xr
 
-from arpes.plotting.interactive_utils import BokehInteractiveTool
+from .interactive_utils import BokehInteractiveTool
 from arpes.utilities.funcutils import Debounce
 from arpes.utilities.normalize import normalize_to_spectrum
 

@@ -10,7 +10,7 @@ import numpy as np
 
 from arpes.analysis.derivative import curvature, d1_along_axis, d2_along_axis
 from arpes.analysis.filters import boxcar_filter, gaussian_filter
-from arpes.plotting.interactive_utils import BokehInteractiveTool
+from .interactive_utils import BokehInteractiveTool
 from arpes.utilities.funcutils import Debounce
 
 if TYPE_CHECKING:

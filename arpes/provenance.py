@@ -31,15 +31,15 @@ from typing import TYPE_CHECKING, Any
 
 import xarray as xr
 
-from arpes import VERSION
-from arpes._typing import DataType, xr_types
+from . import VERSION
+from ._typing import DataType, xr_types
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from _typeshed import Incomplete
 
-    from arpes._typing import WORKSPACETYPE
+    from ._typing import WORKSPACETYPE
 
 
 def attach_id(data: DataType) -> None:
@@ -65,7 +65,7 @@ def provenance_from_file(child_arr: DataType, file: str, record: dict[str, str |
         file: The file which provided the data. Should be a path or collection thereof.
         record: An annotation to add.
     """
-    from arpes.utilities.jupyter import get_recent_history
+    from .utilities.jupyter import get_recent_history
 
     if "id" not in child_arr.attrs:
         attach_id(child_arr)
@@ -160,7 +160,7 @@ def save_plot_provenance(plot_fn: Callable) -> Callable:
     Returns:
         A decorated copy of the input function which additionally saves provenance information.
     """
-    from arpes.utilities.jupyter import get_recent_history
+    from .utilities.jupyter import get_recent_history
 
     @functools.wraps(plot_fn)
     def func_wrapper(*args: Incomplete, **kwargs: Incomplete) -> Incomplete:
@@ -232,7 +232,7 @@ def provenance(
         record: An annotation to add.
         keep_parent_ref: Whether we should keep a reference to the parents.
     """
-    from arpes.utilities.jupyter import get_recent_history
+    from .utilities.jupyter import get_recent_history
 
     if isinstance(parent_arr, list):
         assert len(parent_arr) == 1
@@ -280,7 +280,7 @@ def provenance_multiple_parents(
         record: An annotation to add.
         keep_parent_ref: Whether we should keep a reference to the parents.
     """
-    from arpes.utilities.jupyter import get_recent_history
+    from .utilities.jupyter import get_recent_history
 
     if "id" not in child_arr.attrs:
         attach_id(child_arr)

@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 from numpy import pi
 
 if TYPE_CHECKING:
-    from arpes._typing import SPECTROMETER
+    from ._typing import SPECTROMETER
 
 # eV, A reasonablish value if you aren't sure for the particular sample
 WORK_FUNCTION = 4.3

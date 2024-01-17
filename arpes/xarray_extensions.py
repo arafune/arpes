@@ -56,9 +56,10 @@ from scipy import ndimage as ndi
 import arpes
 import arpes.constants
 import arpes.utilities.math
-from arpes.analysis import param_getter, param_stderr_getter, rebin
-from arpes.models.band import MultifitBand
-from arpes.plotting.dispersion import (
+
+from .analysis import param_getter, param_stderr_getter, rebin
+from .models.band import MultifitBand
+from .plotting.dispersion import (
     LabeledFermiSurfaceParam,
     fancy_dispersion,
     hv_reference_scan,
@@ -66,17 +67,17 @@ from arpes.plotting.dispersion import (
     reference_scan_fermi_surface,
     scan_var_reference_plot,
 )
-from arpes.plotting.fermi_edge import fermi_edge_reference
-from arpes.plotting.movie import plot_movie
-from arpes.plotting.parameter import plot_parameter
-from arpes.plotting.spatial import reference_scan_spatial
-from arpes.plotting.spin import spin_polarized_spectrum
-from arpes.plotting.utils import fancy_labels, remove_colorbars
-from arpes.utilities import apply_dataarray
-from arpes.utilities.collections import MappableDict
-from arpes.utilities.conversion.core import slice_along_path
-from arpes.utilities.region import DesignatedRegions, normalize_region
-from arpes.utilities.xarray import unwrap_xarray_dict, unwrap_xarray_item
+from .plotting.fermi_edge import fermi_edge_reference
+from .plotting.movie import plot_movie
+from .plotting.parameter import plot_parameter
+from .plotting.spatial import reference_scan_spatial
+from .plotting.spin import spin_polarized_spectrum
+from .plotting.utils import fancy_labels, remove_colorbars
+from .utilities import apply_dataarray
+from .utilities.collections import MappableDict
+from .utilities.conversion.core import slice_along_path
+from .utilities.region import DesignatedRegions, normalize_region
+from .utilities.xarray import unwrap_xarray_dict, unwrap_xarray_item
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator
@@ -92,7 +93,7 @@ if TYPE_CHECKING:
     from matplotlib.typing import RGBColorType
     from numpy.typing import DTypeLike, NDArray
 
-    from arpes._typing import (
+    from ._typing import (
         ANGLE,
         SPECTROMETER,
         DataType,
@@ -1981,13 +1982,13 @@ class ARPESDataArrayAccessor(ARPESAccessorBase):
 
     def show(self, *, detached: bool = False, **kwargs: Incomplete) -> None:
         """Opens the Qt based image tool."""
-        import arpes.plotting.qt_tool
+        from .plotting.qt_tool import qt_tool
 
-        arpes.plotting.qt_tool.qt_tool(self._obj, detached=detached, **kwargs)
+        qt_tool(self._obj, detached=detached, **kwargs)
 
     def show_d2(self, **kwargs: Incomplete) -> None:
         """Opens the Bokeh based second derivative image tool."""
-        from arpes.plotting.curvature_tool import CurvatureTool
+        from .plotting.curvature_tool import CurvatureTool
 
         curve_tool = CurvatureTool(**kwargs)
         return curve_tool.make_tool(self._obj)
@@ -1997,7 +1998,7 @@ class ARPESDataArrayAccessor(ARPESAccessorBase):
         **kwargs: float | str | bool | dict[str, bool],
     ) -> dict[str, None | xr.DataArray | xr.Dataset | dict[str, Any]]:
         """Opens the Bokeh based band placement tool."""
-        from arpes.plotting.band_tool import BandTool
+        from .plotting.band_tool import BandTool
 
         band_tool = BandTool(**kwargs)
         return band_tool.make_tool(self._obj)
@@ -3040,7 +3041,7 @@ class ARPESDatasetFitToolAccessor:
         return self._obj.results.G.map(lambda x: x.eval(*args, **kwargs))
 
     def show(self, *, detached: bool = False) -> None:
-        from arpes.plotting.fit_tool import fit_tool
+        from .plotting.fit_tool import fit_tool
 
         fit_tool(self._obj, detached=detached)
 
@@ -3197,7 +3198,7 @@ class ARPESFitToolsAccessor:
 
     def show(self, *, detached: bool = False) -> None:
         """Opens a Qt based interactive fit inspection tool."""
-        from arpes.plotting.fit_tool import fit_tool
+        from .plotting.fit_tool import fit_tool
 
         fit_tool(self._obj, detached=detached)
 

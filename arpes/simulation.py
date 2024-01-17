@@ -21,7 +21,7 @@ import scipy
 import scipy.signal as sig
 import xarray as xr
 
-from arpes.constants import K_BOLTZMANN_MEV_KELVIN
+from .constants import K_BOLTZMANN_MEV_KELVIN
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray

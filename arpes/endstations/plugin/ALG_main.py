@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, ClassVar
 
 import numpy as np
 
+import arpes.xarray_extensions  # pylint: disable=unused-import, redefined-outer-name  # noqa: F401
 from arpes.endstations import SCANDESC, FITSEndstation, HemisphericalEndstation
 
 if TYPE_CHECKING:

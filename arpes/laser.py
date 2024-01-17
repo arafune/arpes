@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from arpes.config import ureg
+from .config import ureg
 
 if TYPE_CHECKING:
     import pint

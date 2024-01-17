@@ -25,11 +25,11 @@ import scipy.stats
 import xarray as xr
 from tqdm.notebook import tqdm
 
-from arpes.analysis.sarpes import to_intensity_polarization
-from arpes.provenance import update_provenance
-from arpes.utilities import lift_dataarray_to_generic
-from arpes.utilities.normalize import normalize_to_spectrum
-from arpes.utilities.region import normalize_region
+from .analysis.sarpes import to_intensity_polarization
+from .provenance import update_provenance
+from .utilities import lift_dataarray_to_generic
+from .utilities.normalize import normalize_to_spectrum
+from .utilities.region import normalize_region
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -38,7 +38,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import DataType
+    from ._typing import DataType
 __all__ = (
     "bootstrap",
     "estimate_prior_adjustment",

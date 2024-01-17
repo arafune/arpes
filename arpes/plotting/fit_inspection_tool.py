@@ -11,7 +11,7 @@ import numpy as np
 import xarray as xr
 from bokeh import events
 
-from arpes.plotting.interactive_utils import BokehInteractiveTool, CursorTool
+from .interactive_utils import BokehInteractiveTool, CursorTool
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete

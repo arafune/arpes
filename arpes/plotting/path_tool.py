@@ -9,7 +9,7 @@ import xarray as xr
 
 from arpes.analysis.path import select_along_path
 from arpes.exceptions import AnalysisError
-from arpes.plotting.interactive_utils import CursorTool, SaveableTool
+from .interactive_utils import CursorTool, SaveableTool
 from arpes.utilities import normalize_to_spectrum
 
 if TYPE_CHECKING:

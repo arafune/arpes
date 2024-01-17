@@ -11,12 +11,12 @@ from typing import TYPE_CHECKING, Any, Literal
 import numpy as np
 import xarray as xr
 
-from arpes.utilities.string import safe_decode
+from .utilities.string import safe_decode
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete
 
-    from arpes._typing import DataType
+    from ._typing import DataType
 Wave = Any  # really, igor.Wave but we do not assume installation
 
 __all__ = (
@@ -103,7 +103,8 @@ def read_igor_binary_wave(raw_bytes: bytes) -> xr.DataArray:
 
     wave_data = np.fromstring(
         raw_bytes[
-            igor_wave_header_dtype.itemsize + offset : igor_wave_header_dtype.itemsize
+            igor_wave_header_dtype.itemsize
+            + offset : igor_wave_header_dtype.itemsize
             + n_points * point_size
             + offset
         ],
@@ -164,7 +165,7 @@ def read_header(header_bytes: bytes) -> dict[str, Any]:
 
         header[first.lower().replace(" ", "_")] = rest
 
-    from arpes.utilities import rename_keys
+    from .utilities import rename_keys
 
     return rename_keys(
         header,

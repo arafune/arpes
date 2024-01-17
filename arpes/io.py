@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING
 import pandas as pd
 import xarray as xr
 
-from arpes.endstations import load_scan
+from .endstations import load_scan
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete
@@ -210,7 +210,7 @@ def stitch(
     concatenated = xr.concat(loaded, dim=built_axis_name)
     if "id" in concatenated.attrs:
         del concatenated.attrs["id"]
-    from arpes.provenance import provenance_multiple_parents
+    from .provenance import provenance_multiple_parents
 
     provenance_multiple_parents(
         concatenated,
@@ -246,7 +246,7 @@ def _df_or_list_to_files(
 
 def file_for_pickle(name: str) -> Path | str:
     here = Path()
-    from arpes.config import CONFIG
+    from .config import CONFIG
 
     if CONFIG["WORKSPACE"]:
         here = Path(CONFIG["WORKSPACE"]["path"])

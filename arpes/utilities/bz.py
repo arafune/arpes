@@ -244,7 +244,6 @@ def hex_cell(a: float = 1, c: float = 1) -> list[list[float]]:
 def hex_cell_2d(a: float = 1) -> list[list[float]]:
     """Calculates lattice vectors for a triangular lattice with lattice constant `a`.
 
-
     Args:
         a: lattice constant of along a-axis.
 
@@ -721,7 +720,6 @@ def bz_cutter(symmetry_points, *, reduced: bool = True):
         Returns:
             [TODO:description]
         """
-        pass
 
     def cutter(data, cut_value: float = np.nan):
         """[TODO:summary]

@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from arpes.exceptions import AnalysisError
-from arpes.plotting.interactive_utils import BokehInteractiveTool, CursorTool
+from .interactive_utils import BokehInteractiveTool, CursorTool
 from arpes.utilities import Debounce, normalize_to_spectrum
 
 if TYPE_CHECKING:

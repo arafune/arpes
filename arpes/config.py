@@ -26,7 +26,7 @@ import matplotlib as mpl
 import pint
 
 if TYPE_CHECKING:
-    from arpes._typing import CONFIGTYPE, WORKSPACETYPE, ConfigSettings
+    from ._typing import CONFIGTYPE, WORKSPACETYPE, ConfigSettings
 
 # pylint: disable=global-statement
 
@@ -64,9 +64,20 @@ HAS_LOADED: bool = False
 FIGURE_PATH: str | Path | None = None
 DATASET_PATH: str | Path | None = None
 
+CONFIG: CONFIGTYPE = {
+    "WORKSPACE": {},
+    "CURRENT_CONTEXT": None,
+    "ENABLE_LOGGING": True,
+    "LOGGING_STARTED": False,
+    "LOGGING_FILE": None,
+}
+
 
 def warn(msg: str) -> None:
-    """Conditionally render a warning using `warnings.warn`."""
+    """Conditionally render a warning using `warnings.warn`.
+
+    ToDo: TEST
+    """
     if DOCS_BUILD:
         return
     warnings.warn(msg, stacklevel=2)
@@ -96,15 +107,6 @@ def update_configuration(user_path: Path | str = "") -> None:
         pass
 
 
-CONFIG: CONFIGTYPE = {
-    "WORKSPACE": {},
-    "CURRENT_CONTEXT": None,
-    "ENABLE_LOGGING": True,
-    "LOGGING_STARTED": False,
-    "LOGGING_FILE": None,
-}
-
-
 class WorkspaceManager:
     """A context manager for swapping workspaces temporarily.
 
@@ -123,6 +125,8 @@ class WorkspaceManager:
 
         Args:
             workspace: The name of the workspace to enter temporarily. Defaults to None.
+
+        ToDo: TEST
         """
         self._cached_workspace: WORKSPACETYPE = {}
         self._workspace: str | None = workspace
@@ -132,6 +136,8 @@ class WorkspaceManager:
 
         Raises:
             ValueError: If a workspace cannot be identified with the requested name.
+
+        ToDo: Test
         """
         self._cached_workspace = CONFIG["WORKSPACE"]
         if not self._workspace:
@@ -148,7 +154,10 @@ class WorkspaceManager:
             raise ValueError(msg)
 
     def __exit__(self, *args: object) -> None:
-        """Clean up by resetting the PyARPES workspace."""
+        """Clean up by resetting the PyARPES workspace.
+
+        ToDo: Test
+        """
         CONFIG["WORKSPACE"] = self._cached_workspace
 
 
@@ -165,6 +174,8 @@ def workspace_matches(path: str | Path) -> bool:
 
     Returns:
         True if the path is a workspace and False otherwise.
+
+    ToDo: TEST
     """
     contents = os.listdir(path)
     return any(sentinel in contents for sentinel in ["data", "Data"])
@@ -181,6 +192,8 @@ def attempt_determine_workspace(current_path: str | Path = "") -> None:
 
     Args:
         current_path: Override for "Path.cwd()". Defaults to None.
+
+    ToDo: TEST
     """
     pdataset = Path.cwd() if DATASET_PATH is None else DATASET_PATH
 
@@ -208,6 +221,8 @@ def load_json_configuration(filename: str) -> None:
 
     Args:
         filename: A filename or path containing the settings.
+
+    ToDo: TEST
     """
     with Path(filename).open() as config_file:
         CONFIG.update(json.load(config_file))
@@ -223,8 +238,11 @@ except ImportError:
 
 
 def override_settings(new_settings: ConfigSettings) -> None:
-    """Deep updates/overrides PyARPES settings."""
-    from arpes.utilities.collections import deep_update
+    """Deep updates/overrides PyARPES settings.
+
+    ToDo: TEST
+    """
+    from .utilities.collections import deep_update
 
     deep_update(SETTINGS, new_settings)
 
@@ -240,7 +258,7 @@ def load_plugins() -> None:
     """
     import importlib
 
-    from arpes.endstations import add_endstation, plugin
+    from .endstations import add_endstation, plugin
 
     skip_modules = {"__pycache__", "__init__"}
     plugins_dir = Path(plugin.__file__).parent
@@ -266,6 +284,8 @@ def is_using_tex() -> bool:
 
     Returns:
         True if matplotlib will use LaTeX for plotting and False otherwise.
+
+    ToDo: TEST
     """
     return mpl.rcParams["text.usetex"]
 
@@ -286,14 +306,20 @@ class UseTex:
     saved_context: dict[str, Any] = field(default_factory=dict)
 
     def __enter__(self) -> None:
-        """Save old settings so we can restore them later."""
+        """Save old settings so we can restore them later.
+
+        ToDo: TEST
+        """
         self.saved_context["text.usetex"] = mpl.rcParams["text.usetex"]
         self.saved_context["SETTINGS.use_tex"] = SETTINGS.get("use_tex", False)
         # temporarily set the TeX configuration to the requested one
         use_tex(rc_text_should_use=self.use_tex)
 
     def __exit__(self, *args: object) -> None:
-        """Reset configuration back to the cached settings."""
+        """Reset configuration back to the cached settings.
+
+        ToDo: TEST
+        """
         SETTINGS["use_tex"] = self.saved_context["use_tex"]
         mpl.rcParams["text.usetex"] = self.saved_context["text.usetex"]
 
@@ -342,7 +368,7 @@ def setup_logging() -> None:
     try:
         if CONFIG["ENABLE_LOGGING"] and not CONFIG["LOGGING_STARTED"]:
             CONFIG["LOGGING_STARTED"] = True
-            from arpes.utilities.jupyter import generate_logfile_path
+            from .utilities.jupyter import generate_logfile_path
 
             log_path = generate_logfile_path()
             log_path.parent.mkdir(exist_ok=True)

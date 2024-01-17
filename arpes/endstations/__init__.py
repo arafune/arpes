@@ -17,17 +17,16 @@ from astropy.io import fits
 
 import arpes.config
 import arpes.constants
-from arpes.endstations.fits_utils import find_clean_coords
-from arpes.endstations.igor_utils import shim_wave_note
 from arpes.load_pxt import find_ses_files_associated, read_single_pxt
 from arpes.provenance import provenance_from_file
 from arpes.repair import negate_energy
 from arpes.trace import Trace, traceable
 from arpes.utilities.dict import case_insensitive_get, rename_dataarray_attrs
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
+from .fits_utils import find_clean_coords
+from .igor_utils import shim_wave_note
 
+if TYPE_CHECKING:
     from _typeshed import Incomplete
 
     from arpes._typing import SPECTROMETER
@@ -572,6 +571,8 @@ class SESEndstation(EndstationBase):
         return xr.Dataset({"spectrum": pxt_data}, attrs=pxt_data.attrs)
 
     def postprocess(self, frame: xr.Dataset) -> Self:
+        import arpes.xarray_extensions  # pylint: disable=unused-import, redefined-outer-name
+
         frame = super().postprocess(frame)
         return frame.assign_attrs(frame.S.spectrum.attrs)
 

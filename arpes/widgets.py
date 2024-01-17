@@ -55,11 +55,12 @@ from matplotlib.widgets import (
 )
 
 import arpes.config
-from arpes.fits import LorentzianModel, broadcast_model
-from arpes.plotting.utils import fancy_labels, imshow_arr, invisible_axes
-from arpes.utilities import normalize_to_spectrum
-from arpes.utilities.conversion import convert_to_kspace
-from arpes.utilities.image import imread_to_xarray
+
+from .fits import LorentzianModel, broadcast_model
+from .plotting.utils import fancy_labels, imshow_arr, invisible_axes
+from .utilities import normalize_to_spectrum
+from .utilities.conversion import convert_to_kspace
+from .utilities.image import imread_to_xarray
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -70,7 +71,7 @@ if TYPE_CHECKING:
     from matplotlib.colors import Colormap
     from numpy.typing import NDArray
 
-    from arpes._typing import CURRENTCONTEXT, MOMENTUM, DataType
+    from ._typing import CURRENTCONTEXT, MOMENTUM, DataType
 
     IncompleteMPL: TypeAlias = Incomplete
 
