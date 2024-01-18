@@ -20,6 +20,8 @@ if TYPE_CHECKING:
     import xarray as xr
     from _typeshed import Incomplete
 
+    from arpes.endstations import SCANDESC
+
 __all__ = ("MAESTROMicroARPESEndstation", "MAESTRONanoARPESEndstation")
 
 
@@ -30,9 +32,17 @@ class MAESTROARPESEndstationBase(SynchrotronEndstation, HemisphericalEndstation,
     ALIASES = None  # skip me
     ANALYZER_INFORMATION = None
 
-    def load(self, scan_desc: dict | None = None, **kwargs: Incomplete):
+    def load(self, scan_desc: SCANDESC | None = None, **kwargs: Incomplete):
         # in the future, can use a regex in order to handle the case where we postfix coordinates
         # for multiple spectra
+        """[TODO:summary]
+
+        [TODO:description]
+
+        Args:
+            scan_desc: [TODO:description]
+            kwargs: [TODO:description]
+        """
 
         scan = super().load(scan_desc, **kwargs)
 

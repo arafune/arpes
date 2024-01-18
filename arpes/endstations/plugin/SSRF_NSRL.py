@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import io
 from configparser import ConfigParser
+from logging import warning
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 from zipfile import ZipFile
@@ -42,6 +43,14 @@ __all__ = ("SSRFEndstation", "NSRLEndstation")
 
 
 def determine_dim(viewer_ini, dim_name):
+    """[TODO:summary]
+
+    [TODO:description]
+
+    Args:
+        viewer_ini ([TODO:type]): [TODO:description]
+        dim_name ([TODO:type]): [TODO:description]
+    """
     spectrum_info = viewer_ini.sections()[-1]
 
     num = viewer_ini.getint(spectrum_info, dim_name)
@@ -99,7 +108,9 @@ class DA30_L(SingleFileEndstation):
         fpath: str = "",
         scan_desc: dict[str, str] | None = None,
         **kwargs: Incomplete,
-    ):
+    ) -> xr.Dataset:
+        if kwargs:
+            warning.warn("Any kwargs is not supported in this function.")
         if scan_desc is None:
             scan_desc = {}
         file = Path(fpath)
@@ -174,7 +185,8 @@ class DA30_L(SingleFileEndstation):
                 {"spectrum": data},
                 attrs={**scan_desc},
             )
-        return None
+        err_msg = "Check your file is it really suitable?"
+        raise RuntimeError(err_msg)
 
 
 class SSRFEndstation(DA30_L, SynchrotronEndstation):

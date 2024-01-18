@@ -25,6 +25,13 @@ def unwrap_params(
     def transform_or_walk(
         v: dict | xr.DataArray | Iterable[float],
     ):
+        """[TODO:summary]
+
+        [TODO:description]
+
+        Args:
+            v: [TODO:description]
+        """
         if isinstance(v, dict):
             return unwrap_params(v, iter_coordinate)
 

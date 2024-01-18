@@ -32,7 +32,7 @@ logger.addHandler(handler)
 logger.propagate = False
 
 
-def find_kaindl_files_associated(reference_path: Path):
+def find_kaindl_files_associated(reference_path: Path) -> list[Path]:
     name_match = re.match(
         r"([\w+]*_?scan_[0-9][0-9][0-9]_)[0-9][0-9][0-9]\.pxt",
         reference_path.name,
@@ -112,7 +112,7 @@ class KaindlEndstation(HemisphericalEndstation, SESEndstation):
         "Delay Stage": "delay",
     }
 
-    def resolve_frame_locations(self, scan_desc: SCANDESC | None = None):
+    def resolve_frame_locations(self, scan_desc: SCANDESC | None = None) -> list[Path]:
         """Fines .pxt files associated to a potentially multi-cut scan.
 
         This is very similar to what happens on BL4 at the ALS. You can look
@@ -142,7 +142,7 @@ class KaindlEndstation(HemisphericalEndstation, SESEndstation):
         self,
         frames: list[xr.Dataset],
         scan_desc: SCANDESC | None = None,
-    ):
+    ) -> xr.Dataset | None:
         """Concenates frames from individual .pxt files on the Kaindl setup.
 
         The unique challenge here is to look for and parse the motor positions file (if
@@ -171,7 +171,7 @@ class KaindlEndstation(HemisphericalEndstation, SESEndstation):
                 axis_name = self.RENAME_KEYS.get(axis_name, axis_name)
                 values = [float(_.strip()) for _ in lines[1 : len(frames) + 1]]
 
-                for v, f in zip(values, frames):
+                for v, f in zip(values, frames, strict=True):
                     f.coords[axis_name] = v
 
                 frames.sort(key=lambda x: x.coords[axis_name])
@@ -185,6 +185,10 @@ class KaindlEndstation(HemisphericalEndstation, SESEndstation):
 
         This is very similar to what happens at BL4/MERLIN because the code was adopted
         from an old version of the DAQ on that beamline.
+
+        Args:
+            data (xr.DataSet): [TODO:description]
+            scan_desc (SCANDESK): [TODO:description]
         """
         original_filename = scan_desc.get("path", scan_desc.get("file"))
         internal_match = re.match(
@@ -194,12 +198,29 @@ class KaindlEndstation(HemisphericalEndstation, SESEndstation):
         all_filenames = find_kaindl_files_associated(Path(original_filename))
         all_filenames = [os.path.join(f.parent, f"{f.stem}_AI.txt") for f in all_filenames]
 
-        def load_attr_for_frame(filename, attr_name):
+        def load_attr_for_frame(filename: str, attr_name: str):
             # this is rereading which is not ideal but can be adjusted later
+            """[TODO:summary]
+
+            [TODO:description]
+
+            Args:
+                filename (str): [TODO:description]
+                attr_name (str): [TODO:description]
+            """
             df = read_ai_file(Path(filename))
             return np.mean(df[attr_name])
 
-        def attach_attr(data, attr_name, as_name):
+        def attach_attr(data: xr.Dataset, attr_name: str, as_name: str) -> xr.Dataset:
+            """[TODO:summary]
+
+            [TODO:description]
+
+            Args:
+                data (xr.Dataset): [TODO:description]
+                attr_name (str): [TODO:description]
+                as_name (str): [TODO:description]
+            """
             attributes = np.array([load_attr_for_frame(f, attr_name) for f in all_filenames])
 
             if len(attributes) == 1:

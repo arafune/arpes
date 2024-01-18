@@ -250,9 +250,7 @@ def sample_from_distribution(
     # take N samples between 0 and 1, which is now the normalized full range of the data
     # and find the index, this effectively samples the index in the array if it were a PDF
     sample_ys = []
-    random_ys = np.random.random(
-        n,
-    )
+    random_ys = np.random.random(n)
     for random_y, row_y in zip(random_ys, sample_ys_rows, strict=True):
         sample_ys.append(np.searchsorted(row_y, random_y))
 
@@ -457,7 +455,7 @@ class SpectralFunctionBSSCO(SpectralFunction):
             omega: The energy axis.
             temperature: The temperature to use for the calculation. Defaults to None.
             delta: The gap size.
-            gap_paramter (tuple[float, float, float]): Gap paramter of the BSSCO,
+            gap_paramters (tuple[float, float, float]): Gap paramter of the BSSCO,
               Delta, and two Gamma pamaramters  (s- and p-wave)
         """
         self.delta, self.gamma_s, self.gamma_p = gap_paramters

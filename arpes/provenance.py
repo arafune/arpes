@@ -94,7 +94,7 @@ def update_provenance(
         A decorator which can be applied to a function.
     """
 
-    def update_provenance_decorator(fn: callable):
+    def update_provenance_decorator(fn: Callable):
         """[TODO:summary]
 
         [TODO:description]

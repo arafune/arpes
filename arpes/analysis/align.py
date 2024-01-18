@@ -15,7 +15,7 @@ from scipy import signal
 
 from arpes.fits.fit_models import QuadraticModel
 
-__all__ = ("align2d", "align1d", "align")
+__all__ = ("align",)
 
 TWODimensional = 2
 

@@ -29,6 +29,9 @@ __all__ = (
     "make_psf1d",
 )
 
+TWODIMWENSION = 2
+THREEDIMENSION = 3
+
 
 @update_provenance("Approximate Iterative Deconvolution")
 def deconvolve_ice(
@@ -174,7 +177,7 @@ def deconvolve_rl(
                     )
                     # build results out of these pieces
                     result[y_ind, x_ind] = deconv.values
-            elif len(other_dim) == 2:
+            elif len(other_dim) == TWODIMWENSION:
                 # three-dimensional data
                 result = arr.copy(deep=True).transpose(*other_dim, axis)
                 # not sure why the dims only seems to work in this order.
@@ -205,7 +208,7 @@ def deconvolve_rl(
                         )
                         # build results out of these pieces
                         result[y_ind, z_ind, x_ind] = deconv.values
-            elif len(other_dim) >= 3:
+            elif len(other_dim) >= THREEDIMENSION:
                 # four- or higher-dimensional data
                 # TODO:  find way to compactify the different dimensionalities rather than having
                 # separate code

@@ -57,6 +57,11 @@ extensions = [
     "sphinx_copybutton",
 ]
 
+suppress_warnings = [
+    "nbsphinx",
+]
+
+
 apidoc_separate_modules = True
 
 katex_version = "0.13.13"

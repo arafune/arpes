@@ -12,7 +12,6 @@ if TYPE_CHECKING:
 
     from arpes._typing import DataType
 __all__ = (
-    "decomposition_along",
     "nmf_along",
     "pca_along",
     "ica_along",
@@ -116,7 +115,7 @@ def decomposition_along(
 
 
 @wraps(decomposition_along)
-def pca_along(*args: Incomplete, **kwargs: Incomplete):
+def pca_along(*args: Incomplete, **kwargs: Incomplete) -> tuple[DataType, Incomplete]:
     """Specializes `decomposition_along` with `sklearn.decomposition.PCA`."""
     from sklearn.decomposition import PCA
 
@@ -124,7 +123,7 @@ def pca_along(*args: Incomplete, **kwargs: Incomplete):
 
 
 @wraps(decomposition_along)
-def factor_analysis_along(*args: Incomplete, **kwargs: Incomplete):
+def factor_analysis_along(*args: Incomplete, **kwargs: Incomplete) -> tuple[DataType, Incomplete]:
     """Specializes `decomposition_along` with `sklearn.decomposition.FactorAnalysis`."""
     from sklearn.decomposition import FactorAnalysis
 
@@ -132,7 +131,7 @@ def factor_analysis_along(*args: Incomplete, **kwargs: Incomplete):
 
 
 @wraps(decomposition_along)
-def ica_along(*args: Incomplete, **kwargs: Incomplete):
+def ica_along(*args: Incomplete, **kwargs: Incomplete) -> tuple[DataType, Incomplete]:
     """Specializes `decomposition_along` with `sklearn.decomposition.FastICA`."""
     from sklearn.decomposition import FastICA
 
@@ -140,7 +139,7 @@ def ica_along(*args: Incomplete, **kwargs: Incomplete):
 
 
 @wraps(decomposition_along)
-def nmf_along(*args: Incomplete, **kwargs: Incomplete):
+def nmf_along(*args: Incomplete, **kwargs: Incomplete) -> tuple[DataType, Incomplete]:
     """Specializes `decomposition_along` with `sklearn.decomposition.NMF`."""
     from sklearn.decomposition import NMF
 

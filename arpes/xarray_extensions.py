@@ -46,7 +46,7 @@ import warnings
 from collections import OrderedDict
 from collections.abc import Collection, Sequence
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
-from typing import TYPE_CHECKING, Any, Literal, NoReturn, Self, TypeAlias, Unpack
+from typing import TYPE_CHECKING, Any, Literal, Self, TypeAlias, Unpack
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -146,6 +146,8 @@ def _iter_groups(
     single pair (k, v0).
 
     Otherwise, one pair is yielded for every item in the associated value.
+
+    ToDo: Not tested
     """
     for k, value_or_list in grouped.items():
         if isinstance(value_or_list, Sequence):
@@ -159,6 +161,10 @@ class ARPESAccessorBase:
     """Base class for the xarray extensions in PyARPES."""
 
     def along(self, directions: NDArray[np.float_], **kwargs: Incomplete) -> xr.DataArray:
+        """TODO: Need description.
+
+        ToDo: Test
+        """
         return slice_along_path(self._obj, directions, **kwargs)
 
     def find(self, name: str) -> list[str]:
@@ -174,6 +180,18 @@ class ARPESAccessorBase:
 
     @property
     def sherman_function(self) -> Incomplete:
+        """TODO:summary.
+
+        [TODO:description]
+
+        Returns: Incomplete
+            [TODO:description]
+
+        Raises: ValueError
+            [TODO:description]
+
+        ToDo: Test
+        """
         for option in ["sherman", "sherman_function", "SHERMAN"]:
             if option in self._obj.attrs:
                 return self._obj.attrs[option]
@@ -199,7 +217,10 @@ class ARPESAccessorBase:
 
     @property
     def polarization(self) -> str | None:
-        """Returns the light polarization information."""
+        """Returns the light polarization information.
+
+        ToDo: Test
+        """
         if "epu_pol" in self._obj.attrs:
             # merlin: TODO normalize these
             # check and complete
@@ -217,6 +238,16 @@ class ARPESAccessorBase:
 
     @property
     def is_subtracted(self) -> bool | None:
+        """Infers whether a given data is subtracted.
+
+        Args:
+            self ([TODO:type]): [TODO:description]
+
+        Returns (bool):
+            Return True if the data is subtracted.
+
+        ToDo: Need test
+        """
         if self._obj.attrs.get("subtracted"):
             return True
 
@@ -248,21 +279,19 @@ class ARPESAccessorBase:
         true for XPS spectra, which I suppose is true but trivially.
 
         Returns:
-            True if the data is k-space converted.
-            False otherwise.
+            True if the data is k-space converted. False otherwise.
         """
         assert isinstance(self._obj, xr.DataArray | xr.Dataset)
         return not any(d in {"phi", "theta", "beta", "angle"} for d in self._obj.dims)
 
     @property
     def is_slit_vertical(self) -> bool:
-        """Whether the data was taken on an analyzer with vertical slit.
+        """Infers whether the scan is taken on an analyzer with vertical slit.
 
         Caveat emptor: this assumes that the alpha coordinate is not some intermediate value.
 
         Returns:
-            True if the alpha value is consistent with a vertical slit analyzer.
-            False otherwise.
+            True if the alpha value is consistent with a vertical slit analyzer. False otherwise.
         """
         angle_tolerance = 1.0
         if self.angle_unit.startswith("Deg") or self.angle_unit.startswith("deg"):
@@ -289,6 +318,8 @@ class ARPESAccessorBase:
 
         Returns:
             A copy of the data with new values but identical dimensions, coordinates, and attrs.
+
+        ToDo: Test
         """
         return xr.DataArray(
             new_values.reshape(self._obj.values.shape),
@@ -306,6 +337,8 @@ class ARPESAccessorBase:
 
         Returns:
             [TODO:description]
+
+        ToDo: Test
         """
         assert isinstance(self._obj, xr.DataArray | xr.Dataset)
         if "long_x" not in self._obj.coords:
@@ -326,6 +359,12 @@ class ARPESAccessorBase:
 
     @property
     def hv(self) -> float:
+        """Return the photon energy.
+
+        Returns: float
+            Photon energy in eV unit.
+
+        """
         assert isinstance(self._obj, xr.DataArray | xr.Dataset)
         if "hv" in self._obj.coords:
             value = float(self._obj.coords["hv"])
@@ -369,16 +408,48 @@ class ARPESAccessorBase:
 
     @property
     def is_differentiated(self) -> bool:
+        """Return True if the spectrum is differentiated data.
+
+        [TODO:description]
+
+        Returns: bool
+
+        ToDo: Test
+        """
         history = self.short_history()
         return "dn_along_axis" in history or "curvature" in history
 
     def transpose_to_front(self, dim: str) -> xr.DataArray | xr.Dataset:
+        """TODO:summary.
+
+        [TODO:description]
+
+        Args:
+            dim: [TODO:description]
+
+        Returns: (xr.DataArray| xr.Dataset)
+            [TODO:description]
+
+        ToDo: Test
+        """
         dims = list(self._obj.dims)
         assert dim in dims
         dims.remove(dim)
         return self._obj.transpose(*([dim, *dims]))
 
     def transpose_to_back(self, dim: str) -> xr.DataArray | xr.Dataset:
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Args:
+            dim: [TODO:description]
+
+        Returns:
+            [TODO:description]
+
+        ToDo: Test
+        """
         dims = list(self._obj.dims)
         assert dim in dims
         dims.remove(dim)
@@ -3331,6 +3402,9 @@ class ARPESFitToolsAccessor:
 
         Returns:
             A set of all the parameter names used in a curve fit.
+
+        Todo:
+            Test
         """
         collected_parameter_names: set[str] = set()
         assert isinstance(self._obj, xr.DataArray)
@@ -3384,7 +3458,7 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
         return self.spectrum.S.is_spatial
 
     @property
-    def spectrum(self) -> xr.DataArray | NoReturn:
+    def spectrum(self) -> xr.DataArray:
         """Isolates a single spectrum from a dataset.
 
         This is a convenience method which is typically used in startup for
@@ -3406,6 +3480,8 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
 
             Attributes from the parent dataset are assigned onto the selected
             array as a convenience.
+
+        ToDo: Need test
         """
         # spectrum = None  <== CHECK ME!
         if "spectrum" in self._obj.data_vars:

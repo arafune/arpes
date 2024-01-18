@@ -186,6 +186,14 @@ def popout(plotting_function: Callable) -> Callable:
 
     @wraps(plotting_function)
     def wrapped(*args: Incomplete, **kwargs: Incomplete):
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Args:
+            args: [TODO:description]
+            kwargs: [TODO:description]
+        """
         from IPython.core.getipython import get_ipython
         from IPython.core.interactiveshell import InteractiveShell
 
@@ -241,6 +249,17 @@ class DataArrayView:
             self.data = data
 
     def handle_select(self, event_click: MouseEvent, event_release: MouseEvent) -> None:
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Args:
+            event_click: [TODO:description]
+            event_release: [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
         dims = self.data.dims
 
         if self.n_dims == TWO_DIMENSION:
@@ -264,6 +283,16 @@ class DataArrayView:
 
     def attach_selector(self, on_select) -> None:
         # data should already have been set
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Args:
+            on_select ([TODO:type]): [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
         assert self.n_dims is not None
 
         self._inner_on_select = on_select
@@ -287,11 +316,32 @@ class DataArrayView:
 
     @property
     def data(self) -> xr.DataArray:
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Args:
+            self ([TODO:type]): [TODO:description]
+
+        Returns: (xr.DataArray)
+            [TODO:description]
+        """
         assert isinstance(self._data, xr.DataArray)
         return self._data
 
     @data.setter
     def data(self, new_data: xr.DataArray) -> None:
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Args:
+            self ([TODO:type]): [TODO:description]
+            new_data: [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
         if self._initialized:
             self._data = new_data
         else:
@@ -336,6 +386,16 @@ class DataArrayView:
 
     @property
     def mask_cmap(self) -> Colormap:
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Args:
+            self ([TODO:type]): [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
         if self._mask_cmap is None:
             self._mask_cmap = mpl.colormaps.get_cmap(self.mask_kwargs.pop("cmap", "Reds"))
             self._mask_cmap.set_bad("k", alpha=0)
@@ -344,10 +404,28 @@ class DataArrayView:
 
     @property
     def mask(self):  # noqa: ANN202
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Args:
+            self ([TODO:type]): [TODO:description]
+        """
         return self._mask
 
     @mask.setter
     def mask(self, new_mask) -> None:
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Args:
+            self ([TODO:type]): [TODO:description]
+            new_mask ([TODO:type]): [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
         if np.array(new_mask).shape != self.data.values.shape:
             # should be indices then
             mask = np.zeros(self.data.values.shape, dtype=bool)
@@ -390,6 +468,13 @@ class DataArrayView:
             )
 
     def autoscale(self) -> None:
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
         if self.n_dims == TWO_DIMENSION:
             self._axis_image.autoscale()
         else:
@@ -400,7 +485,16 @@ class DataArrayView:
 def fit_initializer(
     data: DataType,
 ) -> dict[str, Incomplete]:
-    """A tool for initializing lineshape fitting."""
+    """A tool for initializing lineshape fitting.
+
+    [TODO:description]
+
+    Args:
+        data: [TODO:description]
+
+    Returns:
+        [TODO:description]
+    """
     ctx = {}
     gs = gridspec.GridSpec(2, 2)
     ax_initial = plt.subplot(gs[0, 0])
@@ -422,6 +516,13 @@ def fit_initializer(
     initial_fit_view = DataArrayView(ax_fitted, ax_kwargs={"linestyle": "--", "color": "blue"})
 
     def compute_parameters() -> dict:
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
         renamed = [
             {f"{prefix}_{k}": v for k, v in m_setting.items()}
             for m_setting, prefix in zip(model_settings, prefixes, strict=True)
@@ -429,6 +530,16 @@ def fit_initializer(
         return dict(itertools.chain(*[list(d.items()) for d in renamed]))
 
     def on_add_new_peak(selection) -> None:
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Args:
+            selection ([TODO:type]): [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
         amplitude = data.sel(**selection).mean().item()
 
         selection = selection[data.dims[0]]
@@ -471,6 +582,16 @@ def fit_initializer(
     ctx["data"] = data
 
     def on_copy_settings(event: MouseEvent) -> None:
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Args:
+            event: [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
         pyperclip.copy(pprint.pformat(compute_parameters()))
 
     copy_settings_button = Button(ax_test, "Copy Settings")
@@ -498,6 +619,9 @@ def pca_explorer(
         initial_values: Which of the PCA components to use for the 2D embedding. Defaults to None.
         transpose_mask: Controls whether the PCA masks should be transposed before application.
                         Defaults to False.
+
+    Returns:
+        [TODO:description]
     """
     if initial_values is None:
         initial_values = [0, 1]
@@ -517,6 +641,13 @@ def pca_explorer(
     arpes.config.CONFIG["CURRENT_CONTEXT"] = context
 
     def compute_for_scatter() -> tuple[xr.DataArray | xr.Dataset, int]:
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Returns: (tuple[xr.DataArray | xr.Dataset, int]
+            [TODO:description]
+        """
         for_scatter = pca.copy(deep=True).isel(
             **dict([[component_dim, context["selected_components"]]]),
         )
@@ -548,6 +679,16 @@ def pca_explorer(
 
     def update_from_selection(ind: Incomplete) -> None:
         # Calculate the new data
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Args:
+            ind: [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
         if ind is None or not len(ind):
             context["selected_indices"] = []
             context["sum_data"] = data.stack(pca_dims=pca_dims).sum("pca_dims")
@@ -566,6 +707,17 @@ def pca_explorer(
         selected_view.data = context["sum_data"]
 
     def set_axes(component_x, component_y) -> None:
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Args:
+            component_x ([TODO:type]): [TODO:description]
+            component_y ([TODO:type]): [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
         ax_components.clear()
         context["selected_components"] = [component_x, component_y]
         for_scatter, size = compute_for_scatter()
@@ -584,6 +736,16 @@ def pca_explorer(
         update_from_selection([])
 
     def on_change_axes(event: MouseEvent) -> None:
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Args:
+            event: [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
         try:
             val_x = int(context["axis_X_input"].text)
             val_y = int(context["axis_Y_input"].text)
@@ -611,6 +773,16 @@ def pca_explorer(
     context["axis_Y_input"] = TextBox(ax_widget_3, "Axis Y:", initial=str(initial_values[1]))
 
     def on_select_summed(region) -> None:
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Args:
+            region ([TODO:type]): [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
         context["integration_region"] = region
         update_from_selection(context["selected_indices"])
 
@@ -630,6 +802,24 @@ def kspace_tool(
     coords: dict[str, NDArray[np.float_] | xr.DataArray] | None = None,
     **kwargs: Incomplete,
 ) -> CURRENTCONTEXT:
+    """[TODO:summary].
+
+    [TODO:description]
+
+    Args:
+        data: [TODO:description]
+        overplot_bz: [TODO:description]
+        bounds: [TODO:description]
+        resolution: [TODO:description]
+        coords: [TODO:description]
+        kwargs: [TODO:description]
+
+    Returns:
+        [TODO:description]
+
+    Raises:
+        ValueError: [TODO:description]
+    """
     """A utility for assigning coordinate offsets using a live momentum conversion."""
     original_data = data
     data_array = normalize_to_spectrum(data)
@@ -712,12 +902,39 @@ def kspace_tool(
         sliders[convert_dim].on_changed(update_kspace_plot)
 
     def compute_offsets() -> dict[str, float]:
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
         return {k: v.val for k, v in sliders.items()}
 
     def on_copy_settings(event: MouseEvent) -> None:
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Args:
+            event: [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
         pyperclip.copy(pprint.pformat(compute_offsets()))
 
     def apply_offsets(event: MouseEvent) -> None:
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Args:
+            event: [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
         for name, offset in compute_offsets().items():
             original_data.attrs[f"{name}_offset"] = offset
             try:
@@ -748,7 +965,17 @@ def kspace_tool(
 
 @popout
 def pick_rectangles(data: DataType, **kwargs: Incomplete) -> list[list[float]]:
-    """A utility allowing for selection of rectangular regions."""
+    """A utility allowing for selection of rectangular regions.
+
+    [TODO:description]
+
+    Args:
+        data: [TODO:description]
+        kwargs: [TODO:description]
+
+    Returns:
+        [TODO:description]
+    """
     ctx: CURRENTCONTEXT = {"points": [], "rect_next": False}
     arpes.config.CONFIG["CURRENT_CONTEXT"] = ctx
 
@@ -759,6 +986,16 @@ def pick_rectangles(data: DataType, **kwargs: Incomplete) -> list[list[float]]:
     ax = fig.gca()
 
     def onclick(event: MouseEvent) -> None:
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Args:
+            event: [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
         ctx["points"].append([event.xdata, event.ydata])
         if ctx["rect_next"]:
             p1, p2 = ctx["points"][-2], ctx["points"][-1]
@@ -789,6 +1026,17 @@ def pick_rectangles(data: DataType, **kwargs: Incomplete) -> list[list[float]]:
 
 @popout
 def pick_gamma(data: DataType, **kwargs: Incomplete) -> DataType:
+    """[TODO:summary].
+
+    [TODO:description]
+
+    Args:
+        data: [TODO:description]
+        kwargs: [TODO:description]
+
+    Returns:
+        [TODO:description]
+    """
     fig = plt.figure()
     data.S.plot(**kwargs)
 
@@ -797,6 +1045,16 @@ def pick_gamma(data: DataType, **kwargs: Incomplete) -> DataType:
     assert len(dims) == TWO_DIMENSION
 
     def onclick(event: MouseEvent) -> None:
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Args:
+            event: [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
         data.attrs["symmetry_points"] = {"G": {}}
 
         logger.info(event.x, event.xdata, event.y, event.ydata)
@@ -819,7 +1077,15 @@ def pick_points(
     data_or_str: str | pathlib.Path,
     **kwargs: Incomplete,
 ) -> list[float]:
-    """A utility allowing for selection of points in a dataset."""
+    """A utility allowing for selection of points in a dataset.
+
+    Args:
+        data_or_str: [TODO:description]
+        kwargs: [TODO:description]
+
+    Returns:
+        [TODO:description]
+    """
     using_image_data = isinstance(data_or_str, str | pathlib.Path)
 
     ctx: CURRENTCONTEXT = {"points": []}
@@ -850,6 +1116,12 @@ def pick_points(
     height = 0.03 * maxd / dy * (ylim[1] - ylim[0])
 
     def onclick(event: MouseEvent) -> None:
+        """[TODO:summary].
+
+        Args:
+            event: [TODO:description]
+
+        """
         ctx["points"].append([event.xdata, event.ydata])
 
         circ = mpl.patches.Ellipse(

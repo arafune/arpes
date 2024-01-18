@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import copy
 import itertools
-import os.path
 import warnings
+from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 import numpy as np
@@ -19,6 +19,7 @@ from arpes.utilities import rename_keys
 if TYPE_CHECKING:
     from _typeshed import Incomplete
 
+    from arpes.endstations import SCANDESC
 __all__ = ("HERSEndstation",)
 
 
@@ -32,8 +33,16 @@ class HERSEndstation(SynchrotronEndstation, HemisphericalEndstation):
     PRINCIPAL_NAME = "ALS-BL1001"
     ALIASES: ClassVar[list[str]] = ["ALS-BL1001", "HERS", "ALS-HERS", "BL1001"]
 
-    def load(self, scan_desc: dict | None = None, **kwargs: Incomplete):
-        """Loads HERS data from FITS files. Shares a lot in common with Lanzara group formats."""
+    def load(self, scan_desc: SCANDESC | None = None, **kwargs: Incomplete) -> xr.Dataset:
+        """Loads HERS data from FITS files. Shares a lot in common with Lanzara group formats.
+
+        Args:
+            scan_desc: [TODO:description]
+            kwargs: NOT Supported in this version.
+
+        Raises:
+            TypeError: [TODO:description]
+        """
         if scan_desc is None:
             warnings.warn(
                 "Attempting to make due without user associated scan_desc for the file",
@@ -41,13 +50,14 @@ class HERSEndstation(SynchrotronEndstation, HemisphericalEndstation):
             )
             msg = "Expected a dictionary of scan_desc with the location of the file"
             raise TypeError(msg)
+        if kwargs:
+            warnings.warn("Any kwargs is not supported in this function", stacklevel=2)
 
         scan_desc = dict(copy.deepcopy(scan_desc))
 
-        data_loc = scan_desc.get("path", scan_desc.get("file"))
-        data_loc = (
-            data_loc if data_loc.startswith("/") else os.path.join(arpes.config.DATA_PATH, data_loc)
-        )
+        data_loc = Path(scan_desc.get("path", scan_desc.get("file")))
+        if not data_loc.is_absolute:
+            data_loc = Path(arpes.config.DATA_PATH) / data_loc
 
         hdulist = fits.open(data_loc)
 

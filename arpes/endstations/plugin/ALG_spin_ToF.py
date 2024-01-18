@@ -4,7 +4,6 @@ from __future__ import annotations
 # pylint: disable=no-member
 import copy
 import itertools
-import os.path
 import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
@@ -84,16 +83,18 @@ class SpinToFEndstation(EndstationBase):
         Args:
             scan_desc: Dictionary with extra information to attach to the xr.Dataset, must contain
             the location of the file
+            kwargs: Not used in the current version.
 
         Returns:
             The loaded data.
         """
+        if kwargs:
+            warnings.warn("kwargs are not supported in this function.", stacklevel=2)
         scan_desc = copy.deepcopy(scan_desc)
 
-        data_loc = scan_desc.get("path", scan_desc.get("file"))
-        data_loc = (
-            data_loc if data_loc.startswith("/") else os.path.join(arpes.config.DATA_PATH, data_loc)
-        )
+        data_loc = Path(scan_desc.get("path", scan_desc.get("file")))
+        if not data_loc.is_absolute():
+            data_loc = Path(arpes.config.DATA_PATH) / data_loc
 
         f = h5py.File(data_loc, "r")
 
@@ -109,27 +110,32 @@ class SpinToFEndstation(EndstationBase):
 
         provenance_from_file(
             dataset_contents["raw"],
-            data_loc,
+            str(data_loc),
             {
                 "what": "Loaded Anton and Ping DLD dataset from HDF5.",
                 "by": "load_DLD",
             },
         )
-
         return xr.Dataset(dataset_contents, attrs=scan_desc)
 
-    def load_SToF_fits(self, scan_desc: dict | None = None, **kwargs: Incomplete):
+    def load_SToF_fits(self, scan_desc: dict | None = None, **kwargs: Incomplete) -> xr.Dataset:
         """Loads FITS convention SToF data.
 
         The data acquisition software is rather old, so this has to handle data formats
         from early versions of the E. Rotenberg software. Some similarities exist with the
         main chamber loading code.
+
+        Args:
+            scan_desc: [TODO:description]
+            kwargs: NOT supported in this version.
         """
+        if kwargs:
+            warnings.warn("kwargs are not supported in this function.", stacklevel=2)
         scan_desc = dict(copy.deepcopy(scan_desc))
 
-        data_loc = scan_desc.get("path", scan_desc.get("file"))
-        if not Path(data_loc).exists():
-            data_loc = os.path.join(arpes.config.DATA_PATH, data_loc)
+        data_loc = Path(scan_desc.get("path", scan_desc.get("file")))
+        if not data_loc.exists():
+            data_loc = Path(arpes.config.DATA_PATH) / data_loc
 
         hdulist = fits.open(data_loc)
 
@@ -264,7 +270,7 @@ class SpinToFEndstation(EndstationBase):
 
         provenance_from_file(
             dataset,
-            data_loc,
+            str(data_loc),
             {
                 "what": "Loaded Spin-ToF dataset",
                 "by": "load_DLD",
@@ -273,8 +279,16 @@ class SpinToFEndstation(EndstationBase):
 
         return dataset
 
-    def load(self, scan_desc: dict | None = None, **kwargs: Incomplete):
-        """Loads Lanzara group Spin-ToF data."""
+    def load(self, scan_desc: dict | None = None, **kwargs: Incomplete) -> xr.Dataset:
+        """Loads Lanzara group Spin-ToF data.
+
+        Args:
+            scan_desc: [TODO:description]
+            kwargs: Not supported in this version.
+
+        Raises:
+            TypeError: [TODO:description]
+        """
         if scan_desc is None:
             warnings.warn(
                 "Attempting to make due without user associated scan_desc for the file",
@@ -282,13 +296,14 @@ class SpinToFEndstation(EndstationBase):
             )
             msg = "Expected a dictionary of scan_desc with the location of the file"
             raise TypeError(msg)
-
+        if kwargs:
+            warnings.warn("kwargs are not supported.", stacklevel=2)
         data_loc = scan_desc.get("path", scan_desc.get("file"))
         scan_desc = {
             k: v for k, v in scan_desc.items() if not isinstance(v, float) or not np.isnan(v)
         }
 
-        if os.path.splitext(data_loc)[1] == ".fits":
+        if Path(data_loc).suffix == ".fits":
             return self.load_SToF_fits(scan_desc)
 
         return self.load_SToF_hdf5(scan_desc)

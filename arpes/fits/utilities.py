@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 __all__ = ("broadcast_model", "result_to_hints")
 
 
-TypeIterable = list[type] | tuple[type]
+TypeIterable = list[type] | tuple[type, ...]
 
 
 def result_to_hints(

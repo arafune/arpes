@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, NamedTuple
 
 import matplotlib.path
 import numpy as np
+from numpy.typing import ArrayLike
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -63,14 +64,33 @@ class SpecialPoint(NamedTuple):
     bz_coord: NDArray[np.float_] | list[float] | tuple[float, ...]
 
 
-def as_3d(points: NDArray[np.float_]) -> NDArray[np.float_]:
-    """Takes a 2D points list and zero pads to convert to a 3D representation."""
-    return np.concatenate([points, points[:, 0][:, None] * 0], axis=1)
+def as_3d(points_2d: ArrayLike, *, padding: bool = False) -> NDArray[np.float_]:
+    """Takes a 2D points list and zero pads to convert to a 3D representation.
+
+    Args:
+        points_2d (ArrayLike): ArrayLike object that represents the  2D-lattice.
+        padding (bool): if True, pad a placeholder unit vector that are zero.
+
+    Returns:
+        [TODO:description]
+    """
+    np_points = np.array(points_2d)
+    assert np_points.ndim == TWO_DIMENSIONAL
+    if padding:
+        return np.vstack(
+            (
+                np.concatenate([np_points, np_points[:, 0][:, None] * 0], axis=1),
+                [0, 0, 0],
+            ),
+        )
+    return np.concatenate([np_points, np_points[:, 0][:, None] * 0], axis=1)
 
 
-def as_2d(points: NDArray[np.float_]) -> NDArray[np.float_]:
+def as_2d(points_3d: ArrayLike) -> NDArray[np.float_]:
     """Takes a 3D points and converts to a 2D representation by dropping the z coordinates."""
-    return points[:, :2]
+    np_points = np.array(points_3d)
+    assert np_points.ndim == TWO_DIMENSIONAL + 1
+    return np_points[:, :2]
 
 
 def parse_single_path(path: str) -> list[SpecialPoint]:
@@ -84,7 +104,7 @@ def parse_single_path(path: str) -> list[SpecialPoint]:
     Returns:
         [TODO:description]
 
-    ToDo: Test
+    ToDo: Shold be removed.  Use ase.
     """
     # first tokenize
     tokens = [name for name in re.split(r"([A-Z][a-z0-9]*(?:\([0-9,\s]+\))?)", path) if name]

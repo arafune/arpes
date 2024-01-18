@@ -34,6 +34,16 @@ class Trace:
     start_time: float = field(default_factory=time.time_ns)
 
     def __call__(self, message: str) -> None:
+        """[TODO:summary]
+
+        [TODO:description]
+
+        Args:
+            message: [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
         if self.silent:
             return
 
@@ -61,6 +71,17 @@ def traceable(original: Callable) -> Callable:
 
     @functools.wraps(original)
     def _inner(*args: Incomplete, **kwargs: bool) -> Callable:
+        """[TODO:summary]
+
+        [TODO:description]
+
+        Args:
+            args: [TODO:description]
+            kwargs: [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
         trace = kwargs.get("trace", False)
 
         # this allows us to pass Trace instances into function calls

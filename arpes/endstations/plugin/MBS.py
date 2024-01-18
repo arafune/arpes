@@ -52,7 +52,7 @@ class MBSEndstation(HemisphericalEndstation):
     def resolve_frame_locations(
         self,
         scan_desc: SCANDESC | None = None,
-    ):
+    ) -> list[str | Path]:
         """There is only a single file for the MBS loader, so this is simple."""
         return [scan_desc.get("path", scan_desc.get("file"))]
 
@@ -60,7 +60,7 @@ class MBSEndstation(HemisphericalEndstation):
         self,
         data: xr.Dataset,
         scan_desc: SCANDESC | None = None,
-    ):
+    ) -> xr.Dataset:
         """Performs final data normalization.
 
         Because the MBS format does not come from a proper ARPES DAQ setup,
@@ -70,6 +70,7 @@ class MBSEndstation(HemisphericalEndstation):
         warnings.warn(
             "Loading from text format misses metadata. You will need to supply "
             "missing coordinates as appropriate.",
+            stacklevel=2,
         )
         data.attrs["psi"] = float(data.attrs["psi"])
         for s in data.S.spectra:

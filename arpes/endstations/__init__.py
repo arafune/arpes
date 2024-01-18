@@ -291,7 +291,7 @@ class EndstationBase:
         frames.sort(key=lambda x: x.coords[scan_coord])
         return xr.concat(frames, scan_coord)
 
-    def resolve_frame_locations(self, scan_desc: SCANDESC | None = None) -> list[Path] | NoReturn:
+    def resolve_frame_locations(self, scan_desc: SCANDESC | None = None) -> NoReturn:
         """Determine all files and frames associated to this piece of data.
 
         This always needs to be overridden in subclasses to handle data appropriately.
@@ -311,6 +311,8 @@ class EndstationBase:
 
         This always needs to be overridden in subclasses to handle data appropriately.
         """
+        if frame_path:
+            logger.debug(frame_path)
         if scan_desc:
             logger.debug(scan_desc)
         if kwargs:
@@ -530,7 +532,7 @@ class SESEndstation(EndstationBase):
     These files have special frame names, at least at the beamlines Conrad has encountered.
     """
 
-    def resolve_frame_locations(self, scan_desc: SCANDESC | None = None) -> list[Path] | NoReturn:
+    def resolve_frame_locations(self, scan_desc: SCANDESC | None = None) -> list[Path]:
         if scan_desc is None:
             msg = "Must pass dictionary as file scan_desc to all endstation loading code."
             raise ValueError(
@@ -742,7 +744,21 @@ class FITSEndstation(EndstationBase):
         "LMOTOR6": "alpha",
     }
 
-    def resolve_frame_locations(self, scan_desc: SCANDESC | None = None) -> list[Path] | NoReturn:
+    def resolve_frame_locations(self, scan_desc: SCANDESC | None = None) -> list[Path]:
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Args:
+            scan_desc: [TODO:description]
+
+        Returns:
+            [TODO:description]
+
+        Raises:
+            ValueError: [TODO:description]
+            RuntimeError: [TODO:description]
+        """
         if scan_desc is None:
             msg = "Must pass dictionary as file scan_desc to all endstation loading code."
             raise ValueError(

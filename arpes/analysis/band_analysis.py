@@ -92,7 +92,7 @@ def unpack_bands_from_fit(
     band_results: xr.DataArray,
     weights: tuple[float, float, float] | tuple[()] = (),
 ) -> list[arpes.models.band.Band]:
-    """This function is used to deconvolve the band identities of a series of overlapping bands.
+    """Deconvolve the band identities of a series of overlapping bands.
 
     Sometimes through the fitting process, or across a place in the band structure where there is a
     nodal point, the identities of the bands across sequential fits can get mixed up.
@@ -211,9 +211,9 @@ def unpack_bands_from_fit(
             """[TODO:summary].
 
             Args:
-                param_name ([TODO:type]): [TODO:description]
-                is_value ([TODO:type]): [TODO:description]
-                i: [TODO:description]
+                param_name (str): [TODO:description]
+                i (int): [TODO:description]
+                is_value (bool): [TODO:description]
             """
             values: NDArray[np.float_] = np.ndarray(
                 shape=identified_band_results.values.shape,
@@ -253,7 +253,7 @@ def unpack_bands_from_fit(
 @update_provenance("Fit bands from pattern")
 def fit_patterned_bands(
     arr: xr.DataArray,
-    band_set: Incomplete,
+    band_set: dict[Incomplete, Incomplete],
     fit_direction: str = "",
     stray: float | None = None,
     *,
@@ -279,7 +279,7 @@ def fit_patterned_bands(
     examining the band_set passed as a pattern.
 
     Args:
-        arr:
+        arr (xr.DataArray):
         band_set: dictionary with bands and points along the spectrum
         orientation: edc or mdc
         direction_normal
@@ -300,7 +300,7 @@ def fit_patterned_bands(
     def resolve_partial_bands_from_description(
         coord_dict: dict[str, Incomplete],
         name: str = "",
-        band=arpes.models.band.Band,
+        band: Incomplete = None,
         dims: list[str] | tuple[str, ...] | None = None,
         params: Incomplete = None,
         points: Incomplete = None,
@@ -413,7 +413,7 @@ def _is_between(x: float, y0: float, y1: float) -> bool:
     return y0 <= x <= y1
 
 
-def _instantiate_band(partial_band: dict[str, ...]) -> lf.Model:
+def _instantiate_band(partial_band: dict[str, Any]) -> lf.Model:
     phony_band = partial_band["band"](partial_band["name"])
     built = phony_band.fit_cls(prefix=partial_band["name"], missing="drop")
     for constraint_coord, params in partial_band["params"].items():
@@ -546,8 +546,17 @@ def fit_bands(
 
 
 def _interpolate_intersecting_fragments(coord, coord_index, points):
-    """Finds all consecutive pairs of points in `points`."""
-    assert len(points[0]) == 2  # only support 2D interpolation  # noqa: PLR2004
+    """Finds all consecutive pairs of points in `points`.
+
+    [TODO:description]
+
+    Args:
+        coord ([TODO:type]): [TODO:description]
+        coord_index ([TODO:type]): [TODO:description]
+        points ([TODO:type]): [TODO:description]
+    """
+    TWODIMENSION = 2
+    assert len(points[0]) == TWODIMENSION
 
     for point_low, point_high in pairwise(points):
         coord_other_index = 1 - coord_index
@@ -592,7 +601,7 @@ def _build_params(
     center: float,
     center_stray: float | None = None,
     marginal=None,
-):
+) -> dict[str, Any]:
     new_params = copy.deepcopy(old_params)
     new_params.update(
         {

@@ -15,6 +15,16 @@ class HotPool:
 
     @property
     def pool(self) -> pool.Pool:
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Args:
+            self ([TODO:type]): [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
         if self._pool is not None:
             return self._pool
 
@@ -22,6 +32,13 @@ class HotPool:
         return self._pool
 
     def __del__(self) -> None:
+        """[TODO:summary].
+
+        [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
         if self._pool is not None:
             self._pool.close()
             self._pool = None

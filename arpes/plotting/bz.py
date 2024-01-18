@@ -529,6 +529,7 @@ def annotate_special_paths(
     ax: Axes,
     paths: list[str] | str,
     cell: Sequence[Sequence[float]] | None = None,
+    transformations=None,
     offset: dict[str, float | Sequence[float]] | None = None,
     special_points: dict[str, NDArray[np.float_]] | None = None,
     labels=None,

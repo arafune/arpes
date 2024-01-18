@@ -34,7 +34,7 @@ def _nothing_to_array(x: xr.DataArray) -> xr.DataArray:
     return x
 
 
-def vector_diff(
+def _vector_diff(
     arr: NDArray[np.float_],
     delta: tuple[DELTA, DELTA],
     n: int = 1,
@@ -74,7 +74,7 @@ def vector_diff(
     assert isinstance(slice1, tuple)
     assert isinstance(slice2, tuple)
     if n > 1:
-        return vector_diff(arr[slice1] - arr[slice2], delta, n - 1)
+        return _vector_diff(arr[slice1] - arr[slice2], delta, n - 1)
 
     return arr[slice1] - arr[slice2]
 
@@ -122,14 +122,14 @@ def _gradient_modulus(data: DataType, *, delta: DELTA = 1) -> xr.DataArray:
     values: NDArray[np.float_] = spectrum.values
     gradient_vector = np.zeros(shape=(8, *values.shape))
 
-    gradient_vector[0, :-delta, :] = vector_diff(values, (delta, 0))
-    gradient_vector[1, :, :-delta] = vector_diff(values, (0, delta))
-    gradient_vector[2, delta:, :] = vector_diff(values, (-delta, 0))
-    gradient_vector[3, :, delta:] = vector_diff(values, (0, -delta))
-    gradient_vector[4, :-delta, :-delta] = vector_diff(values, (delta, delta))
-    gradient_vector[5, :-delta, delta:] = vector_diff(values, (delta, -delta))
-    gradient_vector[6, delta:, :-delta] = vector_diff(values, (-delta, delta))
-    gradient_vector[7, delta:, delta:] = vector_diff(values, (-delta, -delta))
+    gradient_vector[0, :-delta, :] = _vector_diff(values, (delta, 0))
+    gradient_vector[1, :, :-delta] = _vector_diff(values, (0, delta))
+    gradient_vector[2, delta:, :] = _vector_diff(values, (-delta, 0))
+    gradient_vector[4, :-delta, :-delta] = _vector_diff(values, (delta, delta))
+    gradient_vector[3, :, delta:] = _vector_diff(values, (0, -delta))
+    gradient_vector[5, :-delta, delta:] = _vector_diff(values, (delta, -delta))
+    gradient_vector[6, delta:, :-delta] = _vector_diff(values, (-delta, delta))
+    gradient_vector[7, delta:, delta:] = _vector_diff(values, (-delta, -delta))
 
     data_copy = spectrum.copy(deep=True)
     data_copy.values = np.linalg.norm(gradient_vector, axis=0)

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, ClassVar
 
 import h5py
 import numpy as np
+from numpy._typing import NDArray
 import xarray as xr
 
 from arpes.endstations import (
@@ -69,7 +70,7 @@ MBS_TREE = {
 }
 
 
-def parse_axis_name_from_long_name(name, keep_segments=1, separator="_"):
+def parse_axis_name_from_long_name(name: str, keep_segments: int = 1, separator: str = "_") -> str:
     segments = name.split("/")[-keep_segments:]
     segments = [s.replace("'", "") for s in segments]
     return separator.join(segments)
@@ -108,7 +109,12 @@ class ANTARESEndstation(HemisphericalEndstation, SynchrotronEndstation, SingleFi
 
     RENAME_KEYS: ClassVar[dict] = {}
 
-    def load_top_level_scan(self, group, scan_desc: SCANDESC | None = None, spectrum_index=None):
+    def load_top_level_scan(
+        self,
+        group,
+        scan_desc: SCANDESC | None = None,
+        spectrum_index=None,
+    ) -> xr.Dataset:
         """Reads a spectrum from the top level group in a NeXuS scan format."""
         dr = self.read_scan_data(group)
         bindings = read_data_attributes_from_tree(group, READ_TREE)
@@ -218,7 +224,7 @@ class ANTARESEndstation(HemisphericalEndstation, SynchrotronEndstation, SingleFi
 
             return item
 
-        def build_axis(low, high, step_size):
+        def build_axis(low, high, step_size) -> NDArray[np.float_]:
             # this might not work out to be the right thing to do, we will see
             low, high, step_size = get_first(low), get_first(high), get_first(step_size)
             est_n = int((high - low) / step_size)
@@ -265,7 +271,14 @@ class ANTARESEndstation(HemisphericalEndstation, SynchrotronEndstation, SingleFi
         """Loads a single ANTARES scan.
 
         Additionally, we try to deduplicate coordinates for multi-region scans here.
+
+        Args:
+            frame_path: [TODO:description]
+            scan_desc: [TODO:description]
+            kwargs: Not supported in this version.
         """
+        if kwargs:
+            warnings.warn("Any kwargs is not supported.", stacklevel=2)
         f = h5py.File(frame_path)
         top_level = list(f.keys())
 
@@ -290,9 +303,15 @@ class ANTARESEndstation(HemisphericalEndstation, SynchrotronEndstation, SingleFi
 
         This mostly consists of unwrapping bytestring attributes, and
         inserting missing default coordinates if they are not provided.
+
+        [TODO:description]
+
+        Args:
+            data: [TODO:description]
+            scan_desc (SCANDESC): [TODO:description]
         """
 
-        def check_attrs(s) -> None:
+        def check_attrs(s: xr.DataArray) -> None:
             for k in ["psi", "hv", "lens_mode", "pass_energy"]:
                 try:
                     if isinstance(
