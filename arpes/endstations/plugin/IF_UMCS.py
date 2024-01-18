@@ -1,9 +1,10 @@
 """Implements data loading for the IF UMCS Lublin ARPES group."""
 import xarray as xr
 import numpy as np
-from arpes.endstations import HemisphericalEndstation, SingleFileEndstation
+from pathlib import Path
+from arpes.endstations import SCANDESC, HemisphericalEndstation, SingleFileEndstation
 
-__all__ = ("IF_UMCS", )
+__all__ = ("IF_UMCS",)
 
 
 class IF_UMCS(HemisphericalEndstation, SingleFileEndstation):
@@ -36,7 +37,13 @@ class IF_UMCS(HemisphericalEndstation, SingleFileEndstation):
         # "probe_linewidth": 0.015,
     }
 
-    def load_single_frame(self, frame_path: str = None, scan_desc: dict = None, **kwargs):
+    def load_single_frame(
+            self,
+            frame_path: str | Path = "",
+            scan_desc: SCANDESC | None = None,
+            **kwargs: str | float,
+    ) -> xr.Dataset:
+
         """ Load a single frame exported as xy files from Specs Lab Prodigy.   """
 
         # Read two column data from xy text file
@@ -88,19 +95,20 @@ class IF_UMCS(HemisphericalEndstation, SingleFileEndstation):
             loaded_data = np.transpose(loaded_data, (2, 1, 0))
 
             dispersion_mode = True
-            if "HighAngularDispersion" in attrs["Analyzer Lens"]:
-                phi_max = 3 * np.pi / 180
-            elif "MediumAngularDispersion" in attrs["Analyzer Lens"]:
-                phi_max = 4 * np.pi / 180
-            elif "LowAngularDispersion" in attrs["Analyzer Lens"]:
-                phi_max = 7 * np.pi / 180
-            elif "WideAngleMode" in attrs["Analyzer Lens"]:
-                phi_max = 13 * np.pi / 180
-            elif "Magnification" in attrs["Analyzer Lens"]:
-                dispersion_mode = False
-                x_det = 9.5
+
+            lens_mapping = {
+                "HighAngularDispersion":    (np.deg2rad(3), True, None),
+                "MediumAngularDispersion":  (np.deg2rad(4), True, None),
+                "LowAngularDispersion":     (np.deg2rad(7), True, None),
+                "WideAngleMode":            (np.deg2rad(13), True, None),
+                "Magnification": (None, False, 9.5),
+            }
+            lens_mode = attrs["Analyzer Lens"].split(':')[0]
+
+            if lens_mode in lens_mapping:
+                phi_max, dispersion_mode, x_det = lens_mapping[lens_mode]
             else:
-                print("Analyzer Lens not known.")
+                raise ValueError("Unknown Analyzer Lens: {}".format(lens_mode))
 
             if dispersion_mode:
                 phi = np.linspace(-phi_max, phi_max, num_of_curves, dtype='float')
@@ -127,6 +135,7 @@ class IF_UMCS(HemisphericalEndstation, SingleFileEndstation):
                     dims[0]: kinetic_ef_energy,
                     dims[1]: x
                 }
+
         return xr.Dataset(
             {'spectrum': xr.DataArray(
                 loaded_data,
@@ -137,7 +146,10 @@ class IF_UMCS(HemisphericalEndstation, SingleFileEndstation):
             }
         )
 
-    def postprocess_final(self, data: xr.Dataset, scan_desc: dict = None):
+    def postprocess_final(self,
+                          data: xr.Dataset,
+                          scan_desc: SCANDESC | None = None,
+                          ) -> xr.Dataset:
         """Add missing parameters """
 
         defaults = {
