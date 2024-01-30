@@ -103,6 +103,9 @@ class ProdigyXY:
         num_of_polar = len(theta)
         self.intensity = en_counts[:, 1]
 
+        if num_of_polar == 0:
+            num_of_polar = 1
+
         if self.params["scan_mode"] == "SnapshotFAT":
             num_of_en = self.intensity.size // (num_of_curves * num_of_polar)
         energies = en_counts[0:num_of_en, 0]
@@ -123,7 +126,7 @@ class ProdigyXY:
         else:
             self.axis_info["d2"] = (-dim_max, dim_max, num_of_curves, "x")
         # third dimension - only theta polar angle is supported now
-        if num_of_polar > 0:
+        if num_of_polar > 1:
             # 3d map eV vs phi vs theta
             self.axis_info["d3"] = (float(np.deg2rad(theta[0])),
                                     float(np.deg2rad(theta[-1])),
