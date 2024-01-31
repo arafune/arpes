@@ -10,6 +10,7 @@ the experiment: ToF-ARPES analyzers are not perfect, their efficiency can vary d
 across the detector due to MCP burn-in, and electron aberration and focusing
 must be considered.
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -128,7 +129,10 @@ def resample(
     prior_adjustment: float = 1,
 ) -> xr.DataArray:
     resampled = xr.DataArray(
-        np.random.Generator.poisson(lam=data.values * prior_adjustment, size=data.values.shape),
+        np.random.Generator.poisson(
+            lam=data.values * prior_adjustment,
+            size=data.values.shape,
+        ),
         coords=data.coords,
         dims=data.dims,
         attrs=data.attrs,
@@ -153,7 +157,10 @@ def resample_true_counts(data: xr.DataArray) -> xr.DataArray:
         Poisson resampled data.
     """
     resampled = xr.DataArray(
-        np.random.Generator.poisson(lam=data.values, size=data.values.shape),
+        np.random.Generator.poisson(
+            lam=data.values,
+            size=data.values.shape,
+        ),
         coords=data.coords,
         dims=data.dims,
         attrs=data.attrs,

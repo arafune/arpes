@@ -104,7 +104,8 @@ class MPWorker:
         return self.params
 
     def __call__(
-        self, cut_coords: dict[str, slice],
+        self,
+        cut_coords: dict[str, slice],
     ) -> tuple[lf.model.ModelResult, Incomplete, dict[str, slice]]:
         """Performs a curve fit at the coordinates specified by `cut_coords`."""
         current_params = unwrap_params(self.fit_params, cut_coords)

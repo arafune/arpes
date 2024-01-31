@@ -1,4 +1,5 @@
 """Provides lightweight perf and tracing tools which also provide light logging functionality."""
+
 from __future__ import annotations
 
 import functools
@@ -16,7 +17,7 @@ __all__ = [
     "traceable",
 ]
 LOGLEVELS = (DEBUG, INFO)
-LOGLEVEL = LOGLEVELS[0]
+LOGLEVEL = LOGLEVELS[1]
 logger = getLogger(__name__)
 fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
 formatter = Formatter(fmt)

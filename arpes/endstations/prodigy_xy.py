@@ -7,6 +7,7 @@ Currently, this plugin supports following measurements:
 motorized polar angle phi.
 TODO: Add the support for azimuthal (chi) maps.
 """
+
 from __future__ import annotations
 
 import re
@@ -94,10 +95,10 @@ class ProdigyXY:
                 value = value.strip()
                 theta.append(float(value))
             elif count_curves <= num_of_curves and line.startswith("# NonEnergyOrdinate:"):
-                    key, _, value = line.partition(":")
-                    value = value.strip()
-                    non_energy_ordinate.append(float(value))
-                    count_curves += 1
+                key, _, value = line.partition(":")
+                value = value.strip()
+                non_energy_ordinate.append(float(value))
+                count_curves += 1
 
         mcp_width = -non_energy_ordinate[0] + non_energy_ordinate[-1]
         num_of_polar = len(theta)
@@ -115,10 +116,12 @@ class ProdigyXY:
         dim_max, dispersion_mode = _parse_lens(lens_mode, mcp_width)
 
         # first dimension is always energy
-        self.axis_info["d1"] = (float(kinetic_ef_energy[0]),
-                                float(kinetic_ef_energy[-1]),
-                                num_of_en,
-                                "eV")
+        self.axis_info["d1"] = (
+            float(kinetic_ef_energy[0]),
+            float(kinetic_ef_energy[-1]),
+            num_of_en,
+            "eV",
+        )
         # second dimension could be phi angle or x position on the sample in magnification modes
         if dispersion_mode:
             self.axis_info["d2"] = (-dim_max, dim_max, num_of_curves, "phi")
@@ -128,19 +131,28 @@ class ProdigyXY:
         # third dimension - only theta polar angle is supported now
         if num_of_polar > 1:
             # 3d map eV vs phi vs theta
-            self.axis_info["d3"] = (float(np.deg2rad(theta[0])),
-                                    float(np.deg2rad(theta[-1])),
-                                    num_of_polar, "theta")
-            self.intensity = self.intensity.reshape((num_of_polar,
-                                                     num_of_curves,
-                                                     num_of_en,
-                                                     ))
+            self.axis_info["d3"] = (
+                float(np.deg2rad(theta[0])),
+                float(np.deg2rad(theta[-1])),
+                num_of_polar,
+                "theta",
+            )
+            self.intensity = self.intensity.reshape(
+                (
+                    num_of_polar,
+                    num_of_curves,
+                    num_of_en,
+                ),
+            )
             self.intensity = np.transpose(self.intensity, (2, 1, 0))
         else:
             # single scan only eV vs phi
-            self.intensity = self.intensity.reshape((num_of_curves,
-                                                     num_of_en,
-                                                     ))
+            self.intensity = self.intensity.reshape(
+                (
+                    num_of_curves,
+                    num_of_en,
+                ),
+            )
             self.intensity = np.transpose(self.intensity, (1, 0))
 
     def to_data_array(self, **kwargs: str | float) -> xr.DataArray:
@@ -156,23 +168,26 @@ class ProdigyXY:
         coords: dict[str, NDArray[np.float_]] = {}
 
         # set energy axis
-        energies = np.linspace(self.axis_info["d1"][0],
-                               self.axis_info["d1"][1],
-                               self.axis_info["d1"][2],
-                               )
+        energies = np.linspace(
+            self.axis_info["d1"][0],
+            self.axis_info["d1"][1],
+            self.axis_info["d1"][2],
+        )
         coords[self.axis_info["d1"][3]] = energies
         # set second dimension phi or x
-        non_energy_ordinate = np.linspace(self.axis_info["d2"][0],
-                                          self.axis_info["d2"][1],
-                                          self.axis_info["d2"][2],
-                                          )
+        non_energy_ordinate = np.linspace(
+            self.axis_info["d2"][0],
+            self.axis_info["d2"][1],
+            self.axis_info["d2"][2],
+        )
         coords[self.axis_info["d2"][3]] = non_energy_ordinate
 
         if len(self.axis_info) == THETA_MAP_DIMENSION:
-            theta = np.linspace(self.axis_info["d3"][0],
-                                self.axis_info["d3"][1],
-                                self.axis_info["d3"][2],
-                                )
+            theta = np.linspace(
+                self.axis_info["d3"][0],
+                self.axis_info["d3"][1],
+                self.axis_info["d3"][2],
+            )
             coords[self.axis_info["d3"][3]] = theta
 
         dims = [v[3] for v in self.axis_info.values()]
@@ -189,8 +204,8 @@ class ProdigyXY:
 
 
 def load_xy(
-        path_to_file: Path | str,
-        **kwargs: str | float,
+    path_to_file: Path | str,
+    **kwargs: str | float,
 ) -> xr.DataArray | list[xr.DataArray]:
     """Load and parse the xy data.
 

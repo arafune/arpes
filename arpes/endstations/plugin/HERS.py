@@ -1,4 +1,5 @@
 """Preliminary implementation of data loading at the ALS HERS beamline."""
+
 from __future__ import annotations
 
 import itertools

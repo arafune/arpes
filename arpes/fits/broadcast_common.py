@@ -69,13 +69,13 @@ def apply_window(
 
     If there's no window, this acts as the identity function on the data.
     """
-    cut_data = data.sel(**cut_coords)
+    cut_data = data.sel(cut_coords)
     original_cut_data = cut_data
 
     if isinstance(window, xr.DataArray):
-        window_item = window.sel(**cut_coords).item()
+        window_item = window.sel(cut_coords).item()
         if isinstance(window_item, slice):
-            cut_data = cut_data.sel(**dict([[cut_data.dims[0], window_item]]))
+            cut_data = cut_data.sel(dict([[cut_data.dims[0], window_item]]))
 
     return cut_data, original_cut_data
 

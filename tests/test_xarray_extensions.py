@@ -22,6 +22,27 @@ def dataarray_cut() -> xr.DataArray:
 class TestforProperties:
     """Test class for Array Dataset properties."""
 
+    def test_find_spectrum_energy_edges(self, dataarray_cut: xr.DataArray) -> None:
+        """Test for find_spectrum_energy_edges."""
+        np.testing.assert_array_almost_equal(
+            np.array([-0.3883721, -0.14883726, 0.00465109]),
+            dataarray_cut.S.find_spectrum_energy_edges(),
+        )
+        np.testing.assert_array_equal(
+            np.array([16, 119, 185]),
+            dataarray_cut.S.find_spectrum_energy_edges(indices=True),
+        )
+
+    def test_transpose_front_back(self, dataarray_cut: xr.DataArray) -> None:
+        """Test for transpose_to_front/back."""
+        original_ndarray = dataarray_cut.values
+        transpose_to_front_ndarray = dataarray_cut.S.transpose_to_front("eV").values
+        transpose_to_back_ndarray = (
+            dataarray_cut.S.transpose_to_front("eV").S.transpose_to_back("eV").values
+        )
+        np.testing.assert_array_equal(original_ndarray, transpose_to_front_ndarray.T)
+        np.testing.assert_array_equal(original_ndarray, transpose_to_back_ndarray)
+
     def test_spectrometer_property(self, dataarray_cut: xr.DataArray) -> None:
         """Test for spectrometer property."""
         assert dataarray_cut.S.spectrometer == {

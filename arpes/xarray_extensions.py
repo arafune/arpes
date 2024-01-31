@@ -98,6 +98,7 @@ if TYPE_CHECKING:
         ANALYZERINFO,
         ANGLE,
         DAQINFO,
+        EXPERIMENTINFO,
         LIGHTSOURCEINFO,
         SAMPLEINFO,
         SCANINFO,
@@ -941,6 +942,16 @@ class ARPESAccessorBase:
         return 10
 
     def find_spectrum_energy_edges(self, *, indices: bool = False) -> NDArray[np.float_]:
+        """Return energy position corresponding to the spectrum edge.
+
+        Spectrum edge is infection point of the peak.
+
+        Args:
+            indices (bool): if True, return the pixel (index) number.
+
+        Returns: NDArray
+            Energy position
+        """
         assert isinstance(
             self._obj,
             xr.DataArray,
@@ -1445,15 +1456,15 @@ class ARPESAccessorBase:
         return scan_info
 
     @property
-    def experiment_info(self) -> dict[str, Any]:
+    def experiment_info(self) -> EXPERIMENTINFO:
         """Return experiment info property."""
-        experiment_info = {
+        experiment_info: EXPERIMENTINFO = {
             "temperature": self.temp,
-            "temperature_cryotip": self._obj.attrs.get("temperature_cryotip"),
+            "temperature_cryotip": self._obj.attrs.get("temperature_cryotip", np.nan),
             "pressure": self._obj.attrs.get("pressure", np.nan),
             "polarization": self.probe_polarization,
-            "photon_flux": self._obj.attrs.get("photon_flux"),
-            "photocurrent": self._obj.attrs.get("photocurrent"),
+            "photon_flux": self._obj.attrs.get("photon_flux", np.nan),
+            "photocurrent": self._obj.attrs.get("photocurrent", np.nan),
             "probe": self._obj.attrs.get("probe"),
             "probe_detail": self._obj.attrs.get("probe_detail"),
             "analyzer": self._obj.attrs.get("analyzer"),
@@ -2276,9 +2287,7 @@ class GenericAccessorTools:
         assert isinstance(self._obj, xr.DataArray | xr.Dataset)
         data = self._obj
         rounded = {
-            k: v.item()
-            for k, v in data.sel(**coords, method="nearest").coords.items()
-            if k in coords
+            k: v.item() for k, v in data.sel(coords, method="nearest").coords.items() if k in coords
         }
 
         if as_indices:
@@ -2333,7 +2342,7 @@ class GenericAccessorTools:
         assert len(self._obj.dims) == 1
 
         mask = np.logical_not(np.isnan(self._obj.values))
-        return self._obj.isel(**dict([[self._obj.dims[0], mask]]))
+        return self._obj.isel(dict([[self._obj.dims[0], mask]]))
 
     def shift_coords(
         self,
@@ -2831,7 +2840,7 @@ class GenericAccessorTools:
 
         return result
 
-    def shift_by(
+    def shift_by(  # noqa: PLR0913
         self,
         other: xr.DataArray | NDArray[np.float_],
         shift_axis: str = "",
@@ -2857,7 +2866,7 @@ class GenericAccessorTools:
             Shifted xr.DataArray
         """
         if not shift_axis:
-            msg = "shift_axis must be specified."
+            msg = "shift_by must take shift_axis argument."
             raise TypeError(msg)
         assert isinstance(self._obj, xr.DataArray)
         data = self._obj.copy(deep=True)

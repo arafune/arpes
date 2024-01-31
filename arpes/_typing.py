@@ -248,7 +248,7 @@ class SCANINFO(TypedDict, total=False):
     experimenter: str | None
     sample: str | None
     pressure: float
-    temperature: float
+    temperature: float | Literal["RT", "LT"]
     temperature_cryotip: float
 
 
@@ -277,6 +277,15 @@ class SPECTROMETER(ANALYZERINFO, COORDINATES, DAQINFO, total=False):
     mstar: float
     dof_type: dict[str, list[str]]
     length: float
+
+
+class EXPERIMENTINFO(
+    SCANINFO,
+    LIGHTSOURCEINFO,
+    ANALYZERINFO,
+    total=False,
+):
+    pass
 
 
 class ARPESAttrs(SPECTROMETER, LIGHTSOURCEINFO, SAMPLEINFO, total=False):

@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os.path
 import warnings
 from dataclasses import dataclass, field
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
@@ -263,11 +262,10 @@ def load_plugins() -> None:
 
     skip_modules = {"__pycache__", "__init__"}
     plugins_dir = Path(plugin.__file__).parent
-    modules = os.listdir(str(plugins_dir))
     modules = [
         str(m) if Path(plugins_dir / m).is_dir() else str(Path(m).stem)
-        for m in modules
-        if m not in skip_modules
+        for m in Path(plugins_dir).iterdir()
+        if m.stem not in skip_modules
     ]
     for module in modules:
         try:
