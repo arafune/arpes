@@ -1779,9 +1779,9 @@ class ARPESAccessorBase:
                     if isinstance(v, xr.DataArray):
                         min_hv = float(v.min())
                         max_hv = float(v.max())
-                        transformed_dict[k] = (
-                            f"<strong> from </strong> {min_hv} <strong>  to </strong> {max_hv} eV"
-                        )
+                        transformed_dict[
+                            k
+                        ] = f"<strong> from </strong> {min_hv} <strong>  to </strong> {max_hv} eV"
                     elif isinstance(v, float) and not np.isnan(v):
                         transformed_dict[k] = f"{v} eV"
             return transformed_dict
@@ -2987,7 +2987,7 @@ class SelectionToolAccessor:
         with contextlib.suppress(AttributeError):
             new_values = new_values.values
 
-        return data.isel({dim: 0}).S.with_values(new_values)
+        return data.isel({dim: 0}).S.rith_values(new_values)
 
     def last_exceeding(self, dim: str, value: float, *, relative: bool = False) -> xr.DataArray:
         return self.first_exceeding(dim, value, relative=relative, reverse=False)

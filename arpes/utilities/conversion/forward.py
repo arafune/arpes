@@ -21,7 +21,6 @@ import xarray as xr
 
 from arpes.analysis.filters import gaussian_filter_arr
 from arpes.provenance import update_provenance
-from arpes.trace import Trace, traceable
 from arpes.utilities import normalize_to_spectrum
 
 from .bounds_calculations import (
@@ -37,7 +36,7 @@ if TYPE_CHECKING:
 
     from numpy.typing import NDArray
 
-    from arpes._typing import DataType, KspaceCoords
+    from arpes._typing import KspaceCoords
 
 __all__ = (
     "convert_coordinates_to_kspace_forward",
@@ -49,7 +48,7 @@ __all__ = (
 
 
 LOGLEVELS = (DEBUG, INFO)
-LOGLEVEL = LOGLEVELS[1]
+LOGLEVEL = LOGLEVELS[0]
 logger = getLogger(__name__)
 fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
 formatter = Formatter(fmt)
@@ -62,7 +61,7 @@ logger.propagate = False
 
 
 def convert_coordinate_forward(
-    data: DataType,
+    data: xr.DataArray | xr.Dataset,
     coords: dict[str, float],
     **k_coords: Unpack[KspaceCoords],
 ) -> dict[str, float]:
@@ -140,7 +139,6 @@ def convert_coordinate_forward(
     return coords
 
 
-@traceable
 def convert_through_angular_pair(  # noqa: PLR0913
     data: xr.DataArray,
     first_point: dict[str, float],
@@ -149,7 +147,6 @@ def convert_through_angular_pair(  # noqa: PLR0913
     transverse_specification: dict[str, NDArray[np.float_]],
     *,
     relative_coords: bool = True,
-    trace: Trace | None = None,
     **k_coords: NDArray[np.float_],
 ) -> dict[str, float]:
     """Converts the lower dimensional ARPES cut passing through `first_point` and `second_point`.
@@ -182,7 +179,6 @@ def convert_through_angular_pair(  # noqa: PLR0913
           axis on the momentum converted data.
         relative_coords: Whether to give `cut_specification` relative to the momentum
           converted location specified in `coords`
-        trace: Flag controlling execution tracing
         k_coords: Passed as hints through to `convert_coordinate_forward`.
 
     Returns:
@@ -230,14 +226,14 @@ def convert_through_angular_pair(  # noqa: PLR0913
             parallel_axis = np.linspace(left_point, right_point, len(parallel_axis))
 
         # perform the conversion
-        trace("Performing final momentum conversion.") if trace else None
+        logger.debug("Performing final momentum conversion.")
         converted_data = convert_to_kspace(
             data,
             **transverse_specification,
             kx=parallel_axis,
         ).mean(list(transverse_specification.keys()))
 
-        trace("Annotating the requested point momentum values.") if trace else None
+        logger.debug("Annotating the requested point momentum values.")
         return converted_data.assign_attrs(
             {
                 "first_point_kx": k_first_point[parallel_dim],
@@ -247,15 +243,13 @@ def convert_through_angular_pair(  # noqa: PLR0913
         )
 
 
-@traceable
-def convert_through_angular_point(  # noqa: PLR0913
-    data: DataType,
+def convert_through_angular_point(
+    data: xr.DataArray,
     coords: dict[str, float],
     cut_specification: dict[str, NDArray[np.float_]],
     transverse_specification: dict[str, NDArray[np.float_]],
     *,
     relative_coords: bool = True,
-    trace: Trace | None = None,
     **k_coords: NDArray[np.float_],
 ) -> xr.DataArray:
     """Converts the lower dimensional ARPES cut passing through given angular `coords`.
@@ -274,7 +268,6 @@ def convert_through_angular_point(  # noqa: PLR0913
           axis on the momentum converted data.
         relative_coords: Whether to give `cut_specification` relative to the momentum
           converted location specified in `coords`
-        trace: Flag controlling execution tracing
         k_coords: Passed as hints through to `convert_coordinate_forward`.
 
     Returns:
@@ -308,7 +301,7 @@ def convert_through_angular_point(  # noqa: PLR0913
 
 @update_provenance("Forward convert coordinates")
 def convert_coordinates(
-    arr: DataType,
+    arr: xr.DataArray | xr.Dataset,
     *,
     collapse_parallel: bool = False,
 ) -> xr.Dataset:
@@ -392,7 +385,7 @@ def convert_coordinates(
 
 
 @update_provenance("Forward convert coordinates to momentum")
-def convert_coordinates_to_kspace_forward(arr: DataType) -> xr.Dataset:
+def convert_coordinates_to_kspace_forward(arr: xr.DataArray | xr.Dataset) -> xr.Dataset:
     """Forward converts all the individual coordinates of the data array.
 
     Args:

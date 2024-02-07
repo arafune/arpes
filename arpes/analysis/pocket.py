@@ -158,7 +158,7 @@ def radial_edcs_along_pocket(
 
 
 def curves_along_pocket(
-    data: DataType,
+    data: xr.DataArray | xr.Dataset,
     n_points: int = 0,
     inner_radius: float = 0.0,
     outer_radius: float = 5.0,
@@ -186,13 +186,14 @@ def curves_along_pocket(
         the coordinates of each slice around the pocket center.
     """
     data_array = normalize_to_spectrum(data)
+    assert isinstance(data_array, xr.DataArray)
     fermi_surface_dims = list(data_array.dims)
     if "eV" in fermi_surface_dims:
         fermi_surface_dims.remove("eV")
 
-    center_point = {k: v for k, v in kwargs.items() if k in data_array.dims}
+    center_point = {str(k): v for k, v in kwargs.items() if k in data_array.dims}
 
-    center_as_vector = np.array([center_point.get(d, 0) for d in fermi_surface_dims])
+    center_as_vector = np.array([center_point.get(dim_name, 0) for dim_name in fermi_surface_dims])
 
     if not n_points:
         # determine N approximately by the granularity
@@ -236,7 +237,7 @@ def curves_along_pocket(
 
 
 def find_kf_by_mdc(
-    slice_data: DataType,
+    slice_data: xr.Dataset | xr.DataArray,
     offset: float = 0,
     **kwargs: Incomplete,
 ) -> float:
@@ -270,7 +271,7 @@ def find_kf_by_mdc(
 
 @update_provenance("Collect EDCs around pocket edge")
 def edcs_along_pocket(
-    data: DataType,
+    data: xr.DataArray | xr.Dataset,
     kf_method: Callable[..., float] | None = None,
     select_radius: dict[str, float] | None = None,
     sel: dict[str, slice] | None = None,

@@ -6,6 +6,7 @@ times faster than the grid interpolator and together with other optimizations
 resulted in a 50x improvement in the momentum conversion time for
 ARPES data in PyARPES.
 """
+
 from __future__ import annotations
 
 import math
@@ -233,7 +234,11 @@ class Interpolator:
         self.data = self.data.astype(np.float64, copy=False)
 
     @classmethod
-    def from_arrays(cls: type, xyz: list[NDArray[np.float_]], data: NDArray[np.float_]):
+    def from_arrays(
+        cls: type[Interpolator],
+        xyz: list[NDArray[np.float_]],
+        data: NDArray[np.float_],
+    ) -> Interpolator:
         """Initializes the interpreter from a coordinate and data array.
 
         Args:

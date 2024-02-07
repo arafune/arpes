@@ -9,7 +9,7 @@ import numpy as np
 import xarray as xr
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Hashable
+    from collections.abc import Callable
 
     from _typeshed import Incomplete
     from numpy.typing import NDArray
@@ -115,12 +115,13 @@ class CoordinateConverter:
         put the conversion code here in the base class.
         """
         if args:
-            for arg in args:
-                msg = f"unused args is set in base.py/kspace_to_BE: {arg}"
-                logger.debug(msg)
+            pass
         return binding_energy
 
-    def conversion_for(self, dim: str) -> Callable[[NDArray[np.float_]], NDArray[np.float_]]:
+    def conversion_for(
+        self,
+        dim: str,
+    ) -> Callable[[NDArray[np.float_]], NDArray[np.float_]]:
         """Fetches the method responsible for calculating `dim` from momentum coordinates."""
         assert isinstance(dim, str)
 
@@ -136,7 +137,7 @@ class CoordinateConverter:
         self,
         resolution: dict[MOMENTUM, float] | None = None,
         bounds: dict[MOMENTUM, tuple[float, float]] | None = None,
-    ) -> dict[Hashable, NDArray[np.float_]]:
+    ) -> dict[str, NDArray[np.float_]]:
         """Calculates the coordinates which should be used in momentum space.
 
         Args:
@@ -151,6 +152,6 @@ class CoordinateConverter:
             resolution = {}
         if bounds is None:
             bounds = {}
-        coordinates: dict[Hashable, NDArray[np.float_]] = {}
+        coordinates: dict[str, NDArray[np.float_]] = {}
         coordinates["eV"] = self.arr.coords["eV"].values
         return coordinates

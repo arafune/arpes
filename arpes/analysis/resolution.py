@@ -34,7 +34,7 @@ def analyzer_resolution(
     slit_number: int | None = None,
     pass_energy: float = 10,
 ) -> float:
-    """Estimates analyzer resolution from slit dimensioons pass energy, and analyzer radius.
+    """Estimates analyzer resolution from slit dimensioons passgenergy, and analyzer radius.
 
     Args:
         analyzer_information: The analyzer specification containing slit information.
@@ -53,10 +53,10 @@ def analyzer_resolution(
 
 SPECTROMETER_INFORMATION = {"BL403": r8000([0.05, 0.1, 0.2, 0.2, 0.3, 0.3, 0.5, 0.5, 0.8])}
 
-MERLIN_BEAMLINE_RESOLUTION = {
+MERLIN_BEAMLINE_RESOLUTION: dict[str, dict[tuple[float, tuple[float, float]], float]] = {
     "LEG": {
         # 40 um by 40 um slits
-        (25, (40, 40)): 9.5,
+        (25.0, (40.0, 40.0)): 9.5,
         (30, (40, 40)): 13.5,
         (35, (40, 40)): 22.4,
     },
@@ -211,7 +211,10 @@ def energy_resolution_from_beamline_slit(
 
 def beamline_resolution_estimate(data: DataType, *, meV: bool = False) -> None:  # noqa: N803
     data_array = normalize_to_spectrum(data)
-    resolution_table = ENDSTATIONS_BEAMLINE_RESOLUTION[data_array.S.endstation]
+    resolution_table: dict[
+        str,
+        dict[tuple[float, tuple[float, float]], float],
+    ] = ENDSTATIONS_BEAMLINE_RESOLUTION[data_array.S.endstation]
 
     if isinstance(next(iter(resolution_table.keys())), str):
         # need grating information

@@ -1,4 +1,5 @@
 """Preliminary detector window corrections."""
+
 from __future__ import annotations
 
 import itertools
@@ -20,7 +21,7 @@ def build_edge_from_list(points: list[dict[str, float]]) -> xr.Dataset:
     arrays = {}
     for dim in dimensions:
         values = [p[dim] for p in points]
-        arrays[dim] = xr.DataArray(values, coords=dict([[dim, values]]), dims=[dim])
+        arrays[dim] = xr.DataArray(values, coords={dim: values}, dims=[dim])
     return xr.Dataset(arrays)
 
 

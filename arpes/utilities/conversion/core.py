@@ -28,7 +28,7 @@ import warnings
 from collections.abc import Callable, Hashable, Iterable, Mapping
 from itertools import pairwise
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
-from typing import TYPE_CHECKING, Literal, TypedDict
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import xarray as xr
@@ -56,7 +56,7 @@ __all__ = ["convert_to_kspace", "slice_along_path"]
 
 
 LOGLEVELS = (DEBUG, INFO)
-LOGLEVEL = LOGLEVELS[1]
+LOGLEVEL = LOGLEVELS[0]
 logger = getLogger(__name__)
 fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
 formatter = Formatter(fmt)
@@ -386,6 +386,7 @@ def convert_to_kspace(
     if bounds is None:
         bounds = {}
     coords.update(**kwargs)
+    assert isinstance(coords, dict)
     if isinstance(arr, xr.Dataset):
         msg = "Remember to use a DataArray not a Dataset, "
         msg += "attempting to extract spectrum and copy attributes."
@@ -454,7 +455,7 @@ def convert_to_kspace(
 
     converter = convert_cls(arr, converted_dims, calibration=calibration)
 
-    converted_coordinates: dict[Hashable, NDArray[np.float_]] = converter.get_coordinates(
+    converted_coordinates: dict[str, NDArray[np.float_]] = converter.get_coordinates(
         resolution=resolution,
         bounds=bounds,
     )
@@ -462,7 +463,7 @@ def convert_to_kspace(
         extra = set(coords.keys()).difference(converted_coordinates.keys())
         msg = f"Unexpected passed coordinates: {extra}"
         raise ValueError(msg)
-    converted_coordinates.update(coords)
+    converted_coordinates.update(**coords)  # type: ignore[misc]
     result = convert_coordinates(
         arr,
         converted_coordinates,
@@ -479,8 +480,11 @@ def convert_to_kspace(
 
 def convert_coordinates(
     arr: xr.DataArray,
-    target_coordinates: dict[Hashable, NDArray[np.float_]],
-    coordinate_transform: dict[Hashable, list[str] | dict[Hashable, NDArray[np.float_]]],
+    target_coordinates: dict[str, NDArray[np.float_]],
+    coordinate_transform: dict[
+        str,
+        list[str] | dict[str, Callable[..., NDArray[np.float_]]],
+    ],
     *,
     as_dataset: bool = False,
 ) -> xr.DataArray | xr.Dataset:
@@ -489,7 +493,7 @@ def convert_coordinates(
     Args:
         arr(xr.DataArray): ARPES data
         target_coordinates:(dict[Hashable, NDArray[np.float_]]):  coorrdinate for ...
-        coordinate_transform(dict[Hashable, list[str] | Callable]): coordinat for ...
+        coordinate_transform(dict[str, list[str] | Callable]): coordinat for ...
         as_dataset(bool): if True, return the data as the dataSet
 
     Returns:
@@ -515,16 +519,19 @@ def convert_coordinates(
     if "eV" not in arr.dims:
         with contextlib.suppress(ValueError):
             meshed_coordinates = [arr.S.lookup_offset_coord("eV"), *meshed_coordinates]
-    old_coord_names = [dim for dim in arr.dims if dim not in target_coordinates]
+    old_coord_names = [str(dim) for dim in arr.dims if dim not in target_coordinates]
     assert isinstance(coordinate_transform["transforms"], dict)
-    transforms: dict[Hashable, NDArray[np.float_]] = coordinate_transform["transforms"]
+    transforms: dict[str, Callable[..., NDArray[np.float_]]] = coordinate_transform["transforms"]
+    logger.debug(f"transforms is {transforms}")
     old_coordinate_transforms = [
-        transforms[dim] for dim in arr.dims if dim not in target_coordinates
+        transforms[str(dim)] for dim in arr.dims if dim not in target_coordinates
     ]
+    logger.debug(f"old_coordinate_transforms: {old_coordinate_transforms}")
 
     output_shape = [len(target_coordinates[d]) for d in coordinate_transform["dims"]]
 
     def compute_coordinate(transform: Callable[..., NDArray[np.float_]]) -> NDArray[np.float_]:
+        logger.debug(f"transform function is {transform}")
         return np.reshape(
             transform(*meshed_coordinates),
             output_shape,
@@ -533,7 +540,7 @@ def convert_coordinates(
 
     old_dimensions = [compute_coordinate(tr) for tr in old_coordinate_transforms]
 
-    ordered_transformations = [coordinate_transform["transforms"][dim] for dim in arr.dims]
+    ordered_transformations = [transforms[str(dim)] for dim in arr.dims]
     transformed_coordinates = [tr(*meshed_coordinates) for tr in ordered_transformations]
 
     if not isinstance(grid_interpolator, Interpolator):

@@ -1,4 +1,5 @@
 """Implements dynamic plugin selection when users do not specify the location for their data."""
+
 from __future__ import annotations
 
 import warnings
@@ -6,7 +7,6 @@ from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from typing import TYPE_CHECKING, ClassVar
 
 from arpes.endstations import EndstationBase, resolve_endstation
-from arpes.trace import Trace, traceable
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -59,12 +59,9 @@ class FallbackEndstation(EndstationBase):
     ]
 
     @classmethod
-    @traceable
     def determine_associated_loader(
         cls: type[FallbackEndstation],
         file: str | Path,
-        *,
-        trace: Trace | None = None,
     ) -> type[EndstationBase]:
         """Determines which loading plugin to use for a given piece of data.
 
@@ -76,7 +73,7 @@ class FallbackEndstation(EndstationBase):
         arpes.config.load_plugins()
 
         for location in cls.ATTEMPT_ORDER:
-            trace(f"{cls.__name__} is trying {location}")
+            logger.debug(f"{cls.__name__} is trying {location}")
 
             try:
                 endstation_cls = resolve_endstation(retry=False, location=location)
@@ -104,7 +101,6 @@ class FallbackEndstation(EndstationBase):
         associated_loader = FallbackEndstation.determine_associated_loader(
             file,
             scan_desc,
-            trace=self.trace,
         )
         try:
             file_number = int(file)

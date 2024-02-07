@@ -1,4 +1,5 @@
 """Very basic, generic time-resolved ARPES analysis tools."""
+
 from __future__ import annotations
 
 import warnings
@@ -19,7 +20,7 @@ __all__ = ("find_t0", "relative_change", "normalized_relative_change")
 
 @update_provenance("Normalized subtraction map")
 def normalized_relative_change(
-    data: DataType,
+    data: xr.DataArray | xr.Dataset,
     t0: float | None = None,
     buffer: float = 0.3,
     *,
@@ -41,9 +42,11 @@ def normalized_relative_change(
         The normalized data.
     """
     spectrum = normalize_to_spectrum(data)
+    assert isinstance(spectrum, xr.DataArray)
     if normalize_delay:
         spectrum = normalize_dim(spectrum, "delay")
     subtracted = relative_change(spectrum, t0, buffer, normalize_delay=False)
+    assert isinstance(subtracted, xr.DataArray)
     normalized: xr.DataArray = subtracted / spectrum
     normalized.values[np.isinf(normalized.values)] = 0
     normalized.values[np.isnan(normalized.values)] = 0
@@ -52,7 +55,7 @@ def normalized_relative_change(
 
 @update_provenance("Created simple subtraction map")
 def relative_change(
-    data: DataType,
+    data: xr.Dataset | xr.DataArray,
     t0: float | None = None,
     buffer: float = 0.3,
     *,
@@ -71,6 +74,7 @@ def relative_change(
         The normalized data.
     """
     spectrum = normalize_to_spectrum(data)
+    assert isinstance(spectrum, xr.DataArray)
     if normalize_delay:
         spectrum = normalize_dim(spectrum, "delay")
 

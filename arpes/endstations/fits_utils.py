@@ -5,7 +5,7 @@ from __future__ import annotations
 import functools
 import warnings
 from ast import literal_eval
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from typing import TYPE_CHECKING, Any, TypeAlias
 
@@ -13,7 +13,6 @@ import numpy as np
 from numpy import ndarray
 from numpy._typing import NDArray
 
-from arpes.trace import Trace, traceable
 from arpes.utilities.funcutils import collect_leaves, iter_leaves
 
 if TYPE_CHECKING:
@@ -53,19 +52,15 @@ CoordsDict: TypeAlias = dict[str, NDArray[np.float_]]
 Dimension = str
 
 
-@traceable
 def extract_coords(
     attrs: dict[str, Any],
     dimension_renamings: dict[str, str] | None = None,
-    trace: Trace | None = None,
 ) -> tuple[CoordsDict, list[Dimension], list[int]]:
     """Does the hard work of extracting coordinates from the scan description.
 
     Args:
         attrs:
         dimension_renamings:
-        trace: A Trace instance used for debugging. You can pass True or False (including to the
-               originating load_data call) to enable execution tracing.
 
     Returns:
         A tuple consisting of the coordinate arrays, the dimension names, and their shapes
@@ -75,7 +70,7 @@ def extract_coords(
 
     try:
         n_loops = attrs["LWLVLPN"]
-        trace(f"Found n_loops={n_loops}") if trace else None
+        logger.debug(f"Found n_loops={n_loops}")
     except KeyError:
         # Looks like no scan, this happens for instance in the SToF when you take a single
         # EDC
@@ -89,9 +84,9 @@ def extract_coords(
     scan_coords = {}
     for loop in range(n_loops):
         n_scan_dimensions = attrs[f"NMSBDV{loop}"]
-        trace(f"Considering loop {loop}, n_scan_dimensions={n_scan_dimensions}") if trace else None
+        logger.debug(f"Considering loop {loop}, n_scan_dimensions={n_scan_dimensions}")
         if attrs[f"SCNTYP{loop}"] == 0:
-            trace("Loop is computed") if trace else None
+            logger.debug("Loop is computed")
             for i in range(n_scan_dimensions):
                 name, start, end, n = (
                     attrs[f"NM_{loop}_{i}"],
@@ -118,13 +113,13 @@ def extract_coords(
             #
             # As of 2021, that is the perspective we are taking on the issue.
         elif n_scan_dimensions > 1:
-            trace("Loop is tabulated and is not region based") if trace else None
+            logger.debug("Loop is tabulated and is not region based")
             for i in range(n_scan_dimensions):
                 name = attrs[f"NM_{loop}_{i}"]
                 if f"ST_{loop}_{i}" not in attrs and f"PV_{loop}_{i}_0" in attrs:
                     msg = f"Determined that coordinate {name} "
                     msg += "is tabulated based on scan coordinate. Skipping!"
-                    trace(msg) if trace else None
+                    logger.debug(msg)
                     continue
                 start, end, n = (
                     float(attrs[f"ST_{loop}_{i}"]),
@@ -134,14 +129,14 @@ def extract_coords(
 
                 old_name = name
                 name = dimension_renamings.get(name, name)
-                trace(f"Renaming: {old_name} -> {name}") if trace else None
+                logger.debug(f"Renaming: {old_name} -> {name}")
 
                 scan_dimension.append(name)
                 scan_shape.append(n)
                 scan_coords[name] = np.linspace(start, end, n, endpoint=True)
 
         else:
-            trace("Loop is tabulated and is region based") if trace else None
+            logger("Loop is tabulated and is region based")
             name, n = (
                 attrs[f"NM_{loop}_0"],
                 attrs[f"NMPOS_{loop}"],
@@ -159,7 +154,7 @@ def extract_coords(
                 n_regions = 1
                 name = dimension_renamings.get(name, name)
 
-            trace(f"Loop (name, n_regions, size) = {(name, n_regions, n)}") if trace else None
+            logger.debug(f"Loop (name, n_regions, size) = {(name, n_regions, n)}")
 
             coord: NDArray[np.float_] = np.array(())
             for region in range(n_regions):
@@ -171,7 +166,7 @@ def extract_coords(
                 msg = f"Reading coordinate {region} from loop. (start, end, n)"
                 msg += f"{(start, end, n)}"
 
-                trace(msg) if trace else None
+                logger.debug(msg)
 
                 coord = np.concatenate((coord, np.linspace(start, end, n, endpoint=True)))
 
@@ -181,14 +176,12 @@ def extract_coords(
     return scan_coords, scan_dimension, scan_shape
 
 
-@traceable
 def find_clean_coords(
     hdu: BinTableHDU,
     attrs: dict[str, Any],
     spectra: Any = None,
     mode: str = "ToF",
     dimension_renamings: Any = None,
-    trace: Callable | None = None,
 ) -> tuple[CoordsDict, dict[str, list[Dimension]], dict[str, Any]]:
     """Determines the scan degrees of freedom, and reads coordinates.
 
@@ -224,18 +217,13 @@ def find_clean_coords(
     scan_coords, scan_dimension, scan_shape = extract_coords(
         attrs,
         dimension_renamings=dimension_renamings,
-        trace=trace,
     )
-    trace(f"Found scan shape {scan_shape} and dimensions {scan_dimension}.") if trace else None
+    logger.debug(f"Found scan shape {scan_shape} and dimensions {scan_dimension}.")
 
     # bit of a hack to deal with the internal motor used for the swept spectra being considered as
     # a cycle
     if "cycle" in scan_coords and len(scan_coords["cycle"]) > 200:
-        (
-            trace("Renaming swept scan coordinate to cycle and extracting. This is hack.")
-            if trace
-            else None
-        )
+        logger.debug("Renaming swept scan coordinate to cycle and extracting. This is hack.")
         idx = scan_dimension.index("cycle")
 
         real_data_for_cycle = hdu.data.columns["null"].array
@@ -258,14 +246,14 @@ def find_clean_coords(
         spectra = [spectra]
 
     for spectrum_key in spectra:
-        trace(f"Considering potential spectrum {spectrum_key}") if trace else None
+        logger.debug(f"Considering potential spectrum {spectrum_key}")
         skip_names = {
             lambda name: bool("beamview" in name or "IMAQdx" in name),
         }
 
         if spectrum_key is None:
             spectrum_key = hdu.columns.names[-1]
-            trace(f"Column name was None, using {spectrum_key}") if trace else None
+            logger.debug(f"Column name was None, using {spectrum_key}")
 
         if isinstance(spectrum_key, str):
             spectrum_key = hdu.columns.names.index(spectrum_key) + 1
@@ -279,7 +267,7 @@ def find_clean_coords(
             if (callable(skipped) and skipped(spectrum_name)) or skipped == spectrum_name:
                 should_skip = True
         if should_skip:
-            trace("Skipping column.") if trace else None
+            logger.debug("Skipping column.")
             continue
 
         try:
@@ -287,23 +275,17 @@ def find_clean_coords(
             delta = hdu.header[f"TDELT{spectrum_key}"]
             offset = literal_eval(offset) if isinstance(offset, str) else offset
             delta = literal_eval(delta) if isinstance(delta, str) else delta
-            trace(f"Determined (offset, delta): {(offset, delta)}.") if trace else None
+            logger.debug(f"Determined (offset, delta): {(offset, delta)}.")
 
             try:
                 shape = hdu.header[f"TDIM{spectrum_key}"]
                 shape = literal_eval(shape) if isinstance(shape, str) else shape
                 loaded_shape_from_header = True
-                (
-                    trace(f"Successfully loaded coordinate shape from header: {shape}")
-                    if trace
-                    else None
-                )
+                logger.debug(f"Successfully loaded coordinate shape from header: {shape}")
             except KeyError:
                 shape = hdu.data.field(spectrum_key - 1).shape
-                (
-                    trace(f"Could not use header to determine coordinate shape, using: {shape}")
-                    if trace
-                    else None
+                logger.debug(
+                    f"Could not use header to determine coordinate shape, using: {shape}",
                 )
 
             try:

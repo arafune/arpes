@@ -21,7 +21,6 @@ import arpes.constants
 from arpes.load_pxt import find_ses_files_associated, read_single_pxt
 from arpes.provenance import PROVENANCE, provenance_from_file
 from arpes.repair import negate_energy
-from arpes.trace import Trace, traceable
 from arpes.utilities.dict import rename_dataarray_attrs
 
 from .fits_utils import find_clean_coords
@@ -153,11 +152,8 @@ class EndstationBase:
 
     RENAME_KEYS: ClassVar[dict[str, str]] = {}
 
-    trace: Trace
-
     def __init__(self) -> None:
         """Initialize."""
-        self.trace = Trace(silent=True)
 
     @classmethod
     def is_file_accepted(
@@ -455,13 +451,13 @@ class EndstationBase:
         """
         if scan_desc is None:
             scan_desc = {}
-        self.trace("Resolving frame locations")
+        logger.debug("Resolving frame locations")
         resolved_frame_locations = self.resolve_frame_locations(scan_desc)
-        self.trace(f"resolved_frame_locations: {resolved_frame_locations}")
+        logger.debug(f"resolved_frame_locations: {resolved_frame_locations}")
         if not resolved_frame_locations:
             msg = "File not found"
             raise RuntimeError(msg)
-        self.trace(f"Found frames: {resolved_frame_locations}")
+        logger.debug(f"Found frames: {resolved_frame_locations}")
         frames = [
             self.load_single_frame(fpath, scan_desc, **kwargs) for fpath in resolved_frame_locations
         ]
@@ -794,7 +790,7 @@ class FITSEndstation(EndstationBase):
             for k, v in kwargs.items():
                 logger.debug(f"   key {k}: value{v}")
         # Use dimension labels instead of
-        self.trace("Opening FITS HDU list.")
+        logger.debug("Opening FITS HDU list.")
         hdulist = fits.open(frame_path, ignore_missing_end=True)
         primary_dataset_name = None
 
@@ -805,12 +801,12 @@ class FITSEndstation(EndstationBase):
             del hdulist[i].header["UN_0_0"]
             hdulist[i].header["UN_0_0"] = ""
             if "TTYPE2" in hdulist[i].header and hdulist[i].header["TTYPE2"] == "Delay":
-                self.trace("Using ps delay units. This looks like an ALG main chamber scan.")
+                logger.debug("Using ps delay units. This looks like an ALG main chamber scan.")
                 hdulist[i].header["TUNIT2"] = ""
                 del hdulist[i].header["TUNIT2"]
                 hdulist[i].header["TUNIT2"] = "ps"
 
-            self.trace(f"HDU {i}: Attempting to fix FITS errors.")
+            logger.debug(f"HDU {i}: Attempting to fix FITS errors.")
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 hdulist[i].verify("fix+warn")
@@ -836,9 +832,8 @@ class FITSEndstation(EndstationBase):
             hdu,
             attrs,
             mode="MC",
-            trace=self.trace,
         )
-        self.trace("Recovered coordinates from FITS file.")
+        logger.debug("Recovered coordinates from FITS file.")
 
         attrs = rename_keys(attrs, self.RENAME_KEYS)
         scan_desc = rename_keys(scan_desc, self.RENAME_KEYS)
@@ -987,7 +982,7 @@ class FITSEndstation(EndstationBase):
             k: np.deg2rad(c) if k in deg_to_rad_coords else c for k, c in built_coords.items()
         }
 
-        self.trace("Stitching together xr.Dataset.")
+        logger.debug("Stitching together xr.Dataset.")
         return xr.Dataset(
             {
                 f"safe-{name}" if name in data_var.coords else name: data_var
@@ -1086,12 +1081,10 @@ def resolve_endstation(*, retry: bool = True, **kwargs: Incomplete) -> type[Ends
         raise ValueError(msg) from key_error
 
 
-@traceable
 def load_scan(
     scan_desc: SCANDESC,
     *,
     retry: bool = True,
-    trace: Trace | None = None,
     **kwargs: Incomplete,
 ) -> xr.Dataset:
     """Resolves a plugin and delegates loading a scan.
@@ -1106,7 +1099,6 @@ def load_scan(
     Args:
         scan_desc: Information identifying the scan, typically a scan number or full path.
         retry: Used to attempt a reload of plugins and subsequent data load attempt.
-        trace: Trace instance for debugging, pass True or False (default) to control this parameter
         kwargs: pass to the endstation.load(scan_dec, **kwargs)
 
     Returns:
@@ -1118,7 +1110,7 @@ def load_scan(
     full_note.update(note)
 
     endstation_cls = resolve_endstation(retry=retry, **full_note)
-    trace(f"Using plugin class {endstation_cls}") if trace else None
+    logger.debug(f"Using plugin class {endstation_cls}")
 
     key: Literal["file", "path"] = "file" if "file" in scan_desc else "path"
 
@@ -1130,7 +1122,6 @@ def load_scan(
     except ValueError:
         pass
 
-    trace(f"Loading {scan_desc}") if trace else None
+    logger.debug(f"Loading {scan_desc}")
     endstation = endstation_cls()
-    endstation.trace = trace
-    return endstation.load(scan_desc, trace=trace, **kwargs)
+    return endstation.load(scan_desc, **kwargs)

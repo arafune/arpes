@@ -22,10 +22,12 @@ def normalize_to_spectrum(data: xr.DataArray | xr.Dataset | str) -> xr.DataArray
 
     if isinstance(data, xr.Dataset):
         if "up" in data.data_vars:
+            assert isinstance(data.up, xr.DataArray)
             return data.up
         return data.S.spectrum
     if isinstance(data, str):
         return normalize_to_spectrum(load_data(data))
+    assert isinstance(data, xr.DataArray)
     return data
 
 

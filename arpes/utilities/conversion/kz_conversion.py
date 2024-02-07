@@ -15,7 +15,7 @@ from .bounds_calculations import calculate_kp_kz_bounds
 from .calibration import DetectorCalibration
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Hashable
+    from collections.abc import Callable
 
     from _typeshed import Incomplete
     from numpy.typing import NDArray
@@ -88,7 +88,7 @@ class ConvertKpKz(CoordinateConverter):
         self,
         resolution: Incomplete | None = None,
         bounds: dict[MOMENTUM, tuple[float, float]] | None = None,
-    ) -> dict[Hashable, NDArray[np.float_]]:
+    ) -> dict[str, NDArray[np.float_]]:
         """Calculates appropriate coordinate bounds."""
         if resolution is None:
             resolution = {}
@@ -117,7 +117,7 @@ class ConvertKpKz(CoordinateConverter):
             resolution.get("kz", inferred_kz_res),
         )
         base_coords = {
-            k: v for k, v in self.arr.coords.items() if k not in ["eV", "phi", "hv"]
+            str(k): v for k, v in self.arr.coords.items() if k not in ["eV", "phi", "hv"]
         }  # should v.values ?
         coordinates.update(base_coords)
         return coordinates
@@ -192,14 +192,10 @@ class ConvertKpKz(CoordinateConverter):
             self.phi = self.calibration.correct_detector_angle(eV=binding_energy, phi=self.phi)
         return self.phi
 
-    def conversion_for(self, dim: str) -> Callable[..., NDArray[np.float_]]:
+    def conversion_for(self, dim: str) -> Callable[[NDArray[np.float_]], NDArray[np.float_]]:
         """Looks up the appropriate momentum-to-angle conversion routine by dimension name."""
-
-        def with_identity(*args: Incomplete) -> NDArray[np.float_]:
-            return self.identity_transform(dim, *args)
-
         return {
             "eV": self.kspace_to_BE,
             "hv": self.kspace_to_hv,
             "phi": self.kspace_to_phi,
-        }.get(dim, with_identity)
+        }.get(dim, self.identity_transform)

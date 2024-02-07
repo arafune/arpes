@@ -33,7 +33,6 @@ if TYPE_CHECKING:
 
     import lmfit
 
-    from arpes._typing import DataType
 
 __all__ = ("broadcast_model", "result_to_hints")
 
@@ -122,7 +121,7 @@ def parse_model(
 @update_provenance("Broadcast a curve fit along several dimensions")
 def broadcast_model(
     model_cls: type[lmfit.Model] | Sequence[type[lmfit.Model]] | str,
-    data: DataType,
+    data: xr.DataArray | xr.Dataset,
     broadcast_dims: str | list[str],
     params: dict | None = None,
     weights: xr.DataArray | None = None,
@@ -151,7 +150,6 @@ def broadcast_model(
           than 20 fits were requested
         progress: Whether to show a progress bar
         safe: Whether to mask out nan values
-        trace: Controls whether execution tracing/timestamping is used for performance investigation
 
     Returns:
         An `xr.Dataset` containing the curve fitting results. These are data vars:
@@ -169,6 +167,7 @@ def broadcast_model(
 
     logger.debug("Normalizing to spectrum")
     data_array = normalize_to_spectrum(data)
+    del data
     assert isinstance(data_array, xr.DataArray)
     cs = {}
     for dim in broadcast_dims:

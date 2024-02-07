@@ -6,6 +6,7 @@ This process consists of:
     2. Determining the range over the output axes which is required for the data
     3. Determining an appropriate resolution or binning in the output grid
 """
+
 from __future__ import annotations
 
 import itertools

@@ -98,8 +98,7 @@ def load_data(
             ),
             stacklevel=2,
         )
-    if kwargs.get("trace"):
-        logger.debug(f"contents of desc: {desc}")
+    logger.debug(f"contents of desc: {desc}")
     return load_scan(desc, **kwargs)
 
 
