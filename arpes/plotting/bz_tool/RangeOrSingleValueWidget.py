@@ -2,6 +2,7 @@
 
 (i.e. a half open range with ends equal).
 """
+
 from __future__ import annotations
 
 from functools import partial
@@ -11,7 +12,7 @@ from PySide6 import QtWidgets
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete
-    from PySide6.QtWidgets import QWidget
+    from PySide6.QtWidgets import QGridLayout, QWidget
 
     from . import BZTool
 
@@ -38,7 +39,7 @@ class RangeOrSingleValueWidget(QtWidgets.QGroupBox):
         """
         super().__init__(title=coordinate_name, parent=parent)
 
-        self.layout = QtWidgets.QGridLayout(self)
+        self.layout: QGridLayout = QtWidgets.QGridLayout(self)
 
         self.label = QtWidgets.QLabel("Value: ")
         self.spinbox = QtWidgets.QSpinBox()

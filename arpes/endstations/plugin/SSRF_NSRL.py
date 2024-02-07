@@ -19,6 +19,7 @@ There are the subfiles in '.zip' file (XXXX: sequence name):
     5.  viewer_settings.ini: plugin
 
 """
+
 from __future__ import annotations
 
 import io
@@ -44,8 +45,6 @@ __all__ = ("SSRFEndstation", "NSRLEndstation")
 
 def determine_dim(viewer_ini, dim_name):
     """[TODO:summary].
-
-    [TODO:description]
 
     Args:
         viewer_ini ([TODO:type]): [TODO:description]
@@ -75,12 +74,15 @@ class DA30_L(SingleFileEndstation):
     _TOLERATED_EXTENSIONS: ClassVar[set[str]] = {".zip", ".pxt"}
 
     ENSURE_COORDS_EXIST: ClassVar[list[str]] = [
+        "x",
+        "y",
+        "z",
+        "theta",
+        "beta",
+        "chi",
         "hv",
         "alpha",
         "psi",
-        "theta",
-        "beta",
-        "chi",  # convert kspcae need them
     ]
 
     RENAME_KEYS: ClassVar[dict[str, float | str]] = {

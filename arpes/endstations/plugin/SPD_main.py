@@ -51,7 +51,7 @@ class SPDEndstation(HemisphericalEndstation, SingleFileEndstation):
         "DetectorVoltage [V]": "mcp_voltage",
         "Detector Voltage": "mcp_voltage",
         "Spectrum ID": "id",
-        "DwellTime": "dwelltime",
+        "DwellTime": "dwell_time",
         "Created Date (UTC)": "created_date_utc",
         "Created by": "created_by",
         "Scan Mode": "scan_mode",

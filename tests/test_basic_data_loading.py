@@ -132,7 +132,7 @@ class TestMetadata:
                     },
                     "sample_info": {
                         "id": None,
-                        "name": None,
+                        "sample_name": None,
                         "source": None,
                         "reflectivity": np.nan,
                     },
@@ -221,7 +221,7 @@ class TestMetadata:
                     },
                     "sample_info": {
                         "id": None,
-                        "name": "LaSb_3",
+                        "sample_name": "LaSb_3",
                         "source": None,
                         "reflectivity": np.nan,
                     },
@@ -312,7 +312,7 @@ class TestMetadata:
                     },
                     "sample_info": {
                         "id": None,
-                        "name": None,
+                        "sample_name": None,
                         "source": None,
                         "reflectivity": np.nan,
                     },

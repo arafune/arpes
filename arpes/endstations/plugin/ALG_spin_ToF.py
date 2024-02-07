@@ -15,7 +15,7 @@ from astropy.io import fits
 
 import arpes.config
 from arpes.endstations import SCANDESC, EndstationBase, find_clean_coords
-from arpes.provenance import provenance_from_file
+from arpes.provenance import PROVENANCE, provenance_from_file
 from arpes.utilities import rename_keys
 
 __all__ = ("SpinToFEndstation",)
@@ -102,15 +102,12 @@ class SpinToFEndstation(EndstationBase):
             dims=("x_pixels", "t_pixels"),
             attrs=f["/PRIMARY"].attrs.items(),
         )
+        pronance_context: PROVENANCE = {
+            "what": "Loaded Anton and Ping DLD dataset from HDF5.",
+            "by": "load_DLD",
+        }
 
-        provenance_from_file(
-            dataset_contents["raw"],
-            str(data_loc),
-            {
-                "what": "Loaded Anton and Ping DLD dataset from HDF5.",
-                "by": "load_DLD",
-            },
-        )
+        provenance_from_file(dataset_contents["raw"], str(data_loc), pronance_context)
         return xr.Dataset(dataset_contents, attrs=scan_desc)
 
     def load_SToF_fits(self, scan_desc: SCANDESC) -> xr.Dataset:
@@ -257,15 +254,12 @@ class SpinToFEndstation(EndstationBase):
         for data_arr in dataset.data_vars.values():
             if "time" in data_arr.dims:
                 data_arr.data = data_arr.sel(time=slice(None, None, -1)).data
+        provenance_context: PROVENANCE = {
+            "what": "Loaded Spin-ToF dataset",
+            "by": "load_DLD",
+        }
 
-        provenance_from_file(
-            dataset,
-            str(data_loc),
-            {
-                "what": "Loaded Spin-ToF dataset",
-                "by": "load_DLD",
-            },
-        )
+        provenance_from_file(dataset, str(data_loc), provenance_context)
 
         return dataset
 

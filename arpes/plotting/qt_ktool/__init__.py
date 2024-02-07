@@ -1,4 +1,5 @@
 """A live momentun conversion tool, useful for finding and setting offsets."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -15,10 +16,12 @@ from arpes.utilities.ui import CollectUI, horizontal, label, numeric_input, tabs
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
+    import xarray as xr
     from _typeshed import Incomplete
-    from PySide6.QtWidgets import QLayout
+    from matplotlib.colors import Colormap
+    from PySide6.QtWidgets import QGridLayout
 
-    from arpes._typing import ANGLE, DataType
+    from arpes._typing import ANGLE
 
 __all__ = (
     "KTool",
@@ -41,7 +44,7 @@ class KTool(SimpleApp):
     WINDOW_SIZE = (5, 6)
     WINDOW_CLS = SimpleWindow
 
-    DEFAULT_COLORMAP = "viridis"
+    DEFAULT_COLORMAP: Colormap | str = "viridis"
 
     def __init__(
         self,
@@ -64,9 +67,9 @@ class KTool(SimpleApp):
             self.segments_x, self.segments_y = None, None
 
         self.conversion_kwargs = kwargs
-        self.data = None
-        self.content_layout: QLayout
-        self.main_layout: QLayout
+        self.data: xr.DataArray
+        self.content_layout: QGridLayout
+        self.main_layout: QGridLayout
         self.apply_offsets = apply_offsets
 
     def configure_image_widgets(self) -> None:
@@ -82,7 +85,7 @@ class KTool(SimpleApp):
         if "hv" in self.data.dims:
             convert_dims += ["hv"]
 
-        ui = {}
+        ui: dict[str, Incomplete] = {}
         with CollectUI(ui):
             controls = tabs(
                 [
@@ -96,7 +99,7 @@ class KTool(SimpleApp):
                                         numeric_input(
                                             self.data.attrs.get(f"{p}_offset", 0.0),
                                             input_type=float,
-                                            id=f"control-{p}",
+                                            id_=f"control-{p}",
                                         ),
                                     )
                                     for p in pair
@@ -108,9 +111,9 @@ class KTool(SimpleApp):
                 ],
             )
 
-        def update_dimension_name(dim_name: str) -> Callable[[str | float], None]:
+        def update_dimension_name(dim_name: ANGLE) -> Callable[[str | float], None]:
             def updater(value: str | float) -> None:
-                self.update_offsets(dict([[dim_name, float(value)]]))
+                self.update_offsets({dim_name: float(value)})
 
             return updater
 
@@ -129,7 +132,7 @@ class KTool(SimpleApp):
             self.original_data.S.apply_offsets(offsets)
         self.update_data()
 
-    def layout(self) -> QLayout:
+    def layout(self) -> QGridLayout:
         """Initialize the layout components."""
         self.main_layout = QtWidgets.QGridLayout()
         self.content_layout = QtWidgets.QGridLayout()
@@ -167,14 +170,14 @@ class KTool(SimpleApp):
         """Initialize application state after app show. Just redraw."""
         self.update_data()
 
-    def set_data(self, data: DataType) -> None:
+    def set_data(self, data: xr.DataArray) -> None:
         """Sets the current data to a new value and resets binning.
 
         Above what happens in QtTool, we try to extract a Fermi surface, and
         repopulate the conversion.
         """
         original_data = normalize_to_spectrum(data)
-        self.original_data = original_data
+        self.original_data: xr.DataArray = original_data
 
         if len(data.dims) > 2:  # noqa: PLR2004
             assert "eV" in original_data.dims
@@ -206,9 +209,10 @@ class KTool(SimpleApp):
                 }
 
 
-def ktool(data: DataType, **kwargs: Incomplete) -> KTool:
+def ktool(data: xr.DataArray | xr.Dataset, **kwargs: Incomplete) -> KTool:
     """Start the momentum conversion tool."""
+    data_arr = normalize_to_spectrum(data)
     tool = KTool(**kwargs)
-    tool.set_data(data)
+    tool.set_data(data_arr)
     tool.start()
     return tool

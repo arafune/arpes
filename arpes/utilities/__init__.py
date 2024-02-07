@@ -1,11 +1,12 @@
 """Provides general utility methods that get used during the course of analysis."""
+
 from __future__ import annotations
 
 import itertools
 from operator import itemgetter
 from typing import TYPE_CHECKING, Any
 
-from .collections import MappableDict, deep_equals, deep_update
+from .collections import deep_equals, deep_update
 from .combine import concat_along_phi
 from .dict import (
     clean_attribute_names,

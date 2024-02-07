@@ -1,8 +1,9 @@
 """Provides some simple analysis tools in Qt format. Useful for selecting regions and points."""
+
 from __future__ import annotations
 
 import contextlib
-from typing import TYPE_CHECKING, NoReturn
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pyqtgraph as pg
@@ -16,12 +17,13 @@ from arpes.utilities.qt import BasicHelpDialog, SimpleApp, SimpleWindow, qt_info
 from arpes.utilities.ui import KeyBinding
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Sequence
+    from collections.abc import Callable, Hashable, Sequence
 
+    import xarray as xr
     from _typeshed import Incomplete
     from numpy.typing import NDArray
     from pyqtgraph import Point
-    from PySide6.QtWidgets import QLayout
+    from PySide6.QtWidgets import QGridLayout
 
     from arpes._typing import DataType
 
@@ -46,10 +48,10 @@ class CoreToolWindow(SimpleWindow):
             KeyBinding("Transpose - Swap Front Axes", [QtCore.Qt.Key.Key_Y], self.transpose_swap),
         ]
 
-    def transpose_roll(self, event) -> None:
+    def transpose_roll(self) -> None:
         self.app.transpose_to_front(-1)
 
-    def transpose_swap(self, event) -> None:
+    def transpose_swap(self) -> None:
         self.app.transpose_to_front(1)
 
 
@@ -64,23 +66,20 @@ class CoreTool(SimpleApp):
     SUMMED = True
 
     def __init__(self) -> None:
-        self.data = None
+        self.data: xr.DataArray
         self.roi: pg.PolyLineROI
-        self.main_layout = QtWidgets.QGridLayout()
-        self.content_layout = QtWidgets.QGridLayout()
+        self.main_layout: QGridLayout = QtWidgets.QGridLayout()
+        self.content_layout: QGridLayout = QtWidgets.QGridLayout()
 
         super().__init__()
 
-    def layout(self) -> QLayout:
+    def layout(self) -> QGridLayout:
         return self.main_layout
 
-    def set_data(self, data: DataType) -> None:
+    def set_data(self, data: xr.DataArray | xr.Dataset) -> None:
         self.data = normalize_to_spectrum(data)
 
-    def transpose_to_front(self, dim: str | int) -> None:
-        if not isinstance(dim, str):
-            dim = self.data.dims[dim]
-
+    def transpose_to_front(self, dim: Hashable) -> None:
         order = list(self.data.dims)
         order.remove(dim)
         order = [dim, *order]
@@ -129,8 +128,7 @@ class CoreTool(SimpleApp):
 
         points = []
         for xi, yi in zip(x, y, strict=True):
-            points.append(dict([[nx, xi], [ny, yi]]))
-
+            points.append({nx: xi, ny: yi})
         return points
 
     @property
@@ -153,11 +151,11 @@ class CoreTool(SimpleApp):
                 self.data.fillna(0),
                 xvals=self.data.coords[self.data.dims[0]].values,
             )
-            self.views["P"].setImage(self.data.mean(self.data.dims[0]))
+            self.views["P"].setImage(self.data.mean(str(self.data.dims[0])))
         else:
             self.views["xy"].setImage(self.data.fillna(0))
             if self.SUMMED:
-                self.views["P"].plot(self.data.isel(**dict([[self.data.dims[0], 0]])) * 0)
+                self.views["P"].plot(self.data.isel({self.data.dims[0]: 0}) * 0)
             else:
                 self.views["P"].setImage(self.data)
 
@@ -243,7 +241,7 @@ class MaskTool(CoreTool):
 
         main_data = self.data
         if len(main_data.dims) > 2:  # noqa: PLR2004
-            main_data = main_data.isel(**dict([[main_data.dims[0], self.views["xy"].currentIndex]]))
+            main_data = main_data.isel({main_data.dims[0]: self.views["xy"].currentIndex})
 
         if len(mask["polys"][0]) > 2:  # noqa: PLR2004
             self.views["P"].setImage(analysis.apply_mask(main_data, mask, replace=0, invert=True))
@@ -267,11 +265,11 @@ class BackgroundTool(CoreTool):
 
         main_data = self.data
         if len(main_data.dims) > 2:  # noqa: PLR2004
-            main_data = main_data.isel(**dict([[main_data.dims[0], self.views["xy"].currentIndex]]))
+            main_data = main_data.isel({main_data.dims[0]: self.views["xy"].currentIndex})
 
         bkg = 0
         if self.mode == "slice":
-            bkg = main_data.sel(**{k: v for k, v in slices.items() if k == dims[0]}).mean(dims[0])
+            bkg = main_data.sel({k: v for k, v in slices.items() if k == dims[0]}).mean(dims[0])
 
         self.views["P"].setImage(main_data - bkg)
 

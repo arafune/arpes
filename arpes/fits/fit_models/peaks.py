@@ -1,7 +1,8 @@
 """Includes multi-peak model definitions."""
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Unpack
 
 import lmfit as lf
 from lmfit.models import update_param_vals
@@ -12,10 +13,9 @@ from .x_model_mixin import XModelMixin
 if TYPE_CHECKING:
     import numpy as np
     import xarray as xr
-    from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import NAN_POLICY
+    from arpes.fits import ModelARGS
 
 __all__ = ["TwoGaussianModel", "TwoLorModel"]
 
@@ -45,20 +45,11 @@ class TwoGaussianModel(XModelMixin):
             + affine_bkg(x, lin_bkg, const_bkg)
         )
 
-    def __init__(
-        self,
-        independent_vars: list[str] | None = None,
-        prefix: str = "",
-        nan_policy: NAN_POLICY = "raise",
-        **kwargs: Incomplete,
-    ) -> None:
+    def __init__(self, **kwargs: Unpack[ModelARGS]) -> None:
         """Sets physical constraints for peak width and other parameters."""
-        if independent_vars is None:
-            independent_vars = ["x"]
-        assert isinstance(independent_vars, list)
-        kwargs.update(
-            {"prefix": prefix, "nan_policy": nan_policy, "independent_vars": independent_vars},
-        )
+        kwargs.setdefault("prefix", "")
+        kwargs.setdefault("independent_vars", ["x"])
+        kwargs.setdefault("nan_policy", "raise")
         super().__init__(self.twogaussian, **kwargs)
 
         self.set_param_hint("amp", min=0.0)
@@ -71,7 +62,7 @@ class TwoGaussianModel(XModelMixin):
     def guess(
         self,
         data: xr.DataArray | NDArray[np.float_],
-        **kwargs: Incomplete,
+        **kwargs: float,
     ) -> lf.Parameters:
         """Very simple heuristics for peak location."""
         pars = self.make_params()
@@ -97,20 +88,11 @@ class TwoLorModel(XModelMixin):
     **This is typically not necessary, as you can use the + operator on the Model instances.**
     """
 
-    def __init__(
-        self,
-        independent_vars: list[str] | None = None,
-        prefix: str = "",
-        nan_policy: NAN_POLICY = "raise",
-        **kwargs: Incomplete,
-    ) -> None:
+    def __init__(self, **kwargs: Unpack[ModelARGS]) -> None:
         """Sets physical constraints for peak width and other parameters."""
-        if independent_vars is None:
-            independent_vars = ["x"]
-        assert isinstance(independent_vars, list)
-        kwargs.update(
-            {"prefix": prefix, "nan_policy": nan_policy, "independent_vars": independent_vars},
-        )
+        kwargs.setdefault("prefix", "")
+        kwargs.setdefault("independent_vars", ["x"])
+        kwargs.setdefault("nan_policy", "raise")
         super().__init__(twolorentzian, **kwargs)
 
         self.set_param_hint("amp", min=0.0)
@@ -123,7 +105,7 @@ class TwoLorModel(XModelMixin):
     def guess(
         self,
         data: xr.DataArray | NDArray[np.float_],
-        **kwargs: Incomplete,
+        **kwargs: float,
     ) -> lf.Parameters:
         """Very simple heuristics for peak location."""
         pars = self.make_params()

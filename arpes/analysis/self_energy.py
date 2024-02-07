@@ -1,4 +1,5 @@
 """Contains self-energy analysis routines."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal, TypeAlias
@@ -127,7 +128,7 @@ def estimate_bare_band(
         inlier_data = centers.where(
             xr.DataArray(
                 inliers,
-                coords=dict([[fit_dimension, centers.coords[fit_dimension]]]),
+                coords={fit_dimension: centers.coords[fit_dimension]},
                 dims=[fit_dimension],
             ),
             drop=True,

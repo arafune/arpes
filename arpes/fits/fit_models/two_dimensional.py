@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, Unpack
 
 import lmfit as lf
 import numpy as np
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import NAN_POLICY
+    from arpes.fits import ModelARGS
 
 __all__ = [
     "Gaussian2DModel",
@@ -63,20 +63,11 @@ class Gaussian2DModel(XModelMixin):
         # flatten the 2D Gaussian down to 1D
         return np.ravel(gauss + bkg)
 
-    def __init__(
-        self,
-        independent_vars: list[str] | None = None,
-        prefix: str = "",
-        nan_policy: NAN_POLICY = "raise",
-        **kwargs: Incomplete,
-    ) -> None:
+    def __init__(self, **kwargs: Unpack[ModelARGS]) -> None:
         """Sets reasonable constraints on the width and constraints the amplitude to be positive."""
-        if independent_vars is None:
-            independent_vars = ["x", "y"]
-        assert isinstance(independent_vars, list)
-        kwargs.update(
-            {"prefix": prefix, "nan_policy": nan_policy, "independent_vars": independent_vars},
-        )
+        kwargs.setdefault("prefix", "")
+        kwargs.setdefault("independent_vars", ["x"])
+        kwargs.setdefault("nan_policy", "raise")
         super().__init__(self.gaussian_2d_bkg, **kwargs)
 
         self.set_param_hint("sigma_x", min=0.0)
@@ -135,20 +126,11 @@ class EffectiveMassModel(XModelMixin):
         )
         return (coherent + bkg).ravel()
 
-    def __init__(
-        self,
-        independent_vars: list[str] | None = None,
-        prefix: str = "",
-        nan_policy: NAN_POLICY = "raise",
-        **kwargs: Incomplete,
-    ) -> None:
+    def __init__(self, **kwargs: Unpack[ModelARGS]) -> None:
         """Mostly just set parameter hints to physically realistic values here."""
-        if independent_vars is None:
-            independent_vars = ["eV", "kp"]
-        assert isinstance(independent_vars, list)
-        kwargs.update(
-            {"prefix": prefix, "nan_policy": nan_policy, "independent_vars": independent_vars},
-        )
+        kwargs.setdefault("prefix", "")
+        kwargs.setdefault("independent_vars", ["x"])
+        kwargs.setdefault("nan_policy", "raise")
         super().__init__(self.effective_mass_bkg, **kwargs)
 
         self.set_param_hint("gamma", min=0.0)

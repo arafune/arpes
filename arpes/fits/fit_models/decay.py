@@ -1,7 +1,8 @@
 """Defines models useful for studying excited carriers in Tr-ARPES."""
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Unpack
 
 import lmfit as lf
 import numpy as np
@@ -11,10 +12,9 @@ from .x_model_mixin import XModelMixin
 
 if TYPE_CHECKING:
     import xarray as xr
-    from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import NAN_POLICY
+    from arpes.fits import ModelARGS
 
 __all__ = ["ExponentialDecayCModel", "TwoExponentialDecayCModel"]
 
@@ -49,20 +49,11 @@ class ExponentialDecayCModel(XModelMixin):
         mask = (dx >= 0) * 1
         return const_bkg + amp * mask * np.exp(-(x - t0) / tau)
 
-    def __init__(
-        self,
-        independent_vars: list[str] | None = None,
-        prefix: str = "",
-        nan_policy: NAN_POLICY = "raise",
-        **kwargs: Incomplete,
-    ) -> None:
+    def __init__(self, **kwargs: Unpack[ModelARGS]) -> None:
         """Defer to lmfit for initialization."""
-        if independent_vars is None:
-            independent_vars = ["x"]
-        assert isinstance(independent_vars, list)
-        kwargs.update(
-            {"prefix": prefix, "nan_policy": nan_policy, "independent_vars": independent_vars},
-        )
+        kwargs.setdefault("prefix", "")
+        kwargs.setdefault("independent_vars", ["x"])
+        kwargs.setdefault("nan_policy", "raise")
         super().__init__(self.exponential_decay_c, **kwargs)
 
         # amp is also a parameter, but we have no hint for it
@@ -73,7 +64,7 @@ class ExponentialDecayCModel(XModelMixin):
     def guess(
         self,
         data: xr.Dataset | NDArray[np.float_],
-        **kwargs: Incomplete,
+        **kwargs: float,
     ) -> lf.Parameters:
         """Make heuristic estimates of parameters.
 
@@ -116,20 +107,11 @@ class TwoExponentialDecayCModel(XModelMixin):
         f[dx >= 0] = y[dx >= 0]
         return f
 
-    def __init__(
-        self,
-        independent_vars: list[str] | None = None,
-        prefix: str = "",
-        nan_policy: NAN_POLICY = "raise",
-        **kwargs: Incomplete,
-    ) -> None:
+    def __init__(self, **kwargs: Unpack[ModelARGS]) -> None:
         """Defer to lmfit for initialization."""
-        if independent_vars is None:
-            independent_vars = ["x"]
-        assert isinstance(independent_vars, list)
-        kwargs.update(
-            {"prefix": prefix, "nan_policy": nan_policy, "independent_vars": independent_vars},
-        )
+        kwargs.setdefault("prefix", "")
+        kwargs.setdefault("independent_vars", ["x"])
+        kwargs.setdefault("nan_policy", "raise")
         super().__init__(self.twoexponential_decay_c, **kwargs)
 
         # amp is also a parameter, but we have no hint for it
@@ -141,7 +123,7 @@ class TwoExponentialDecayCModel(XModelMixin):
     def guess(
         self,
         data: NDArray[np.float_] | xr.DataArray,
-        **kwargs: Incomplete,
+        **kwargs: float,
     ) -> lf.Parameters:
         """Placeholder for making better heuristic guesses here."""
         pars: lf.Parameters = self.make_params()

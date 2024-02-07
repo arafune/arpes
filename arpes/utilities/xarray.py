@@ -1,4 +1,5 @@
 """Utilities related to function application on xr types."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -67,7 +68,7 @@ def unwrap_xarray_dict(
 
 
 def apply_dataarray(
-    arr: DataType,
+    arr: xr.DataArray,  # arr.values is used
     f: Callable[[NDArray[np.float_], Any], NDArray[np.float_]],
     *args: Incomplete,
     **kwargs: Incomplete,

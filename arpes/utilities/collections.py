@@ -8,52 +8,7 @@ from typing import Any, TypeVar
 __all__ = (
     "deep_equals",
     "deep_update",
-    "MappableDict",
 )
-
-
-class MappableDict(dict):
-    """Like dict except that +, -, *, / are cascaded to values."""
-
-    def __add__(self, other: MappableDict) -> MappableDict:
-        """Applies `+` onto values."""
-        if set(self.keys()) != set(other.keys()):
-            msg = "You can only add two MappableDicts with the same keys."
-            raise ValueError(msg)
-
-        return MappableDict({k: self.get(k) + other.get(k) for k in self})
-
-    def __sub__(self, other: MappableDict) -> MappableDict:
-        """Applies `-` onto values."""
-        if set(self.keys()) != set(other.keys()):
-            msg = "You can only subtract two MappableDicts with the same keys."
-            raise ValueError(msg)
-        return MappableDict({k: self.get(k) - other.get(k) for k in self})
-
-    def __mul__(self, other: MappableDict) -> MappableDict:
-        """Applies `*` onto values."""
-        if set(self.keys()) != set(other.keys()):
-            msg = "You can only multiply two MappableDicts with the same keys."
-            raise ValueError(msg)
-        return MappableDict({k: self.get(k) * other.get(k) for k in self})
-
-    def __truediv__(self, other: MappableDict) -> MappableDict:
-        """Applies `/` onto values."""
-        if set(self.keys()) != set(other.keys()):
-            msg = "You can only divide two MappableDicts with the same keys."
-            raise ValueError(msg)
-        return MappableDict({k: self.get(k) / other.get(k) for k in self})
-
-    def __floordiv__(self, other: MappableDict) -> MappableDict:
-        """Applies `//` onto values."""
-        if set(self.keys()) != set(other.keys()):
-            msg = "You can only divide (//) two MappableDicts with the same keys."
-            raise ValueError(msg)
-        return MappableDict({k: self.get(k) // other.get(k) for k in self})
-
-    def __neg__(self) -> MappableDict:
-        """Applies unary negation onto values."""
-        return MappableDict({k: -self.get(k) for k in self})
 
 
 def deep_update(destination: dict[str, Any], source: dict[str, Any]) -> dict[str, Any]:

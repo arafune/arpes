@@ -1,17 +1,9 @@
-from pathlib import Path
-
-from arpes.io import load_data
+import arpes.config
+from arpes.io import example_data
 from arpes.plotting.qt_ktool import ktool
 
-data_path = (
-    Path(__file__).parent.parent
-    / "tests"
-    / "resources"
-    / "datasets"
-    / "basic"
-    / "main_chamber_cut_0.fits"
-)
-
-data = load_data(str(data_path.absolute()), location="ALG-MC")
-
+data = example_data.cut
+data.attrs["id"] = 0
+print(f"data.id : {data.attrs['id']}")
+print(f"data.id (spectrum): {data.spectrum.attrs['id']}")
 ktool(data)

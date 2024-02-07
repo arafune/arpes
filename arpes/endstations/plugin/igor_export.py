@@ -11,7 +11,7 @@ import xarray as xr
 
 from arpes.endstations import SCANDESC, SESEndstation
 from arpes.load_pxt import read_single_pxt
-from arpes.provenance import provenance_from_file
+from arpes.provenance import PROVENANCE, provenance_from_file
 from arpes.repair import negate_energy
 
 __all__ = ("IgorExportEndstation",)
@@ -143,12 +143,8 @@ class IgorExportEndstation(SESEndstation):
             dims=dimension_labels,
             attrs=attrs,
         )
-
-        provenance_from_file(
-            dataset_contents["spectrum"],
-            str(data_loc),
-            {"what": "Loaded SES dataset from HDF5.", "by": "load_SES"},
-        )
+        provenance_context: PROVENANCE = {"what": "Loaded SES dataset from HDF5.", "by": "load_SES"}
+        provenance_from_file(dataset_contents["spectrum"], str(data_loc), provenance_context)
 
         return xr.Dataset(
             dataset_contents,

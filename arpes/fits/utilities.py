@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import os
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Literal
 
 import dill
 import numpy as np
@@ -53,8 +53,8 @@ logger.propagate = False
 
 def result_to_hints(
     model_result: lmfit.model.ModelResult | None,
-    defaults=None,
-) -> dict[str, dict[str, Any]] | None:
+    defaults: dict[str, dict[Literal["value"], float]] | None = None,
+) -> dict[str, dict[Literal["value"], float]] | None:
     """Turns an `lmfit.model.ModelResult` into a dictionary with initial guesses.
 
     Args:
@@ -70,7 +70,13 @@ def result_to_hints(
     return {k: {"value": model_result.params[k].value} for k in model_result.params}
 
 
-def parse_model(model):
+def parse_model(
+    model: str | type[lmfit.Model] | Sequence[type[lmfit.Model]],
+) -> (
+    type[lmfit.Model]
+    | Sequence[type[lmfit.Model]]
+    | list[type[lmfit.Model] | float | Literal["+", "-", "*", "/", "(", ")"]]
+):
     """Takes a model string and turns it into a tokenized version.
 
     1. ModelClass -> ModelClass
@@ -115,7 +121,7 @@ def parse_model(model):
 
 @update_provenance("Broadcast a curve fit along several dimensions")
 def broadcast_model(
-    model_cls: type[lmfit.Model] | Sequence[type[lmfit.Model]],
+    model_cls: type[lmfit.Model] | Sequence[type[lmfit.Model]] | str,
     data: DataType,
     broadcast_dims: str | list[str],
     params: dict | None = None,
@@ -139,7 +145,7 @@ def broadcast_model(
         params: Parameter hints, consisting of plain values or arrays for interpolation
         weights: Weights to apply when curve fitting. Should have the same shape as the input data
         prefixes: Prefix for the parameter name.  Pass to MPWorker that pass to
-          broadcast_model.compile_model
+          broadcast_common.compile_model
         window: A specification of cuts/windows to apply to each curve fit
         parallelize: Whether to parallelize curve fits, defaults to True if unspecified and more
           than 20 fits were requested
@@ -181,23 +187,24 @@ def broadcast_model(
 
     logger.debug("Parsing model")
     model = parse_model(model_cls)
-    # <== when model_cls type is tpe or  iterable[model]
+    # <== when model_cls type is tpe or iterable[model]
     # parse_model just reterns model_cls as is.
 
     if progress:
         wrap_progress = tqdm
     else:
 
-        def wrap_progress(x: Iterable[int], **__: str | float) -> Iterable[int]:
+        def wrap_progress(x: Iterable[int], **kwargs: str | float) -> Iterable[int]:
             """Fake of tqdm.notebook.tqdm.
 
             Args:
                 x (Iterable[int]): [TODO:description]
-                __: its a dummy parameter, which is not used.
+                kwargs: its a dummy parameter, which is not used.
 
             Returns:
                 Same iterable.
             """
+            del kwargs  # kwargs is dummy parameter
             return x
 
     serialize = parallelize
@@ -221,7 +228,7 @@ def broadcast_model(
         pool = hot_pool.pool
         exe_results = list(
             wrap_progress(
-                pool.imap(fitter, template.G.iter_coords()),
+                pool.imap(fitter, template.G.iter_coords()),  # IMapIterator
                 total=n_fits,
                 desc="Fitting on pool...",
             ),

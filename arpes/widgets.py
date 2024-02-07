@@ -35,7 +35,7 @@ import warnings
 from collections.abc import Sequence
 from functools import wraps
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
-from typing import TYPE_CHECKING, Any, TypeAlias
+from typing import TYPE_CHECKING, Any, TypeAlias, TypeVar
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -170,7 +170,10 @@ class SelectFromCollection:
         self.canvas.draw_idle()
 
 
-def popout(plotting_function: Callable) -> Callable:
+R = TypeVar("R")
+
+
+def popout(plotting_function: Callable[..., R]) -> Callable[..., R]:
     """A decorator which applies the "%matplotlib qt" magic so that interactive plots are enabled.
 
     Sets and subsequently unsets the matplotlib backend for one function call, to allow use of
@@ -184,7 +187,7 @@ def popout(plotting_function: Callable) -> Callable:
     """
 
     @wraps(plotting_function)
-    def wrapped(*args: Incomplete, **kwargs: Incomplete):
+    def wrapped(*args: Incomplete, **kwargs: Incomplete) -> R:
         """[TODO:summary].
 
         [TODO:description]
@@ -481,9 +484,7 @@ class DataArrayView:
 
 
 @popout
-def fit_initializer(
-    data: DataType,
-) -> dict[str, Incomplete]:
+def fit_initializer(data: DataType) -> dict[str, Incomplete]:
     """A tool for initializing lineshape fitting.
 
     [TODO:description]
@@ -504,9 +505,9 @@ def fit_initializer(
     invisible_axes(ax_other)
 
     prefixes = "abcdefghijklmnopqrstuvwxyz"
-    model_settings = []
+    model_settings: list[dict[str, dict[str, float]]] = []
     model_defs = []
-    for_fit = data.expand_dims("fit_dim")
+    for_fit: DataType = data.expand_dims("fit_dim")
     for_fit.coords["fit_dim"] = np.array([0])
 
     data_view = DataArrayView(ax_initial)
@@ -539,7 +540,7 @@ def fit_initializer(
         Returns:
             [TODO:description]
         """
-        amplitude = data.sel(**selection).mean().item()
+        amplitude = data.sel(selection).mean().item()
 
         selection = selection[data.dims[0]]
         center = (selection.start + selection.stop) / 2
@@ -555,8 +556,13 @@ def fit_initializer(
         model_defs.append(LorentzianModel)
 
         if model_defs:
-            results = broadcast_model(model_defs, for_fit, "fit_dim", params=compute_parameters())
-            result = results.results[0].item()
+            results: xr.Dataset = broadcast_model(
+                model_defs,
+                for_fit,
+                "fit_dim",
+                params=compute_parameters(),
+            )
+            result: xr.DataArray = results.results[0].item()
 
             if result is not None:
                 # residual
@@ -602,7 +608,7 @@ def fit_initializer(
 @popout
 def pca_explorer(
     pca: DataType,
-    data: DataType,
+    data: xr.DataArray,  # values is used
     component_dim: str = "components",
     initial_values: list[float] | None = None,
     *,
@@ -612,7 +618,7 @@ def pca_explorer(
 
     Args:
         pca: The decomposition of the data, the output of an sklearn PCA decomp.
-        data: The original data.
+        data (xr.DataArray): The original data.
         component_dim: The variable name or identifier associated to the PCA component projection
           in the input data. Defaults to "components" which is what is produced by `pca_along`.
         initial_values: Which of the PCA components to use for the 2D embedding. Defaults to None.
@@ -647,12 +653,10 @@ def pca_explorer(
         Returns: (tuple[xr.DataArray | xr.Dataset, int]
             [TODO:description]
         """
-        for_scatter = pca.copy(deep=True).isel(
-            **dict([[component_dim, context["selected_components"]]]),
-        )
+        for_scatter = pca.copy(deep=True).isel({component_dim: context["selected_components"]})
         for_scatter = for_scatter.S.transpose_to_back(component_dim)
 
-        size = data.mean(other_dims).stack(pca_dims=pca_dims).values
+        size: NDArray[np.float_] = data.mean(other_dims).stack(pca_dims=pca_dims).values
         norm = np.expand_dims(np.linalg.norm(pca.values, axis=(0,)), axis=-1)
 
         return (for_scatter / norm).stack(pca_dims=pca_dims), 5 * size / np.mean(size)
@@ -959,8 +963,6 @@ def kspace_tool(
 @popout
 def pick_rectangles(data: DataType, **kwargs: Incomplete) -> list[list[float]]:
     """A utility allowing for selection of rectangular regions.
-
-    [TODO:description]
 
     Args:
         data: [TODO:description]

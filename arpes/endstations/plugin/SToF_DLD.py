@@ -1,4 +1,5 @@
 """Provides data loading for the Lanzara group experimental ARToF."""
+
 from __future__ import annotations
 
 import warnings
@@ -11,7 +12,7 @@ import xarray as xr
 
 import arpes.config
 from arpes.endstations import SCANDESC, EndstationBase
-from arpes.provenance import provenance_from_file
+from arpes.provenance import PROVENANCE, provenance_from_file
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete
@@ -60,14 +61,11 @@ class SToFDLDEndstation(EndstationBase):
             dims=("x_pixels", "t_pixels"),
             attrs=f["/PRIMARY"].attrs.items(),
         )
+        proenance_context: PROVENANCE = {
+            "what": "Loaded Anton and Ping DLD dataset from HDF5.",
+            "by": "load_DLD",
+        }
 
-        provenance_from_file(
-            dataset_contents["raw"],
-            str(data_loc),
-            {
-                "what": "Loaded Anton and Ping DLD dataset from HDF5.",
-                "by": "load_DLD",
-            },
-        )
+        provenance_from_file(dataset_contents["raw"], str(data_loc), proenance_context)
 
         return xr.Dataset(dataset_contents, attrs=scan_desc)

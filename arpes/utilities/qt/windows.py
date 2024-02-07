@@ -1,8 +1,9 @@
 """Infrastructure code for Qt application windows."""
+
 from __future__ import annotations
 
 import sys
-from logging import INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from typing import TYPE_CHECKING
 
 from PySide6 import QtCore, QtGui, QtWidgets
@@ -12,8 +13,6 @@ from arpes.utilities.excepthook import patched_excepthook
 from arpes.utilities.ui import KeyBinding
 
 if TYPE_CHECKING:
-    from weakref import ReferenceType
-
     from _typeshed import Incomplete
     from PySide6.QtCore import QObject
     from PySide6.QtGui import QCloseEvent, QKeyEvent
@@ -23,7 +22,8 @@ if TYPE_CHECKING:
 __all__ = ("SimpleWindow",)
 
 
-LOGLEVEL = INFO
+LOGLEVELS = (DEBUG, INFO)
+LOGLEVEL = LOGLEVELS[1]
 logger = getLogger(__name__)
 fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
 formatter = Formatter(fmt)
@@ -49,7 +49,7 @@ class SimpleWindow(QtWidgets.QMainWindow, QtCore.QObject):
     HELP_DIALOG_CLS: type[BasicHelpDialog] | None = None
 
     def __init__(self) -> None:
-        """Configures the window.
+        """Configure the window.
 
         In order to start the window, we
 
@@ -58,9 +58,7 @@ class SimpleWindow(QtWidgets.QMainWindow, QtCore.QObject):
         * install filters to drop unnecessary Qt events
         """
         super().__init__()
-        self.app: ReferenceType | None = (
-            None  # this will eventually be a weakref to the application
-        )
+        self.app: Incomplete = None
         self._help_dialog: BasicHelpDialog | None = None
 
         self._old_excepthook = sys.excepthook
@@ -90,18 +88,18 @@ class SimpleWindow(QtWidgets.QMainWindow, QtCore.QObject):
         self.do_close(event)
 
     def do_close(self, event: QCloseEvent) -> None:
-        """Handler for closing accepting an unused event arg."""
-        msg = f"unused {event!s} is detected"
-        logger.debug(msg)
+        """Handle closing accepting an unused event arg."""
+        logger.debug(f"unused {event!s} is detected")
+
         self.close()
 
-    def close(self) -> None:
+    def close(self) -> bool:
         """If we need to close, give the application a chance to clean up first."""
         sys.excepthook = self._old_excepthook
         self.app().close()
-        super().close()
+        return super().close()
 
-    def eventFilter(self, source: QObject, event: QKeyEvent) -> bool:
+    def eventFilter(self, source: QObject, event: QKeyEvent) -> bool:  # type:ignore[override]
         """Neglect Qt events which do not relate to key presses for now."""
         special_keys = [
             QtCore.Qt.Key.Key_Down,
@@ -122,7 +120,7 @@ class SimpleWindow(QtWidgets.QMainWindow, QtCore.QObject):
         return super().eventFilter(source, event)
 
     def handleKeyPressEvent(self, event: QKeyEvent) -> None:
-        """Listener for key events supporting single key chords."""
+        """Listen key events supporting single key chords."""
         handled = False
         for binding in self._keyBindings:
             for combination in binding.chord:
@@ -132,8 +130,7 @@ class SimpleWindow(QtWidgets.QMainWindow, QtCore.QObject):
                     binding.handler(event)
 
         if not handled and arpes.config.SETTINGS.get("DEBUG", False):
-            logger_info = f"{event.key()} @ {type(self)}:{event}"
-            logger.info(logger_info)
+            logger.debug(f"{event.key()} @ {type(self)}:{event}")
 
     def toggle_help(self, event: QKeyEvent) -> None:
         """Open and close (toggle) the help panel for the application."""
@@ -151,5 +148,5 @@ class SimpleWindow(QtWidgets.QMainWindow, QtCore.QObject):
             self._help_dialog = None
 
     def window_print(self, *args: Incomplete, **kwargs: Incomplete) -> None:
-        """Forwards prints to the application instance so they end up in Jupyter."""
+        """Forward prints to the application instance so they end up in Jupyter."""
         print(*args, **kwargs)

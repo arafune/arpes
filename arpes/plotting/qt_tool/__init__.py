@@ -1,4 +1,5 @@
 """Provides a Qt based implementation of Igor's ImageTool."""
+
 # pylint: disable=import-error
 from __future__ import annotations
 
@@ -12,7 +13,8 @@ import dill
 import matplotlib as mpl
 import numpy as np
 import pyqtgraph as pg
-from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtWidgets
+from PySide6.QtWidgets import QGridLayout
 
 from arpes.utilities import normalize_to_spectrum
 from arpes.utilities.qt import (
@@ -31,7 +33,10 @@ from .AxisInfoWidget import AxisInfoWidget
 from .BinningInfoWidget import BinningInfoWidget
 
 if TYPE_CHECKING:
+    import xarray as xr
     from _typeshed import Incomplete
+    from PySide6.QtCore import QEvent
+    from PySide6.QtGui import QKeyEvent
     from PySide6.QtWidgets import QWidget
 
     from arpes._typing import DataType
@@ -113,20 +118,20 @@ class QtToolWindow(SimpleWindow):
             ),
         ]
 
-    def center_cursor(self, event) -> None:
+    def center_cursor(self, event: QEvent) -> None:
         logger.debug(f"method: center_cursor {event!s}")
         self.app().center_cursor()
 
-    def transpose_roll(self, event) -> None:
+    def transpose_roll(self, event: QEvent) -> None:
         logger.debug(f"method: transpose_roll {event!s}")
         self.app().transpose_to_front(-1)
 
-    def transpose_swap(self, event) -> None:
+    def transpose_swap(self, event: QEvent) -> None:
         logger.debug(f"method: transpose_swap {event!s}")
         self.app().transpose_to_front(1)
 
     @staticmethod
-    def _update_scroll_delta(delta, event: QtGui.QKeyEvent) -> tuple:
+    def _update_scroll_delta(delta: tuple[float, float], event: QKeyEvent) -> tuple[float, float]:
         logger.debug(f"method: _update_scroll_delta {event!s}")
         if event.nativeModifiers() & 1:  # shift key
             delta = (delta[0], delta[1] * 5)
@@ -136,11 +141,11 @@ class QtToolWindow(SimpleWindow):
 
         return delta
 
-    def reset_intensity(self, event: QtGui.QKeyEvent) -> None:
+    def reset_intensity(self, event: QKeyEvent) -> None:
         logger.debug(f"method: reset_intensity {event!s}")
         self.app().reset_intensity()
 
-    def scroll_z(self, event: QtGui.QKeyEvent) -> None:
+    def scroll_z(self, event: QKeyEvent) -> None:
         key_map = {
             QtCore.Qt.Key.Key_N: (2, -1),
             QtCore.Qt.Key.Key_M: (2, 1),
@@ -152,7 +157,7 @@ class QtToolWindow(SimpleWindow):
         if delta is not None and self.app() is not None:
             self.app().scroll(delta)
 
-    def scroll(self, event: QtGui.QKeyEvent) -> None:
+    def scroll(self, event: QKeyEvent) -> None:
         """[TODO:summary].
 
         Args:
@@ -167,10 +172,7 @@ class QtToolWindow(SimpleWindow):
             QtCore.Qt.Key.Key_Down: (1, -1),
             QtCore.Qt.Key.Key_Up: (1, 1),
         }
-
         logger.debug(f"method: scroll {event!s}")
-        logger.debug(f"app {reveal_type(self.app)}")
-        logger.debug(f"app() {reveal_type(self.app())}")
         delta = self._update_scroll_delta(key_map.get(event.key()), event)
         if delta is not None and self.app() is not None:
             self.app().scroll(delta)
@@ -190,10 +192,10 @@ class QtTool(SimpleApp):
     def __init__(self) -> None:
         """Initialize attributes to safe empty values."""
         super().__init__()
-        self.data = None
+        self.data: xr.DataArray
 
-        self.content_layout = None
-        self.main_layout: QtWidgets.QGridLayout | None = None
+        self.content_layout: QGridLayout
+        self.main_layout: QGridLayout
 
         self.axis_info_widgets: list = []
         self.binning_info_widgets: list = []
@@ -419,13 +421,13 @@ class QtTool(SimpleApp):
                         ),
                     )
                     if isinstance(reactive.view, DataArrayImageView):
-                        image_data = self.data.isel(**select_coord)
+                        image_data = self.data.isel(select_coord)
                         if select_coord:
                             image_data = image_data.mean(list(select_coord.keys()))
                         reactive.view.setImage(image_data, keep_levels=keep_levels)
 
                     elif isinstance(reactive.view, pg.PlotWidget):
-                        for_plot = self.data.isel(**select_coord)
+                        for_plot = self.data.isel(select_coord)
                         if select_coord:
                             for_plot = for_plot.mean(list(select_coord.keys()))
 
@@ -449,7 +451,7 @@ class QtTool(SimpleApp):
                 except IndexError:
                     pass
 
-    def construct_axes_tab(self) -> tuple[QtWidgets, list[AxisInfoWidget]]:
+    def construct_axes_tab(self) -> tuple[QWidget, list[AxisInfoWidget]]:
         """Controls for axis order and transposition."""
         inner_items = [
             AxisInfoWidget(axis_index=i, root=weakref.ref(self)) for i in range(len(self.data.dims))
@@ -488,10 +490,10 @@ class QtTool(SimpleApp):
         self.main_layout.addLayout(self.content_layout, 0, 0)
         self.main_layout.addWidget(self.tabs, 1, 0)
 
-    def layout(self) -> QtWidgets.QGridLayout:
+    def layout(self) -> QGridLayout:
         """Initialize the layout components."""
-        self.main_layout = QtWidgets.QGridLayout()
-        self.content_layout = QtWidgets.QGridLayout()
+        self.main_layout: QGridLayout = QGridLayout()
+        self.content_layout: QGridLayout = QGridLayout()
         return self.main_layout
 
     def before_show(self) -> None:
@@ -525,7 +527,7 @@ class QtTool(SimpleApp):
         """Autoscales intensity in each marginal plot."""
         self.update_cursor_position(self.context["cursor"], force=True, keep_levels=False)
 
-    def set_data(self, data: DataType) -> None:
+    def set_data(self, data: xr.DataArray | xr.Dataset) -> None:
         """Sets the current data to a new value and resets binning."""
         data_arr = normalize_to_spectrum(data)
 

@@ -1,4 +1,5 @@
 """Utilities for gap fitting in ARPES, contains tools to normalize by Fermi-Dirac occupation."""
+
 from __future__ import annotations
 
 import warnings
@@ -206,7 +207,6 @@ def _shift_energy_interpolate(
     new_axis = new_axis + shift
 
     weight = float(shift / stride)
-
     new_values = new_values + data_arr.values * (1 - weight)
     if shift > 0:
         new_values[1:] = new_values[1:] + data_arr.values[:-1] * weight

@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Literal, TypedDict, Unpack
 
 import matplotlib.pyplot as plt
 import numpy as np
+import xarray as xr
 from matplotlib.axes import Axes
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -23,7 +24,6 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
 
-    import xarray as xr
     from matplotlib.colors import Colormap, Normalize
     from matplotlib.figure import Figure, FigureBase
     from numpy.typing import NDArray
@@ -309,14 +309,14 @@ def hv_reference_scan(
     e_cut: float = -0.05,
     bkg_subtraction: float = 0.8,
     **kwargs: Unpack[LabeledFermiSurfaceParam],
-) -> Path | None:
+) -> Path | Axes:
     """A reference plot for photon energy scans. Used internally by other code."""
     fs = data.S.fat_sel(eV=e_cut)
     fs = normalize_dim(fs, "hv", keep_id=True)
     fs.data -= bkg_subtraction * np.mean(fs.data)
     fs.data[fs.data < 0] = 0
 
-    _, ax = labeled_fermi_surface(fs, hold=True, **kwargs)
+    _, ax = labeled_fermi_surface(fs, **kwargs)
 
     all_scans = data.attrs["df"]
     all_scans = all_scans[all_scans.id != data.attrs["id"]]
@@ -364,7 +364,6 @@ class LabeledFermiSurfaceParam(TypedDict, total=False):
     include_symmetry_points: bool
     include_bz: bool
     fermi_energy: float
-    out: str
 
 
 @save_plot_provenance
@@ -372,13 +371,13 @@ def reference_scan_fermi_surface(
     data: DataType,
     out: str | Path = "",
     **kwargs: Unpack[LabeledFermiSurfaceParam],
-) -> Path | None:
+) -> Path | Axes:
     """A reference plot for Fermi surfaces. Used internally by other code.
 
     Warning: Not work correctly.  (Because S.referenced_scans has been removed.)
     """
     fs = data.S.fermi_surface
-    _, ax = labeled_fermi_surface(fs, hold=True, **kwargs)
+    _, ax = labeled_fermi_surface(fs, **kwargs)
 
     referenced_scans = data.S.referenced_scans
     handles = []
@@ -399,26 +398,26 @@ def reference_scan_fermi_surface(
         plt.savefig(path_for_plot(out), dpi=400)
         return path_for_plot(out)
 
-    plt.show()
-    return None
+    return ax
 
 
 @save_plot_provenance
 def labeled_fermi_surface(  # noqa: PLR0913
-    data: DataType,
+    data: xr.DataArray,
     title: str = "",
     ax: Axes | None = None,
     *,
-    hold: bool = False,
     include_symmetry_points: bool = True,
     include_bz: bool = True,
     out: str | Path = "",
     fermi_energy: float = 0,
-) -> Path | None | tuple[Figure | None, Axes]:
+) -> Path | tuple[Figure | None, Axes]:
     """Plots a Fermi surface with high symmetry points annotated onto it."""
+    assert isinstance(data, xr.DataArray)
     fig = None
     if ax is None:
         fig, ax = plt.subplots(figsize=(7, 7))
+    assert isinstance(ax, Axes)
 
     if not title:
         title = "{} Fermi Surface".format(data.S.label.replace("_", " "))
@@ -434,7 +433,6 @@ def labeled_fermi_surface(  # noqa: PLR0913
 
     dim_order = [ax.get_xlabel(), ax.get_ylabel()]
 
-    ax.dim_order = dim_order
     ax.set_xlabel(label_for_dim(data, ax.get_xlabel()))
     ax.set_ylabel(label_for_dim(data, ax.get_ylabel()))
     ax.set_title(title)
@@ -467,15 +465,12 @@ def labeled_fermi_surface(  # noqa: PLR0913
         plt.savefig(path_for_plot(out), dpi=400)
         return path_for_plot(out)
 
-    if not hold:
-        plt.show()
-        return None
     return fig, ax
 
 
 @save_plot_provenance
 def fancy_dispersion(
-    data: DataType,
+    data: xr.DataArray,
     title: str = "",
     ax: Axes | None = None,
     out: str | Path = "",
@@ -488,10 +483,10 @@ def fancy_dispersion(
     Useful for brief slides/quick presentations.
 
     Args:
-        data: [TODO:description]
-        title: [TODO:description]
-        ax: [TODO:description]
-        out: [TODO:description]
+        data (xr.DataArray): ARPES data.
+        title (str): Title of Figure.
+        ax (Axes): matpplotlib Axes object
+        out (str | Path): str or Path object for output image.
         include_symmetry_points: [TODO:description]
         kwargs: pass to xr.Dataset.plot or xr.DataArray.plot()
 
@@ -543,18 +538,17 @@ def fancy_dispersion(
         plt.savefig(path_for_plot(out), dpi=400)
         return path_for_plot(out)
 
-    plt.show()
     return ax
 
 
 @save_plot_provenance
 def scan_var_reference_plot(
-    data: DataType,
+    data: xr.DataArray,
     title: str = "",
     ax: Axes | None = None,
     norm: Normalize | None = None,
     out: str | Path = "",
-) -> None | Path:
+) -> Axes | Path:
     """Makes a straightforward plot of a DataArray with reasonable axes.
 
     Used internally by other scripts.
@@ -569,6 +563,7 @@ def scan_var_reference_plot(
     Returns:
         [TODO:description]
     """
+    assert isinstance(data, xr.DataArray)
     if ax is None:
         _, ax = plt.subplots(figsize=(8, 5))
     assert isinstance(ax, Axes)
@@ -587,5 +582,4 @@ def scan_var_reference_plot(
         plt.savefig(path_for_plot(out), dpi=400)
         return path_for_plot(out)
 
-    plt.show()
-    return None
+    return ax

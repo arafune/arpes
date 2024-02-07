@@ -10,7 +10,7 @@ import numpy as np
 import xarray as xr
 from scipy.ndimage import geometric_transform
 
-from arpes.provenance import provenance, update_provenance
+from arpes.provenance import PROVENANCE, provenance, update_provenance
 from arpes.utilities import lift_dataarray_to_generic
 from arpes.utilities.normalize import normalize_to_spectrum
 
@@ -127,16 +127,13 @@ def normalize_dim(
 
     if not keep_id and "id" in to_return.attrs:
         del to_return.attrs["id"]
+    provenance_context: PROVENANCE = {
+        "what": "Normalize axis or axes",
+        "by": "normalize_dim",
+        "dims": dims,
+    }
 
-    provenance(
-        to_return,
-        arr,
-        {
-            "what": "Normalize axis or axes",
-            "by": "normalize_dim",
-            "dims": dims,
-        },
-    )
+    provenance(to_return, arr, provenance_context)
 
     return to_return
 
@@ -244,17 +241,14 @@ def transform_dataarray_axis(  # noqa: PLR0913
 
     if "id" in new_ds:
         del new_ds.attrs["id"]
+    provenance_context: PROVENANCE = {
+        "what": "Transformed a Dataset coordinate axis",
+        "by": "transform_dataarray_axis",
+        "old_axis": old_axis_name,
+        "new_axis": new_axis_name,
+        "transformed_vars": list(transform_spectra.keys()),
+    }
 
-    provenance(
-        new_ds,
-        dataset,
-        {
-            "what": "Transformed a Dataset coordinate axis",
-            "by": "transform_dataarray_axis",
-            "old_axis": old_axis_name,
-            "new_axis": new_axis_name,
-            "transformed_vars": list(transform_spectra.keys()),
-        },
-    )
+    provenance(new_ds, dataset, provenance_context)
 
     return new_ds

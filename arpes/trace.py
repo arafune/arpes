@@ -6,12 +6,11 @@ import functools
 import time
 from dataclasses import dataclass, field
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ParamSpec, TypeVar
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from _typeshed import Incomplete
 
 __all__ = [
     "traceable",
@@ -54,7 +53,11 @@ class Trace:
         logger.info(message)
 
 
-def traceable(original: Callable) -> Callable:
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+def traceable(original: Callable[P, R]) -> Callable[P, R]:
     """A decorator which takes a function and feeds a trace instance through its parameters.
 
     The call API of the returned function is that there is a `trace=` parameter which expects
@@ -71,7 +74,7 @@ def traceable(original: Callable) -> Callable:
     """
 
     @functools.wraps(original)
-    def _inner(*args: Incomplete, **kwargs: bool) -> Callable:
+    def _inner(*args: P.args, **kwargs: P.kwargs) -> R:
         """[TODO:summary].
 
         [TODO:description]

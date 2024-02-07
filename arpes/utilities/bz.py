@@ -94,8 +94,6 @@ def as_2d(points_3d: ArrayLike) -> NDArray[np.float_]:
 def parse_single_path(path: str) -> list[SpecialPoint]:
     """Converts a path given by high symmetry point names to numerical coordinate arrays.
 
-    [TODO:description]
-
     Args:
         path: [TODO:description]
 
@@ -135,7 +133,7 @@ def parse_single_path(path: str) -> list[SpecialPoint]:
     return points
 
 
-def parse_path(paths: str | list[str]) -> list[list[SpecialPoint]]:
+def _parse_path(paths: str | list[str]) -> list[list[SpecialPoint]]:
     """Converts paths to arrays with the coordinate locations for those paths.
 
     Args:
@@ -227,7 +225,7 @@ def process_kpath(
 
     return [
         [special_point_to_vector(elem, icell, special_points) for elem in p]
-        for p in parse_path(paths)
+        for p in _parse_path(paths)
     ]
 
 

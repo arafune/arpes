@@ -1,4 +1,5 @@
 """Coordinate conversion classes for photon energy scans."""
+
 from __future__ import annotations
 
 import warnings
@@ -14,9 +15,8 @@ from .bounds_calculations import calculate_kp_kz_bounds
 from .calibration import DetectorCalibration
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Hashable
 
-    import xarray as xr
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
@@ -88,7 +88,7 @@ class ConvertKpKz(CoordinateConverter):
         self,
         resolution: Incomplete | None = None,
         bounds: dict[MOMENTUM, tuple[float, float]] | None = None,
-    ) -> dict[str, NDArray[np.float_] | xr.DataArray]:
+    ) -> dict[Hashable, NDArray[np.float_]]:
         """Calculates appropriate coordinate bounds."""
         if resolution is None:
             resolution = {}
@@ -117,8 +117,8 @@ class ConvertKpKz(CoordinateConverter):
             resolution.get("kz", inferred_kz_res),
         )
         base_coords = {
-            str(k): v for k, v in self.arr.coords.items() if k not in ["eV", "phi", "hv"]
-        }
+            k: v for k, v in self.arr.coords.items() if k not in ["eV", "phi", "hv"]
+        }  # should v.values ?
         coordinates.update(base_coords)
         return coordinates
 

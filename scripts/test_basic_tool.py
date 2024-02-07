@@ -1,18 +1,9 @@
 from pathlib import Path
-
-from arpes.io import load_data
+import arpes.config
+from arpes.io import example_data
 from arpes.plotting.basic_tools import bkg_tool
 
-data_path = (
-    Path(__file__).parent.parent
-    / "tests"
-    / "resources"
-    / "datasets"
-    / "basic"
-    / "main_chamber_cut_0.fits"
-)
-
-data = load_data(str(data_path.absolute()))
+data = example_data.cut
 
 
 bkg_tool(data)

@@ -5,6 +5,8 @@ We should consider forking or providing a pull at a later date after this settle
 The end goal here is to allow pleasing and functional representations of curve fitting sessions
 performed in Jupyter, so that they can be rapidly understood, and screencapped for simple purposes,
 like including in group meeting notes.
+
+Todo: To be deprecated (?)
 """
 
 from __future__ import annotations
@@ -19,7 +21,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
 
 
-def repr_multiline_ModelResult(self: model.Model, **kwargs: Incomplete) -> str:
+def repr_multiline_ModelResult(self: model.ModelResult, **kwargs: Incomplete) -> str:
     """Provides a text-based multiline representation used in Qt based interactive tools.
 
     Args:
@@ -43,10 +45,7 @@ def repr_multiline_ModelResult(self: model.Model, **kwargs: Incomplete) -> str:
     )
 
 
-def repr_html_ModelResult(
-    self: Incomplete,
-    **kwargs: Incomplete,
-) -> str:
+def repr_html_ModelResult(self: model.ModelResult, **kwargs: Incomplete) -> str:
     """Provides a better Jupyter representation of an `lmfit.ModelResult` instance."""
     template = """
         <div>
@@ -62,7 +61,7 @@ def repr_html_ModelResult(
     )
 
 
-def repr_html_Model(self: Incomplete) -> str:
+def repr_html_Model(self: model.Model) -> str:
     """Better Jupyter representation of `lmfit.Model` instances."""
     template = """
     <div>
@@ -72,10 +71,7 @@ def repr_html_Model(self: Incomplete) -> str:
     return template.format(name=self.name)
 
 
-def repr_multiline_Model(
-    self: Incomplete,
-    **kwargs: Incomplete,
-) -> str:
+def repr_multiline_Model(self: model.Model) -> str:
     """Provides a text-based multiline representation used in Qt based interactive tools."""
     return self.name
 
@@ -85,7 +81,7 @@ SKIP_ON_SHORT = {"min", "max", "vary", "expr", "brute_step"}
 
 
 def repr_html_Parameters(
-    self: Incomplete,
+    self: model.Parameters,
     *,
     short: bool = False,
 ) -> str:
@@ -186,11 +182,11 @@ def repr_multiline_Parameter(
 
 
 model.Model._repr_html_ = repr_html_Model
-model.Model._repr_multiline_text_ = repr_multiline_Model
+model.Model._repr_multiline_text_ = repr_multiline_Model  # unused ?
 model.Parameters._repr_html_ = repr_html_Parameters
-model.Parameters._repr_multiline_text_ = repr_multiline_Parameters
+model.Parameters._repr_multiline_text_ = repr_multiline_Parameters  # unused ?
 model.ModelResult._repr_html_ = repr_html_ModelResult
-model.ModelResult._repr_multiline_text_ = repr_multiline_ModelResult
+model.ModelResult._repr_multiline_text_ = repr_multiline_ModelResult  # unused?
 
 model.Parameter.to_table_row = repr_html_Parameter
 model.Parameter._repr_multiline_text_ = repr_multiline_Parameter

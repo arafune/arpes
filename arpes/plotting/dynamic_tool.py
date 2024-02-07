@@ -1,4 +1,5 @@
 """Allows for making any function of a spectrum into a dynamic tool."""
+
 from __future__ import annotations
 
 import inspect
@@ -24,7 +25,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from _typeshed import Incomplete
-    from PySide6.QtWidgets import QLayout, QWidget
+    from PySide6.QtWidgets import QGridLayout, QWidget
 
     from arpes._typing import DataType
 
@@ -71,7 +72,7 @@ class DynamicTool(SimpleApp):
 
         super().__init__()
 
-    def layout(self) -> QLayout:
+    def layout(self) -> QGridLayout:
         return self.main_layout
 
     def configure_image_widgets(self) -> None:
@@ -170,11 +171,11 @@ class DynamicTool(SimpleApp):
                 parameter_default,
                 parameter_type,
                 validator_settings=config,
-                id=f"{parameter_name}-control",
+                id_=f"{parameter_name}-control",
             )
 
         if parameter_type == str:
-            return line_edit(parameter_default, id=f"{parameter_name}-control")
+            return line_edit(parameter_default, id_=f"{parameter_name}-control")
         return None
 
     def before_show(self) -> None:

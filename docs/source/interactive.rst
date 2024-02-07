@@ -15,24 +15,24 @@ in two different environments, depending on what a given user prefers.
 1. QtTool or ``qt_tool``, an ImageTool-like native data exploration
    client for 2, 3, and 4 dimensional data exploration and visualization
 
-:strike:`At present QtTool offers speed advantages over BokehTool because it runs`
-:strike:`natively on one’s computer. BokehTool can be run even in hosted Jupyter`
-:strike:`notebooks across the internet, but data has to be pushed across HTTP,`
-:strike:`which means that responsivity can be hundreds of milliseconds. BokehTool`
-:strike:`is supplemented by a wide range of interactive analysis tools that can`
-:strike:`be used to `create masks </data-manipulation>`__, `set up and examine`
-:strike:`curve fits </curve-fitting>`__, mark symmetry points, and interactively`
-:strike:`set parameters for smoothing and second derivatives or curvature`
-:strike:`analysis, among other tasks.`
+At present QtTool offers speed advantages over BokehTool because it runs
+natively on one’s computer. BokehTool can be run even in hosted Jupyter
+notebooks across the internet, but data has to be pushed across HTTP,
+which means that responsivity can be hundreds of milliseconds. BokehTool
+is supplemented by a wide range of interactive analysis tools that can
+be used to `create masks </data-manipulation>`__, `set up and examine
+curve fits </curve-fitting>`__, mark symmetry points, and interactively
+set parameters for smoothing and second derivatives or curvature
+analysis, among other tasks.
 
-:strike:`Furthermore, we discuss below how these interactive tools get around one`
-:strike:`of the most annoying sticking points of Jupyter notebooks, the problem`
-:strike:`of lost work through kernel restarts and hanged kernels, by being`
-:strike:`restartable even across different notebooks.`
+Furthermore, we discuss below how these interactive tools get around one
+of the most annoying sticking points of Jupyter notebooks, the problem
+of lost work through kernel restarts and hanged kernels, by being
+restartable even across different notebooks.
 
-:strike:`Using ``dyn_tool.dyn`` you can even make (almost) **any** function`
-:strike:`interactive. This is an excellent technique for choosing good parameters`
-:strike:`or testing a new analysis function.`
+Using ``dyn_tool.dyn`` you can even make (almost) **any** function
+interactive. This is an excellent technique for choosing good parameters
+or testing a new analysis function.
 
 QtTool
 ------
@@ -54,15 +54,16 @@ Invoke with ``qt_tool``
 
    QT Tool
 
-Restarting
-~~~~~~~~~~
 
-You can make almost any Bokeh based tool restartable (i.e. if you rerun
-the cell you will restore the state of your tool) by giving it a name
-with ``name="some name"``. A name uniquely identifies a session, so keep
-separate names for separate tools. Tool states are stored in project
-folders, so you only need to worry about name uniqueness across inside a
-single project and not across them.
+.. Restarting
+.. ~~~~~~~~~~
+
+.. You can make almost any Bokeh based tool restartable (i.e. if you rerun
+.. the cell you will restore the state of your tool) by giving it a name
+.. with ``name="some name"``. A name uniquely identifies a session, so keep
+.. separate names for separate tools. Tool states are stored in project
+.. folders, so you only need to worry about name uniqueness across inside a
+.. single project and not across them.
 
 Masking
 -------

@@ -3,6 +3,7 @@
 We keep a pool alive after one is requested at the cost of memory overhead
 because otherwise pools are too slow due to heavy analysis imports (scipy, etc.).
 """
+
 from __future__ import annotations
 
 from multiprocessing import Pool, pool
@@ -16,8 +17,6 @@ class HotPool:
     @property
     def pool(self) -> pool.Pool:
         """[TODO:summary].
-
-        [TODO:description]
 
         Args:
             self ([TODO:type]): [TODO:description]
@@ -33,8 +32,6 @@ class HotPool:
 
     def __del__(self) -> None:
         """[TODO:summary].
-
-        [TODO:description]
 
         Returns:
             [TODO:description]

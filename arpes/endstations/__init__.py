@@ -19,7 +19,7 @@ from astropy.io import fits
 import arpes.config
 import arpes.constants
 from arpes.load_pxt import find_ses_files_associated, read_single_pxt
-from arpes.provenance import provenance_from_file
+from arpes.provenance import PROVENANCE, provenance_from_file
 from arpes.repair import negate_energy
 from arpes.trace import Trace, traceable
 from arpes.utilities.dict import rename_dataarray_attrs
@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 
     from _typeshed import Incomplete
 
-    from arpes._typing import SPECTROMETER
+    from arpes._typing import SPECTROMETER, DataType
 
 __all__ = [
     "endstation_name_from_alias",
@@ -405,18 +405,7 @@ class EndstationBase:
                 a_data.attrs.setdefault(k, v)
 
         for a_data in ls:
-            for coord in self.ENSURE_COORDS_EXIST:
-                if coord not in a_data.coords:
-                    if coord in a_data.attrs:
-                        a_data.coords[coord] = a_data.attrs[coord]
-                    else:
-                        warnings_msg = f"Could not assign coordinate {coord} from attributes,"
-                        warnings_msg += "assigning np.nan instead."
-                        warnings.warn(
-                            warnings_msg,
-                            stacklevel=2,
-                        )
-                        a_data.coords[coord] = np.nan
+            a_data = _ensure_coords(a_data, self.ENSURE_COORDS_EXIST)
 
         for a_data in ls:
             if "chi" in a_data.coords and "chi_offset" not in a_data.attrs:
@@ -484,6 +473,22 @@ class EndstationBase:
             concatted.attrs["id"] = scan_desc["id"]
 
         return concatted
+
+
+def _ensure_coords(spectrum: DataType, coords_exist: set[str]) -> DataType:
+    for coord in coords_exist:
+        if coord not in spectrum.coords:
+            if coord in spectrum.attrs:
+                spectrum.coords[coord] = spectrum.attrs[coord]
+            else:
+                warnings_msg = f"Could not assign coordinate {coord} from attributes,"
+                warnings_msg += "assigning np.nan instead."
+                warnings.warn(
+                    warnings_msg,
+                    stacklevel=2,
+                )
+                spectrum.coords[coord] = np.nan
+    return spectrum
 
 
 class SingleFileEndstation(EndstationBase):
@@ -670,11 +675,8 @@ class SESEndstation(EndstationBase):
             dims=dimension_labels,
             attrs=attrs,
         )
-        provenance_from_file(
-            dataset_contents["spectrum"],
-            str(data_loc),
-            {"what": "Loaded SES dataset from HDF5.", "by": "load_SES"},
-        )
+        provenance_context: PROVENANCE = {"what": "Loaded SES dataset from HDF5.", "by": "load_SES"}
+        provenance_from_file(dataset_contents["spectrum"], str(data_loc), provenance_context)
         return xr.Dataset(
             dataset_contents,
             attrs={**scan_desc, "dataset_name": primary_dataset_name},
@@ -969,11 +971,11 @@ class FITSEndstation(EndstationBase):
                 data = data.assign_coords(phi=phi_axis)
 
             # Always attach provenance
-            provenance_from_file(
-                data,
-                str(frame_path),
-                {"what": "Loaded MC dataset from FITS.", "by": "load_MC"},
-            )
+            provenance_context: PROVENANCE = {
+                "what": "Loaded MC dataset from FITS.",
+                "by": "load_MC",
+            }
+            provenance_from_file(data, str(frame_path), provenance_context)
 
             return data
 

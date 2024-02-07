@@ -1,7 +1,15 @@
 """Test for generic utility."""
+
 import pytest
 
-from arpes.utilities import deep_equals, deep_update
+from arpes.utilities import clean_keys, deep_equals, deep_update
+
+
+def test_cldean_keys() -> None:
+    """Test for clean_keys."""
+    test_dict = {"Excitation Energy": 4.03, "Count/Cycle": 100}
+    cleaned_dict = clean_keys(test_dict)
+    assert cleaned_dict == {"excitation_energy": 4.03, "count_cycle": 100}
 
 
 @pytest.mark.parametrize(
@@ -19,7 +27,7 @@ def test_deep_equals(
     *,
     expected_equal: bool,
 ) -> None:
-    """[TODO:summary].
+    """Test for deep_equals.
 
     [TODO:description]
 

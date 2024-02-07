@@ -1,4 +1,5 @@
 """Provides deconvolution implementations, especially for 2D Richardson-Lucy."""
+
 from __future__ import annotations
 
 import contextlib
@@ -46,7 +47,7 @@ def deconvolve_ice(
     The PSF is the impulse response of a focused optical imaging system.
 
     Args:
-        data: input data
+        data (DataType): input data
         psf(NDArray[np.float_): array as point spread function
         n_iterations: the number of convolutions to use for the fit
         deg: the degree of the fitting polynominial
@@ -54,11 +55,7 @@ def deconvolve_ice(
     Returns:
         The deconvoled data in the same format.
     """
-    arr = normalize_to_spectrum(data)
-    if type(data) is np.ndarray:
-        pass
-    else:
-        arr = arr.values
+    arr = normalize_to_spectrum(data).values
 
     if deg is None:
         deg = n_iterations - 3
@@ -100,8 +97,8 @@ def deconvolve_rl(
     Args:
         data: input data
         axis
-        sigma
         mode: pass to ndimage.convolve
+        sigma
         progress
         psf: for 1d, if not specified, must specify axis and sigma
         n_iterations: the number of convolutions to use for the fit
@@ -235,7 +232,7 @@ def deconvolve_rl(
                 # need to explicitly specify for some versions of numpy
 
             result = u[-1]
-    else:
+    else:  # data.dims == 1
         if type(arr) is not np.ndarray:
             arr = arr.values
         u = [arr]

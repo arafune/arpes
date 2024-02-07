@@ -1,4 +1,5 @@
 """Provides a Qt based implementation of a curve fit inspection tool."""
+
 from __future__ import annotations
 
 import contextlib
@@ -139,12 +140,13 @@ class FitTool(SimpleApp):
         self.main_layout = None
 
     @property
-    def data(self) -> xr.DataArray:
+    def data(self) -> xr.Dataset:
         """Extract the array-like values according to what content we are rendering."""
         return self.dataset[self.data_key.value]
 
     @data.setter
-    def data(self, new_data) -> None:
+    def data(self, new_data: xr.DataArray) -> None:
+        del new_data
         msg = "On fit_tool, the data is computed from the original dataset."
         raise TypeError(msg)
 
@@ -298,9 +300,11 @@ class FitTool(SimpleApp):
 
         if cursors:
             cursor = CursorRegion(
-                orientation=CursorRegion.Vertical
-                if orientation == PlotOrientation.Vertical
-                else CursorRegion.Horizontal,
+                orientation=(
+                    CursorRegion.Vertical
+                    if orientation == PlotOrientation.Vertical
+                    else CursorRegion.Horizontal
+                ),
                 movable=True,
             )
             widget.addItem(cursor, ignoreBounds=False)

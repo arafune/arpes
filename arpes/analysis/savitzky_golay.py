@@ -1,4 +1,5 @@
 """Scipy cookbook implementations of the Savitzky Golay filter for xr.DataArrays."""
+
 from __future__ import annotations
 
 from math import factorial
@@ -8,9 +9,12 @@ import numpy as np
 import scipy.signal
 import xarray as xr
 
+from arpes.constants import TWO_DIMENSION
 from arpes.provenance import update_provenance
 
 if TYPE_CHECKING:
+    from collections.abc import Hashable
+
     from numpy.typing import NDArray
 
 
@@ -22,9 +26,9 @@ def savitzky_golay(  # noqa: PLR0913
     data: xr.DataArray,
     window_size: int,
     order: int,
-    deriv: int = 0,
+    deriv: int | Literal["col", "row", "both", None] = 0,
     rate: int = 1,
-    dim: str = "",
+    dim: Hashable = "",
 ) -> xr.DataArray:
     """Implements a Savitzky Golay filter with given window size.
 
@@ -58,7 +62,7 @@ def savitzky_golay(  # noqa: PLR0913
         if deriv == 0:
             deriv = None
 
-        if len(data.dims) == 3:  # noqa: PLR2004
+        if len(data.dims) == TWO_DIMENSION + 1:
             if not dim:
                 dim = data.dims[-1]
             return data.G.map_axes(
@@ -72,7 +76,7 @@ def savitzky_golay(  # noqa: PLR0913
                 ),
             )
 
-        if len(data.dims) == 2:  # noqa: PLR2004
+        if len(data.dims) == TWO_DIMENSION:
             if not dim:
                 transformed_data = savitzky_golay_2d(
                     data.values,

@@ -49,6 +49,12 @@ if TYPE_CHECKING:
         MarkEveryType,
     )
     from numpy.typing import ArrayLike, NDArray
+    from PySide6.QtCore.Qt import Orientation, WindowType
+    from PySide6.QtGui import QIcon, QPixmap
+    from PySide6.QtWidgets import (
+        QWidget,
+    )
+
 
 __all__ = [
     "DataType",
@@ -58,7 +64,6 @@ __all__ = [
     "MOMENTUM",
     "EMISSION_ANGLE",
     "ANGLE",
-    "NAN_POLICY",
     "CONFIGTYPE",
     "WORKSPACETYPE",
     "ANALYZERINFO",
@@ -73,7 +78,14 @@ xr_types = (xr.DataArray, xr.Dataset)
 MOMENTUM = Literal["kp", "kx", "ky", "kz"]
 EMISSION_ANGLE = Literal["phi", "psi"]
 ANGLE = Literal["alpha", "beta", "chi", "theta"] | EMISSION_ANGLE
-NAN_POLICY = Literal["raise", "propagate", "omit"]
+
+
+class KspaceCoords(TypedDict, total=False):
+    eV: NDArray[np.float_]
+    kp: NDArray[np.float_]
+    kx: NDArray[np.float_]
+    ky: NDArray[np.float_]
+    kz: NDArray[np.float_]
 
 
 class ConfigSettings(TypedDict, total=False):
@@ -146,19 +158,21 @@ class ANALYZERINFO(TypedDict, total=False):
     lens_mode_name: str | None
     acquisition_mode: str
     pass_energy: float
-    slit_shape: str
+    slit_shape: str | None
     slit_width: float
     slit_number: str | int
     lens_table: None
-    analyzer_type: str
+    analyzer_type: str | None
     mcp_voltage: float
     work_function: float
     #
     analyzer_radius: float
-    analyzer: str
-    analyzer_name: str
+    analyzer: str | None
+    analyzer_name: str | None
     parallel_deflectors: bool
     perpendicular_deflectors: bool
+    #
+    is_slit_vertical: bool
 
 
 class _PUMPINFO(TypedDict, total=False):
@@ -174,10 +188,10 @@ class _PUMPINFO(TypedDict, total=False):
     pump_spot_size: float | tuple[float, float]
     pump_spot_size_x: float
     pump_spot_size_y: float
-    pump_profile: None
+    pump_profile: Incomplete
     pump_linewidth: float
     pump_duration: float
-    pump_polarization: str | tuple[float | None, float | None]
+    pump_polarization: str | tuple[float, float]
     pump_polarization_theta: float
     pump_polarization_alpha: float
 
@@ -189,7 +203,7 @@ class _PROBEINFO(TypedDict, total=False):
     """
 
     probe_wavelength: float
-    probe_energy: float
+    probe_energy: float | xr.DataArray
     probe_fluence: float
     probe_pulse_energy: float
     probe_spot_size: float | tuple[float, float]
@@ -198,7 +212,7 @@ class _PROBEINFO(TypedDict, total=False):
     probe_profile: None
     probe_linewidth: float
     probe_duration: float
-    probe_polarization: str | tuple[float | None, float | None]
+    probe_polarization: str | tuple[float, float]
     probe_polarization_theta: float
     probe_polarization_alpha: float
 
@@ -209,23 +223,23 @@ class _BEAMLINEINFO(TypedDict, total=False):
     see beamline_info in xarray_extensions.py
     """
 
-    hv: float
+    hv: float | xr.DataArray
     linewidth: float
-    photon_polarization: tuple[float | None, float | None]
+    photon_polarization: tuple[float, float]
     undulation_info: Incomplete
     repetition_rate: float
     beam_current: float
-    entrance_slit: float
-    exit_slit: float
-    monochrometer_info: dict[str, None | float]
+    entrance_slit: float | str
+    exit_slit: float | str
+    monochrometer_info: dict[str, float]
 
 
 class LIGHTSOURCEINFO(_PROBEINFO, _PUMPINFO, _BEAMLINEINFO, total=False):
-    polarization: float | tuple[float | None, float | None] | str
+    polarization: float | tuple[float, float] | str
     photon_flux: float
     photocurrent: float
-    probe: None
-    probe_detail: None
+    probe: Incomplete
+    probe_detail: Incomplete
 
 
 class SAMPLEINFO(TypedDict, total=False):
@@ -234,9 +248,9 @@ class SAMPLEINFO(TypedDict, total=False):
     see sample_info in xarray_extensions
     """
 
-    id: int | str
-    sample_name: str
-    source: str
+    id: int | str | None
+    sample_name: str | None
+    source: str | None
     reflectivity: float
 
 
@@ -258,7 +272,7 @@ class DAQINFO(TypedDict, total=False):
     see daq_info in xarray_extensions.py
     """
 
-    daq_type: str
+    daq_type: str | None
     region: str | None
     region_name: str | None
     center_energy: float
@@ -296,6 +310,25 @@ class ARPESAttrs(SPECTROMETER, LIGHTSOURCEINFO, SAMPLEINFO, total=False):
         "kinetic",
         "kinetic energy",
     ]
+
+
+# TypedDict for Qt
+
+
+class QSliderARGS(TypedDict, total=False):
+    orientation: Orientation
+    parent: QWidget | None
+
+
+class QWidgetARGS(TypedDict, total=False):
+    parent: QWidget | None
+    f: WindowType
+
+
+class QPushButtonARGS(TypedDict, total=False):
+    icon: QIcon | QPixmap
+    text: str
+    parent: QWidget | None
 
 
 #

@@ -5,7 +5,7 @@ from __future__ import annotations
 import functools
 import time
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, Concatenate, ParamSpec, TypeVar
 
 import numpy as np
 import xarray as xr
@@ -28,6 +28,9 @@ __all__ = [
 ]
 
 T = TypeVar("T")
+
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
 def cycle(sequence: Sequence[T]) -> Generator[T, None, None]:
@@ -113,7 +116,9 @@ def iter_leaves(
             yield from iter_leaves(v)
 
 
-def lift_dataarray_to_generic(func: Callable[..., DataType]) -> Callable[..., DataType]:
+def lift_dataarray_to_generic(
+    func: Callable[Concatenate[DataType, P], DataType],
+) -> Callable[Concatenate[DataType, P], DataType]:
     """A functorial decorator that lifts functions to operate over xarray types.
 
     (xr.DataArray, *args, **kwargs) -> xr.DataArray
@@ -127,7 +132,7 @@ def lift_dataarray_to_generic(func: Callable[..., DataType]) -> Callable[..., Da
     """
 
     @functools.wraps(func)
-    def func_wrapper(data: DataType, *args: Incomplete, **kwargs: Incomplete) -> DataType:
+    def func_wrapper(data: DataType, *args: P.args, **kwargs: P.kwargs) -> DataType:
         if isinstance(data, xr.DataArray):
             return func(data, *args, **kwargs)
         assert isinstance(data, xr.Dataset)
@@ -137,7 +142,7 @@ def lift_dataarray_to_generic(func: Callable[..., DataType]) -> Callable[..., Da
             if isinstance(var, xr.DataArray) and var.name is None:
                 var.name = var_name
 
-        merged = xr.merge(new_vars.values())
+        merged: xr.Dataset = xr.merge(new_vars.values())
         return merged.assign_attrs(data.attrs)
 
     return func_wrapper
@@ -162,11 +167,11 @@ class Debounce:
         """Force a reset of the timer, aka the next call will always work."""
         self.last = np.nan
 
-    def __call__(self, func: Callable[..., Any]) -> Callable[..., None]:
+    def __call__(self, func: Callable[P, Any]) -> Callable[P, None]:
         """The wrapper call which defers execution if the function was actually called recently."""
 
         @functools.wraps(func)
-        def wrapped(*args: Incomplete, **kwargs: Incomplete) -> None:
+        def wrapped(*args: P.args, **kwargs: P.kwargs) -> None:
             now = time.time()
             willcall = False
             if not np.isnan(self.last):

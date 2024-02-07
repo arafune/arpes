@@ -1,4 +1,5 @@
 """Some common spatial plotting routines. Useful for contextualizing nanoARPES data."""
+
 from __future__ import annotations
 
 import contextlib
@@ -105,18 +106,29 @@ def plot_spatial_reference(
         zip(data_list, offset_list, annotation_list, strict=True),
     ):
         if offset is None:
+            logical_offset = {}
             try:
-                offset = data.S.logical_offsets - reference_map.S.logical_offsets
+                logical_offset["x"] = (
+                    data.S.logical_offsets["x"] - reference_map.S.logical_offsets["x"]
+                )
+                logical_offset["y"] = (
+                    data.S.logical_offsets["y"] - reference_map.S.logical_offsets["z"]
+                )
+                logical_offset["z"] = (
+                    data.S.logical_offsets["y"] - reference_map.S.logical_offsets["z"]
+                )
             except ValueError:
-                offset = {}
+                logical_offset = {}
+        else:
+            logical_offset = offset
 
         coords = {c: unwrap_xarray_item(data.coords[c]) for c in ref_dims}
         n_array_coords = len(
             [cv for cv in coords.values() if isinstance(cv, np.ndarray | xr.DataArray)],
         )
         color = cmap(0.4 + (0.5 * i / len(data_list)))
-        x = coords[ref_dims[0]] + offset.get(ref_dims[0], 0)
-        y = coords[ref_dims[1]] + offset.get(ref_dims[1], 0)
+        x = coords[ref_dims[0]] + logical_offset.get(str(ref_dims[0]), 0)
+        y = coords[ref_dims[1]] + logical_offset.get(str(ref_dims[1]), 0)
         ref_x, ref_y = x, y
         off_x, off_y = 0, 0
         scale = 0.03

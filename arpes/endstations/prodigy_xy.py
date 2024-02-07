@@ -67,7 +67,7 @@ class ProdigyXY:
         """Initialize."""
         self.params: ProdigyXYParams
         self.axis_info: dict[str, tuple[float, float, int, str]] = {}
-        self.intensity: NDArray
+        self.intensity: NDArray[np.float_]
         if list_from_xy_file is not None:
             self.parse(list_from_xy_file)
 

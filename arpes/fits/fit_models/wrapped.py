@@ -1,7 +1,8 @@
 """Wraps standard lmfit models."""
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Unpack
 
 import lmfit as lf
 import numpy as np
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import NAN_POLICY
+    from arpes.fits import ModelARGS
 
 __all__ = [
     "VoigtModel",
@@ -65,7 +66,7 @@ class SplitLorentzianModel(XModelMixin, lf.models.SplitLorentzianModel):
         self,
         data: xr.DataArray | NDArray[np.float_],
         x: NDArray[np.float_] | None = None,
-        **kwargs: Incomplete,
+        **kwargs: float,
     ) -> lf.Parameters:
         """Estimate initial model parameter values from data."""
         pars = self.make_params()
@@ -96,21 +97,13 @@ class LinearModel(XModelMixin, lf.models.LinearModel):
 class LogisticModel(XModelMixin, lf.models.StepModel):
     """A logistic regression model."""
 
-    def __init__(
-        self,
-        independent_vars: list[str] | None = None,
-        prefix: str = "",
-        nan_policy: NAN_POLICY = "raise",
-        **kwargs: Incomplete,
-    ) -> None:
+    def __init__(self, **kwargs: Unpack[ModelARGS]) -> None:
         """Set standard parameters and delegate to lmfit."""
-        if independent_vars is None:
-            independent_vars = ["x"]
+        kwargs.setdefault("prefix", "")
+        kwargs.setdefault("independent_vars", ["x"])
+        kwargs.setdefault("nan_policy", "raise")
         kwargs.update(
             {
-                "prefix": prefix,
-                "nan_policy": nan_policy,
-                "independent_vars": independent_vars,
                 "form": "logistic",
             },
         )

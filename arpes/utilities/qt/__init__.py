@@ -1,9 +1,11 @@
 """Infrastructure code for Qt based analysis tools."""
+
 from __future__ import annotations
 
 import functools
+from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from multiprocessing import Process
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ParamSpec, TypeVar
 
 import dill
 import pyqtgraph as pg
@@ -17,7 +19,7 @@ from .help_dialogs import BasicHelpDialog
 from .windows import SimpleWindow
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Generator, Iterable
+    from collections.abc import Callable
     from typing import Literal, Self
 
     from _typeshed import Incomplete
@@ -35,9 +37,24 @@ __all__ = (
     "run_tool_in_daemon_process",
 )
 
+LOGLEVELS = (DEBUG, INFO)
+LOGLEVEL = LOGLEVELS[1]
+logger = getLogger(__name__)
+fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
+formatter = Formatter(fmt)
+handler = StreamHandler()
+handler.setLevel(LOGLEVEL)
+logger.setLevel(LOGLEVEL)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.propagate = False
 
-def run_tool_in_daemon_process(tool_handler: Callable) -> Callable:
-    """Starts a Qt based tool as a daemon process.
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+def run_tool_in_daemon_process(tool_handler: Callable[P, None]) -> Callable[P, None]:
+    """Start a Qt based tool as a daemon process.
 
     This is exceptionally useful because it let's you have multiple tool windows
     open simultaneously and does not block the main "analysis" process.
@@ -73,7 +90,7 @@ def run_tool_in_daemon_process(tool_handler: Callable) -> Callable:
 
 
 def remove_dangling_viewboxes() -> None:
-    """Removes ViewBoxes that don't get garbage collected on app close.
+    """Remove ViewBoxes that don't get garbage collected on app close.
 
     If you construct a view hierarchy which has circular references
     then it can happen that Python will retain the references to Qt
@@ -89,7 +106,7 @@ def remove_dangling_viewboxes() -> None:
     * ViewBox.AllViews
     * ViewBox.NamedViews
     """
-    import sip
+    import sipbuild  # TODO: CHECK.
 
     for_deletion = set()
 
@@ -97,7 +114,7 @@ def remove_dangling_viewboxes() -> None:
     # a list before we iterate because we are modifying the
     # underlying collection
     for v in list(ViewBox.AllViews):
-        if sip.isdeleted(v):
+        if sipbuild.isdeleted(v):
             # first remove it from the ViewBox references
             # and then we will delete it later to prevent an
             # error
@@ -107,7 +124,7 @@ def remove_dangling_viewboxes() -> None:
     for vname in list(ViewBox.NamedViews):
         v = ViewBox.NamedViews[vname]
 
-        if sip.isdeleted(v):
+        if sipbuild.isdeleted(v):
             for_deletion.add(v)
             del ViewBox.NamedViews[vname]
 
@@ -128,28 +145,31 @@ class QtInfo:
 
         self._inited = True
         dpis = [screen.physicalDotsPerInch() for screen in app.screens()]
-        self.screen_dpi = sum(dpis) / len(dpis)
+        self.screen_dpi = int(sum(dpis) / len(dpis))
 
     def apply_settings_to_app(self, app: QApplication) -> None:
         # Adjust the font size based on screen DPI
         font = app.font()
-        font.setPointSize(self.inches_to_px(0.1))
+        logger.debug(f"Type of app {type(app)}")
+        font_size = self.inches_to_px(0.1)
+        assert isinstance(font_size, int)
+        font.setPointSize(font_size)
         app.instance().setFont(font)
 
     def inches_to_px(
         self,
         arg: float | tuple[float, ...],
-    ) -> int | Generator[int, None, None]:
+    ) -> int | tuple[int, ...]:
         if isinstance(
             arg,
             int | float,
         ):
             return int(self.screen_dpi * arg)
 
-        return (int(x * self.screen_dpi) for x in arg)
+        return tuple(int(x * self.screen_dpi) for x in arg)
 
     def setup_pyqtgraph(self) -> None:
-        """Does any patching required on PyQtGraph and configures options."""
+        """Do any patching required on PyQtGraph and configures options."""
         if self._pg_patched:
             return
 
@@ -177,7 +197,7 @@ class QtInfo:
 
             We also don't handle inverted axes for now.
             """
-            if self.linksBlocked or view is None:
+            if view is None:
                 return
 
             vr = view.viewRect()

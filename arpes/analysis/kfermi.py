@@ -1,4 +1,5 @@
 """Tools related to finding the Fermi momentum in a cut."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

@@ -10,7 +10,7 @@ import xarray as xr
 from matplotlib.axes import Axes
 
 from arpes.fits import GStepBModel, LinearModel, QuadraticModel, broadcast_model
-from arpes.provenance import provenance, update_provenance
+from arpes.provenance import PROVENANCE, provenance, update_provenance
 from arpes.utilities.math import shift_by
 
 if TYPE_CHECKING:
@@ -118,18 +118,15 @@ def apply_direct_fermi_edge_correction(
 
     if "id" in corrected_arr.attrs:
         del corrected_arr.attrs["id"]
+    provenance_context: PROVENANCE = {
+        "what": "Shifted Fermi edge to align at 0 along hv axis",
+        "by": "apply_photon_energy_fermi_edge_correction",
+        "correction": list(
+            correction.values if isinstance(correction, xr.DataArray) else correction,
+        ),
+    }
 
-    provenance(
-        corrected_arr,
-        arr,
-        {
-            "what": "Shifted Fermi edge to align at 0 along hv axis",
-            "by": "apply_photon_energy_fermi_edge_correction",
-            "correction": list(
-                correction.values if isinstance(correction, xr.DataArray) else correction,
-            ),
-        },
-    )
+    provenance(corrected_arr, arr, provenance_context)
 
     return corrected_arr
 
@@ -271,16 +268,13 @@ def apply_photon_energy_fermi_edge_correction(
 
     if "id" in corrected_arr.attrs:
         del corrected_arr.attrs["id"]
+    provenance_context: PROVENANCE = {
+        "what": "Shifted Fermi edge to align at 0 along hv axis",
+        "by": "apply_photon_energy_fermi_edge_correction",
+        "correction": list(correction_values.values),
+    }
 
-    provenance(
-        corrected_arr,
-        arr,
-        {
-            "what": "Shifted Fermi edge to align at 0 along hv axis",
-            "by": "apply_photon_energy_fermi_edge_correction",
-            "correction": list(correction_values.values),
-        },
-    )
+    provenance(corrected_arr, arr, provenance_context)
 
     return corrected_arr
 
@@ -327,15 +321,12 @@ def apply_quadratic_fermi_edge_correction(
 
     if "id" in corrected_arr.attrs:
         del corrected_arr.attrs["id"]
+    provenance_context: PROVENANCE = {
+        "what": "Shifted Fermi edge to align at 0",
+        "by": "apply_quadratic_fermi_edge_correction",
+        "correction": correction.best_values,
+    }
 
-    provenance(
-        corrected_arr,
-        arr,
-        {
-            "what": "Shifted Fermi edge to align at 0",
-            "by": "apply_quadratic_fermi_edge_correction",
-            "correction": correction.best_values,
-        },
-    )
+    provenance(corrected_arr, arr, provenance_context)
 
     return corrected_arr

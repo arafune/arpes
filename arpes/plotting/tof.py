@@ -8,6 +8,7 @@ Plotting routines here are ones that include statistical errorbars. Generally fo
 PyARPES, an xr.Dataset will hold the standard deviation data for a given variable on
 `{var_name}_std`.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -53,9 +54,9 @@ def plot_with_std(
            ax.fill_between/xr.DataArray.plot
     """
     if not name_to_plot:
-        var_names = [str(k) for k in data.data_vars if "_std" not in str(k)]
+        var_names = [k for k in data.data_vars if "_std" not in str(k)]
         assert len(var_names) == 1
-        name_to_plot = var_names[0]
+        name_to_plot = str(var_names[0])
         assert (name_to_plot + "_std") in data.data_vars, "Has 'mean_and_deviation' been applied?"
 
     fig: Figure | None = None
@@ -96,9 +97,9 @@ def scatter_with_std(
         **kwargs: pass to subplots if figsize is set as tuple, other kwargs are pass to ax.errorbar
     """
     if not name_to_plot:
-        var_names = [str(k) for k in data.data_vars if "_std" not in str(k)]
+        var_names = [k for k in data.data_vars if "_std" not in str(k)]
         assert len(var_names) == 1
-        name_to_plot = var_names[0]
+        name_to_plot = str(var_names[0])
         assert (
             name_to_plot + "_std"
         ) in data.data_vars, "Has 'mean_and_deviation' been applied to the data?"

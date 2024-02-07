@@ -1,20 +1,22 @@
 """Provides xarray aware pyqtgraph plotting widgets."""
+
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence, Sized
 from typing import TYPE_CHECKING
 
 import numpy as np
 import pyqtgraph as pg
+import xarray as xr
 from scipy import interpolate
 
 from .utils import PlotOrientation
 
 if TYPE_CHECKING:
-    from _typeshed import Incomplete
-    from numpy.typing import NDArray
+    from collections.abc import Sequence
 
-    from arpes._typing import DataType
+    from _typeshed import Incomplete
+    from numpy._typing import NDArray
+
 
 __all__ = (
     "DataArrayImageView",
@@ -25,13 +27,13 @@ __all__ = (
 class CoordAxis(pg.AxisItem):
     def __init__(self, dim_index: int, *args: Incomplete, **kwargs: Incomplete) -> None:
         self.dim_index = dim_index
-        self.coord = None
-        self.interp: Callable[[float | Sequence[float]], float | NDArray[np.float_]] | None = None
+        self.coord: NDArray[np.float_]
+        self.interp: interpolate.interp1d
         super().__init__(*args, **kwargs)
 
-    def setImage(self, image: DataType) -> None:
+    def setImage(self, image: xr.DataArray) -> None:
+        assert isinstance(image, xr.DataArray)
         self.coord = image.coords[image.dims[self.dim_index]].values
-        assert isinstance(self.coord, Sized)
         self.interp = interpolate.interp1d(
             np.arange(0, len(self.coord)),
             self.coord,
@@ -64,15 +66,16 @@ class DataArrayPlot(pg.PlotWidget):
 
     def plot(
         self,
-        data: DataType,
+        data: xr.DataArray,
         *args: Incomplete,
         **kwargs: Incomplete,
     ) -> pg.PlotDataItem:
-        """Updates the UI with new data.
+        """Update the UI with new data.
 
         Data also needs to be forwarded to the coordinate axis in case of transpose
         or changed range of data.
         """
+        assert isinstance(data, xr.DataArray)
         y = data.values
         self._coord_axis.setImage(data)
 
@@ -118,12 +121,13 @@ class DataArrayImageView(pg.ImageView):
 
     def setImage(
         self,
-        img: DataType,
+        img: xr.DataArray,
         *args: Incomplete,
         keep_levels: bool = False,
         **kwargs: Incomplete,
     ) -> None:
-        """Accepts an xarray.DataArray instead of a numpy array."""
+        """Accept an xarray.DataArray instead of a numpy array."""
+        assert isinstance(img, xr.DataArray)
         if keep_levels:
             levels = self.getLevels()
 
@@ -136,4 +140,4 @@ class DataArrayImageView(pg.ImageView):
             self.setLevels(*levels)
 
     def recompute(self) -> None:
-        """A hook to recompute UI state, not used by this widget."""
+        """Recompute UI state, not used by this widget."""

@@ -19,22 +19,22 @@ Photon energy -> 'hv'
 Better facilities should be added for ToFs to do simultaneous (timing, angle)
 to (binding energy, k-space).
 """
+
 from __future__ import annotations
 
 import collections
 import contextlib
 import warnings
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Callable, Hashable, Iterable, Mapping
 from itertools import pairwise
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, TypedDict
 
 import numpy as np
 import xarray as xr
 from scipy.interpolate import RegularGridInterpolator
 
-from arpes.provenance import provenance, update_provenance
-from arpes.trace import Trace, traceable
+from arpes.provenance import PROVENANCE, provenance, update_provenance
 from arpes.utilities import normalize_to_spectrum
 
 from .fast_interp import Interpolator
@@ -47,10 +47,10 @@ from .kx_ky_conversion import ConvertKp, ConvertKxKy
 from .kz_conversion import ConvertKpKz
 
 if TYPE_CHECKING:
-    from _typeshed import Incomplete
     from numpy.typing import NDArray
 
     from arpes._typing import MOMENTUM
+    from arpes.utilities.conversion.calibration import DetectorCalibration
 
 __all__ = ["convert_to_kspace", "slice_along_path"]
 
@@ -68,14 +68,12 @@ logger.addHandler(handler)
 logger.propagate = False
 
 
-@traceable
 def grid_interpolator_from_dataarray(
     arr: xr.DataArray,
     fill_value: float = 0.0,
     method: Literal["linear", "nearest", "slinear", "cubic", "quintic", "pchip"] = "linear",
     *,
     bounds_error: bool = False,
-    trace: Trace | None = None,
 ) -> RegularGridInterpolator | Interpolator:
     """Translates an xarray.DataArray contents into a scipy.interpolate.RegularGridInterpolator.
 
@@ -88,7 +86,6 @@ def grid_interpolator_from_dataarray(
         if len(c) > 1 and c[1] - c[0] < 0:
             flip_axes.add(str(d))
     values: NDArray[np.float_] = arr.values
-    trace("Flipping axes") if trace else None
     for dim in flip_axes:
         values = np.flip(values, arr.dims.index(dim))
     interp_points = [
@@ -97,11 +94,8 @@ def grid_interpolator_from_dataarray(
     trace_size = [len(pts) for pts in interp_points]
 
     if method == "linear":
-        trace(f"Using fast_interp.Interpolator: size {trace_size}") if trace else None
+        logger.debug(f"Using fast_interp.Interpolator: size {trace_size}")
         return Interpolator.from_arrays(interp_points, values)
-    trace(
-        f"Calling scipy.interpolate.RegularGridInterpolator: size {trace_size}",
-    ) if trace else None
     return RegularGridInterpolator(
         points=interp_points,
         values=values,
@@ -111,7 +105,7 @@ def grid_interpolator_from_dataarray(
     )
 
 
-def slice_along_path(  # noqa: PLR0913
+def slice_along_path(
     arr: xr.DataArray,
     interpolation_points: NDArray[np.float_] | None = None,
     axis_name: str = "",
@@ -177,9 +171,11 @@ def slice_along_path(  # noqa: PLR0913
         raise ValueError(msg)
 
     parsed_interpolation_points = [
-        x
-        if isinstance(x, Iterable) and not isinstance(x, str)
-        else _extract_symmetry_point(x, arr, extend_to_edge=extend_to_edge)
+        (
+            x
+            if isinstance(x, Iterable) and not isinstance(x, str)
+            else _extract_symmetry_point(x, arr, extend_to_edge=extend_to_edge)
+        )
         for x in interpolation_points
     ]
 
@@ -308,41 +304,37 @@ def slice_along_path(  # noqa: PLR0913
 
     if "id" in converted_ds.attrs:
         del converted_ds.attrs["id"]
-        provenance(
-            converted_ds,
-            arr,
-            {
-                "what": "Slice along path",
-                "by": "slice_along_path",
-                "parsed_interpolation_points": parsed_interpolation_points,
-                "interpolation_points": interpolation_points,
-            },
-        )
+        provenance_context: PROVENANCE = {
+            "what": "Slice along path",
+            "by": "slice_along_path",
+            "parsed_interpolation_points": parsed_interpolation_points,
+            "interpolation_points": interpolation_points,
+        }
+
+        provenance(converted_ds, arr, provenance_context)
 
     return converted_ds
 
 
 @update_provenance("Automatically k-space converted")
-@traceable
-def convert_to_kspace(  # noqa: PLR0913
+def convert_to_kspace(
     arr: xr.DataArray,
     bounds: dict[MOMENTUM, tuple[float, float]] | None = None,
-    resolution: dict | None = None,
-    calibration: Incomplete | None = None,
-    coords: dict[str, NDArray[np.float_] | xr.DataArray] | None = None,
+    resolution: dict[MOMENTUM, float] | None = None,
+    calibration: DetectorCalibration | None = None,
+    coords: dict[MOMENTUM, NDArray[np.float_]] | None = None,
     *,
     allow_chunks: bool = False,
-    trace: Trace | None = None,
     **kwargs: NDArray[np.float_],
-) -> xr.DataArray | xr.Dataset | None:
+) -> xr.DataArray:
     """Converts volumetric the data to momentum space ("backwards"). Typically what you want.
 
     Works in general by regridding the data into the new coordinate space and then
     interpolating back into the original data.
 
     For forward conversion, see sibling methods. Forward conversion works by
-    converting the coordinates, rather than by interpolating the data. As a result, the data will be
     totally unchanged by the conversion (if we do not apply a Jacobian correction), but the
+    converting the coordinates, rather than by interpolating the data. As a result, the data will be
     coordinates will no longer have equal spacing.
 
     This is only really useful for zero and one dimensional data because for two dimensional data,
@@ -372,15 +364,13 @@ def convert_to_kspace(  # noqa: PLR0913
 
     Args:
         arr (xr.DataArray): ARPES data
-        bounds (dict[MOMENTUM, tuple[float, float]] | None): The key is the axis name.
-                                                             The value is the bounds.
-                                                             Defaults to {}.
-        resolution ([type]): [description]. Defaults to None.
-        calibration ([type], optional): [description]. Defaults to None.
-        coords (dict[str, Iterable[float], optional): Coordinate of k-space. Defaults to {}.
+        bounds (dict[MOMENTUM, tuple[float, float]], optional):
+            The key is the axis name. The value is the bounds. Defaults to {}.
+            If not set this arg, set coords.
+        resolution (dict[Momentum, float], optional): dict for the energy/angular resolution.
+        calibration (DetectorCalibration, optional): DetectorCalibration object. Defaults to None.
+        coords (dict[Momentum, Iterable[float], optional): Coordinate of k-space. Defaults to {}.
         allow_chunks (bool): [description]. Defaults to False.
-        trace (Callable, optional): Controls whether to use execution tracing. Defaults to None.
-                                    Pass `True` to enable.
         **kwargs: treated as coords.
 
     Raises:
@@ -395,8 +385,7 @@ def convert_to_kspace(  # noqa: PLR0913
         coords = {}
     if bounds is None:
         bounds = {}
-    coords.update(kwargs)
-    trace("Normalizing to spectrum")
+    coords.update(**kwargs)
     if isinstance(arr, xr.Dataset):
         msg = "Remember to use a DataArray not a Dataset, "
         msg += "attempting to extract spectrum and copy attributes."
@@ -420,10 +409,8 @@ def convert_to_kspace(  # noqa: PLR0913
             resolution=resolution,
             calibration=calibration,
             coords=coords,
-            trace=trace,
             **kwargs,
         )
-    trace("Determining dimensions and resolution")
     momentum_incompatibles: list[str] = [
         str(d) for d in arr.dims if not is_dimension_convertible_to_mementum(str(d))
     ]
@@ -437,7 +424,6 @@ def convert_to_kspace(  # noqa: PLR0913
 
     momentum_compatibles.sort()
 
-    trace("Replacing dummy coordinates with index-like ones.")
     # temporarily reassign coordinates for dimensions we will not
     # convert to "index-like" dimensions
     restore_index_like_coordinates: dict[str, NDArray[np.float_]] = {
@@ -446,7 +432,7 @@ def convert_to_kspace(  # noqa: PLR0913
     new_index_like_coordinates = {
         r: np.arange(len(arr.coords[r].values)) for r in momentum_incompatibles
     }
-    arr = arr.assign_coords(**new_index_like_coordinates)
+    arr = arr.assign_coords(new_index_like_coordinates)
 
     if not momentum_compatibles:
         return arr  # no need to convert, might be XPS or similar
@@ -464,90 +450,78 @@ def convert_to_kspace(  # noqa: PLR0913
         # ('chi', 'phi',): ConvertKxKy,
         ("hv", "phi"): ConvertKpKz,
     }.get(tuple(momentum_compatibles))
-    if convert_cls:
-        converter = convert_cls(arr, converted_dims, calibration=calibration)
-        trace("Converting coordinates")
-        converted_coordinates: dict[
-            str,
-            NDArray[np.float_] | xr.DataArray,
-        ] = converter.get_coordinates(resolution=resolution, bounds=bounds)
-        if not set(coords.keys()).issubset(converted_coordinates.keys()):
-            extra = set(coords.keys()).difference(converted_coordinates.keys())
-            msg = f"Unexpected passed coordinates: {extra}"
-            raise ValueError(msg)
-        converted_coordinates.update(coords)
-        trace("Calling convert_coordinates")
-        trace(f"converted_dims{converted_dims}")
-        result = convert_coordinates(
-            arr,
-            converted_coordinates,
-            {
-                "dims": converted_dims,
-                "transforms": dict(
-                    zip(arr.dims, [converter.conversion_for(dim) for dim in arr.dims], strict=True),
-                ),
-            },
-            trace=trace,
-        )
-        trace("Reassigning index-like coordinates.")
-        result = result.assign_coords(**restore_index_like_coordinates)
-        trace("Finished.")
-        return result
-    RuntimeError("Cannot select convert class")
-    return None
+    assert convert_cls is not None, "Cannot select convert class"
+
+    converter = convert_cls(arr, converted_dims, calibration=calibration)
+
+    converted_coordinates: dict[Hashable, NDArray[np.float_]] = converter.get_coordinates(
+        resolution=resolution,
+        bounds=bounds,
+    )
+    if not set(coords.keys()).issubset(converted_coordinates.keys()):
+        extra = set(coords.keys()).difference(converted_coordinates.keys())
+        msg = f"Unexpected passed coordinates: {extra}"
+        raise ValueError(msg)
+    converted_coordinates.update(coords)
+    result = convert_coordinates(
+        arr,
+        converted_coordinates,
+        {
+            "dims": converted_dims,
+            "transforms": dict(
+                zip(arr.dims, [converter.conversion_for(dim) for dim in arr.dims], strict=True),
+            ),
+        },
+    )
+    assert isinstance(result, xr.DataArray)
+    return result.assign_coords(restore_index_like_coordinates)
 
 
-@traceable
 def convert_coordinates(
     arr: xr.DataArray,
-    target_coordinates: dict[str, NDArray[np.float_] | xr.DataArray],
-    coordinate_transform: dict[str, list[str] | Callable],
+    target_coordinates: dict[Hashable, NDArray[np.float_]],
+    coordinate_transform: dict[Hashable, list[str] | dict[Hashable, NDArray[np.float_]]],
     *,
     as_dataset: bool = False,
-    trace: Trace | None = None,
 ) -> xr.DataArray | xr.Dataset:
     """Return Band structure data (converted to k-space).
 
     Args:
         arr(xr.DataArray): ARPES data
-        target_coordinates:(dict[str, NDArray[np.float_] | xr.DataArray]):  coorrdinate for ...
-        coordinate_transform(dict[str, list[str] | Callable]): coordinat for ...
+        target_coordinates:(dict[Hashable, NDArray[np.float_]]):  coorrdinate for ...
+        coordinate_transform(dict[Hashable, list[str] | Callable]): coordinat for ...
         as_dataset(bool): if True, return the data as the dataSet
-        trace(Callable): if True, trace command is activated.
 
     Returns:
         xr.DataArray | xr.Dataset
     """
     assert isinstance(arr, xr.DataArray)
     ordered_source_dimensions = arr.dims
-    trace("Instantiating grid interpolator.")
+
     grid_interpolator = grid_interpolator_from_dataarray(
         arr.transpose(*ordered_source_dimensions),
         fill_value=float("nan"),
-        trace=trace,
     )
-    trace("Finished instantiating grid interpolator.")
 
     # Skip the Jacobian correction for now
     # Convert the raw coordinate axes to a set of gridded points
-    trace(f"Calling meshgrid: {[len(target_coordinates[_]) for _ in coordinate_transform['dims']]}")
+    logger.debug(f"meshgrid: {[len(target_coordinates[_]) for _ in coordinate_transform['dims']]}")
     meshed_coordinates = np.meshgrid(
         *[target_coordinates[dim] for dim in coordinate_transform["dims"]],
         indexing="ij",
     )
-    trace("Raveling coordinates")
     meshed_coordinates = [meshed_coord.ravel() for meshed_coord in meshed_coordinates]
 
     if "eV" not in arr.dims:
         with contextlib.suppress(ValueError):
             meshed_coordinates = [arr.S.lookup_offset_coord("eV"), *meshed_coordinates]
-
     old_coord_names = [dim for dim in arr.dims if dim not in target_coordinates]
+    assert isinstance(coordinate_transform["transforms"], dict)
+    transforms: dict[Hashable, NDArray[np.float_]] = coordinate_transform["transforms"]
     old_coordinate_transforms = [
-        coordinate_transform["transforms"][dim] for dim in arr.dims if dim not in target_coordinates
+        transforms[dim] for dim in arr.dims if dim not in target_coordinates
     ]
 
-    trace("Calling coordinate transforms")
     output_shape = [len(target_coordinates[d]) for d in coordinate_transform["dims"]]
 
     def compute_coordinate(transform: Callable[..., NDArray[np.float_]]) -> NDArray[np.float_]:
@@ -557,39 +531,35 @@ def convert_coordinates(
             order="C",
         )
 
-    old_dimensions = []
-    for tr in old_coordinate_transforms:
-        trace(f"Running transform {tr}")
-        old_dimensions.append(compute_coordinate(tr))
-
-    trace("Done running transforms.")
+    old_dimensions = [compute_coordinate(tr) for tr in old_coordinate_transforms]
 
     ordered_transformations = [coordinate_transform["transforms"][dim] for dim in arr.dims]
-    trace("Calling grid interpolator")
-
-    trace("Pulling back coordinates")
-    transformed_coordinates = []
-    for tr in ordered_transformations:
-        trace(f"Running transform {tr}")
-        transformed_coordinates.append(tr(*meshed_coordinates))
+    transformed_coordinates = [tr(*meshed_coordinates) for tr in ordered_transformations]
 
     if not isinstance(grid_interpolator, Interpolator):
-        transformed_coordinates = np.array(transformed_coordinates).T
-
-    trace("Calling grid interpolator") if trace else None
-    converted_volume = grid_interpolator(transformed_coordinates)
+        converted_volume = grid_interpolator(np.array(transformed_coordinates).T)
+    else:
+        converted_volume = grid_interpolator(transformed_coordinates)
 
     # Wrap it all up
     def acceptable_coordinate(c: NDArray[np.float_] | xr.DataArray) -> bool:
-        # Currently we do this to filter out coordinates
-        # that are functions of the old angular dimensions,
-        # we could forward convert these, but right now we do not
+        """[TODO:summary].
+
+        Currently we do this to filter out coordinates
+        that are functions of the old angular dimensions,
+        we could forward convert these, but right now we do not
+
+        Args:
+            c: [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
         try:
             return bool(set(c.dims).issubset(coordinate_transform["dims"]))
         except AttributeError:
             return True
 
-    trace("Bundling into DataArray")
     target_coordinates = {k: v for k, v in target_coordinates.items() if acceptable_coordinate(v)}
     data = xr.DataArray(
         np.reshape(
@@ -607,31 +577,45 @@ def convert_coordinates(
     ]
     if as_dataset:
         variables = {"data": data}
-        variables.update(dict(zip(old_coord_names, old_mapped_coords, strict=True)))
+        variables.update(
+            dict(
+                zip(
+                    old_coord_names,
+                    old_mapped_coords,
+                    strict=True,
+                ),
+            ),
+        )
         return xr.Dataset(variables, attrs=arr.attrs)
 
-    trace("Finished: convert_coordinates") if trace else None
     return data
 
 
-@traceable
 def _chunk_convert(
     arr: xr.DataArray,
     bounds: dict[MOMENTUM, tuple[float, float]] | None = None,
-    resolution: dict | None = None,
-    calibration: Incomplete | None = None,
-    coords: dict[str, NDArray[np.float_] | xr.DataArray] | None = None,
-    *,
-    trace: Trace | None,
+    resolution: dict[MOMENTUM, float] | None = None,
+    calibration: DetectorCalibration | None = None,
+    coords: dict[MOMENTUM, NDArray[np.float_]] | None = None,
     **kwargs: NDArray[np.float_],
 ) -> xr.DataArray:
     DESIRED_CHUNK_SIZE = 1000 * 1000 * 20
     TOO_LARGE_CHUNK_SIZE = 100
     n_chunks: np.int_ = np.prod(arr.shape) // DESIRED_CHUNK_SIZE
+    if n_chunks == 0:
+        warnings.warn(
+            "Data size is sufficiently small, set allow_chunks=False",
+            stacklevel=2,
+        )
+        n_chunks += 1
+
     if n_chunks > TOO_LARGE_CHUNK_SIZE:
-        warnings.warn("Input array is very large. Please consider resampling.", stacklevel=2)
+        warnings.warn(
+            "Input array is very large. Please consider resampling.",
+            stacklevel=2,
+        )
     chunk_thickness = np.max(len(arr.eV) // n_chunks, 1)
-    trace(f"Chunking along energy: {n_chunks}, thickness {chunk_thickness}") if trace else None
+    logger.debug(f"Chunking along energy: {n_chunks}, thickness {chunk_thickness}")
     finished = []
     low_idx = 0
     high_idx = chunk_thickness
@@ -646,19 +630,23 @@ def _chunk_convert(
             calibration=calibration,
             coords=coords,
             allow_chunks=False,
-            trace=trace,
             **kwargs,
         )
         if "eV" not in kchunk.dims:
             kchunk = kchunk.expand_dims("eV")
+        assert isinstance(kchunk, xr.DataArray)
         finished.append(kchunk)
         low_idx = high_idx
         high_idx = min(len(arr.eV), high_idx + chunk_thickness)
-
     return xr.concat(finished, dim="eV")
 
 
-def _extract_symmetry_point(name: str, arr: xr.DataArray, *, extend_to_edge: bool = False) -> dict:
+def _extract_symmetry_point(
+    name: str,
+    arr: xr.DataArray,
+    *,
+    extend_to_edge: bool = False,
+) -> dict:
     """[TODO:summary].
 
     Args:
@@ -669,7 +657,7 @@ def _extract_symmetry_point(name: str, arr: xr.DataArray, *, extend_to_edge: boo
     Returns:
         [TODO:description]
     """
-    raw_point: dict[str, float] = arr.attrs["symmetry_points"][name]
+    raw_point: dict[Hashable, float] = arr.attrs["symmetry_points"][name]
     G = arr.attrs["symmetry_points"]["G"]
 
     if not extend_to_edge or name == "G":

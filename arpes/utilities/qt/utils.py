@@ -1,4 +1,5 @@
 """Contains utility classes for Qt in PyARPES."""
+
 from __future__ import annotations
 
 import enum
@@ -20,7 +21,7 @@ class PlotOrientation(str, enum.Enum):
 
 @dataclass
 class ReactivePlotRecord:
-    """This contains metadata related to a reactive plot or marginal on a DataArary.
+    """Metadata related to a reactive plot or marginal on a DataArary.
 
     This is used to know how to update and mount corresponding widgets on a main tool view.
     """

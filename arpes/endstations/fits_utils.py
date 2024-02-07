@@ -226,12 +226,16 @@ def find_clean_coords(
         dimension_renamings=dimension_renamings,
         trace=trace,
     )
-    trace(f"Found scan shape {scan_shape} and dimensions {scan_dimension}.")
+    trace(f"Found scan shape {scan_shape} and dimensions {scan_dimension}.") if trace else None
 
     # bit of a hack to deal with the internal motor used for the swept spectra being considered as
     # a cycle
     if "cycle" in scan_coords and len(scan_coords["cycle"]) > 200:
-        trace("Renaming swept scan coordinate to cycle and extracting. This is hack.")
+        (
+            trace("Renaming swept scan coordinate to cycle and extracting. This is hack.")
+            if trace
+            else None
+        )
         idx = scan_dimension.index("cycle")
 
         real_data_for_cycle = hdu.data.columns["null"].array
@@ -254,14 +258,14 @@ def find_clean_coords(
         spectra = [spectra]
 
     for spectrum_key in spectra:
-        trace(f"Considering potential spectrum {spectrum_key}")
+        trace(f"Considering potential spectrum {spectrum_key}") if trace else None
         skip_names = {
             lambda name: bool("beamview" in name or "IMAQdx" in name),
         }
 
         if spectrum_key is None:
             spectrum_key = hdu.columns.names[-1]
-            trace(f"Column name was None, using {spectrum_key}")
+            trace(f"Column name was None, using {spectrum_key}") if trace else None
 
         if isinstance(spectrum_key, str):
             spectrum_key = hdu.columns.names.index(spectrum_key) + 1
@@ -275,7 +279,7 @@ def find_clean_coords(
             if (callable(skipped) and skipped(spectrum_name)) or skipped == spectrum_name:
                 should_skip = True
         if should_skip:
-            trace("Skipping column.")
+            trace("Skipping column.") if trace else None
             continue
 
         try:
@@ -283,16 +287,24 @@ def find_clean_coords(
             delta = hdu.header[f"TDELT{spectrum_key}"]
             offset = literal_eval(offset) if isinstance(offset, str) else offset
             delta = literal_eval(delta) if isinstance(delta, str) else delta
-            trace(f"Determined (offset, delta): {(offset, delta)}.")
+            trace(f"Determined (offset, delta): {(offset, delta)}.") if trace else None
 
             try:
                 shape = hdu.header[f"TDIM{spectrum_key}"]
                 shape = literal_eval(shape) if isinstance(shape, str) else shape
                 loaded_shape_from_header = True
-                trace(f"Successfully loaded coordinate shape from header: {shape}")
+                (
+                    trace(f"Successfully loaded coordinate shape from header: {shape}")
+                    if trace
+                    else None
+                )
             except KeyError:
                 shape = hdu.data.field(spectrum_key - 1).shape
-                trace(f"Could not use header to determine coordinate shape, using: {shape}")
+                (
+                    trace(f"Could not use header to determine coordinate shape, using: {shape}")
+                    if trace
+                    else None
+                )
 
             try:
                 desc = hdu.header[f"TDESC{spectrum_key}"]

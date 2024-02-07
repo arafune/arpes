@@ -37,13 +37,14 @@ With the line above, whenever the button with id='submit' is pressed, we will lo
 with the most recent values of the inputs {'check','slider','file'} as a dictionary with these
 keys. This allows building PySide6 "forms" without effort.
 """
+
 from __future__ import annotations
 
 import enum
 import functools
 from enum import Enum
-from logging import INFO, Formatter, StreamHandler, getLogger
-from typing import TYPE_CHECKING, NamedTuple
+from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from typing import TYPE_CHECKING, NamedTuple, ParamSpec, TypeVar, Unpack
 
 import pyqtgraph as pg
 import rx
@@ -75,9 +76,12 @@ from .widgets import (
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
+    from dataclasses import dataclass
 
     from _typeshed import Incomplete
     from PySide6.QtGui import QKeyEvent
+
+    from arpes._typing import QWidgetARGS
 
 __all__ = (
     "CollectUI",
@@ -114,7 +118,8 @@ __all__ = (
 )
 
 
-LOGLEVEL = INFO
+LOGLEVELS = (DEBUG, INFO)
+LOGLEVEL = LOGLEVELS[1]
 logger = getLogger(__name__)
 fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
 formatter = Formatter(fmt)
@@ -124,6 +129,9 @@ logger.setLevel(LOGLEVEL)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.propagate = False
+
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
 class KeyBinding(NamedTuple):
@@ -146,7 +154,7 @@ class CursorMode(NamedTuple):
     supported_dimensions: Incomplete
 
 
-PRETTY_KEYS = {}
+PRETTY_KEYS: dict[Enum, str] = {}
 for key, value in vars(QtCore.Qt.Key).items():
     if isinstance(value, QtCore.Qt.Key):
         PRETTY_KEYS[value] = key.partition("_")[2]
@@ -162,7 +170,7 @@ def pretty_key_event(event: QKeyEvent) -> list[str]:
         The key sequence as a human readable string.
     """
     key_sequence = []
-
+    # note: event.key() returns int, and event.text() returns str
     key_name = PRETTY_KEYS.get(event.key(), event.text())
     if key_name not in key_sequence:
         key_sequence.append(key_name)
@@ -173,20 +181,27 @@ def pretty_key_event(event: QKeyEvent) -> list[str]:
 ACTIVE_UI = None
 
 
-def ui_builder(f):
+def ui_builder(f: Callable[P, R]) -> Callable[P, R]:
     """Decorator synergistic with CollectUI to make widgets which register themselves."""
 
     @functools.wraps(f)
     def wrapped_ui_builder(
-        *args,
+        *args: P.args,
         id_: str | int | tuple[str | int, ...] | None = None,
-        **kwargs: Incomplete,
-    ):
+        **kwargs: P.kwargs,
+    ) -> R:
+        logger.debug(f"id_ is: {id_}")
         if id_ is not None:
             try:
                 id_, ui = id_
             except ValueError:
                 ui = ACTIVE_UI
+        logger.debug(f"f is :{f}")
+        for i, arg in enumerate(args):
+            logger.debug(f"{i}-th args is :{arg}")
+
+        for k, v in kwargs.items():
+            logger.debug(f"kwargs for f key: {k}: value:{v}")
 
         ui_element = f(*args, **kwargs)
 
@@ -217,7 +232,7 @@ class CollectUI:
         """Pass my UI tree to the caller so they can write to it."""
         return self.ui
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:  # noqa: ANN001
         """Reset the active UI."""
         global ACTIVE_UI  # noqa: PLW0603
         ACTIVE_UI = None
@@ -225,7 +240,7 @@ class CollectUI:
 
 @ui_builder
 def layout(
-    *children,
+    *children: str | QLabel,
     layout_cls: type | None = None,
     widget: QWidget | None = None,
 ) -> QWidget:
@@ -300,13 +315,13 @@ def group(
 
 
 @ui_builder
-def label(text: str, *args: Incomplete, **kwargs: Incomplete) -> QLabel:
+def label(text: str, *args: QWidget | Qt.WindowType, **kwargs: Unpack[QWidgetARGS]) -> QLabel:
     """A convenience method for making a text label."""
     return QLabel(text, *args, **kwargs)
 
 
 @ui_builder
-def tabs(*children: list[str | QWidget] | tuple[str, QWidget]) -> QTabWidget:
+def tabs(*children: tuple[str, QWidget]) -> QTabWidget:
     """A convenience method for making a tabs control."""
     widget = QTabWidget()
     for name, child in children:
@@ -322,9 +337,9 @@ def button(text: str, *args: QWidget) -> QWidget:
 
 
 @ui_builder
-def check_box(text: str, *args: Incomplete) -> QWidget:
+def check_box(*args: QWidget) -> QWidget:
     """A convenience method for making a checkbox."""
-    return SubjectiveCheckBox(text, *args)
+    return SubjectiveCheckBox(*args)
 
 
 @ui_builder
@@ -350,15 +365,15 @@ def file_dialog(*args: Incomplete) -> QWidget:
 
 
 @ui_builder
-def line_edit(*args: Incomplete) -> QWidget:
+def line_edit(*args: str | QWidget) -> QWidget:
     """A convenience method for making a single line text input."""
     return SubjectiveLineEdit(*args)
 
 
 @ui_builder
-def radio_button(text: str, *args: Incomplete) -> QWidget:
+def radio_button(*args: QWidget) -> QWidget:
     """A convenience method for making a RadioButton."""
-    return SubjectiveRadioButton(text, *args)
+    return SubjectiveRadioButton(*args)
 
 
 @ui_builder
@@ -392,7 +407,7 @@ def spin_box(
     adaptive: bool = True,
 ) -> QWidget:
     """A convenience method for making a SpinBox."""
-    widget = SubjectiveSpinBox()
+    widget: SubjectiveSpinBox = SubjectiveSpinBox()
 
     widget.setRange(minimum, maximum)
 
@@ -440,7 +455,7 @@ def numeric_input(
     if validator_settings is None:
         validator_settings = default_settings.get(input_type)
     assert isinstance(validator_settings, dict)
-    widget = SubjectiveLineEdit(str(value), *args)
+    widget: SubjectiveLineEdit = SubjectiveLineEdit(str(value), *args)
     widget.setValidator(validators.get(input_type, QtGui.QIntValidator)(**validator_settings))
 
     return widget
@@ -509,17 +524,17 @@ def _layout_dataclass_field(dataclass_cls: Incomplete, field_name: str, prefix: 
         int,
         float,
     ]:
-        field_input = numeric_input(value=0, input_type=field.type, id=id_for_field)
+        field_input = numeric_input(value=0, input_type=field.type, id_=id_for_field)
     elif field.type == str:
-        field_input = line_edit("", id=id_for_field)
+        field_input = line_edit("", id_=id_for_field)
     elif issubclass(field.type, enum.Enum):
         enum_options = enum_option_names(field.type)
-        field_input = combo_box(enum_options, id=id_for_field)
+        field_input = combo_box(enum_options, id_=id_for_field)
     elif field.type == bool:
-        field_input = check_box(field_name, id=id_for_field)
+        field_input = check_box(field_name, id_=id_for_field)
     else:
         msg = f"Could not render field: {field}"
-        raise Exception(msg)
+        raise RuntimeError(msg)
 
     return group(
         field_name,
@@ -527,14 +542,14 @@ def _layout_dataclass_field(dataclass_cls: Incomplete, field_name: str, prefix: 
     )
 
 
-def layout_dataclass(dataclass_cls: Incomplete, prefix: str = "") -> QWidget:
+def layout_dataclass(dataclass_cls: type[dataclass], prefix: str = "") -> QWidget:
     """Renders a dataclass instance to QtWidgets.
 
     See also `bind_dataclass` below to get one way data binding to the instance.
 
     Args:
-        dataclass_cls
-        prefix
+        dataclass_cls (type[dataclass]): class type of dataclass
+        prefix (str): prefix text
 
     Returns:
         The widget containing the layout for the dataclass.
@@ -616,6 +631,7 @@ class CursorRegion(pg.LinearRegionItem):
         super().__init__(*args, **kwargs)
         self._region_width = 1.0
         self.lines[1].setMovable(m=False)
+        self.blockLineSignal: bool
 
     def set_width(self, value: float) -> None:
         """Adjusts the region by moving the right boundary to a distance `value` from the left."""

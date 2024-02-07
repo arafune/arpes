@@ -19,8 +19,32 @@ def dataarray_cut() -> xr.DataArray:
     return example_data.cut.spectrum
 
 
+@pytest.fixture()
+def xps_map() -> xr.Dataset:
+    """A fixture for loading example_data.xps."""
+    return example_data.nano_xps
+
+
+@pytest.fixture()
+def hv_map() -> xr.Dataset:
+    """A fixture for loading photonenergy dependence."""
+    return example_data.photon_energy
+
+
 class TestforProperties:
     """Test class for Array Dataset properties."""
+
+    def test_hv_for_hv_map(self, hv_map: xr.Dataset) -> None:
+        """Test for self.hv."""
+        np.testing.assert_equal(hv_map.S.hv.values, np.linspace(50, 90, 21))
+
+    def test_degrees_of_freedom_dims(self, xps_map: xr.Dataset) -> None:
+        """Test for degrees_of_freedom."""
+        assert xps_map.S.spectrum_degrees_of_freedom == {"eV"}
+        assert xps_map.S.scan_degrees_of_freedom == {"x", "y"}
+
+    def test_is_functions(self, xps_map: xr.Dataset) -> None:
+        assert xps_map.S.is_spatial
 
     def test_find_spectrum_energy_edges(self, dataarray_cut: xr.DataArray) -> None:
         """Test for find_spectrum_energy_edges."""
@@ -92,6 +116,10 @@ class TestforProperties:
         assert dataarray_cut.S.sample_angles[4] == 0
         assert dataarray_cut.S.sample_angles[5] == 0
 
+    def test_is_subtracted(self, dataarray_cut: xr.DataArray) -> None:
+        """Test property is_subtracted."""
+        assert dataarray_cut.S.is_subtracted is False
+
     def test_property_is_kspace(self, dataset_cut: xr.Dataset) -> None:
         """Test property is_kspace."""
         assert dataset_cut.S.is_kspace is False
@@ -146,7 +174,7 @@ class TestforProperties:
         """Test for property experimenta_conditions."""
         assert dataset_cut.S.experimental_conditions == {
             "hv": 5.93,
-            "polarization": None,
+            "polarization": np.nan,
             "temperature": np.nan,
         }
 
@@ -216,23 +244,38 @@ class TestEnergyNotation:
         self,
         dataarray_cut: xr.DataArray,
         dataset_cut: xr.Dataset,
+        hv_map: xr.Dataset,
     ) -> None:
         """Test for switch energy notation."""
+        # Test for DataArray
         dataarray_cut.S.switch_energy_notation()
         assert dataarray_cut.S.energy_notation == "Kinetic"
         dataarray_cut.S.switch_energy_notation()
         assert dataarray_cut.S.energy_notation == "Binding"
-        #
+
+        # Test for Dataset
         dataset_cut.S.switch_energy_notation()
         assert dataset_cut.S.energy_notation == "Kinetic"
         dataset_cut.S.switch_energy_notation()
         assert dataset_cut.S.energy_notation == "Binding"
+
+        with pytest.raises(RuntimeError) as e:
+            hv_map.S.switch_energy_notation()
+        assert str(e.value) == "Not impremented yet."
+
+        with pytest.raises(RuntimeError) as e:
+            hv_map.S.switch_energy_notation()
+        assert str(e.value) == "Not impremented yet."
 
     def test_spectrum_type(self, dataarray_cut: xr.DataArray) -> None:
         """Test spectrum_type."""
         assert dataarray_cut.S.spectrum_type == "cut"
         del dataarray_cut.attrs["spectrum_type"]
         assert dataarray_cut.S.spectrum_type == "cut"
+
+    def test_label(self, dataarray_cut: xr.DataArray) -> None:
+        """Test scan_name."""
+        assert dataarray_cut.S.label == "cut.fits"
 
 
 class TestGeneralforDataArray:

@@ -11,7 +11,7 @@ import pickle
 import re
 import warnings
 from collections import Counter
-from collections.abc import Generator, Iterable, Iterator, Sequence
+from collections.abc import Generator, Hashable, Iterable, Iterator, Sequence
 from datetime import UTC
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from pathlib import Path
@@ -136,7 +136,7 @@ def unchanged_limits(ax: Axes) -> Iterator[None]:
 
 
 def mod_plot_to_ax(
-    data: xr.DataArray,
+    data_arr: xr.DataArray,
     ax: Axes,
     mod: Model,
     **kwargs: Unpack[MPLPlotKwargs],
@@ -144,15 +144,15 @@ def mod_plot_to_ax(
     """Plots a model onto an axis using the data range from the passed data.
 
     Args:
-        data(xr.DataArray): ARPES data
+        data_arr (xr.DataArray): ARPES data
         ax (Axes): matplotlib Axes object
         mod (lmfit.model.Model): Fitting model function
         **kwargs(): pass to "ax.plot"
     """
-    assert isinstance(data, xr.DataArray)
+    assert isinstance(data_arr, xr.DataArray)
     assert isinstance(ax, Axes)
     with unchanged_limits(ax):
-        xs: NDArray[np.float_] = data.coords[data.dims[0]].values
+        xs: NDArray[np.float_] = data_arr.coords[data_arr.dims[0]].values
         ys: NDArray[np.float_] = mod.eval(x=xs)
         ax.plot(xs, ys, **kwargs)
 
@@ -410,7 +410,7 @@ def swap_axis_sides(ax: Axes) -> None:
 
 
 def transform_labels(
-    transform_fn: Callable[..., str],
+    transform_fn: Callable[[str, bool], str],
     fig: Figure | None = None,
     *,
     include_titles: bool = True,
@@ -1517,7 +1517,7 @@ def label_for_colorbar(data: DataType) -> str:
 
 def label_for_dim(
     data: DataType | None = None,
-    dim_name: str = "",
+    dim_name: Hashable = "",
     *,
     escaped: bool = True,
 ) -> str:
@@ -1594,7 +1594,7 @@ def label_for_dim(
             else:
                 raw_dim_names["eV"] = "Binding Energy ( eV )"
     if dim_name in raw_dim_names:
-        label_dim_name = raw_dim_names.get(dim_name, "")
+        label_dim_name = raw_dim_names.get(str(dim_name), "")
         if not escaped:
             label_dim_name = label_dim_name.replace("$", "")
         return label_dim_name
@@ -1618,7 +1618,7 @@ def label_for_dim(
             """
             return s.title()
 
-    return titlecase(dim_name.replace("_", " "))
+    return titlecase(str(dim_name).replace("_", " "))
 
 
 def fancy_labels(

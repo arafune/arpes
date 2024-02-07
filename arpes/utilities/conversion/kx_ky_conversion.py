@@ -19,7 +19,7 @@ from .bounds_calculations import calculate_kp_bounds, calculate_kx_ky_bounds
 from .calibration import DetectorCalibration
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Hashable
 
     import xarray as xr
     from _typeshed import Incomplete
@@ -129,7 +129,17 @@ class ConvertKp(CoordinateConverter):
     """A momentum converter for single ARPES (kp) cuts."""
 
     def __init__(self, *args: Incomplete, **kwargs: Incomplete) -> None:
-        """Initialize cached coordinates."""
+        """Initialize cached coordinates.
+
+        Args:
+            args: Pass to CoordinateConverter
+            kwargs: Pass to CoordinateConverter
+
+        Memo: Arguments of CoordinateConverter
+            arr: xr.DataArray,
+            dim_order: list[str] | None = None,
+            calibration: DetectorCalibration | None = None,
+        """
         super().__init__(*args, **kwargs)
         self.k_tot: NDArray[np.float_] | None = None
         self.phi: NDArray[np.float_] | None = None
@@ -138,7 +148,7 @@ class ConvertKp(CoordinateConverter):
         self,
         resolution: dict[MOMENTUM, float] | None = None,
         bounds: dict[MOMENTUM, tuple[float, float]] | None = None,
-    ) -> dict[str, NDArray[np.float_] | xr.DataArray]:
+    ) -> dict[Hashable, NDArray[np.float_]]:
         """Calculates appropriate coordinate bounds.
 
         Args:
@@ -171,8 +181,8 @@ class ConvertKp(CoordinateConverter):
             resolution.get("kp", inferred_kp_res),
         )
         base_coords = {
-            str(k): v for k, v in self.arr.coords.items() if k not in ["eV", "phi", "beta", "theta"]
-        }
+            k: v for k, v in self.arr.coords.items() if k not in ["eV", "phi", "beta", "theta"]
+        }  # should v.values ?
         coordinates.update(base_coords)
         return coordinates
 
@@ -292,7 +302,7 @@ class ConvertKxKy(CoordinateConverter):
         self,
         resolution: dict[MOMENTUM, float] | None = None,
         bounds: dict[MOMENTUM, tuple[float, float]] | None = None,
-    ) -> dict[str, NDArray[np.float_] | xr.DataArray]:
+    ) -> dict[Hashable, NDArray[np.float_]]:
         """Calculates appropriate coordinate bounds."""
         if resolution is None:
             resolution = {}
@@ -337,7 +347,7 @@ class ConvertKxKy(CoordinateConverter):
             resolution.get("ky", inferred_ky_res),
         )
         base_coords = {
-            str(k): v
+            k: v  # should v.values?
             for k, v in self.arr.coords.items()
             if k not in ["eV", "phi", "psi", "theta", "beta", "alpha", "chi"]
         }

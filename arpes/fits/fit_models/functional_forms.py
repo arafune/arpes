@@ -1,4 +1,5 @@
 """Common implementations of peaks, backgrounds for other models."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

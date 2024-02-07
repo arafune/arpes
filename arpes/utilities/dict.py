@@ -1,8 +1,9 @@
 """Utilities for modifying, iterating over, and transforming dictionaries."""
+
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import Any, TypeVar
 
 from .xarray import lift_dataarray_attrs, lift_datavar_attrs
 
@@ -45,14 +46,24 @@ def rename_keys(
     return d
 
 
-def clean_keys(d: dict[str, Any]) -> dict[str, Any]:
-    """Renames dictionary keys so that they are more Pythonic."""
+T = TypeVar("T")
+
+
+def clean_keys(d: dict[str, T]) -> dict[str, T]:
+    """Renames dict key to fit Pythonic more.
+
+    Args:
+        d (dict): dictionary to be cleaned.
+
+    Returns:
+        dict object whose key is cleaned.
+    """
 
     def clean_single_key(k: str) -> str:
         k = k.replace(" ", "_")
         k = k.replace(".", "_")
         k = k.lower()
-        k = re.sub(r"[()/?]", "", k)
+        k = re.sub(r"[()/?]", "_", k)
         return k.replace("__", "_")
 
     return dict(zip([clean_single_key(k) for k in d], d.values(), strict=True))

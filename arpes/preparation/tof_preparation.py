@@ -1,4 +1,5 @@
 """Data prep routines for time-of-flight data."""
+
 from __future__ import annotations  # noqa: I001
 
 import math
@@ -13,6 +14,8 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
+
+    from numpy.typing import NDArray
 
 __all__ = [
     "build_KE_coords_to_time_pixel_coords",
@@ -151,7 +154,7 @@ def build_KE_coords_to_time_pixel_coords(
 
 def build_KE_coords_to_time_coords(
     dataset: xr.Dataset,
-    interpolation_axis: Sequence[float],
+    interpolation_axis: NDArray[np.float_],
 ) -> Callable[..., tuple[xr.DataArray]]:
     """Constructs a coordinate conversion function from kinetic energy to time coords.
 

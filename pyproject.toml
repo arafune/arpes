@@ -54,12 +54,6 @@ dev-dependencies = [
 [tool.hatch.metadata]
 allow-direct-references = true
 
-[tool.pydocstyle]
-convention = "google"
-
-[tool.ruff.pydocstyle]
-convention = "google"
-
 [tool.coverge.run]
 include = ["arpes"]
 omit = [
@@ -79,7 +73,7 @@ pythonVersion = "3.11"
 pythonPlatform = "All"
 
 [tool.ruff]
-ignore = [
+lint.ignore = [
   "PD",     # pandas-vet
   "ANN101", # missing-type-self (ANN101)
   "N802",   # invalid-function-name (N802)
@@ -92,20 +86,25 @@ ignore = [
   "FBT002", # boolean-default-value-in-function-definition
   "FIX002", # line-contains-todo
   "G004",   # logging-f-string
+  #
+  "NPY201", #  Numpy 2.0, 
 ]
 target-version = "py310"
-select = ["ALL"]
+lint.select = ["ALL"]
 line-length = 100
 
 exclude = ["scripts", "docs", "conda"]
 
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
-[tool.ruff.per-file-ignores]
-"__init__.py" = ["F401"]                 # unused-import
-"arpes/__init__.py" = ["T201"]           # print used
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]                     # unused-import
+"arpes/__init__.py" = ["T201"]               # print used
 "arpes/experiment/__init__.py" = ["ALL"]
 "arpes/workflow.py" = ["T201", "T203"]
-
+"arpes/fits/lmfit_html_repr.py" = ["SLF001"] # private member accecced
 
 [tool.mypy]
 ignore_missing_imports = true

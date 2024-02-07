@@ -1,4 +1,5 @@
 """A widget providing rudimentary information about an axis on a DataArray."""
+
 # pylint: disable=import-error
 from __future__ import annotations
 
@@ -8,6 +9,8 @@ from typing import TYPE_CHECKING
 from PySide6 import QtWidgets
 
 if TYPE_CHECKING:
+    from PySide6.QtWidgets import QGridLayout, QLabel, QPushButton
+
     from . import QtTool
 
 __all__ = ("AxisInfoWidget",)
@@ -25,10 +28,10 @@ class AxisInfoWidget(QtWidgets.QGroupBox):
         """Configure inner widgets for axis info, and transpose to front button."""
         super().__init__(title=str(axis_index), parent=parent)
 
-        self.layout = QtWidgets.QGridLayout(self)
+        self.layout: QGridLayout = QtWidgets.QGridLayout(self)
 
-        self.label = QtWidgets.QLabel("Cursor: ")
-        self.transpose_button = QtWidgets.QPushButton("To Front")
+        self.label: QLabel = QtWidgets.QLabel("Cursor: ")
+        self.transpose_button: QPushButton = QtWidgets.QPushButton("To Front")
         self.transpose_button.clicked.connect(self.on_transpose)
 
         self.layout.addWidget(self.label)
@@ -47,7 +50,7 @@ class AxisInfoWidget(QtWidgets.QGroupBox):
 
     def recompute(self) -> None:
         """Force a recomputation of dependent UI state: here, the title and text."""
-        self.setTitle(self.root.data.dims[self.axis_index])
+        self.setTitle(str(self.root.data.dims[self.axis_index]))
         try:
             cursor_index = self.root.context["cursor"][self.axis_index]
             cursor_value = self.root.context["value_cursor"][self.axis_index]

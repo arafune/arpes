@@ -1,4 +1,5 @@
 """Data prep routines for hemisphere data."""
+
 from __future__ import annotations
 
 from itertools import pairwise
@@ -40,8 +41,8 @@ def stitch_maps(
     for i, (lower, higher) in enumerate(pairwise(coord1)):
         if higher > first_repair_coordinate:
             break
-    assert isinstance(i, int)
-    delta_low, delta_high = lower - first_repair_coordinate, higher - first_repair_coordinate
+        assert isinstance(i, int)
+        delta_low, delta_high = lower - first_repair_coordinate, higher - first_repair_coordinate
     if abs(delta_low) < abs(delta_high):
         delta = delta_low
     else:
@@ -55,7 +56,7 @@ def stitch_maps(
     good_data_slice = {}
     good_data_slice[dimension] = slice(None, i)
 
-    selected = arr.isel(**good_data_slice)
+    selected = arr.isel(good_data_slice)
     selected.attrs.clear()
     shifted_repair_map.attrs.clear()
     concatted = xr.concat([selected, shifted_repair_map], dim=dimension)

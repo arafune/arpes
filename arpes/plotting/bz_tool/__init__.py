@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import xarray as xr
 from matplotlib.axes import Axes
-from matplotlib.backends.backend_qt import FigureCanvas
+from matplotlib.backends.backend_qt import FigureCanvasQT
 from matplotlib.figure import Figure
 from PySide6 import QtWidgets
 
@@ -22,11 +22,12 @@ from arpes.utilities.qt import BasicHelpDialog, SimpleWindow
 from arpes.utilities.ui import combo_box, horizontal, tabs
 
 from .CoordinateOffsetWidget import CoordinateOffsetWidget
-from .RangeOrSingleValueWidget import RangeOrSingleValueWidget
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete
-    from PySide6.QtWidgets import QLayout, QWidget
+    from PySide6.QtWidgets import QGridLayout, QWidget
+
+    from arpes.utilities.qt.data_array_image_view import DataArrayImageView
 
 __all__ = ["bz_tool"]
 
@@ -52,20 +53,20 @@ class BZTool:
 
     def __init__(self) -> None:
         self.settings = None
-        self.context = {}
+        self.context: dict[str, Incomplete] = {}
 
-        self.content_layout: QLayout
-        self.main_layout: QLayout
-        self.views = {}
+        self.content_layout: QGridLayout
+        self.main_layout: QGridLayout
+        self.views: dict[str, DataArrayImageView] = {}
         self.reactive_views = []
         self.current_material: MaterialParams2D
         self.cut_line = None
 
-        self.canvas = None
+        self.canvas: FigureCanvasQT
         self.ax: Axes
 
     def configure_main_widget(self) -> None:
-        self.canvas = FigureCanvas(Figure(figsize=(8, 8)))
+        self.canvas = FigureCanvasQT(Figure(figsize=(8, 8)))
         self.ax = self.canvas.figure.subplots()
         assert isinstance(self.ax, Axes)
         self.content_layout.addWidget(self.canvas, 0, 0)

@@ -1,4 +1,5 @@
 """A widget providing controls for a coordinate offset in the momentum tool."""
+
 from __future__ import annotations
 
 from functools import partial
@@ -8,7 +9,8 @@ from PySide6 import QtWidgets
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete
-    from PySide6.QtWidgets import QWidget
+    from PySide6.QtCore import QEvent
+    from PySide6.QtWidgets import QGridLayout, QWidget
 
     from . import BZTool
 __all__ = ("CoordinateOffsetWidget",)
@@ -27,7 +29,7 @@ class CoordinateOffsetWidget(QtWidgets.QGroupBox):
         """Configures utility label, an inner control, and a linked spinbox for text entry."""
         super().__init__(title=coordinate_name, parent=parent)
 
-        self.layout = QtWidgets.QGridLayout(self)
+        self.layout: QGridLayout = QtWidgets.QGridLayout(self)
 
         self.label = QtWidgets.QLabel("Value: ")
         self.spinbox = QtWidgets.QSpinBox()
@@ -47,7 +49,7 @@ class CoordinateOffsetWidget(QtWidgets.QGroupBox):
 
     def value_changed(
         self,
-        event: Incomplete,
+        event: QEvent,
         source: Incomplete,
     ) -> None:
         """Propagates values change to update the displayed data."""

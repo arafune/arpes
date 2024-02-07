@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Unpack
 
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -22,8 +22,10 @@ from PySide6.QtWidgets import (
 from rx.subject import BehaviorSubject, Subject
 
 if TYPE_CHECKING:
-    from _typeshed import Incomplete
-    from PySide6.QtCore import CheckState
+    from PySide6.QtCore.Qt import CheckState, Orientation, WindowType
+    from PySide6.QtGui import QIcon, QPixmap
+
+    from arpes._typing import QPushButtonARGS, QSliderARGS
 
 __all__ = (
     "SubjectivePushButton",
@@ -53,7 +55,7 @@ logger.propagate = False
 class SubjectiveComboBox(QComboBox):
     """A QComboBox using rx instead of signals."""
 
-    def __init__(self, *args: Incomplete, **kwargs: Incomplete) -> None:
+    def __init__(self, *args: QWidget, **kwargs: QWidget) -> None:
         """Wrap signals in ``rx.BehaviorSubject``s."""
         super().__init__(*args, **kwargs)
         self.subject = BehaviorSubject(self.currentData())
@@ -63,7 +65,7 @@ class SubjectiveComboBox(QComboBox):
 class SubjectiveSpinBox(QSpinBox):
     """A QSpinBox using rx instead of signals."""
 
-    def __init__(self, *args: Incomplete, **kwargs: Incomplete) -> None:
+    def __init__(self, *args: QWidget, **kwargs: QWidget) -> None:
         """Wrap signals in ``rx.BehaviorSubject``s."""
         super().__init__(*args, **kwargs)
         self.subject = BehaviorSubject(self.value())
@@ -78,7 +80,7 @@ class SubjectiveSpinBox(QSpinBox):
 class SubjectiveTextEdit(QTextEdit):
     """A QTextEdit using rx instead of signals."""
 
-    def __init__(self, *args: Incomplete) -> None:
+    def __init__(self, *args: QWidget) -> None:
         """Wrap signals in ``rx.BehaviorSubject``s."""
         super().__init__(*args)
         self.subject = BehaviorSubject(self.toPlainText())
@@ -94,7 +96,11 @@ class SubjectiveTextEdit(QTextEdit):
 class SubjectiveSlider(QSlider):
     """A QSlider using rx instead of signals."""
 
-    def __init__(self, *args: Incomplete, **kwargs: Incomplete) -> None:
+    def __init__(
+        self,
+        *args: Orientation | QWidget | None,
+        **kwargs: Unpack[QSliderARGS],
+    ) -> None:
         """Wrap signals in ``rx.BehaviorSubject``s."""
         super().__init__(*args, **kwargs)
         self.subject = BehaviorSubject(self.value())
@@ -109,11 +115,11 @@ class SubjectiveSlider(QSlider):
 class SubjectiveLineEdit(QLineEdit):
     """A QLineEdit using rx instead of signals."""
 
-    def __init__(self, *args: Incomplete) -> None:
+    def __init__(self, *args: str | QWidget) -> None:
         """Wrap signals in ``rx.BehaviorSubject``s."""
         super().__init__(*args)
         self.subject = BehaviorSubject(self.text())
-        self.textChanged[str].connect(self.subject.on_next)
+        self.textChanged.connect(self.subject.on_next)
         self.subject.subscribe(self.update_ui)
 
     def update_ui(self, value: str) -> None:
@@ -125,7 +131,7 @@ class SubjectiveLineEdit(QLineEdit):
 class SubjectiveRadioButton(QRadioButton):
     """A QRadioButton using rx instead of signals."""
 
-    def __init__(self, *args: Incomplete) -> None:
+    def __init__(self, *args: QWidget | None) -> None:
         """Wrap signals in ``rx.BehaviorSubject``s."""
         super().__init__(*args)
         self.subject = BehaviorSubject(self.isChecked())
@@ -142,7 +148,7 @@ class SubjectiveFileDialog(QWidget):
 
     def __init__(
         self,
-        *args: Incomplete,
+        *args: QWidget | WindowType | None,
         single: bool = True,
         dialog_root: Path | None = None,
     ) -> None:
@@ -173,14 +179,14 @@ class SubjectiveFileDialog(QWidget):
 
     def get_file(self) -> None:
         """Opens a dialog allowing a single from the user."""
-        filename = QFileDialog.getOpenFileName(self, "Open File", self.dialog_root)
+        filename = QFileDialog.getOpenFileName(self, "Open File", str(self.dialog_root))
 
         self.subject.on_next(filename[0])
 
     def get_files(self) -> None:
         """Opens a dialog allowing multiple selections from the user."""
         dialog = QFileDialog()
-        dialog.setFileMode(QFileDialog.AnyFile)
+        dialog.setFileMode(QFileDialog.FileMode.AnyFile)
 
         if dialog.exec_():
             filenames = dialog.selectedFiles()
@@ -190,9 +196,14 @@ class SubjectiveFileDialog(QWidget):
 class SubjectivePushButton(QPushButton):
     """A QCheckBox using rx instead of signals."""
 
-    def __init__(self, *args: Incomplete, **kwargs: Incomplete) -> None:
+    def __init__(
+        self,
+        *args: QIcon | QPixmap | str | QWidget,
+        **kwargs: Unpack[QPushButtonARGS],
+    ) -> None:
         """Wrap signals in ``rx.BehaviorSubject``s."""
-        super().__init__(*args)
+        super().__init__(*args, **kwargs)
+
         self.subject = Subject()
         self.clicked.connect(lambda: self.subject.on_next(value=True))
 
@@ -200,12 +211,9 @@ class SubjectivePushButton(QPushButton):
 class SubjectiveCheckBox(QCheckBox):
     """A QCheckBox using rx instead of signals."""
 
-    def __init__(self, *args: Incomplete, **kwargs: Incomplete) -> None:
+    def __init__(self, *args: QWidget, **kwargs: QWidget) -> None:
         """Wrap signals in ``rx.BehaviorSubject``s."""
-        if kwargs:
-            for k, v in kwargs.items():
-                logger.debug(f"unused kwargs: key: {k}, value{v}")
-        super().__init__(*args)
+        super().__init__(*args, **kwargs)
         self.subject = BehaviorSubject(self.checkState())
         self.stateChanged.connect(self.subject.on_next)
         self.subject.subscribe(self.update_ui)

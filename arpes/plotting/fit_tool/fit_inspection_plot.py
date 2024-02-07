@@ -1,4 +1,5 @@
 """Defines a widget which provides a 1D browsable `lmfit.model.ModelResult`."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -7,8 +8,9 @@ import numpy as np
 import pyqtgraph as pg
 import xarray as xr
 from PySide6 import QtCore, QtWidgets
-from PySide6.QtWidgets import QGridLayout, QLayout, QWidget
+from PySide6.QtWidgets import QGridLayout, QWidget
 
+import arpes.xarray_extensions  # noqa: F401
 from arpes.utilities.qt import qt_info
 from arpes.utilities.qt.data_array_image_view import DataArrayPlot
 
@@ -39,7 +41,7 @@ class LabelParametersInfoView(QtWidgets.QLabel):
 class FitInspectionPlot(QWidget):
     """Implements the `ModeResult` inspection tool."""
 
-    layout: QLayout = None
+    layout: QGridLayout
     result: lmfit.model.ModelResult | None = None
     root: ReferenceType[FitTool]
 
@@ -53,7 +55,7 @@ class FitInspectionPlot(QWidget):
     ) -> None:
         """Performs initial registration of the widgets and sets up layout."""
         super().__init__(*args, **kwargs)
-        self.layout = QGridLayout()
+        self.layout: QGridLayout = QGridLayout()
         self.model_info: LabelParametersInfoView | None = LabelParametersInfoView()
         self.inner_plot: DataArrayPlot | None = DataArrayPlot(orientation, name=name)
 
@@ -137,7 +139,7 @@ class FitInspectionPlot(QWidget):
 
         self.model_info.set_model_result(model_result)
 
-    def close(self) -> None:
+    def close(self) -> bool:
         """Clean up references so we do not cause GC issues and Qt crashes."""
         assert self.model_info is not None
         assert self.inner_plot is not None

@@ -1,4 +1,5 @@
 """Contains electron/hole pocket analysis routines."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -56,7 +57,7 @@ def pocket_parameters(
     if sel is None:
         sel = {"eV": slice(-0.03, 0.05)}
 
-    kfs = [kf_method(s if sel is None else s.sel(**sel), **(method_kwargs or {})) for s in slices]
+    kfs = [kf_method(s if sel is None else s.sel(sel), **(method_kwargs or {})) for s in slices]
 
     fs_dims = list(data.dims)
     if "eV" in fs_dims:
@@ -300,7 +301,7 @@ def edcs_along_pocket(
     if sel is None:
         sel = {"eV": slice(-0.05, 0.05)}
 
-    kfs = [kf_method(s if sel is None else s.sel(**sel), **(method_kwargs or {})) for s in slices]
+    kfs = [kf_method(s if sel is None else s.sel(sel), **(method_kwargs or {})) for s in slices]
 
     fs_dims = list(data.dims)
     if "eV" in fs_dims:

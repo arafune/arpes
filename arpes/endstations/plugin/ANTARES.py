@@ -247,7 +247,7 @@ class ANTARESEndstation(HemisphericalEndstation, SynchrotronEndstation, SingleFi
 
             return item
 
-        def build_axis(low, high, step_size) -> NDArray[np.float_]:
+        def build_axis(low, high, step_size) -> tuple[NDArray[np.float_], int]:
             # this might not work out to be the right thing to do, we will see
             low, high, step_size = get_first(low), get_first(high), get_first(step_size)
             est_n = int((high - low) / step_size)

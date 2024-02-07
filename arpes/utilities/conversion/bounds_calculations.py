@@ -3,6 +3,7 @@
 Mostly these are used as common helper routines to the coordinate conversion code,
 which is responsible for actually outputting the desired bounds.
 """
+
 from __future__ import annotations
 
 import warnings
@@ -25,7 +26,7 @@ __all__ = (
 
 
 def full_angles_to_k(  # noqa: PLR0913
-    kinetic_energy: float | xr.DataArray,
+    kinetic_energy: NDArray[np.float_] | xr.DataArray,
     phi: float,
     psi: float,
     alpha: float,
