@@ -9,9 +9,10 @@ from typing import TYPE_CHECKING, ParamSpec, TypeVar
 
 import dill
 import pyqtgraph as pg
+import xarray as xr
 from pyqtgraph import ViewBox
 
-from arpes._typing import xr_types
+from arpes._typing import XrTypes
 
 from .app import SimpleApp
 from .data_array_image_view import DataArrayImageView
@@ -25,7 +26,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from PySide6.QtWidgets import QApplication
 
-    from arpes._typing import DataType
+    from arpes._typing import DataType, XrTypes
 
 __all__ = (
     "DataArrayImageView",
@@ -68,7 +69,7 @@ def run_tool_in_daemon_process(tool_handler: Callable[P, None]) -> Callable[P, N
 
     @functools.wraps(tool_handler)
     def wrapped_handler(
-        data: DataType,
+        data: XrTypes,
         *,
         detached: bool = False,
         **kwargs: Incomplete,
@@ -76,7 +77,7 @@ def run_tool_in_daemon_process(tool_handler: Callable[P, None]) -> Callable[P, N
         if not detached:
             return tool_handler(data, **kwargs)
 
-        if isinstance(data, xr_types):
+        if isinstance(data, xr.Dataset | xr.DataArray):
             # this should be a noop but seems to fix a bug which
             # causes dill to crash after loading an nc array
             data = data.assign_coords(data.coords)

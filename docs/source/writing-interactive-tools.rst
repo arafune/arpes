@@ -293,7 +293,7 @@ with the new parameters and update the view.
                controls = tabs(
                    ['Controls', horizontal(
                        *[vertical(*[vertical(label(s[0]), self.build_control_for(*s)) for s in pair])
-                         for pair in group_by(2, specification)])],
+                         for pair in ichunked(specification, 2)])],
                )
 
            def update_argument(arg_name, arg_type):

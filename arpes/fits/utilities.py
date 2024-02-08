@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 
     import lmfit
 
-
+    from arpes._typing import XrTypes
 __all__ = ("broadcast_model", "result_to_hints")
 
 
@@ -119,9 +119,9 @@ def parse_model(
 
 
 @update_provenance("Broadcast a curve fit along several dimensions")
-def broadcast_model(
+def broadcast_model(  # noqa: PLR0913
     model_cls: type[lmfit.Model] | Sequence[type[lmfit.Model]] | str,
-    data: xr.DataArray | xr.Dataset,
+    data: XrTypes,
     broadcast_dims: str | list[str],
     params: dict | None = None,
     weights: xr.DataArray | None = None,
@@ -189,22 +189,7 @@ def broadcast_model(
     # <== when model_cls type is tpe or iterable[model]
     # parse_model just reterns model_cls as is.
 
-    if progress:
-        wrap_progress = tqdm
-    else:
-
-        def wrap_progress(x: Iterable[int], **kwargs: str | float) -> Iterable[int]:
-            """Fake of tqdm.notebook.tqdm.
-
-            Args:
-                x (Iterable[int]): [TODO:description]
-                kwargs: its a dummy parameter, which is not used.
-
-            Returns:
-                Same iterable.
-            """
-            del kwargs  # kwargs is dummy parameter
-            return x
+    wrap_progress = tqdm if progress else _fake_wqdm
 
     serialize = parallelize
     assert isinstance(serialize, bool)
@@ -267,3 +252,17 @@ def broadcast_model(
         },
         residual.coords,
     )
+
+
+def _fake_wqdm(x: Iterable[int], **kwargs: str | float) -> Iterable[int]:
+    """Fake of tqdm.notebook.tqdm.
+
+    Args:
+        x (Iterable[int]): [TODO:description]
+        kwargs: its a dummy parameter, which is not used.
+
+    Returns:
+        Same iterable.
+    """
+    del kwargs  # kwargs is dummy parameter
+    return x

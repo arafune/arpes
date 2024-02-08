@@ -13,14 +13,14 @@ from arpes.provenance import update_provenance
 from arpes.utilities import normalize_to_spectrum
 
 if TYPE_CHECKING:
-    from arpes._typing import DataType
+    from arpes._typing import DataType, XrTypes
 
 __all__ = ("find_t0", "relative_change", "normalized_relative_change")
 
 
 @update_provenance("Normalized subtraction map")
 def normalized_relative_change(
-    data: xr.DataArray | xr.Dataset,
+    data: XrTypes,
     t0: float | None = None,
     buffer: float = 0.3,
     *,

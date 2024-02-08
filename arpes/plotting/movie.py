@@ -1,4 +1,5 @@
 """Utilities and an example of how to make an animated plot to export as a movie."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Unpack
@@ -87,7 +88,7 @@ def plot_movie(
 
     def animate(i: int) -> tuple[QuadMesh]:
         coordinate = animation_coords[i]
-        data_for_plot = data.sel(**dict([[time_dim, coordinate]]))
+        data_for_plot = data.sel({time_dim: coordinate})
         plot.set_array(data_for_plot.values.G.ravel())
         return (plot,)
 

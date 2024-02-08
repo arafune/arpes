@@ -6,8 +6,8 @@ Think the album art for "Unknown Pleasures".
 from __future__ import annotations
 
 import contextlib
-import warnings
-from typing import TYPE_CHECKING, Literal
+from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from typing import TYPE_CHECKING, Literal, Unpack
 
 import matplotlib as mpl
 import matplotlib.colorbar
@@ -38,17 +38,29 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from pathlib import Path
 
-    from _typeshed import Incomplete
     from matplotlib.figure import Figure
     from matplotlib.typing import ColorType, RGBAColorType
     from numpy.typing import NDArray
 
-    from arpes._typing import DataType
+    from arpes._typing import LegendLocation, MPLPlotKwagsBasic, XrTypes
 __all__ = (
     "stack_dispersion_plot",
     "flat_stack_plot",
     "offset_scatter_plot",
 )
+
+
+LOGLEVELS = (DEBUG, INFO)
+LOGLEVEL = LOGLEVELS[1]
+logger = getLogger(__name__)
+fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
+formatter = Formatter(fmt)
+handler = StreamHandler()
+handler.setLevel(LOGLEVEL)
+logger.setLevel(LOGLEVEL)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.propagate = False
 
 
 @save_plot_provenance
@@ -64,6 +76,8 @@ def offset_scatter_plot(
     scale_coordinate: float = 0.5,
     ylim: tuple[float, float] | tuple[()] = (),
     fermi_level: float | None = None,
+    loc: LegendLocation = "upper left",
+    figsize: tuple[float, float] = (11, 5),
     *,
     aux_errorbars: bool = True,
     **kwargs: tuple[int, int] | float | str,
@@ -81,7 +95,10 @@ def offset_scatter_plot(
         ylim(tuple[float, float]):  _description_, by default ()
         fermi_level(float | None): Value corresponds the Fermi level to draw the line,
             by default None (not drawn)
+        figsize (tuple[float, float]) : figure size. Used in plt.subplots
+        loc: Legend Location
         aux_errorbars(bool):  _description_, by default True
+
         **kwargs: pass to plt.subplots, generic_colorbarmap_for_data
 
     Returns:
@@ -105,9 +122,9 @@ def offset_scatter_plot(
 
     fig: Figure | None = None
     if ax is None:
-        fig, ax = plt.subplots(figsize=kwargs.pop("figsize", (11, 5)))
+        fig, ax = plt.subplots(figsize=figsize)
 
-    inset_ax = inset_axes(ax, width="40%", height="5%", loc="upper left")
+    inset_ax = inset_axes(ax, width="40%", height="5%", loc=loc)
 
     assert isinstance(ax, Axes)
 
@@ -190,27 +207,31 @@ def offset_scatter_plot(
 
 @save_plot_provenance
 def flat_stack_plot(  # noqa: PLR0913
-    data: DataType,
+    data: XrTypes,
+    *,
     stack_axis: str = "",
-    color: ColorType | Colormap = "viridis",
     ax: Axes | None = None,
     mode: Literal["line", "scatter"] = "line",
     fermi_level: float | None = None,
+    figsize: tuple[float, float] = (7, 5),
+    title: str = "",
     out: str | Path = "",
-    **kwargs: Incomplete,
+    loc: LegendLocation = "upper left",
+    **kwargs: Unpack[MPLPlotKwagsBasic],
 ) -> Path | tuple[Figure | None, Axes]:
     """Generates a stack plot with all the lines distinguished by color rather than offset.
 
     Args:
         data(DataType): ARPES data (xr.DataArray is prepfered)
         stack_axis(str): axis for stacking, by default ""
-        color(ColorType|Colormap): Colormap
         ax (Axes | None): matplotlib Axes, by default None
         mode(Literal["line", "scatter"]): plot style (line/scatter), by default "line"
         fermi_level(float|None): Value of the Fermi level to Draw the line, by default None.
                                  (Not drawn)
+        figsize (tuple[float, float]): figure size
         title(str): Title string, by default ""
         out(str | Path): Path to the figure, by default ""
+        loc: Legend location
         **kwargs: pass to subplot if figsize is set, and ticks is set, and the others to be passed
                   ax.plot
 
@@ -236,10 +257,8 @@ def flat_stack_plot(  # noqa: PLR0913
 
     fig: Figure | None = None
     if ax is None:
-        fig, ax = plt.subplots(figsize=kwargs.pop("figsize", (7, 5)))
-    ax_inset = inset_axes(ax, width="40%", height="5%", loc=kwargs.pop("loc", "upper right"))
-    title = kwargs.pop("title", "")
-    assert isinstance(title, str)
+        fig, ax = plt.subplots(figsize=figsize)
+    ax_inset = inset_axes(ax, width="40%", height="5%", loc=loc)
     assert isinstance(ax, Axes)
     if not stack_axis:
         stack_axis = str(data_array.dims[0])
@@ -249,6 +268,8 @@ def flat_stack_plot(  # noqa: PLR0913
 
     if "eV" in data_array.dims and stack_axis != "eV" and fermi_level is not None:
         ax.axvline(fermi_level, color="red", alpha=0.8, linestyle="--", linewidth=1)
+
+    color = kwargs.pop("color", "viridis")
 
     for i, (_coord_dict, marginal) in enumerate(data_array.G.iterate_axis(stack_axis)):
         if mode == "line":
@@ -266,23 +287,18 @@ def flat_stack_plot(  # noqa: PLR0913
                 color=_color_for_plot(color, i, len(data_array.coords[stack_axis])),
                 **kwargs,
             )
-    try:
-        matplotlib.colorbar.Colorbar(
-            ax_inset,
-            orientation="horizontal",
-            label=label_for_dim(data_array, stack_axis),
-            norm=matplotlib.colors.Normalize(
-                vmin=data_array.coords[stack_axis].min().values,
-                vmax=data_array.coords[stack_axis].max().values,
-            ),
-            ticks=matplotlib.ticker.MaxNLocator(2),
-            cmap=color,
-        )
-    except ValueError:
-        warnings.warn(
-            "The 'color' arg. is not Colormap name. Is it what you really want?",
-            stacklevel=2,
-        )
+    assert isinstance(color, Colormap), "The 'color' arg is not Colormap name."
+    matplotlib.colorbar.Colorbar(
+        ax_inset,
+        orientation="horizontal",
+        label=label_for_dim(data_array, stack_axis),
+        norm=matplotlib.colors.Normalize(
+            vmin=data_array.coords[stack_axis].min().values,
+            vmax=data_array.coords[stack_axis].max().values,
+        ),
+        ticks=matplotlib.ticker.MaxNLocator(2),
+        cmap=color,
+    )
     ax.set_xlabel(label_for_dim(data_array, horizontal_dim))
     ax.set_ylabel("Spectrum Intensity (arb).")
     ax.set_title(title, fontsize=14)
@@ -297,40 +313,41 @@ def flat_stack_plot(  # noqa: PLR0913
 
 @save_plot_provenance
 def stack_dispersion_plot(  # noqa: PLR0913
-    data: DataType,
+    data: XrTypes,
+    *,
     stack_axis: str = "",
     ax: Axes | None = None,
     out: str | Path = "",
     max_stacks: int = 100,
     scale_factor: float = 0,
-    *,
-    color: ColorType | Colormap = "black",
     mode: Literal["line", "fill_between", "hide_line", "scatter"] = "line",
     offset_correction: Literal["zero", "constant", "constant_right"] | None = "zero",
     shift: float = 0,
     negate: bool = False,
-    **kwargs: tuple[int, int] | str | float | bool,
+    figsize: tuple[float, float] = (7, 7),
+    title: str = "",
+    **kwargs: Unpack[MPLPlotKwagsBasic],
 ) -> Path | tuple[Figure | None, Axes]:
     """Generates a stack plot with all the lines distinguished by offset (and color).
 
     Args:
-        data(DataType): ARPES data
+        data(XrTypes): ARPES data
         stack_axis(str): stack axis. e.g. "phi" , "eV", ...
         ax(Axes): matplotlib Axes object
         out(str | Path): Path for output figure
         max_stacks(int): maximum number of the stacking spectra
         scale_factor(float): scale factor
-        color(RGBAColorType | Colormap): color of the plot
         mode(Literal["liine", "fill_between", "hide_line", "scatter"]): Draw mode
         offset_correction(Literal["zero", "constant", "constant_right"] | None): offset correction
                                                                                  mode (default to
                                                                                  "zero")
         shift(float): shift of the plot along the horizontal direction
+        figsize (tuple[float, float]): figure size, default is (7,7)
+        title (str, optional): title of figure
         negate(bool): _description_
         **kwargs:
-            set figsize to change the default figisize=(7,7)
-            set title, if not specified the attrs[description] (or S.label) is used.
-            other kwargs is passed to ax.plot (or ax.scatter). Can set linewidth/s etc., here.
+            Passed to ax.plot / fill_between. Can set linewidth etc., here.
+            (See _typing/MPLPlotKwagsBasic)
     """
     data_arr, stack_axis, other_axis = _rebinning(
         data,
@@ -340,10 +357,11 @@ def stack_dispersion_plot(  # noqa: PLR0913
 
     fig: Figure | None = None
     if ax is None:
-        fig, ax = plt.subplots(figsize=kwargs.pop("figsize", (7, 7)))
+        fig, ax = plt.subplots(figsize=figsize)
 
     assert isinstance(ax, Axes)
-    title = kwargs.pop("title", "{} Stack".format(data_arr.S.label.replace("_", " ")))
+    if not title:
+        title = f"{data_arr.S.label.replace('_', ' ')} Stack"
     assert isinstance(title, str)
     max_intensity_over_stacks = np.nanmax(data_arr.values)
 
@@ -360,6 +378,7 @@ def stack_dispersion_plot(  # noqa: PLR0913
     iteration_order = -1  # might need to fiddle with this in certain cases
     lim = [np.inf, -np.inf]
 
+    color = kwargs.pop("color", "black")
     for i, (coord_dict, marginal) in enumerate(
         list(data_arr.G.iterate_axis(stack_axis))[::iteration_order],
     ):
@@ -374,7 +393,6 @@ def stack_dispersion_plot(  # noqa: PLR0913
         xs = cvalues - i * shift
 
         lim = [min(lim[0], float(np.min(xs))), max(lim[1], float(np.max(xs)))]
-
         if mode == "line":
             ax.plot(
                 xs,
@@ -516,7 +534,11 @@ def _scale_factor(
     )
 
 
-def _rebinning(data: DataType, stack_axis: str, max_stacks: int) -> tuple[xr.DataArray, str, str]:
+def _rebinning(
+    data: XrTypes,
+    stack_axis: str,
+    max_stacks: int,
+) -> tuple[xr.DataArray, str, str]:
     """Preparation for stack plot.
 
     1. rebinning

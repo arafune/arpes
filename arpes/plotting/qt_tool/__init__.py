@@ -39,7 +39,7 @@ if TYPE_CHECKING:
     from PySide6.QtGui import QKeyEvent
     from PySide6.QtWidgets import QWidget
 
-    from arpes._typing import DataType
+    from arpes._typing import DataType, XrTypes
 
 LOGLEVEL = (DEBUG, INFO)[1]
 logger = getLogger(__name__)
@@ -527,7 +527,7 @@ class QtTool(SimpleApp):
         """Autoscales intensity in each marginal plot."""
         self.update_cursor_position(self.context["cursor"], force=True, keep_levels=False)
 
-    def set_data(self, data: xr.DataArray | xr.Dataset) -> None:
+    def set_data(self, data: XrTypes) -> None:
         """Sets the current data to a new value and resets binning."""
         data_arr = normalize_to_spectrum(data)
 

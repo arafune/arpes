@@ -29,6 +29,8 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
+    from arpes._typing import XrTypes
+
 __all__ = (
     "fit_bands",
     "fit_for_effective_mass",
@@ -36,7 +38,7 @@ __all__ = (
 
 
 def fit_for_effective_mass(
-    data: xr.Dataset | xr.DataArray,
+    data: XrTypes,
     fit_kwargs: dict | None = None,
 ) -> float:
     """Fits for the effective mass in a piece of data.
@@ -256,7 +258,7 @@ def fit_patterned_bands(
     background: bool = True,
     interactive: bool = True,
     dataset: bool = True,
-) -> xr.DataArray | xr.Dataset:
+) -> XrTypes:
     """Fits bands and determines dispersion in some region of a spectrum.
 
     The dimensions of the dataset are partitioned into three types:

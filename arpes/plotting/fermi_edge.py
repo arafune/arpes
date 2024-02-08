@@ -1,4 +1,5 @@
 """Simple plotting routines related to Fermi edges and Fermi edge fits."""
+
 from __future__ import annotations
 
 import warnings
@@ -111,7 +112,7 @@ def fermi_edge_reference(
     ax: Axes | None = None,
     out: str = "",
     **kwargs: Incomplete,
-) -> Path | None:
+) -> Path | Axes:
     """Fits for and plots results for the Fermi edge on a piece of data.
 
     Args:
@@ -133,27 +134,20 @@ def fermi_edge_reference(
     sum_dimensions.intersection_update(set(data.dims))
     summed_data = data.sum(*list(sum_dimensions))
 
-    broadcast_dimensions = summed_data.dims
-    broadcast_dimensions.remove("eV")
-    if len(broadcast_dimensions) == 1:
-        edge_fit = broadcast_model(
-            GStepBModel,
-            summed_data.sel(eV=slice(-0.1, 0.1)),
-            broadcast_dimensions[0],
-        )
-    else:
-        warnings.warn(
-            f"Could not product fermi edge reference. Too many dimensions: {broadcast_dimensions}",
-            stacklevel=2,
-        )
-        return None
-
+    broadcast_dimensions = [str(d) for d in summed_data.dims if str(d) != "eV"]
+    msg = f"Could not product fermi edge reference. Too many dimensions: {broadcast_dimensions}"
+    assert len(broadcast_dimensions) == 1, msg
+    edge_fit = broadcast_model(
+        GStepBModel,
+        summed_data.sel(eV=slice(-0.1, 0.1)),
+        broadcast_dimensions[0],
+    )
     centers = apply_dataarray(
-        edge_fit,
+        edge_fit.results,
         np.vectorize(lambda x: x.params["center"].value, otypes=[float]),
     )
     widths = apply_dataarray(
-        edge_fit,
+        edge_fit.results,
         np.vectorize(lambda x: x.params["width"].value, otypes=[float]),
     )
 
@@ -175,5 +169,4 @@ def fermi_edge_reference(
         plt.savefig(path_for_plot(out), dpi=400)
         return path_for_plot(out)
 
-    plt.show()
-    return None
+    return ax

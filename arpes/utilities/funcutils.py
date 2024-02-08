@@ -11,7 +11,7 @@ import numpy as np
 import xarray as xr
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Generator, Iterator, Sequence
+    from collections.abc import Callable, Iterator
 
     from _typeshed import Incomplete
     from numpy import ndarray
@@ -23,45 +23,12 @@ __all__ = [
     "Debounce",
     "lift_dataarray_to_generic",
     "iter_leaves",
-    "group_by",
-    "cycle",
 ]
 
 T = TypeVar("T")
 
 P = ParamSpec("P")
 R = TypeVar("R")
-
-
-def cycle(sequence: Sequence[T]) -> Generator[T, None, None]:
-    """Infinitely cycles a sequence."""
-    while True:
-        yield from sequence
-
-
-def group_by(grouping: int | Generator, sequence: Sequence) -> list:
-    """Permits partitining a sequence into sets of items, for instance by taking two at a time."""
-    if isinstance(grouping, int):
-        base_seq = [False] * grouping
-        base_seq[-1] = True
-
-        grouping_cycle = cycle(base_seq)
-    else:
-        grouping_cycle = grouping
-
-    groups = []
-    current_group = []
-    for elem in sequence:
-        current_group.append(elem)
-
-        if (callable(grouping_cycle) and grouping_cycle(elem)) or next(grouping_cycle):
-            groups.append(current_group)
-            current_group = []
-
-    if len(current_group):
-        groups.append(current_group)
-
-    return groups
 
 
 def collect_leaves(tree: dict[str, Any], is_leaf: Incomplete = None) -> dict:
@@ -125,7 +92,7 @@ def lift_dataarray_to_generic(
 
     to one with signature
 
-    A = xr.DataArray | xr.Dataset
+    A = XrTypes
     (A, *args, **kwargs) -> A
 
     i.e. one that will operate either over xr.DataArrays or xr.Datasets.

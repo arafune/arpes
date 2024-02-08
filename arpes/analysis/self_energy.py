@@ -25,7 +25,6 @@ __all__ = (
 
 
 BareBandType: TypeAlias = xr.DataArray | str | lf.model.ModelResult
-DispersionType: TypeAlias = xr.DataArray | xr.Dataset
 
 
 def get_peak_parameter(data: xr.DataArray, parameter_name: str) -> xr.DataArray:

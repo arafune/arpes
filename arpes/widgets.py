@@ -73,7 +73,7 @@ if TYPE_CHECKING:
     from matplotlib.colors import Colormap
     from numpy.typing import NDArray
 
-    from ._typing import CURRENTCONTEXT, MOMENTUM, DataType
+    from ._typing import CURRENTCONTEXT, MOMENTUM, DataType, XrTypes
 
     IncompleteMPL: TypeAlias = Incomplete
 
@@ -645,12 +645,12 @@ def pca_explorer(
     }
     arpes.config.CONFIG["CURRENT_CONTEXT"] = context
 
-    def compute_for_scatter() -> tuple[xr.DataArray | xr.Dataset, int]:
+    def compute_for_scatter() -> tuple[XrTypes, int]:
         """[TODO:summary].
 
         [TODO:description]
 
-        Returns: (tuple[xr.DataArray | xr.Dataset, int]
+        Returns: (tuple[XrTypes, int]
             [TODO:description]
         """
         for_scatter = pca.copy(deep=True).isel({component_dim: context["selected_components"]})

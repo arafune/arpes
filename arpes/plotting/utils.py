@@ -28,7 +28,7 @@ from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 
 from arpes import VERSION
-from arpes._typing import IMshowParam
+from arpes._typing import IMshowParam, XrTypes
 from arpes.config import CONFIG, SETTINGS, attempt_determine_workspace, is_using_tex
 from arpes.utilities import normalize_to_spectrum
 from arpes.utilities.jupyter import get_notebook_name, get_recent_history
@@ -43,7 +43,7 @@ if TYPE_CHECKING:
     from matplotlib.typing import ColorType, RGBAColorType, RGBColorType
     from numpy.typing import NDArray
 
-    from arpes._typing import ColorbarParam, DataType, MPLPlotKwargs, PLTSubplotParam
+    from arpes._typing import ColorbarParam, DataType, MPLPlotKwargs, PLTSubplotParam, XrTypes
 
 __all__ = (
     # General + IO
@@ -600,7 +600,7 @@ def quick_tex(latex_fragment: str, ax: Axes | None = None, fontsize: int = 30) -
 
 
 def lineplot_arr(
-    arr: xr.DataArray | xr.Dataset,
+    arr: XrTypes,
     ax: Axes | None = None,
     method: Literal["plot", "scatter"] = "plot",
     mask: list[slice] | None = None,
@@ -637,7 +637,7 @@ def lineplot_arr(
 
 
 def plot_arr(
-    arr: xr.DataArray | xr.Dataset,
+    arr: XrTypes,
     ax: Axes | None = None,
     over: AxesImage | None = None,
     mask: DataType | None = None,
@@ -645,7 +645,7 @@ def plot_arr(
 ) -> Axes | None:
     """Convenience method to plot an array with a mask over some other data."""
     to_plot = arr if mask is None else mask
-    assert isinstance(to_plot, xr.DataArray | xr.Dataset)
+    assert isinstance(to_plot, xr.Dataset | xr.Dataset)
     try:
         n_dims = len(to_plot.dims)
     except AttributeError:
@@ -665,7 +665,7 @@ def plot_arr(
 
 
 def imshow_mask(
-    mask: xr.Dataset | xr.DataArray,
+    mask: XrTypes,
     ax: Axes | None = None,
     over: AxesImage | None = None,
     **kwargs: Incomplete,
@@ -703,7 +703,7 @@ def imshow_mask(
 
 
 def imshow_arr(
-    arr: xr.DataArray | xr.Dataset,
+    arr: XrTypes,
     ax: Axes | None = None,
     over: AxesImage | None = None,
     **kwargs: Unpack[IMshowParam],
@@ -711,7 +711,7 @@ def imshow_arr(
     """Similar to plt.imshow but users different default origin, and sets appropriate extents.
 
     Args:
-        arr (xr.Dataset | xr.DataArray): ARPES data
+        arr (XrTypes): ARPES data
         ax (Axes): [TODO:description]
         over ([TODO:type]): [TODO:description]
         kwargs: pass to ax.imshow

@@ -434,6 +434,7 @@ def numeric_input(
     input_type: type = float,
     *args: Incomplete,
     validator_settings: dict[str, float] | None = None,
+    **kwargs: Incomplete,
 ) -> QWidget:
     """A numeric input with input validation."""
     validators = {

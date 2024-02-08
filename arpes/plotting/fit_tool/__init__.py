@@ -380,8 +380,9 @@ class FitTool(SimpleApp):
                             strict=True,
                         ),
                     )
+                    assert isinstance(self.dataset, xr.Dataset)
                     if isinstance(reactive.view, DataArrayImageView):
-                        image_data = self.data.isel(**select_coord)
+                        image_data = self.data.isel(select_coord)
                         if select_coord:
                             image_data = image_data.mean(list(select_coord.keys()))
                         reactive.view.setImage(image_data, keep_levels=keep_levels)
@@ -389,12 +390,12 @@ class FitTool(SimpleApp):
                         results_coord = {
                             k: v for k, v in select_coord.items() if k in self.dataset.results.dims
                         }
-                        result = self.dataset.results.isel(**results_coord)
+                        result = self.dataset.results.isel(results_coord)
                         result = result.item()
                         reactive.view.set_model_result(result)
 
                     elif isinstance(reactive.view, pg.PlotWidget):
-                        for_plot = self.data.isel(**select_coord)
+                        for_plot = self.data.isel(select_coord)
                         if select_coord:
                             for_plot = for_plot.mean(list(select_coord.keys()))
 

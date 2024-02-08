@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 
     from numpy.typing import NDArray
 
-    from arpes._typing import KspaceCoords
+    from arpes._typing import KspaceCoords, XrTypes
 
 __all__ = (
     "convert_coordinates_to_kspace_forward",
@@ -61,7 +61,7 @@ logger.propagate = False
 
 
 def convert_coordinate_forward(
-    data: xr.DataArray | xr.Dataset,
+    data: XrTypes,
     coords: dict[str, float],
     **k_coords: Unpack[KspaceCoords],
 ) -> dict[str, float]:
@@ -301,7 +301,7 @@ def convert_through_angular_point(
 
 @update_provenance("Forward convert coordinates")
 def convert_coordinates(
-    arr: xr.DataArray | xr.Dataset,
+    arr: XrTypes,
     *,
     collapse_parallel: bool = False,
 ) -> xr.Dataset:
@@ -385,7 +385,7 @@ def convert_coordinates(
 
 
 @update_provenance("Forward convert coordinates to momentum")
-def convert_coordinates_to_kspace_forward(arr: xr.DataArray | xr.Dataset) -> xr.Dataset:
+def convert_coordinates_to_kspace_forward(arr: XrTypes) -> xr.Dataset:
     """Forward converts all the individual coordinates of the data array.
 
     Args:

@@ -46,6 +46,7 @@ Major Changes from 3.0.1
   - Remove original_id method, as I cannot figure out the purpose.
   - Remove lmfit_plot.py. The original ModelResult.plot() is sufficiently useful, and no reason for keeping to maintain this patched version.
   - Remove condensed_attrs: We should not enfoce camelcase on attributes, while original version did. Rather, the snake_case would be better from the modern pythonic viewpoint.
+  - Remove `trace` arg for debuggin. This technique may be sharp, but not so well fitted the current python trend; typing oriented.
 
 Fix from 3.0.1
 

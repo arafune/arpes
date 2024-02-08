@@ -204,7 +204,6 @@ def rebin(
     Returns:
         The rebinned data.
     """
-    assert isinstance(data, xr.DataArray | xr.Dataset)
     if bin_width is None:
         bin_width = {}
     for k in kwargs:

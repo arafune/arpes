@@ -15,7 +15,7 @@ from .dict import (
     rename_dataarray_attrs,
     rename_keys,
 )
-from .funcutils import Debounce, cycle, group_by, iter_leaves, lift_dataarray_to_generic
+from .funcutils import Debounce, iter_leaves, lift_dataarray_to_generic
 from .normalize import normalize_to_dataset, normalize_to_spectrum
 from .region import REGIONS, DesignatedRegions, normalize_region
 from .xarray import (

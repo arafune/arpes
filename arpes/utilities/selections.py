@@ -17,12 +17,12 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import DataType
+    from arpes._typing import DataType, XrTypes
 
 __all__ = ("select_disk", "select_disk_mask", "unravel_from_mask", "ravel_from_mask")
 
 
-def ravel_from_mask(data: DataType, mask: xr.Dataset | xr.DataArray) -> DataType:
+def ravel_from_mask(data: DataType, mask: XrTypes) -> DataType:
     """Selects out the data from a NDArray whose points are marked true in `mask`.
 
     See also `unravel_from_mask`
@@ -35,7 +35,7 @@ def ravel_from_mask(data: DataType, mask: xr.Dataset | xr.DataArray) -> DataType
 
     Args:
         data (DataType): Input ARPES data
-        mask (xr.Dataset | xr.DataArray):  Mask data
+        mask (XrTypes):  Mask data
 
     Returns:
         Raveled data with masked points removed.
@@ -45,7 +45,7 @@ def ravel_from_mask(data: DataType, mask: xr.Dataset | xr.DataArray) -> DataType
 
 def unravel_from_mask(
     template: DataType,
-    mask: xr.DataArray | xr.Dataset,
+    mask: XrTypes,
     values: bool | float,
     default: float = np.nan,
 ) -> DataType:

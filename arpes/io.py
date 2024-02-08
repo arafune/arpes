@@ -29,6 +29,8 @@ from .endstations import load_scan
 if TYPE_CHECKING:
     from _typeshed import Incomplete
 
+    from arpes._typing import XrTypes
+
 __all__ = (
     "load_data",
     "load_example_data",
@@ -165,7 +167,7 @@ def stitch(
     built_axis_name: str = "",
     *,
     sort: bool = True,
-) -> xr.Dataset | xr.DataArray:
+) -> XrTypes:
     """Stitches together a sequence of scans or a DataFrame.
 
     Args:
@@ -187,7 +189,7 @@ def stitch(
         msg = "Must supply at least one file to stitch"
         raise ValueError(msg)
     #
-    loaded: list[xr.DataArray | xr.Dataset] = [
+    loaded: list[XrTypes] = [
         f if isinstance(f, xr.DataArray | xr.Dataset) else load_data(f) for f in list_of_files
     ]
     assert all(isinstance(data, xr.DataArray) for data in loaded) or all(

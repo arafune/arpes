@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from pyqtgraph import Point
     from PySide6.QtWidgets import QGridLayout
 
-    from arpes._typing import DataType
+    from arpes._typing import DataType, XrTypes
 
 __all__ = (
     "path_tool",
@@ -76,7 +76,7 @@ class CoreTool(SimpleApp):
     def layout(self) -> QGridLayout:
         return self.main_layout
 
-    def set_data(self, data: xr.DataArray | xr.Dataset) -> None:
+    def set_data(self, data: XrTypes) -> None:
         self.data = normalize_to_spectrum(data)
 
     def transpose_to_front(self, dim: Hashable) -> None:

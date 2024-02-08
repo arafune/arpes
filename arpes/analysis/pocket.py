@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
     from _typeshed import Incomplete
 
-    from arpes._typing import DataType
+    from arpes._typing import DataType, XrTypes
 __all__ = (
     "curves_along_pocket",
     "edcs_along_pocket",
@@ -84,7 +84,7 @@ def pocket_parameters(
 
 @update_provenance("Collect EDCs projected at an angle from pocket")
 def radial_edcs_along_pocket(
-    data: xr.DataArray | xr.Dataset,
+    data: XrTypes,
     angle: float,
     radii: tuple[float, float] = (0.0, 5.0),
     n_points: int = 0,
@@ -101,7 +101,7 @@ def radial_edcs_along_pocket(
         >>> radial_edcs_along_pocket(spectrum, np.pi / 4, (1, 4), phi=0.1, beta=0)
 
     Args:
-        data (xr.DataArray | xr.Dataset): ARPES Spectrum.
+        data (XrTypes): ARPES Spectrum.
         angle (float): Angle along the FS to cut against.
         radii (tuple[float, float]): The min and max for the angle/momentum equivalent radial
                                      coordinate.
@@ -158,7 +158,7 @@ def radial_edcs_along_pocket(
 
 
 def curves_along_pocket(
-    data: xr.DataArray | xr.Dataset,
+    data: XrTypes,
     n_points: int = 0,
     inner_radius: float = 0.0,
     outer_radius: float = 5.0,
@@ -237,7 +237,7 @@ def curves_along_pocket(
 
 
 def find_kf_by_mdc(
-    slice_data: xr.Dataset | xr.DataArray,
+    slice_data: XrTypes,
     offset: float = 0,
     **kwargs: Incomplete,
 ) -> float:
@@ -271,7 +271,7 @@ def find_kf_by_mdc(
 
 @update_provenance("Collect EDCs around pocket edge")
 def edcs_along_pocket(
-    data: xr.DataArray | xr.Dataset,
+    data: XrTypes,
     kf_method: Callable[..., float] | None = None,
     select_radius: dict[str, float] | None = None,
     sel: dict[str, slice] | None = None,

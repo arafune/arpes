@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from lmfit.model import ModelResult
     from numpy.typing import NDArray
 
+    from arpes._typing import XrTypes
 
 __all__ = ["XModelMixin", "gaussian_convolve"]
 
@@ -320,7 +321,7 @@ class XAdditiveCompositeModel(lf.CompositeModel, XModelMixin):
 
     def guess(
         self,
-        data: xr.DataArray | xr.Dataset,
+        data: XrTypes,
         x: NDArray[np.float_] | None = None,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
@@ -343,7 +344,7 @@ class XMultiplicativeCompositeModel(lf.CompositeModel, XModelMixin):
 
     def guess(
         self,
-        data: xr.DataArray | xr.Dataset,
+        data: XrTypes,
         x: NDArray[np.float_] | None = None,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
@@ -363,7 +364,7 @@ class XConvolutionCompositeModel(lf.CompositeModel, XModelMixin):
 
     def guess(
         self,
-        data: xr.DataArray | xr.Dataset,
+        data: XrTypes,
         x: NDArray[np.float_] | None = None,
         **kwargs: Incomplete,
     ) -> lf.Parameters:

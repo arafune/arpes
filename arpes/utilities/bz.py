@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import ArrayLike, NDArray
 
-    from arpes._typing import DataType
+    from arpes._typing import DataType, XrTypes
 
 __all__ = (
     "bz_symmetry",
@@ -433,7 +433,7 @@ def bz_symmetry(flat_symmetry_points) -> str | None:
 
 
 def reduced_bz_axis_to(
-    data: DataType,
+    data: XrTypes,
     symbol: str,
     *,
     include_E: bool = False,  # noqa: N803
@@ -481,7 +481,7 @@ def reduced_bz_axis_to(
     raise NotImplementedError
 
 
-def reduced_bz_axes(data: DataType) -> tuple[NDArray[np.float_], NDArray[np.float_]]:
+def reduced_bz_axes(data: XrTypes) -> tuple[NDArray[np.float_], NDArray[np.float_]]:
     """Calculates displacement vectors to high symmetry points in the first Brillouin zone.
 
     Args:
@@ -519,7 +519,7 @@ def reduced_bz_axes(data: DataType) -> tuple[NDArray[np.float_], NDArray[np.floa
     return dx, dy
 
 
-def axis_along(data: DataType, symbol: str) -> float:
+def axis_along(data: XrTypes, symbol: str) -> float:
     """Determines which axis lies principally along the direction G->S.
 
     [TODO:description]
@@ -553,7 +553,7 @@ def axis_along(data: DataType, symbol: str) -> float:
     return max_dim
 
 
-def reduced_bz_poly(data: DataType, *, scale_zone: bool = False) -> NDArray[np.float_]:
+def reduced_bz_poly(data: XrTypes, *, scale_zone: bool = False) -> NDArray[np.float_]:
     """Returns a polynomial representing the reduce first Brillouin zone.
 
     [TODO:description]
@@ -601,7 +601,7 @@ def reduced_bz_poly(data: DataType, *, scale_zone: bool = False) -> NDArray[np.f
 
 
 def reduced_bz_E_mask(
-    data: DataType,
+    data: XrTypes,
     symbol: str,
     e_cut: float,
     *,
@@ -669,7 +669,7 @@ def reduced_bz_E_mask(
     return np.reshape(mask, sdata.data.shape)
 
 
-def reduced_bz_mask(data: DataType, **kwargs: Incomplete) -> NDArray[np.float_]:
+def reduced_bz_mask(data: XrTypes, **kwargs: Incomplete) -> NDArray[np.float_]:
     """Calculates a mask for the first Brillouin zone of a piece of data.
 
     Args:

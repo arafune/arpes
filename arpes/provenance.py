@@ -33,7 +33,7 @@ from typing import TYPE_CHECKING, ParamSpec, TypedDict, TypeVar
 import xarray as xr
 
 from . import VERSION
-from ._typing import xr_types
+from ._typing import XrTypes
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Hashable, Sequence
@@ -41,7 +41,7 @@ if TYPE_CHECKING:
     import numpy as np
     from numpy.typing import NDArray
 
-    from ._typing import WORKSPACETYPE
+    from ._typing import WORKSPACETYPE, XrTypes
 
 
 class PROVENANCE(TypedDict, total=False):
@@ -79,7 +79,7 @@ class PROVENANCE(TypedDict, total=False):
     new_axis: str
 
 
-def attach_id(data: xr.DataArray | xr.Dataset) -> None:
+def attach_id(data: XrTypes) -> None:
     """Ensures that an ID is attached to a piece of data, if it does not already exist.
 
     IDs are generated at the time of identification in an analysis notebook. Sometimes a piece of
@@ -93,7 +93,7 @@ def attach_id(data: xr.DataArray | xr.Dataset) -> None:
 
 
 def provenance_from_file(
-    child_arr: xr.DataArray | xr.Dataset,
+    child_arr: XrTypes,
     file: str,
     record: PROVENANCE,
 ) -> None:
@@ -130,7 +130,7 @@ def update_provenance(
     what: str,
     *,
     keep_parent_ref: bool = False,
-) -> Callable[[Callable[P, xr.DataArray | xr.Dataset]], Callable[P, xr.DataArray | xr.Dataset]]:
+) -> Callable[[Callable[P, XrTypes]], Callable[P, XrTypes]]:
     """A decorator that promotes a function to one that records data provenance.
 
     Args:
@@ -142,8 +142,8 @@ def update_provenance(
     """
 
     def update_provenance_decorator(
-        fn: Callable[P, xr.DataArray | xr.Dataset],
-    ) -> Callable[P, xr.DataArray | xr.Dataset]:
+        fn: Callable[P, XrTypes],
+    ) -> Callable[P, XrTypes]:
         """[TODO:summary].
 
         Args:
@@ -151,10 +151,14 @@ def update_provenance(
         """
 
         @functools.wraps(fn)
-        def func_wrapper(*args: P.args, **kwargs: P.kwargs) -> xr.DataArray | xr.Dataset:
-            arg_parents = [v for v in args if isinstance(v, xr_types) and "id" in v.attrs]
+        def func_wrapper(*args: P.args, **kwargs: P.kwargs) -> XrTypes:
+            arg_parents = [
+                v for v in args if isinstance(v, xr.Dataset | xr.Dataset) and "id" in v.attrs
+            ]
             kwarg_parents = {
-                k: v for k, v in kwargs.items() if isinstance(v, xr_types) and "id" in v.attrs
+                k: v
+                for k, v in kwargs.items()
+                if isinstance(v, xr.Dataset | xr.DataArray) and "id" in v.attrs
             }
             all_parents = arg_parents + list(kwarg_parents.values())
             result = fn(*args, **kwargs)
@@ -162,7 +166,7 @@ def update_provenance(
             # to its input. This reduces the burden on client code by allowing them to return the
             # input without changing the 'id' attr
             result_not_identity = not any(p is result for p in all_parents)
-            if isinstance(result, xr_types) and result_not_identity:
+            if isinstance(result, xr.DataArray | xr.Dataset) and result_not_identity:
                 if "id" in result.attrs:
                     del result.attrs["id"]
                 provenance_fn = provenance
@@ -260,8 +264,8 @@ def save_plot_provenance(plot_fn: Callable[P, R]) -> Callable[P, R]:
 
 
 def provenance(
-    child_arr: xr.DataArray | xr.Dataset,
-    parents: list[xr.DataArray | xr.Dataset] | xr.DataArray | xr.Dataset,
+    child_arr: XrTypes,
+    parents: list[XrTypes] | XrTypes,
     record: PROVENANCE,
     *,
     keep_parent_ref: bool = False,
@@ -285,10 +289,16 @@ def provenance(
 
     parent_id = parents.attrs.get("id")
     if parent_id is None:
-        warnings.warn("Parent array has no ID.", stacklevel=2)
+        warnings.warn(
+            "Parent array has no ID.",
+            stacklevel=2,
+        )
 
     if child_arr.attrs["id"] == parent_id:
-        warnings.warn("Duplicate id for dataset %s" % child_arr.attrs["id"], stacklevel=2)
+        warnings.warn(
+            f"Duplicate id for dataset {child_arr.attrs['id']}",
+            stacklevel=2,
+        )
 
     child_arr.attrs["provenance"] = {
         "record": record,
@@ -304,8 +314,8 @@ def provenance(
 
 
 def provenance_multiple_parents(
-    child_arr: xr.DataArray | xr.Dataset,
-    parents: list[xr.DataArray | xr.Dataset] | xr.DataArray | xr.Dataset,
+    child_arr: XrTypes,
+    parents: list[XrTypes] | XrTypes,
     record: PROVENANCE,
     *,
     keep_parent_ref: bool = False,
@@ -330,7 +340,10 @@ def provenance_multiple_parents(
         attach_id(child_arr)
 
     if child_arr.attrs["id"] in {p.attrs.get("id", None) for p in parents}:
-        warnings.warn("Duplicate id for dataset %s" % child_arr.attrs["id"], stacklevel=2)
+        warnings.warn(
+            f"Duplicate id for dataset {child_arr.attrs['id']}",
+            stacklevel=2,
+        )
 
     child_arr.attrs["provenance"] = {
         "record": record,

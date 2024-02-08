@@ -7,9 +7,10 @@ from collections.abc import Sized
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from typing import TYPE_CHECKING, Any
 
+from more_itertools import ichunked
 from PySide6 import QtWidgets
 
-from arpes.utilities import group_by, normalize_to_spectrum
+from arpes.utilities import normalize_to_spectrum
 from arpes.utilities.qt import BasicHelpDialog, SimpleApp, SimpleWindow, qt_info
 from arpes.utilities.ui import (
     CollectUI,
@@ -101,7 +102,7 @@ class DynamicTool(SimpleApp):
                             vertical(
                                 *[vertical(label(s[0]), self.build_control_for(*s)) for s in pair],
                             )
-                            for pair in group_by(2, specification)
+                            for pair in ichunked(specification, 2)
                         ],
                     ),
                 ],

@@ -1,11 +1,11 @@
 """Specialized type annotations for use in PyARPES.
 
 In particular, we frequently allow using the `DataType` annotation,
-which refers to either an xarray.DataArray or xarray.Dataset.
+which refers to either an xarray.DataArray|xarray.Dataset.
 
 Additionally, we often use `NormalizableDataType` which
 means essentially anything that can be turned into a dataset,
-for instance by loading from the cache using an ID, or which is
+for instance by loading from the cache using an ID,|which is
 literally already data.
 """
 
@@ -49,17 +49,22 @@ if TYPE_CHECKING:
         MarkEveryType,
     )
     from numpy.typing import ArrayLike, NDArray
-    from PySide6.QtCore.Qt import Orientation, WindowType
+    from PySide6 import QtCore
     from PySide6.QtGui import QIcon, QPixmap
     from PySide6.QtWidgets import (
         QWidget,
     )
 
+DataType = TypeVar("DataType", xr.DataArray, xr.Dataset)
+NormalizableDataType: TypeAlias = DataType | str | uuid.UUID
+
+XrTypes: TypeAlias = xr.DataArray | xr.Dataset
+
 
 __all__ = [
     "DataType",
     "NormalizableDataType",
-    "xr_types",
+    "XrTypes",
     "SPECTROMETER",
     "MOMENTUM",
     "EMISSION_ANGLE",
@@ -69,15 +74,38 @@ __all__ = [
     "ANALYZERINFO",
 ]
 
-DataType = TypeVar("DataType", xr.DataArray, xr.Dataset)
-NormalizableDataType: TypeAlias = DataType | str | uuid.UUID
-
-xr_types = (xr.DataArray, xr.Dataset)
-
 
 MOMENTUM = Literal["kp", "kx", "ky", "kz"]
 EMISSION_ANGLE = Literal["phi", "psi"]
 ANGLE = Literal["alpha", "beta", "chi", "theta"] | EMISSION_ANGLE
+
+LegendLocation = (
+    Literal[
+        "best",
+        0,
+        "upper right",
+        1,
+        "upper left",
+        2,
+        "lower left",
+        3,
+        "lower right",
+        4,
+        "right",
+        5,
+        "center left",
+        6,
+        "center right",
+        7,
+        "lower center",
+        8,
+        "upper center",
+        9,
+        "center",
+        10,
+    ]
+    | tuple[float, float]
+)
 
 
 class KspaceCoords(TypedDict, total=False):
@@ -110,8 +138,8 @@ class CURRENTCONTEXT(TypedDict, total=False):
     map_data: Incomplete
     selector: Incomplete
     integration_region: dict[Incomplete, Incomplete]
-    original_data: xr.DataArray | xr.Dataset
-    data: xr.DataArray | xr.Dataset
+    original_data: XrTypes
+    data: XrTypes
     widgets: list[mpl.widgets.AxesWidget]
     points: list[Incomplete]
     rect_next: bool
@@ -316,13 +344,13 @@ class ARPESAttrs(SPECTROMETER, LIGHTSOURCEINFO, SAMPLEINFO, total=False):
 
 
 class QSliderARGS(TypedDict, total=False):
-    orientation: Orientation
+    orientation: QtCore.Qt.Orientation
     parent: QWidget | None
 
 
 class QWidgetARGS(TypedDict, total=False):
     parent: QWidget | None
-    f: WindowType
+    f: QtCore.Qt.WindowType
 
 
 class QPushButtonARGS(TypedDict, total=False):
@@ -334,34 +362,50 @@ class QPushButtonARGS(TypedDict, total=False):
 #
 # TypedDict for plotting
 #
-class MPLPlotKwargs(TypedDict, total=False):
-    scalex: bool
-    scaley: bool
+
+
+class MPLPlotKwagsBasic(TypedDict, total=False):
+    """Kwargs for Axes.plot & Axes.fill_between."""
 
     agg_filter: Callable[[NDArray[np.float_], int], tuple[NDArray[np.float_], int, int]]
     alpha: float | None
     animated: bool
-    antialiased: bool
-    aa: bool
+    antialiased: bool | list[bool]
+    aa: bool | list[bool]
     clip_box: BboxBase | None
     clip_on: bool
-    # clip_path: Path | None color: ColorType
+    color: ColorType
     c: ColorType
+    figure: Figure
+    gid: str
+    in_layout: bool
+    label: str
+    ls: LineStyleType
+    linestyle: LineStyleType
+    linewidth: float
+    lw: float
+    mouseover: bool
+    path_effects: list[AbstractPathEffect]
+    pickradius: float
+    rasterized: bool
+    sketch_params: tuple[float, float, float]
+    snap: bool | None
+    transform: Transform
+    url: str
+    visible: bool
+
+
+class MPLPlotKwargs(MPLPlotKwagsBasic, total=False):
+    scalex: bool
+    scaley: bool
+
     dash_capstyle: CapStyleType
     dash_joinstyle: JoinStyleType
     dashes: Sequence[float | None]
     data: NDArray[np.float_]
     drawstyle: DrawStyleType
-    figure: Figure
     fillstyle: FillStyleType
     gapcolor: ColorType | None
-    gid: str
-    in_layout: bool
-    label: str
-    linestyle: LineStyleType
-    ls: LineStyleType
-    linewidth: float
-    lw: float
     marker: MarkerType
     markeredgecolor: ColorType
     mec: ColorType
@@ -374,20 +418,12 @@ class MPLPlotKwargs(TypedDict, total=False):
     markersize: float
     ms: float
     markevery: MarkEveryType
-    mouseover: bool
-    path_effects: list[AbstractPathEffect]
     picker: float | Callable[[Artist, Event], tuple[bool, dict]]
-    pickradius: float
-    rasterized: bool
-    sketch_params: tuple[float, float, float]
     scale: float
     length: float
     randomness: float
-    snap: bool | None
     solid_capstyle: CapStyleType
     solid_joinstyle: JoinStyleType
-    url: str
-    visible: bool
     xdata: NDArray[np.float_]
     ydata: NDArray[np.float_]
     zorder: float

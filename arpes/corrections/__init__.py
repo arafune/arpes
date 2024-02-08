@@ -8,6 +8,7 @@ It also contains utilities related to identifying a piece of data
 earlier in a dataset which can be used to furnish equivalent references.
 
 """
+
 from __future__ import annotations
 
 from collections import OrderedDict
@@ -28,7 +29,7 @@ from .fermi_edge_corrections import (
 )
 
 if TYPE_CHECKING:
-    from arpes._typing import DataType
+    from arpes._typing import XrTypes
 
 __all__ = (
     "reference_key",
@@ -46,14 +47,14 @@ class HashableDict(OrderedDict):
         return hash(frozenset(self.items()))
 
 
-def reference_key(data: DataType) -> HashableDict:
+def reference_key(data: XrTypes) -> HashableDict:
     """Calculates a key/hash for data determining reference/correction equality."""
     data_array = normalize_to_dataset(data)
     assert isinstance(data_array, xr.DataArray)
     return HashableDict(data_array.S.reference_settings)
 
 
-def correction_from_reference_set(data: DataType, reference_set):
+def correction_from_reference_set(data: XrTypes, reference_set):
     """Determines which correction to use from a set of references."""
     data_array = normalize_to_dataset(data)
     correction = None

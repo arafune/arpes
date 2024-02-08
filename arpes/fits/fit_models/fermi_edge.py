@@ -24,11 +24,10 @@ from .functional_forms import (
 from .x_model_mixin import XModelMixin
 
 if TYPE_CHECKING:
-    import xarray as xr
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import DataType
+    from arpes._typing import DataType, XrTypes
     from arpes.fits import ModelARGS
 
 __all__ = [
@@ -92,7 +91,7 @@ class AffineBroadenedFD(XModelMixin):
         self.set_param_hint("fd_width", min=0.0)
         self.set_param_hint("conv_width", min=0.0)
 
-    def guess(self, data: xr.DataArray | xr.Dataset, **kwargs: float) -> lf.Parameters:
+    def guess(self, data: XrTypes, **kwargs: float) -> lf.Parameters:
         """Make some heuristic guesses.
 
         We use the mean value to estimate the background parameters and physically
@@ -151,7 +150,7 @@ class FermiLorentzianModel(XModelMixin):
 
     def guess(
         self,
-        data: xr.DataArray | xr.Dataset,
+        data: XrTypes,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
         """Placeholder for making better heuristic guesses here.
@@ -223,7 +222,7 @@ class GStepBModel(XModelMixin):
 
     def guess(
         self,
-        data: xr.DataArray | xr.Dataset,
+        data: XrTypes,
         x: None = None,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
@@ -279,7 +278,7 @@ class TwoBandEdgeBModel(XModelMixin):
 
     def guess(
         self,
-        data: xr.DataArray | xr.Dataset,
+        data: XrTypes,
         x: NDArray[np.float_] | None = None,
         **kwargs: float,
     ) -> lf.Parameters:
@@ -326,7 +325,7 @@ class BandEdgeBModel(XModelMixin):
 
     def guess(
         self,
-        data: xr.DataArray | xr.Dataset,
+        data: XrTypes,
         x: NDArray[np.float_] | None = None,
         **kwargs: float,
     ) -> lf.Parameters:
@@ -396,7 +395,7 @@ class BandEdgeBGModel(XModelMixin):
 
     def guess(
         self,
-        data: xr.Dataset | xr.DataArray,
+        data: XrTypes,
         x: NDArray[np.float_] | None = None,
         **kwargs: float,
     ) -> lf.Parameters:
@@ -468,7 +467,7 @@ class FermiDiracAffGaussModel(XModelMixin):
 
     def guess(
         self,
-        data: xr.DataArray | xr.Dataset,
+        data: XrTypes,
         x: None = None,
         **kwargs: float,
     ) -> lf.Parameters:
@@ -537,7 +536,7 @@ class GStepBStdevModel(XModelMixin):
 
     def guess(
         self,
-        data: xr.DataArray | xr.Dataset,
+        data: XrTypes,
         x: None = None,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
@@ -586,7 +585,7 @@ class GStepBStandardModel(XModelMixin):
 
     def guess(
         self,
-        data: xr.DataArray | xr.Dataset,
+        data: XrTypes,
         x: None = None,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
@@ -660,7 +659,7 @@ class TwoLorEdgeModel(XModelMixin):
 
     def guess(
         self,
-        data: xr.DataArray | xr.Dataset,
+        data: XrTypes,
         x: None = None,
         **kwargs: Incomplete,
     ) -> lf.Parameters:

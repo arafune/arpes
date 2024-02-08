@@ -49,7 +49,7 @@ from .kz_conversion import ConvertKpKz
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
-    from arpes._typing import MOMENTUM
+    from arpes._typing import MOMENTUM, XrTypes
     from arpes.utilities.conversion.calibration import DetectorCalibration
 
 __all__ = ["convert_to_kspace", "slice_along_path"]
@@ -487,7 +487,7 @@ def convert_coordinates(
     ],
     *,
     as_dataset: bool = False,
-) -> xr.DataArray | xr.Dataset:
+) -> XrTypes:
     """Return Band structure data (converted to k-space).
 
     Args:
@@ -497,7 +497,7 @@ def convert_coordinates(
         as_dataset(bool): if True, return the data as the dataSet
 
     Returns:
-        xr.DataArray | xr.Dataset
+        XrTypes
     """
     assert isinstance(arr, xr.DataArray)
     ordered_source_dimensions = arr.dims
