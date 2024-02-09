@@ -3,6 +3,7 @@
 This borrows ideas heavily from fastai which provides interpreter classes
 for different kinds of models.
 """
+
 from __future__ import annotations
 
 import math
@@ -13,12 +14,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import tqdm
-from torch.utils.data.dataset import Subset
+from torch.utils.data.dataset import Dataset, Subset
 
 if TYPE_CHECKING:
     import pytorch_lightning as pl
+    from _typeshed import Incomplete
+    from matplotlib.axes import Axes
     from torch.utils.data import DataLoader
-
 __all__ = [
     "Interpretation",
     "InterpretationItem",
@@ -36,7 +38,7 @@ class InterpretationItem:
     parent_dataloader: DataLoader
 
     @property
-    def dataset(self):
+    def dataset(self) -> Dataset:
         """Fetches the original dataset used to train and containing this item.
 
         We need to unwrap the dataset in case we are actually dealing
@@ -49,14 +51,20 @@ class InterpretationItem:
         dataset.
         """
         dset = self.parent_dataloader.dataset
-
         if isinstance(dset, Subset):
             dset = dset.dataset
 
         assert dset.is_indexed is True
         return dset
 
-    def show(self, input_formatter, target_formatter, ax=None, pullback=True) -> None:
+    def show(
+        self,
+        input_formatter: Incomplete,
+        target_formatter: Incomplete,
+        ax: Axes | None = None,
+        *,
+        pullback: bool = True,
+    ) -> None:
         """Plots item onto the provided axes. See also the `show` method of `Interpretation`."""
         if ax is None:
             _, ax = plt.subplots()
@@ -87,7 +95,7 @@ class InterpretationItem:
             )
             target_formatter.show(predicted, ax)
 
-    def decodes_target(self, value: Any) -> Any:
+    def decodes_target(self, value: Incomplete) -> Incomplete:
         """Pulls the predicted target backwards through the transformation stack.
 
         Pullback continues until an irreversible transform is met in order
@@ -126,7 +134,7 @@ class Interpretation:
 
         return self.val_item_lists[self.val_index]
 
-    def top_losses(self, ascending=False) -> list[InterpretationItem]:
+    def top_losses(self, *, ascending: bool = False) -> list[InterpretationItem]:
         """Orders the items by loss."""
 
         def key(item):
@@ -136,10 +144,10 @@ class Interpretation:
 
     def show(
         self,
-        n_items: int | tuple[int, int] | None = 9,
+        n_items: int | tuple[int, int] = 9,
         items: list[InterpretationItem] | None = None,
-        input_formatter=None,
-        target_formatter=None,
+        input_formatter: Incomplete = None,
+        target_formatter: Incomplete = None,
     ) -> None:
         """Plots a subset of the interpreted items.
 
@@ -152,7 +160,7 @@ class Interpretation:
         layout = None
 
         if items is None:
-            if isinstance(n_items, tuple | list):
+            if isinstance(n_items, tuple):
                 layout = n_items
             else:
                 n_rows = int(math.ceil(n_items**0.5))
@@ -164,6 +172,7 @@ class Interpretation:
             n_rows = int(math.ceil(n_items**0.5))
             layout = (n_rows, n_rows)
 
+        assert isinstance(n_items, int)
         _, axes = plt.subplots(*layout, figsize=(layout[0] * 3, layout[1] * 4))
 
         items_with_nones = list(items) + [None] * (np.prod(layout) - n_items)
@@ -176,7 +185,7 @@ class Interpretation:
         plt.tight_layout()
 
     @classmethod
-    def from_trainer(cls, trainer: pl.Trainer):
+    def from_trainer(cls: type[Incomplete], trainer: pl.Trainer) -> list[InterpretationItem]:
         """Builds an interpreter from an instance of a `pytorch_lightning.Trainer`."""
         return cls(trainer.model, trainer.train_dataloader, trainer.val_dataloaders)
 
@@ -206,15 +215,15 @@ class Interpretation:
                     InterpretationItem(
                         torch.squeeze(yi),
                         torch.squeeze(yi_hat),
-                        torch.squeeze(loss),
                         int(index),
+                        torch.squeeze(loss),
                         dataloader,
                     ),
                 )
 
         return items
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Populates train_items and val_item_lists.
 
         This is done by iterating through the dataloaders and pushing data through the models.

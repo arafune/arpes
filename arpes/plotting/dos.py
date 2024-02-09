@@ -1,10 +1,10 @@
 """Plotting utilities related to density of states plots."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
 import matplotlib as mpl
-import numpy as np
 import xarray as xr
 from matplotlib import colors, gridspec
 from matplotlib import pyplot as plt
@@ -59,15 +59,17 @@ def plot_core_levels(  # noqa: PLR0913
 
 @save_plot_provenance
 def plot_dos(
-    data: DataType,
+    data: xr.DataArray,
     title: str = "",
     out: str | Path = "",
     norm: Normalize | None = None,
     dos_pow: float = 1,
 ) -> Path | tuple[Figure, Axes, Colorbar]:
     """Plots the density of states (momentum integrated) image next to the original spectrum."""
-    data_arr = normalize_to_spectrum(data)
+    data_arr = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
+
     assert isinstance(data_arr, xr.DataArray)
+
     fig = plt.figure(figsize=(14, 6))
     fig.subplots_adjust(hspace=0.00)
     gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1])
@@ -75,7 +77,7 @@ def plot_dos(
     ax0 = plt.subplot(gs[0])
     axes = (ax0, plt.subplot(gs[1], sharex=ax0))
 
-    data_arr.values[np.isnan(data_arr.values)] = 0  # <== FIXME CONSIDER xr.DataArray fillna(0)
+    data_arr.fillna(0)
     cbar_axes = mpl.colorbar.make_axes(axes, pad=0.01)
     mesh = data_arr.plot(ax=axes[0], norm=norm or colors.PowerNorm(gamma=0.15))
 

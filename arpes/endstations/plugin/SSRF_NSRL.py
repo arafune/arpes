@@ -85,7 +85,7 @@ class DA30_L(SingleFileEndstation):
         "psi",
     ]
 
-    RENAME_KEYS: ClassVar[dict[str, float | str]] = {
+    RENAME_KEYS: ClassVar[dict[str, str]] = {
         "sample": "sample_name",
         "spectrum_name": "spectrum_type",
         "low_energy": "sweep_low_energy",

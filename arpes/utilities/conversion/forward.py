@@ -48,7 +48,7 @@ __all__ = (
 
 
 LOGLEVELS = (DEBUG, INFO)
-LOGLEVEL = LOGLEVELS[0]
+LOGLEVEL = LOGLEVELS[1]
 logger = getLogger(__name__)
 fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
 formatter = Formatter(fmt)
@@ -61,7 +61,7 @@ logger.propagate = False
 
 
 def convert_coordinate_forward(
-    data: XrTypes,
+    data: xr.DataArray,
     coords: dict[str, float],
     **k_coords: Unpack[KspaceCoords],
 ) -> dict[str, float]:
@@ -94,14 +94,15 @@ def convert_coordinate_forward(
     Another approach would be to write down the exact small angle approximated transforms.
 
     Args:
-        data (DataType): The data defining the coordinate offsets and experiment geometry.
+        data (XrTypes): The data defining the coordinate offsets and experiment geometry.
+            (should be DataArray)
         coords (dict[str, float]): The coordinates of a *point* in angle-space to be converted.
         k_coords: Coordinate for k-axis
 
     Returns:
         The location of the desired coordinate in momentum.
     """
-    data_arr = normalize_to_spectrum(data)
+    data_arr = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     if "eV" in coords:
         coords = dict(coords)
         energy_coord = coords.pop("eV")
@@ -148,7 +149,7 @@ def convert_through_angular_pair(  # noqa: PLR0913
     *,
     relative_coords: bool = True,
     **k_coords: NDArray[np.float_],
-) -> dict[str, float]:
+) -> xr.DataArray:
     """Converts the lower dimensional ARPES cut passing through `first_point` and `second_point`.
 
     This is a sibling method to `convert_through_angular_point`. A point and a `chi` angle
@@ -232,7 +233,6 @@ def convert_through_angular_pair(  # noqa: PLR0913
             **transverse_specification,
             kx=parallel_axis,
         ).mean(list(transverse_specification.keys()))
-
         logger.debug("Annotating the requested point momentum values.")
         return converted_data.assign_attrs(
             {

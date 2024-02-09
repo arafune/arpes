@@ -7,6 +7,7 @@ from collections.abc import Sized
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from typing import TYPE_CHECKING, Any
 
+import xarray as xr
 from more_itertools import ichunked
 from PySide6 import QtWidgets
 
@@ -185,8 +186,8 @@ class DynamicTool(SimpleApp):
         self.update_data()
         self.window.setWindowTitle(f"Interactive {self._function.__name__}")
 
-    def set_data(self, data: DataType) -> None:
-        self.data = normalize_to_spectrum(data)
+    def set_data(self, data: xr.DataArray) -> None:
+        self.data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
 
 
 def make_dynamic(fn: Callable[..., Any], data: DataType) -> None:

@@ -15,7 +15,6 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import DataType
 
 __all__ = (
     "polys_to_mask",
@@ -135,7 +134,7 @@ def apply_mask_to_coords(
 
 @update_provenance("Apply boolean mask to data")
 def apply_mask(
-    data: DataType,
+    data: xr.DataArray,
     mask: dict[str, Incomplete],
     replace: float = np.nan,
     radius=None,
@@ -169,7 +168,7 @@ def apply_mask(
     Returns:
         Data with values masked out.
     """
-    data_array = normalize_to_spectrum(data)
+    data_array = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     fermi = mask.get("fermi")
 
     if isinstance(mask, dict):

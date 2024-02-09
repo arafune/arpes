@@ -110,7 +110,7 @@ class ANTARESEndstation(HemisphericalEndstation, SynchrotronEndstation, SingleFi
 
     _TOLERATED_EXTENSIONS: ClassVar[set[str]] = {".nxs"}
 
-    RENAME_KEYS: ClassVar[dict] = {}
+    RENAME_KEYS: ClassVar[dict[str, str]] = {}
 
     def load_top_level_scan(
         self,
@@ -254,7 +254,7 @@ class ANTARESEndstation(HemisphericalEndstation, SynchrotronEndstation, SingleFi
 
             closest = None
             diff = np.inf
-            idx = None
+            idx: int
             for i, s in enumerate(shape):
                 if closest is None or np.abs(s - est_n) < diff:
                     idx = i

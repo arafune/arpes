@@ -33,7 +33,7 @@ from collections import defaultdict
 from functools import wraps
 from pathlib import Path
 from pprint import pprint
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ParamSpec, TypeVar
 
 from logging import INFO, Formatter, StreamHandler, getLogger
 
@@ -73,13 +73,17 @@ logger.addHandler(handler)
 logger.propagate = False
 
 
-def with_workspace(f: Callable) -> Callable:
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+def with_workspace(f: Callable[P, R]) -> Callable[P, R]:
     @wraps(f)
     def wrapped_with_workspace(
-        *args,
+        *args: P.args,
         workspace: str | None = None,
-        **kwargs: Incomplete,
-    ):
+        **kwargs: P.kwargs,
+    ) -> R:
         """[TODO:summary].
 
         Args:

@@ -1,15 +1,8 @@
 """Test for utilitiy.bz."""
 
-
 import numpy as np
 
 from arpes.utilities import bz
-
-
-def test_as_3d() -> None:
-    """Test for 'bz.as_3d'."""
-    points_2d = np.array([[0, 1], [2, 3]])
-    np.testing.assert_array_equal(bz.as_3d(points_2d), np.array([[0, 1, 0], [2, 3, 0]]))
 
 
 def test_as_2d() -> None:

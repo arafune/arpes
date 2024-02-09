@@ -14,6 +14,7 @@ Each zone definition corresponds to the following things:
 3. The material inner potential, if available
 4. The material name
 """
+
 from __future__ import annotations
 
 import functools

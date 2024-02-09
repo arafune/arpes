@@ -41,7 +41,7 @@ __all__ = ("reference_scan_spatial", "plot_spatial_reference")
 
 @save_plot_provenance
 def plot_spatial_reference(
-    reference_map: DataType,
+    reference_map: xr.DataArray,
     data_list: list[DataType],
     offset_list: list[dict[str, Any] | None] | None = None,
     annotation_list: list[str] | None = None,
@@ -68,8 +68,8 @@ def plot_spatial_reference(
 
     if annotation_list is None:
         annotation_list = [str(i + 1) for i in range(len(data_list))]
-
-    normalize_to_spectrum(reference_map)
+    if not isinstance(reference_map, xr.DataArray):
+        reference_map = normalize_to_spectrum(reference_map)
 
     n_references = len(data_list)
     if n_references == 1 and plot_refs:
@@ -216,14 +216,14 @@ def plot_spatial_reference(
 
 @save_plot_provenance
 def reference_scan_spatial(
-    data: DataType,
+    data: xr.DataArray,
     out: str | Path = "",
 ) -> Path | tuple[Figure, NDArray[np.object_]]:
     """Plots the spatial content of a dataset, useful as a quick reference.
 
     Warning: Not work correctly.  (Because S.referenced_scans has been removed.)
     """
-    data_arr = normalize_to_spectrum(data)
+    data_arr = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
 
     assert isinstance(data_arr, xr.DataArray)
 

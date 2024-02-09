@@ -130,7 +130,7 @@ def update_provenance(
     what: str,
     *,
     keep_parent_ref: bool = False,
-) -> Callable[[Callable[P, XrTypes]], Callable[P, XrTypes]]:
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """A decorator that promotes a function to one that records data provenance.
 
     Args:
@@ -142,8 +142,8 @@ def update_provenance(
     """
 
     def update_provenance_decorator(
-        fn: Callable[P, XrTypes],
-    ) -> Callable[P, XrTypes]:
+        fn: Callable[P, R],
+    ) -> Callable[P, R]:
         """[TODO:summary].
 
         Args:
@@ -151,7 +151,7 @@ def update_provenance(
         """
 
         @functools.wraps(fn)
-        def func_wrapper(*args: P.args, **kwargs: P.kwargs) -> XrTypes:
+        def func_wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
             arg_parents = [
                 v for v in args if isinstance(v, xr.Dataset | xr.Dataset) and "id" in v.attrs
             ]

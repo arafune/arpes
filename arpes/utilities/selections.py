@@ -91,7 +91,7 @@ def _normalize_point(
 
 
 def select_disk_mask(
-    data: DataType,
+    data: xr.DataArray,
     radius: float,
     outer_radius: float | None = None,
     around: dict | xr.Dataset | None = None,
@@ -125,8 +125,9 @@ def select_disk_mask(
     if outer_radius is not None and radius > outer_radius:
         radius, outer_radius = outer_radius, radius
 
-    data_array = normalize_to_spectrum(data)
-    around = _normalize_point(data, around, **kwargs)
+    data_array = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
+
+    around = _normalize_point(data_array, around, **kwargs)
 
     raveled = data_array.G.ravel()
 
@@ -146,7 +147,7 @@ def select_disk_mask(
 
 
 def select_disk(
-    data: DataType,
+    data: xr.DataArray,
     radius: float,
     outer_radius: float | None = None,
     around: dict | xr.Dataset | None = None,
@@ -176,7 +177,7 @@ def select_disk(
         invert: Whether to invert the mask, i.e. everything but the annulus
         kwargs: The central point, otherwise specified by `around`
     """
-    data_array = normalize_to_spectrum(data)
+    data_array = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     around = _normalize_point(data_array, around, **kwargs)
     mask = select_disk_mask(data_array, radius, outer_radius=outer_radius, around=around, flat=True)
 

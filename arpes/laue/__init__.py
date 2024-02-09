@@ -14,6 +14,7 @@ header includes (offset from start of header):
  byte 65823 / 131780 / 3004  = kV
  byte 131664 / 592 = index file name
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -42,9 +43,8 @@ def load_laue(path: Path | str) -> xr.DataArray:
     if isinstance(path, str):
         path = Path(path)
 
-    binary_data = path.read_bytes()
+    binary_data: bytes = path.read_bytes()
     table, header = binary_data[:131072], binary_data[131072:]
-
     table = np.fromstring(table, dtype=np.uint16).reshape(256, 256)
     header = np.fromstring(header, dtype=northstar_62_69_dtype).item()
 

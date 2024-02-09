@@ -81,7 +81,7 @@ def plot_with_std(
 
 @save_plot_provenance
 def scatter_with_std(
-    data: xr.Dataset,
+    data: xr.Dataset,  # data_vars is used.
     name_to_plot: str = "",
     ax: Axes | None = None,
     out: str | Path = "",

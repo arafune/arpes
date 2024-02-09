@@ -1,4 +1,5 @@
 """Implements data loading for the IF UMCS Lublin ARPES group."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -22,7 +23,7 @@ if TYPE_CHECKING:
 __all__ = ("IF_UMCS",)
 
 
-class IF_UMCS(HemisphericalEndstation, SingleFileEndstation):
+class IF_UMCS(HemisphericalEndstation, SingleFileEndstation):  # noqa: N801
     """Implements loading xy text files from the Specs Prodigy software."""
 
     PRINCIPAL_NAME = "IF_UMCS"
@@ -47,10 +48,10 @@ class IF_UMCS(HemisphericalEndstation, SingleFileEndstation):
     }
 
     def load_single_frame(
-            self,
-            frame_path: str | Path = "",
-            scan_desc: SCANDESC | None = None,
-            **kwargs: str | float,
+        self,
+        frame_path: str | Path = "",
+        scan_desc: SCANDESC | None = None,
+        **kwargs: str | float,
     ) -> xr.Dataset:
         """Load single xy file."""
         if scan_desc is None:
@@ -65,9 +66,9 @@ class IF_UMCS(HemisphericalEndstation, SingleFileEndstation):
         raise RuntimeError(msg)
 
     def postprocess_final(
-            self,
-            data: xr.Dataset,
-            scan_desc: SCANDESC | None = None,
+        self,
+        data: xr.Dataset,
+        scan_desc: SCANDESC | None = None,
     ) -> xr.Dataset:
         """Add missing parameters."""
         if scan_desc is None:

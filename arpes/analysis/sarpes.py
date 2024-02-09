@@ -1,4 +1,5 @@
 """Contains very basic spin-ARPES analysis routines."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -62,7 +63,7 @@ def to_up_down(data: DataType) -> xr.Dataset:
 
 @update_provenance("Convert up-down spin channels to polarization")
 def to_intensity_polarization(
-    data: DataType,
+    data: xr.Dataset,
     *,
     perform_sherman_correction: bool = False,
 ) -> xr.Dataset:
@@ -79,7 +80,7 @@ def to_intensity_polarization(
     Returns:
         The data after conversion to intensity-polarization representation.
     """
-    data_set = normalize_to_dataset(data)
+    data_set = data if isinstance(data, xr.Dataset) else normalize_to_dataset(data)
     assert isinstance(data_set, xr.Dataset)
 
     assert "up" in data_set.data_vars

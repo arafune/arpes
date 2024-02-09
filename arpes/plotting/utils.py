@@ -433,10 +433,9 @@ def transform_labels(
                 ax.set_title(transform_fn(ax.get_title()))
 
 
-def summarize(data: DataType, axes: NDArray[np.object_] | None = None) -> NDArray[np.object_]:
+def summarize(data: xr.DataArray, axes: NDArray[np.object_] | None = None) -> NDArray[np.object_]:
     """Makes a summary plot with different marginal plots represented."""
-    data_arr = normalize_to_spectrum(data)
-    assert isinstance(data_arr, xr.DataArray)
+    data_arr = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     axes_shapes_for_dims = {
         1: (1, 1),
         2: (1, 1),
@@ -1159,11 +1158,11 @@ def polarization_colorbar(ax: Axes | None = None) -> colorbar.Colorbar:
     )
 
 
-def calculate_aspect_ratio(data: DataType) -> float:
+def calculate_aspect_ratio(data: xr.DataArray) -> float:
     """Calculate the aspect ratio which should be used for plotting some data based on extent."""
-    data_arr = normalize_to_spectrum(data)
-    assert isinstance(data_arr, xr.DataArray)
-    assert len(data.dims) == TwoDimensional
+    data_arr = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
+
+    assert len(data.dims_arr) == TwoDimensional
 
     x_extent = np.ptp(data_arr.coords[data_arr.dims[0]].values)
     y_extent = np.ptp(data_arr.coords[data_arr.dims[1]].values)

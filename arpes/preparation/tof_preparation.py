@@ -13,7 +13,7 @@ from .axis_preparation import transform_dataarray_axis
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Sequence
+    from collections.abc import Callable
 
     from numpy.typing import NDArray
 
@@ -28,7 +28,7 @@ __all__ = [
 @update_provenance("Convert ToF data from timing signal to kinetic energy")
 def convert_to_kinetic_energy(
     dataarray: xr.DataArray,
-    kinetic_energy_axis: Sequence[float],
+    kinetic_energy_axis: NDArray[np.float_],
 ) -> xr.DataArray:
     """Convert the ToF timing information into an energy histogram.
 
@@ -112,7 +112,7 @@ def convert_to_kinetic_energy(
 
 def build_KE_coords_to_time_pixel_coords(
     dataset: xr.Dataset,
-    interpolation_axis: Sequence[float],
+    interpolation_axis: NDArray[np.float_],
 ) -> Callable[..., tuple[xr.DataArray]]:
     """Constructs a coordinate conversion function from kinetic energy to time pixels."""
     conv = (
@@ -222,12 +222,12 @@ def convert_SToF_to_energy(dataset: xr.Dataset) -> xr.Dataset:
     spacing = dataset.attrs.get("dE", 0.005)
     ke_axis = np.linspace(e_min, e_max, int((e_max - e_min) / spacing))
 
-    drs = {k: v for k, v in dataset.data_vars.items() if "time" in v.dims}
+    drs = {k: spectrum for k, spectrum in dataset.data_vars.items() if "time" in spectrum.dims}
 
-    new_dataarrays = [convert_to_kinetic_energy(dr, ke_axis) for dr in drs.values()]
+    new_dataarrays = [convert_to_kinetic_energy(dr, ke_axis) for dr in drs]
 
     for v in new_dataarrays:
-        dataset[v.name.replace("t_", "")] = v
+        dataset[str(v.name).replace("t_", "")] = v
 
     return dataset
 

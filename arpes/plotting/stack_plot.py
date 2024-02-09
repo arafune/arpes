@@ -207,7 +207,7 @@ def offset_scatter_plot(
 
 @save_plot_provenance
 def flat_stack_plot(  # noqa: PLR0913
-    data: XrTypes,
+    data: xr.DataArray,
     *,
     stack_axis: str = "",
     ax: Axes | None = None,
@@ -244,8 +244,8 @@ def flat_stack_plot(  # noqa: PLR0913
         NotImplementedError
             _description_
     """
-    data_array = normalize_to_spectrum(data)
-    assert isinstance(data_array, xr.DataArray)
+    data_array = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
+
     two_dimensional = 2
 
     if len(data_array.dims) != two_dimensional:
@@ -535,7 +535,7 @@ def _scale_factor(
 
 
 def _rebinning(
-    data: XrTypes,
+    data: xr.DataArray,
     stack_axis: str,
     max_stacks: int,
 ) -> tuple[xr.DataArray, str, str]:
@@ -545,7 +545,7 @@ def _rebinning(
     2. determine the stack axis
     3. determine the name of the other.
     """
-    data_arr = normalize_to_spectrum(data)
+    data_arr = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     assert isinstance(data_arr, xr.DataArray)
     data_arr_must_be_two_dimensional = 2
     assert len(data_arr.dims) == data_arr_must_be_two_dimensional

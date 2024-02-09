@@ -38,7 +38,7 @@ __all__ = (
 
 
 def fit_for_effective_mass(
-    data: XrTypes,
+    data: xr.DataArray,
     fit_kwargs: dict | None = None,
 ) -> float:
     """Fits for the effective mass in a piece of data.
@@ -187,14 +187,13 @@ def unpack_bands_from_fit(
                 as_vector(closest_fit, closest_prefixes[j]),
             )
 
-        best_arrangement = None
+        best_arrangement: tuple[int, ...] = tuple(range(len(prefixes)))
         best_trace = float("inf")
         for p in itertools.permutations(range(len(prefixes))):
             trace = sum(dist_mat[i, p_i] for i, p_i in enumerate(p))
             if trace < best_trace:
                 best_trace = trace
                 best_arrangement = p
-
         ordered_prefixes = [closest_prefixes[p_i] for p_i in best_arrangement]
         identified_by_coordinate[frozen_coord] = ordered_prefixes, fit_result
         identified_band_results.loc[coordinate] = ordered_prefixes

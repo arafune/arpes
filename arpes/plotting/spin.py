@@ -1,4 +1,5 @@
 """Some general plotting routines for presentation of spin-ARPES data."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -154,7 +155,6 @@ def spin_polarized_spectrum(  # noqa: PLR0913
     """Plots a simple spin polarized spectrum using curves for the up and down components."""
     if ax is None:
         _, ax = plt.subplots(2, 1, sharex=True)
-    assert isinstance(ax, Axes)
     if stats:
         spin_dr = bootstrap(lambda x: x)(spin_dr, N=100)
         pol = mean_and_deviation(to_intensity_polarization(spin_dr))

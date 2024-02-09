@@ -1,4 +1,5 @@
 """Contains utilities to determine equivalent coordinates between pairs of scans."""
+
 from __future__ import annotations
 
 from copy import deepcopy

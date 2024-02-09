@@ -33,7 +33,6 @@ if TYPE_CHECKING:
 
     import lmfit
 
-    from arpes._typing import XrTypes
 __all__ = ("broadcast_model", "result_to_hints")
 
 
@@ -121,7 +120,7 @@ def parse_model(
 @update_provenance("Broadcast a curve fit along several dimensions")
 def broadcast_model(  # noqa: PLR0913
     model_cls: type[lmfit.Model] | Sequence[type[lmfit.Model]] | str,
-    data: XrTypes,
+    data: xr.DataArray,
     broadcast_dims: str | list[str],
     params: dict | None = None,
     weights: xr.DataArray | None = None,
@@ -138,7 +137,7 @@ def broadcast_model(  # noqa: PLR0913
 
     Args:
         model_cls: The model specification
-        data: The data to curve fit
+        data: The data to curve fit (Should be DataArray)
         broadcast_dims: Which dimensions of the input should be iterated across as opposed
           to fit across
         params: Parameter hints, consisting of plain values or arrays for interpolation
@@ -166,9 +165,7 @@ def broadcast_model(  # noqa: PLR0913
         broadcast_dims = [broadcast_dims]
 
     logger.debug("Normalizing to spectrum")
-    data_array = normalize_to_spectrum(data)
-    del data
-    assert isinstance(data_array, xr.DataArray)
+    data_array = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     cs = {}
     for dim in broadcast_dims:
         cs[dim] = data_array.coords[dim]
@@ -242,7 +239,6 @@ def broadcast_model(  # noqa: PLR0913
         template.loc[coords] = np.array(fit_result)
         residual.loc[coords] = fit_residual
 
-    logger.debug("Bundling into dataset")
     return xr.Dataset(
         {
             "results": template,

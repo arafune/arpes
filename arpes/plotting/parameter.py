@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Unpack
 
 import matplotlib.pyplot as plt
 
@@ -14,38 +14,43 @@ if TYPE_CHECKING:
     import numpy as np
     import xarray as xr
     from matplotlib.axes import Axes
-    from matplotlib.typing import RGBColorType
     from numpy.typing import NDArray
+
+    from arpes._typing import MPLPlotKwargs
 
 __all__ = ("plot_parameter",)
 
 
 @save_plot_provenance
-def plot_parameter(
+def plot_parameter(  # noqa: PLR0913
     fit_data: xr.DataArray,
     param_name: str,
     ax: Axes | None = None,
-    fillstyle: Literal["full", "left", "right", "bottom", "top", "none"] = "none",
     shift: float = 0,
     x_shift: float = 0,
-    markersize: int = 8,
     *,
     two_sigma: bool = False,
-    **kwargs: tuple | RGBColorType,
+    figsize: tuple[float, float] = (7, 5),
+    **kwargs: Unpack[MPLPlotKwargs],
 ) -> Axes:
     """Makes a simple scatter plot of a parameter from an `broadcast_fit` result."""
     if ax is None:
-        _, ax = plt.subplots(figsize=kwargs.pop("figsize", (7, 5)))
+        _, ax = plt.subplots(figsize=figsize)
 
     ds = fit_data.F.param_as_dataset(param_name)
     x_name = ds.value.dims[0]
     x: NDArray[np.float_] = ds.coords[x_name].values
+    kwargs.setdefault("fillstyle", "none")
+    kwargs.setdefault("markersize", 8)
+
+    fillstyle = kwargs.pop("fillstyle")
+    markersize = kwargs.pop("markersize")
 
     color = kwargs.get("color")
     e_width = None
     l_width = None
     if two_sigma:
-        _, __, lines = ax.errorbar(
+        _, _, lines = ax.errorbar(
             x + x_shift,
             ds.value.values + shift,
             yerr=2 * ds.error.values,

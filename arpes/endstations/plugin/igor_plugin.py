@@ -3,8 +3,10 @@
 This does not load data according to the PyARPES data model, so you should
 ideally use a specific data loader where it is available.
 """
+
 from __future__ import annotations
 
+from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from typing import TYPE_CHECKING, ClassVar
 
 import xarray as xr
@@ -25,6 +27,19 @@ if TYPE_CHECKING:
 
 
 __all__ = ("IgorEndstation",)
+
+
+LOGLEVELS = (DEBUG, INFO)
+LOGLEVEL = LOGLEVELS[1]
+logger = getLogger(__name__)
+fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
+formatter = Formatter(fmt)
+handler = StreamHandler()
+handler.setLevel(LOGLEVEL)
+logger.setLevel(LOGLEVEL)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.propagate = False
 
 
 class IgorEndstation(SingleFileEndstation):
@@ -68,7 +83,8 @@ class IgorEndstation(SingleFileEndstation):
         **kwargs: Incomplete,
     ) -> xr.Dataset:
         """Igor .pxt and .ibws are single files so we just read the one passed here."""
-        print(frame_path, scan_desc)
+        del kwargs
+        logger.info(f"frame_path: {frame_path}, scan_desc: {scan_desc}")
 
         pxt_data = read_single_pxt(frame_path)
         return xr.Dataset({"spectrum": pxt_data}, attrs=pxt_data.attrs)

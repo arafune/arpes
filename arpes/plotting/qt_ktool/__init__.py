@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import numpy as np
+import xarray as xr
 from more_itertools import ichunked
 from PySide6 import QtWidgets
 
@@ -17,7 +18,6 @@ from arpes.utilities.ui import CollectUI, horizontal, label, numeric_input, tabs
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
-    import xarray as xr
     from _typeshed import Incomplete
     from matplotlib.colors import Colormap
     from PySide6.QtWidgets import QGridLayout
@@ -177,7 +177,7 @@ class KTool(SimpleApp):
         Above what happens in QtTool, we try to extract a Fermi surface, and
         repopulate the conversion.
         """
-        original_data = normalize_to_spectrum(data)
+        original_data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
         self.original_data: xr.DataArray = original_data
 
         if len(data.dims) > 2:  # noqa: PLR2004
@@ -210,9 +210,9 @@ class KTool(SimpleApp):
                 }
 
 
-def ktool(data: XrTypes, **kwargs: Incomplete) -> KTool:
+def ktool(data: xr.DataArray, **kwargs: Incomplete) -> KTool:
     """Start the momentum conversion tool."""
-    data_arr = normalize_to_spectrum(data)
+    data_arr = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     tool = KTool(**kwargs)
     tool.set_data(data_arr)
     tool.start()

@@ -212,8 +212,11 @@ class ConvertKp(CoordinateConverter):
         self,
         binding_energy: NDArray[np.float_],
         kp: NDArray[np.float_],
+        *args: Incomplete,
     ) -> NDArray[np.float_]:
         """Converts from momentum back to the analyzer angular axis."""
+        # Dont remove *args even if not used.
+        del args
         if self.phi is not None:
             return self.phi
         if self.is_slit_vertical:
@@ -247,12 +250,16 @@ class ConvertKp(CoordinateConverter):
 
     def conversion_for(self, dim: str) -> Callable[[NDArray[np.float_]], NDArray[np.float_]]:
         """Looks up the appropriate momentum-to-angle conversion routine by dimension name."""
-        return {
+
+        def _with_identity(*args: NDArray[np.float_]) -> NDArray[np.float_]:
+            return self.identity_transform(dim, *args)
+
+        return {  # type: ignore[return-value]
             "eV": self.kspace_to_BE,
             "phi": self.kspace_to_phi,
         }.get(
             dim,
-            self.identity_transform,
+            _with_identity,
         )
 
 
@@ -377,13 +384,17 @@ class ConvertKxKy(CoordinateConverter):
 
     def conversion_for(self, dim: str) -> Callable[[NDArray[np.float_]], NDArray[np.float_]]:
         """Looks up the appropriate momentum-to-angle conversion routine by dimension name."""
-        return {
+
+        def _with_identity(*args: NDArray[np.float_]) -> NDArray[np.float_]:
+            return self.identity_transform(dim, *args)
+
+        return {  # type: ignore[return-value]
             "eV": self.kspace_to_BE,
             "phi": self.kspace_to_phi,
             "theta": self.kspace_to_perp_angle,
             "psi": self.kspace_to_perp_angle,
             "beta": self.kspace_to_perp_angle,
-        }.get(dim, self.identity_transform)
+        }.get(dim, _with_identity)
 
     @property
     def needs_rotation(self) -> bool:

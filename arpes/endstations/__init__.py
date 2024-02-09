@@ -9,7 +9,7 @@ import re
 import warnings
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar, Literal, TypedDict
+from typing import TYPE_CHECKING, ClassVar, Literal, TypedDict, reveal_type
 
 import h5py
 import numpy as np
@@ -270,7 +270,7 @@ class EndstationBase:
                 max_different_values = n_different_values
                 scan_coord = possible_scan_coord
 
-        assert scan_coord is not None
+        assert isinstance(scan_coord, str)
 
         for f in frames:
             f.coords[scan_coord] = f.attrs[scan_coord]

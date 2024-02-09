@@ -26,8 +26,6 @@ if TYPE_CHECKING:
     from matplotlib.typing import ColorType
     from numpy.typing import NDArray
 
-    from arpes._typing import DataType
-
 
 __all__ = (
     "fermi_surface_slices",
@@ -82,7 +80,7 @@ def fermi_surface_slices(
 
 @save_plot_provenance
 def magnify_circular_regions_plot(
-    data: DataType,
+    data: xr.DataArray,
     magnified_points: NDArray[np.float_] | list[float],
     mag: float = 10,
     radius: float = 0.05,
@@ -111,7 +109,7 @@ def magnify_circular_regions_plot(
     Returns:
         [TODO:description]
     """
-    data_arr = normalize_to_spectrum(data)
+    data_arr = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     assert isinstance(data_arr, xr.DataArray)
 
     fig: Figure | None = None

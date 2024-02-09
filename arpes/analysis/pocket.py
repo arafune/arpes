@@ -84,7 +84,7 @@ def pocket_parameters(
 
 @update_provenance("Collect EDCs projected at an angle from pocket")
 def radial_edcs_along_pocket(
-    data: XrTypes,
+    data: xr.DataArray,
     angle: float,
     radii: tuple[float, float] = (0.0, 5.0),
     n_points: int = 0,
@@ -113,7 +113,7 @@ def radial_edcs_along_pocket(
         A 2D array which has an angular coordinate around the pocket center.
     """
     inner_radius, outer_radius = radii
-    data_array = normalize_to_spectrum(data)
+    data_array = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     fermi_surface_dims = list(data_array.dims)
 
     assert "eV" in fermi_surface_dims
@@ -158,7 +158,7 @@ def radial_edcs_along_pocket(
 
 
 def curves_along_pocket(
-    data: XrTypes,
+    data: xr.DataArray,
     n_points: int = 0,
     inner_radius: float = 0.0,
     outer_radius: float = 5.0,
@@ -185,7 +185,7 @@ def curves_along_pocket(
         A tuple of two lists. The first list contains the slices and the second
         the coordinates of each slice around the pocket center.
     """
-    data_array = normalize_to_spectrum(data)
+    data_array = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     assert isinstance(data_array, xr.DataArray)
     fermi_surface_dims = list(data_array.dims)
     if "eV" in fermi_surface_dims:
@@ -237,7 +237,7 @@ def curves_along_pocket(
 
 
 def find_kf_by_mdc(
-    slice_data: XrTypes,
+    slice_data: xr.DataArray,
     offset: float = 0,
     **kwargs: Incomplete,
 ) -> float:
@@ -254,8 +254,9 @@ def find_kf_by_mdc(
     Returns:
         The fitting Fermi momentum.
     """
-    if isinstance(slice_data, xr.Dataset):
-        slice_arr = normalize_to_spectrum(slice_data)
+    slice_arr = (
+        slice_data if isinstance(slice_data, xr.DataArray) else normalize_to_spectrum(slice_data)
+    )
 
     assert isinstance(slice_arr, xr.DataArray)
 

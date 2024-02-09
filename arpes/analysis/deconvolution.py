@@ -36,7 +36,7 @@ TWO_DIMWENSION = 2
 
 @update_provenance("Approximate Iterative Deconvolution")
 def deconvolve_ice(
-    data: DataType,
+    data: xr.DataArray,
     psf: NDArray[np.float_],
     n_iterations: int = 5,
     deg: int | None = None,
@@ -55,8 +55,8 @@ def deconvolve_ice(
     Returns:
         The deconvoled data in the same format.
     """
-    arr = normalize_to_spectrum(data).values
-
+    data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data).values
+    arr = data.values
     if deg is None:
         deg = n_iterations - 3
     iteration_steps = list(range(1, n_iterations + 1))
@@ -73,17 +73,17 @@ def deconvolve_ice(
         poly = np.poly1d(coefs)
         deconv[t] = poly(0)
 
-    if type(data) is np.ndarray:
+    if isinstance(data, np.ndarray):
         result = deconv
     else:
-        result = normalize_to_spectrum(data).copy(deep=True)
+        result = data.copy(deep=True)
         result.values = deconv
     return result
 
 
 @update_provenance("Lucy Richardson Deconvolution")
 def deconvolve_rl(
-    data: DataType,
+    data: xr.DataArray,
     psf: xr.DataArray | None = None,
     n_iterations: int = 10,
     axis: str = "",
@@ -106,7 +106,7 @@ def deconvolve_rl(
     Returns:
         The Richardson-Lucy deconvolved data.
     """
-    arr = normalize_to_spectrum(data)
+    arr = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
 
     if psf is None and axis != "" and sigma != 0:
         # if no psf is provided and we have the information to make a 1d one
@@ -233,7 +233,7 @@ def deconvolve_rl(
 
             result = u[-1]
     else:  # data.dims == 1
-        if type(arr) is not np.ndarray:
+        if not isinstance(arr, np.ndarray):
             arr = arr.values
         u = [arr]
         for _ in range(n_iterations):
@@ -241,17 +241,17 @@ def deconvolve_rl(
             u.append(u[-1] * scipy.ndimage.convolve(arr / c, np.flip(psf, 0), mode=mode))
             # not yet tested to ensure flip correct for asymmetric psf
             # note: need to explicitly specify axis number in np.flip in lower versions of numpy
-        if type(data) is np.ndarray:
+        if isinstance(data, np.ndarray):
             result = u[-1].copy()
         else:
-            result = normalize_to_spectrum(data).copy(deep=True)
+            result = data.copy(deep=True)
             result.values = u[-1]
     with contextlib.suppress(Exception):
         return result.transpose(*arr.dims)
 
 
 @update_provenance("Make 1D-Point Spread Function")
-def make_psf1d(data: DataType, dim: str, sigma: float) -> xr.DataArray:
+def make_psf1d(data: xr.DataArray, dim: str, sigma: float) -> xr.DataArray:
     """Produces a 1-dimensional gaussian point spread function for use in deconvolve_rl.
 
     Args:
@@ -262,7 +262,7 @@ def make_psf1d(data: DataType, dim: str, sigma: float) -> xr.DataArray:
     Returns:
         A one dimensional point spread array.
     """
-    arr = normalize_to_spectrum(data)
+    arr = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     psf = arr.copy(deep=True) * 0 + 1
     other_dims = list(arr.dims)
     other_dims.remove(dim)
@@ -272,7 +272,7 @@ def make_psf1d(data: DataType, dim: str, sigma: float) -> xr.DataArray:
 
 
 @update_provenance("Make Point Spread Function")
-def make_psf(data: DataType, sigmas: dict[str, float]) -> xr.DataArray:
+def make_psf(data: xr.DataArray, sigmas: dict[str, float]) -> xr.DataArray:
     """Produces an n-dimensional gaussian point spread function for use in deconvolve_rl.
 
     Not yet operational.
@@ -286,7 +286,7 @@ def make_psf(data: DataType, sigmas: dict[str, float]) -> xr.DataArray:
     """
     raise NotImplementedError
 
-    arr = normalize_to_spectrum(data)
+    arr = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     dims = arr.dims
 
     psf = arr.copy(deep=True) * 0 + 1

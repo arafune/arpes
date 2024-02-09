@@ -14,7 +14,6 @@ if TYPE_CHECKING:
     import xarray as xr
     from _typeshed import Incomplete
 
-    from arpes._typing import DataType
 __all__ = (
     "nmf_along",
     "pca_along",
@@ -24,7 +23,7 @@ __all__ = (
 
 
 def decomposition_along(
-    data: DataType,
+    data: xr.DataArray,
     axes: list[str],
     decomposition_cls: type[sklearn.decomposition],
     *,
@@ -69,11 +68,12 @@ def decomposition_along(
     from sklearn.pipeline import make_pipeline
     from sklearn.preprocessing import StandardScaler
 
+    data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     if len(axes) > 1:
-        flattened_data: xr.DataArray = normalize_to_spectrum(data).stack(fit_axis=axes)
+        flattened_data: xr.DataArray = data.stack(fit_axis=axes)
         stacked = True
     else:
-        flattened_data = normalize_to_spectrum(data).S.transpose_to_back(axes[0])
+        flattened_data = data.S.transpose_to_back(axes[0])
         stacked = False
 
     if len(flattened_data.dims) != TWO_DIMENSION:

@@ -79,6 +79,7 @@ class BL10012SARPESEndstation(SynchrotronEndstation, HemisphericalEndstation, SE
         """Loads all regions for a single .pxt frame, and perform per-frame normalization."""
         from arpes.load_pxt import find_ses_files_associated, read_single_pxt
 
+        del kwargs
         if scan_desc is None:
             scan_desc = {}
         original_data_loc = scan_desc.get("path", scan_desc.get("file"))

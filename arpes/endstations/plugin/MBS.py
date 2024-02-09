@@ -121,17 +121,17 @@ class MBSEndstation(HemisphericalEndstation):
         with Path(frame_path).open() as f:
             lines = f.readlines()
 
-        lines = [_.strip() for _ in lines]
+        lines = [line.strip() for line in lines]
         data_index = lines.index("DATA:")
         header = lines[:data_index]
         data = lines[data_index + 1 :]
         data_array = np.array([[float(f) for f in d] for d in [d.split() for d in data]])
         del data
-        header = [h.split("\t") for h in header]
-        header = [h for h in header if len(h) == 2]
-        alt = [h for h in header if len(h) == 1]
-        header.append(["alt", str(alt)])
-        attrs = clean_keys(dict(header))
+        headers = [h.split("\t") for h in header]
+        headers = [h for h in headers if len(h) == len(("item", "value"))]
+        alt = [h for h in headers if len(h) == len(("only_item",))]
+        headers.append(["alt", str(alt)])
+        attrs = clean_keys(dict(headers))
 
         eV_axis = np.linspace(
             float(attrs["start_k_e_"]),

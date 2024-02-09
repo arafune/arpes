@@ -48,7 +48,7 @@ from collections import OrderedDict, defaultdict
 from collections.abc import Collection, Hashable, Mapping, Sequence
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, TypeAlias, Unpack
+from typing import TYPE_CHECKING, Any, Literal, Self, TypeAlias, Unpack
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -82,7 +82,7 @@ from .utilities.region import DesignatedRegions, normalize_region
 from .utilities.xarray import unwrap_xarray_item
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Generator
+    from collections.abc import Callable, Generator, Iterator
 
     import lmfit
     from _typeshed import Incomplete
@@ -145,7 +145,7 @@ logger.propagate = False
 
 def _iter_groups(
     grouped: dict[str, Sequence[float] | float],
-) -> Generator[tuple[str, float], None, None]:
+) -> Iterator[tuple[str, float]]:
     """Iterates through a flattened sequence.
 
     Sequentially yields keys and values from each sequence associated with a key.
@@ -723,17 +723,17 @@ class ARPESAccessorBase:
         return self._calculate_symmetry_points(symmetry_points, **kwargs)
 
     @property
-    def iter_own_symmetry_points(self) -> Generator[tuple[str, float], None, None]:
+    def iter_own_symmetry_points(self) -> Iterator[tuple[str, float]]:
         sym_points, _ = self.symmetry_points()
         return _iter_groups(sym_points)
 
     @property
-    def iter_projected_symmetry_points(self) -> Generator[tuple[str, float], None, None]:
+    def iter_projected_symmetry_points(self) -> Iterator[tuple[str, float]]:
         _, sym_points = self.symmetry_points()
         return _iter_groups(sym_points)
 
     @property
-    def iter_symmetry_points(self) -> Generator[tuple[str, float], None, None]:
+    def iter_symmetry_points(self) -> Iterator[tuple[str, float]]:
         yield from self.iter_own_symmetry_points
         yield from self.iter_projected_symmetry_points
 
@@ -1780,9 +1780,9 @@ class ARPESAccessorBase:
                     if isinstance(v, xr.DataArray):
                         min_hv = float(v.min())
                         max_hv = float(v.max())
-                        transformed_dict[k] = (
-                            f"<strong> from </strong> {min_hv} <strong>  to </strong> {max_hv} eV"
-                        )
+                        transformed_dict[
+                            k
+                        ] = f"<strong> from </strong> {min_hv} <strong>  to </strong> {max_hv} eV"
                     elif isinstance(v, float) and not np.isnan(v):
                         transformed_dict[k] = f"{v} eV"
             return transformed_dict
@@ -1928,8 +1928,12 @@ class ARPESAccessorBase:
 class ARPESDataArrayAccessor(ARPESAccessorBase):
     """Spectrum related accessor for `xr.DataArray`."""
 
+    def __init__(self, xarray_obj: xr.DataArray) -> None:
+        """Initialize."""
+        self._obj = xarray_obj
+
     def plot(
-        self,
+        self: Self,
         *args: Incomplete,
         **kwargs: Incomplete,
     ) -> None:
@@ -1945,14 +1949,14 @@ class ARPESDataArrayAccessor(ARPESAccessorBase):
         with plt.rc_context(rc={"text.usetex": False}):
             self._obj.plot(*args, **kwargs)
 
-    def show(self, *, detached: bool = False, **kwargs: Incomplete) -> None:
+    def show(self: Self, *, detached: bool = False, **kwargs: Incomplete) -> None:
         """Opens the Qt based image tool."""
         from .plotting.qt_tool import qt_tool
 
         qt_tool(self._obj, detached=detached, **kwargs)
 
     def fs_plot(
-        self,
+        self: Self,
         pattern: str = "{}.png",
         **kwargs: Incomplete,
     ) -> Path | None | tuple[Figure, Axes]:
@@ -1964,7 +1968,7 @@ class ARPESDataArrayAccessor(ARPESAccessorBase):
         return labeled_fermi_surface(self._obj, **kwargs)
 
     def fermi_edge_reference_plot(
-        self,
+        self: Self,
         pattern: str = "{}.png",
         **kwargs: str | Normalize | None,
     ) -> Path | None:
@@ -1985,7 +1989,7 @@ class ARPESDataArrayAccessor(ARPESAccessorBase):
         return fermi_edge_reference(self._obj, **kwargs)
 
     def _referenced_scans_for_spatial_plot(
-        self,
+        self: Self,
         *,
         use_id: bool = True,
         pattern: str = "{}.png",
@@ -2008,7 +2012,7 @@ class ARPESDataArrayAccessor(ARPESAccessorBase):
         return reference_scan_spatial(self._obj, out=out)
 
     def _referenced_scans_for_map_plot(
-        self,
+        self: Self,
         pattern: str = "{}.png",
         *,
         use_id: bool = True,
@@ -2029,7 +2033,7 @@ class ARPESDataArrayAccessor(ARPESAccessorBase):
         bkg_subtraction: float
 
     def _referenced_scans_for_hv_map_plot(
-        self,
+        self: Self,
         pattern: str = "{}.png",
         *,
         use_id: bool = True,
@@ -2045,7 +2049,7 @@ class ARPESDataArrayAccessor(ARPESAccessorBase):
         return hv_reference_scan(self._obj, **kwargs)
 
     def _simple_spectrum_reference_plot(
-        self,
+        self: Self,
         *,
         use_id: bool = True,
         pattern: str = "{}.png",
@@ -2059,7 +2063,7 @@ class ARPESDataArrayAccessor(ARPESAccessorBase):
 
         return fancy_dispersion(self._obj, **kwargs)
 
-    def cut_nan_coords(self) -> XrTypes:
+    def cut_nan_coords(self: Self) -> xr.DataArray:
         """Selects data where coordinates are not `nan`.
 
         Returns (xr.DataArray):
@@ -2124,7 +2128,6 @@ class ARPESDataArrayAccessor(ARPESAccessorBase):
         Args:
             nonlinear_order (int): order of the nonliniarity, default to 1
         """
-        assert isinstance(self._obj, xr.DataArray | xr.Dataset)
         if self._obj.coords["hv"].ndim == 0:
             if self.energy_notation == "Binding":
                 self._obj.coords["eV"] = (
@@ -2756,7 +2759,7 @@ class GenericAccessorTools:
     def iter_coords(
         self,
         dim_names: tuple[str | Hashable, ...] = (),
-    ) -> Generator[dict[Hashable, float], None, None]:
+    ) -> Iterator[dict[Hashable, float]]:
         """[TODO:summary].
 
         Args:
@@ -3155,11 +3158,11 @@ class ARPESFitToolsAccessor:
             },
         )
 
-    def show(self, *, detached: bool = False) -> None:
+    def show(self) -> None:
         """Opens a Qt based interactive fit inspection tool."""
         from .plotting.fit_tool import fit_tool
 
-        fit_tool(self._obj, detached=detached)
+        fit_tool(self._obj)
 
     def best_fits(self) -> xr.DataArray:
         """Orders the fits into a raveled array by the MSE error."""
@@ -3319,7 +3322,7 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
         """
         return getattr(self._obj.S.spectrum.S, item)
 
-    def polarization_plot(self, **kwargs: IncompleteMPL) -> Axes:
+    def polarization_plot(self, **kwargs: IncompleteMPL) -> list[Axes] | Path:
         """Creates a spin polarization plot.
 
         Returns:
@@ -3448,7 +3451,7 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
         """
         return self.degrees_of_freedom.difference(self.spectrum_degrees_of_freedom)
 
-    def reference_plot(self, **kwargs: IncompleteMPL) -> None:
+    def reference_plot(self: Self, **kwargs: IncompleteMPL) -> None:
         """Creates reference plots for a dataset.
 
         A bit of a misnomer because this actually makes many plots. For full datasets,
@@ -3486,7 +3489,7 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
             if figure_item not in self._obj.data_vars:
                 continue
             name = name_normalization.get(figure_item, figure_item)
-            data_var = self._obj[figure_item]
+            data_var: xr.DataArray = self._obj[figure_item]
             out = f"{self.label}_{name}_spec_integrated_reference.png"
             scan_var_reference_plot(data_var, title=f"Reference {name}", out=out)
 
@@ -3673,4 +3676,5 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
         Args:
             xarray_obj: The parent object which this is an accessor for
         """
+        self._obj: xr.Dataset
         super().__init__(xarray_obj)

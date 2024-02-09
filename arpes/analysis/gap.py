@@ -66,7 +66,11 @@ def determine_broadened_fermi_distribution(
             "vary": False,
         }
 
-    reference_data_array = normalize_to_spectrum(reference_data)
+    reference_data_array = (
+        reference_data
+        if isinstance(reference_data, xr.DataArray)
+        else normalize_to_spectrum(reference_data)
+    )
 
     sum_dims = list(reference_data_array.dims)
     sum_dims.remove("eV")
@@ -183,10 +187,12 @@ def normalize_by_fermi_dirac(
 
 
 def _shift_energy_interpolate(
-    data: DataType,
+    data: xr.DataArray,
     shift: xr.DataArray | None = None,
 ) -> xr.DataArray:
-    data_arr = normalize_to_spectrum(data).S.transpose_to_front("eV")
+    if not isinstance(data, xr.DataArray):
+        data = normalize_to_spectrum(data)
+    data_arr = data.S.transpose_to_front("eV")
 
     new_data = data_arr.copy(deep=True)
     new_axis = new_data.coords["eV"]
@@ -221,7 +227,7 @@ def _shift_energy_interpolate(
 
 @update_provenance("Symmetrize")
 def symmetrize(
-    data: DataType,
+    data: xr.DataArray,
     *,
     subpixel: bool = False,
     full_spectrum: bool = False,
@@ -243,7 +249,9 @@ def symmetrize(
     Returns:
         The symmetrized data.
     """
-    data = normalize_to_spectrum(data).S.transpose_to_front("eV")
+    if not isinstance(data, xr.DataArray):
+        data = normalize_to_spectrum(data)
+    data = data.S.transpose_to_front("eV")
 
     if subpixel or full_spectrum:
         data = _shift_energy_interpolate(data)

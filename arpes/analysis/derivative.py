@@ -16,7 +16,6 @@ if TYPE_CHECKING:
 
     from numpy.typing import NDArray
 
-    from arpes._typing import DataType
 
 __all__ = (
     "curvature2d",
@@ -81,7 +80,7 @@ def _vector_diff(
 
 @update_provenance("Minimum Gradient")
 def minimum_gradient(
-    data: DataType,
+    data: xr.DataArray,
     *,
     smooth_fn: Callable[[xr.DataArray], xr.DataArray] | None = None,
     delta: DELTA = 1,
@@ -99,7 +98,7 @@ def minimum_gradient(
     Returns:
         The gradient of the original intensity, which enhances the peak position.
     """
-    arr = normalize_to_spectrum(data)
+    arr = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     assert isinstance(arr, xr.DataArray)
     smooth_ = _nothing_to_array if smooth_fn is None else smooth_fn
     arr = smooth_(arr)
@@ -107,7 +106,7 @@ def minimum_gradient(
 
 
 @update_provenance("Gradient Modulus")
-def _gradient_modulus(data: DataType, *, delta: DELTA = 1) -> xr.DataArray:
+def _gradient_modulus(data: xr.DataArray, *, delta: DELTA = 1) -> xr.DataArray:
     """Helper function for minimum gradient.
 
     Args:
@@ -117,7 +116,7 @@ def _gradient_modulus(data: DataType, *, delta: DELTA = 1) -> xr.DataArray:
     Returns: xr.DataArray
         [TODO:description]
     """
-    spectrum = normalize_to_spectrum(data)
+    spectrum = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     assert isinstance(spectrum, xr.DataArray)
     values: NDArray[np.float_] = spectrum.values
     gradient_vector = np.zeros(shape=(8, *values.shape))

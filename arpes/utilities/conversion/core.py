@@ -31,6 +31,7 @@ from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from typing import TYPE_CHECKING, Literal
 
 import numpy as np
+from numpy.typing import ArrayLike
 import xarray as xr
 from scipy.interpolate import RegularGridInterpolator
 
@@ -56,7 +57,7 @@ __all__ = ["convert_to_kspace", "slice_along_path"]
 
 
 LOGLEVELS = (DEBUG, INFO)
-LOGLEVEL = LOGLEVELS[0]
+LOGLEVEL = LOGLEVELS[1]
 logger = getLogger(__name__)
 fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
 formatter = Formatter(fmt)
@@ -105,7 +106,7 @@ def grid_interpolator_from_dataarray(
     )
 
 
-def slice_along_path(
+def slice_along_path(  # noqa: PLR0913
     arr: xr.DataArray,
     interpolation_points: NDArray[np.float_] | None = None,
     axis_name: str = "",
@@ -114,7 +115,7 @@ def slice_along_path(
     *,
     extend_to_edge: bool = False,
     shift_gamma: bool = True,
-) -> xr.DataArray:
+) -> xr.Dataset:
     """Gets a cut along a path specified by waypoints in an array.
 
     TODO: There might be a little bug here where the last coordinate has a value of 0,
@@ -215,7 +216,10 @@ def slice_along_path(
 
     path_segments = list(pairwise(parsed_interpolation_points))
 
-    def required_sampling_density(waypoint_a: Mapping, waypoint_b: Mapping) -> float:
+    def required_sampling_density(
+        waypoint_a: Mapping[Hashable, float],
+        waypoint_b: Mapping[Hashable, float],
+    ) -> float:
         ks = waypoint_a.keys()
         dist = _element_distance(waypoint_a, waypoint_b)
         delta = np.array([waypoint_a[k] - waypoint_b[k] for k in ks])
@@ -295,6 +299,7 @@ def slice_along_path(
         },
         as_dataset=True,
     )
+    assert isinstance(converted_ds, xr.Dataset)
 
     if (
         axis_name in arr.dims and len(parsed_interpolation_points) == 2  # noqa: PLR2004
@@ -317,7 +322,7 @@ def slice_along_path(
 
 
 @update_provenance("Automatically k-space converted")
-def convert_to_kspace(
+def convert_to_kspace(  # noqa: PLR0913
     arr: xr.DataArray,
     bounds: dict[MOMENTUM, tuple[float, float]] | None = None,
     resolution: dict[MOMENTUM, float] | None = None,
@@ -349,7 +354,6 @@ def convert_to_kspace(
 
     Examples:
         Convert a 2D cut with automatically inferred range and resolution.
-
         >>> convert_to_kspace(arpes.io.load_example_data())  # doctest: +SKIP
         xr.DataArray(...)
 
@@ -470,7 +474,11 @@ def convert_to_kspace(
         {
             "dims": converted_dims,
             "transforms": dict(
-                zip(arr.dims, [converter.conversion_for(dim) for dim in arr.dims], strict=True),
+                zip(
+                    (str(dim) for dim in arr.dims),
+                    [converter.conversion_for(dim) for dim in arr.dims],
+                    strict=True,
+                ),
             ),
         },
     )
@@ -562,10 +570,9 @@ def convert_coordinates(
         Returns:
             [TODO:description]
         """
-        try:
+        if isinstance(c, xr.DataArray):
             return bool(set(c.dims).issubset(coordinate_transform["dims"]))
-        except AttributeError:
-            return True
+        return True
 
     target_coordinates = {k: v for k, v in target_coordinates.items() if acceptable_coordinate(v)}
     data = xr.DataArray(
@@ -695,6 +702,9 @@ def _extract_symmetry_point(
     return dict(zip([d for d in arr.dims if d in raw_point], S, strict=False))
 
 
-def _element_distance(waypoint_a: Mapping, waypoint_b: Mapping) -> np.float_:
+def _element_distance(
+    waypoint_a: Mapping[Hashable, float],
+    waypoint_b: Mapping[Hashable, float],
+) -> np.float_:
     delta = np.array([waypoint_a[k] - waypoint_b[k] for k in waypoint_a])
     return np.linalg.norm(delta)

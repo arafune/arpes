@@ -27,7 +27,10 @@ __all__ = (
 BareBandType: TypeAlias = xr.DataArray | str | lf.model.ModelResult
 
 
-def get_peak_parameter(data: xr.DataArray, parameter_name: str) -> xr.DataArray:
+def get_peak_parameter(
+    data: xr.DataArray,
+    parameter_name: str,
+) -> xr.DataArray:
     """Extracts a parameter from a potentially prefixed peak-like component.
 
     Works so long as there is only a single peak defined in the model.
@@ -66,8 +69,7 @@ def get_peak_parameter(data: xr.DataArray, parameter_name: str) -> xr.DataArray:
 def local_fermi_velocity(bare_band: xr.DataArray) -> float:
     """Calculates the band velocity under assumptions of a linear bare band."""
     fitted_model = LinearModel().guess_fit(bare_band)
-    raw_velocity = fitted_model.params["slope"].value
-
+    raw_velocity: float = fitted_model.params["slope"].value
     if "eV" in bare_band.dims:
         # the "y" values are in `bare_band` are momenta and the "x" values are energy, therefore
         # the slope is dy/dx = dk/dE
@@ -218,7 +220,7 @@ def to_self_energy(
         dispersion = dispersion.results
 
     from_mdcs = "eV" in dispersion.dims  # if eV is in the dimensions, then we fitted MDCs
-    estimated_bare_band = estimate_bare_band(dispersion, bare_band)
+    estimated_bare_band = estimate_bare_band(dispersion, bare_band_specification="ransac_linear")
 
     if not fermi_velocity:
         fermi_velocity = local_fermi_velocity(estimated_bare_band)
@@ -270,8 +272,8 @@ def fit_for_self_energy(
             **kwargs,
         )
     else:
-        possible_mometum_dims = ("phi", "theta", "psi", "beta", "kp", "kx", "ky", "kz")
-        mom_axes = set(data.dims).intersection(possible_mometum_dims)
+        possible_mometum_dims = {"phi", "theta", "psi", "beta", "kp", "kx", "ky", "kz"}
+        mom_axes = {str(dim) for dim in data.dims}.intersection(possible_mometum_dims)
 
         if len(mom_axes) > 1:
             msg = "Too many possible momentum dimensions, please clarify."
@@ -283,4 +285,4 @@ def fit_for_self_energy(
             **kwargs,
         )
 
-    return to_self_energy(fit_results, bare_band=bare_band)
+    return to_self_energy(fit_results.results, bare_band=bare_band)

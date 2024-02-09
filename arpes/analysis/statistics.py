@@ -1,17 +1,23 @@
 """Contains utilities for performing statistical operations in spectra and DataArrays."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import xarray as xr
 
 from arpes.provenance import update_provenance
 from arpes.utilities import lift_dataarray_to_generic
 
+if TYPE_CHECKING:
+    from arpes._typing import XrTypes
+
 __all__ = ("mean_and_deviation",)
 
 
 @update_provenance("Calculate mean and standard deviation for observation axis")
 @lift_dataarray_to_generic
-def mean_and_deviation(data: xr.DataArray, axis: str = "", name: str = "") -> xr.Dataset:
+def mean_and_deviation(data: XrTypes, axis: str = "", name: str = "") -> xr.Dataset:
     """Calculates the mean and standard deviation of a DataArray along an axis.
 
     The reduced axis corresponds to individual observations of a tensor/array valued quantity.
@@ -21,7 +27,7 @@ def mean_and_deviation(data: xr.DataArray, axis: str = "", name: str = "") -> xr
     If a name is not attached to the DataArray, it should be provided.
 
     Args:
-        data: The input data.
+        data: The input data (Both DataArray and Dataset).
         axis: The name of the dimension which we should perform the reduction along.
         name: The name of the variable which should be reduced. By default, uses `data.name`.
 
@@ -30,7 +36,6 @@ def mean_and_deviation(data: xr.DataArray, axis: str = "", name: str = "") -> xr
         relevant variable in the input DataArray.  (Dimension is reduced.)
     """
     preferred_axes = ["bootstrap", "cycle", "idx"]
-    assert isinstance(data, xr.DataArray)
     name = str(data.name) if data.name == "" else name
 
     if not axis:

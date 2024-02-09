@@ -34,7 +34,19 @@ logger.propagate = False
 
 
 K_SPACE_BORDER = 0.02
-MOMENTUM_BREAKPOINTS = [0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1]
+MOMENTUM_BREAKPOINTS: list[float] = [
+    0.0005,
+    0.001,
+    0.002,
+    0.005,
+    0.01,
+    0.02,
+    0.05,
+    0.1,
+    0.2,
+    0.5,
+    1,
+]
 
 
 class CoordinateConverter:
@@ -124,6 +136,7 @@ class CoordinateConverter:
     ) -> Callable[[NDArray[np.float_]], NDArray[np.float_]]:
         """Fetches the method responsible for calculating `dim` from momentum coordinates."""
         assert isinstance(dim, str)
+        return self.kspace_to_BE
 
     def identity_transform(self, axis_name: str, *args: Incomplete) -> NDArray[np.float_]:
         """Just returns the coordinate requested from args.

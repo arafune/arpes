@@ -64,7 +64,10 @@ logger.propagate = False
 
 
 @update_provenance("Estimate prior")
-def estimate_prior_adjustment(data: DataType, region: dict[str, Any] | str | None = None) -> float:
+def estimate_prior_adjustment(
+    data: xr.DataArray,
+    region: dict[str, Any] | str | None = None,
+) -> float:
     r"""Estimates distribution generating the intensity histogram of pixels in a spectrum.
 
     In a perfectly linear, single-electron
@@ -83,7 +86,7 @@ def estimate_prior_adjustment(data: DataType, region: dict[str, Any] | str | Non
     Returns:
         sigma / mu, the adjustment factor for the Poisson distribution
     """
-    data_array = normalize_to_spectrum(data)
+    data_array = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     if region is None:
         region = "copper_prior"
 

@@ -1,6 +1,5 @@
 """Utilities related to plotting Brillouin zones and data onto them."""
 
-# pylint: disable=import-error
 from __future__ import annotations
 
 import itertools
@@ -19,7 +18,7 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from scipy.spatial.transform import Rotation
 
 from arpes.analysis.mask import apply_mask_to_coords
-from arpes.utilities import normalize_to_spectrum
+from arpes.constants import TWO_DIMENSION
 from arpes.utilities.bz import build_2dbz_poly, hex_cell_2d, process_kpath
 from arpes.utilities.bz_spec import A_GRAPHENE, A_WS2, A_WSe2
 from arpes.utilities.geometry import polyhedron_intersect_plane
@@ -50,14 +49,14 @@ __all__ = (
     "overplot_standard",
 )
 
-overplot_library = {
+overplot_library: dict[str, Callable[..., dict[str, list[list[float]]]]] = {
     "graphene": lambda: {"cell": hex_cell_2d(A_GRAPHENE)},
     "ws2": lambda: {"cell": hex_cell_2d(A_WS2)},
     "wwe2": lambda: {"cell": hex_cell_2d(A_WSe2)},
 }
 
 
-LOGLEVEL = (DEBUG, INFO)[1]
+LOGLEVEL = (DEBUG, INFO)[0]
 logger = getLogger(__name__)
 fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
 formatter = Formatter(fmt)
@@ -71,13 +70,13 @@ logger.propagate = False
 
 def segments_standard(
     name: str = "graphene",
-    rotate: float = 0.0,
+    rotate_rad: float = 0.0,
 ) -> tuple[list[NDArray[np.float_]], list[NDArray[np.float_]]]:
     name = name.lower()
-    specification = overplot_library[name]()
+    specification: dict[str, list[list[float]]] = overplot_library[name]()
     transformations = []
-    if rotate:
-        transformations = [Rotation.from_rotvec([0, 0, rotate])]
+    if rotate_rad:
+        transformations = [Rotation.from_rotvec([0, 0, rotate_rad])]
 
     return bz2d_segments(specification["cell"], transformations)
 
@@ -142,7 +141,7 @@ class Translation:
         """
         vectors = np.asarray(vectors)
 
-        if vectors.ndim > 2 or vectors.shape[-1] not in {2, 3}:  # noqa: PLR2004
+        if vectors.ndim > TWO_DIMENSION or vectors.shape[-1] not in {2, 3}:
             msg = "Expected a 2D or 3D vector (2 or 3,)"
             msg += f" of list of vectors (N, 2 or 3,), instead receivied: {vectors.shape}"
             raise ValueError(
@@ -188,13 +187,24 @@ def apply_transformations(
 
 
 def plot_plane_to_bz(
-    cell: Sequence[Sequence[float]],
+    cell: Sequence[Sequence[float]] | NDArray[np.float_],
     plane: str | list[NDArray[np.float_]],
     ax: Axes,
     special_points: dict[str, NDArray[np.float_]] | None = None,
     facecolor: ColorType = "red",
 ) -> None:
-    """Plots a 2D cut plane onto a Brillouin zone."""
+    """Plots a 2D cut plane onto a Brillouin zone.
+
+    Args:
+        cell: [TODO:description]
+        plane: [TODO:description]
+        ax: [TODO:description]
+        special_points: [TODO:description]
+        facecolor: [TODO:description]
+
+    Returns:
+        [TODO:description]
+    """
     from ase.dft.bz import bz_vertices
 
     if isinstance(plane, str):
@@ -218,19 +228,19 @@ def plot_plane_to_bz(
 
 def plot_data_to_bz(
     data: DataType,
-    cell: Sequence[Sequence[float]],
+    cell: Sequence[Sequence[float]] | NDArray[np.float_],
     **kwargs: Incomplete,
 ):
     """A dimension agnostic tool used to plot ARPES data onto a Brillouin zone."""
-    if len(data) == 3:  # noqa: PLR2004
+    if len(data) == TWO_DIMENSION + 1:
         return plot_data_to_bz3d(data, cell, **kwargs)
 
     return plot_data_to_bz2d(data, cell, **kwargs)
 
 
 def plot_data_to_bz2d(  # noqa: PLR0913
-    data: DataType,
-    cell: Sequence[Sequence[float]],
+    data_array: xr.DataArray,
+    cell: Sequence[Sequence[float]] | NDArray[np.float_],
     rotate: float | None = None,
     shift: NDArray[np.float_] | None = None,
     scale: float | None = None,
@@ -242,10 +252,8 @@ def plot_data_to_bz2d(  # noqa: PLR0913
     **kwargs: Incomplete,
 ) -> Path | tuple[Figure, Axes]:
     """Plots data onto a 2D Brillouin zone."""
-    data_array = normalize_to_spectrum(data)
-
     assert data_array.S.is_kspace, "You must k-space convert data before plotting to BZs"
-    assert isinstance(data_array, xr.DataArray)
+    assert isinstance(data_array, xr.DataArray), "data_array must be xr.DataArray, not Dataset"
 
     if bz_number is None:
         bz_number = (0, 0)
@@ -256,7 +264,7 @@ def plot_data_to_bz2d(  # noqa: PLR0913
         bz2d_plot(cell, paths="all", ax=ax)
     assert isinstance(ax, Axes)
 
-    if len(cell) == 2:  # noqa: PLR2004
+    if len(cell) == TWO_DIMENSION:
         cell = [[*list(c), 0] for c in cell] + [[0, 0, 1]]
 
     icell = np.linalg.inv(cell).T
@@ -307,7 +315,7 @@ def plot_data_to_bz2d(  # noqa: PLR0913
 
 def plot_data_to_bz3d(
     data: DataType,
-    cell: Sequence[Sequence[float]],
+    cell: Sequence[Sequence[float]] | NDArray[np.float_],
     **kwargs: Incomplete,
 ) -> None:
     """Plots ARPES data onto a 3D Brillouin zone."""
@@ -320,23 +328,27 @@ def plot_data_to_bz3d(
     raise NotImplementedError(msg)
 
 
-def bz_plot(cell: Sequence[Sequence[float]], *args, **kwargs: Incomplete) -> Axes:
+def bz_plot(
+    cell: Sequence[Sequence[float]] | NDArray[np.float_],
+    *args,
+    **kwargs: Incomplete,
+) -> Axes:
     """Dimension generic BZ plot which uses the cell dimension to delegate."""
     logger.debug(f"size of cell is: {format(len(cell))}")
-    if len(cell) > 2:  # noqa: PLR2004
+    if len(cell) > TWO_DIMENSION:
         return bz3d_plot(cell, *args, **kwargs)
 
     return bz2d_plot(cell, *args, **kwargs)
 
 
 def bz3d_plot(
-    cell: Sequence[Sequence[float]],
+    cell: Sequence[Sequence[float]] | NDArray[np.float_],
     paths: str | list[str | float] | None = None,
     kpoints: Sequence[Sequence[float]] | None = None,
     ax: Axes | None = None,
     elev: float | None = None,
     scale: float = 1,
-    repeat: tuple[int, int, int] | None = None,
+    repeat: tuple[int, int, int] = (1, 1, 1),
     transformations: list[Transformation] | None = None,
     *,
     vectors: bool = False,
@@ -406,13 +418,6 @@ def bz3d_plot(
     bz1 = bz_vertices(icell)
 
     maxp = 0.0
-
-    if repeat is None:
-        repeat = (
-            1,
-            1,
-            1,
-        )
 
     dx, dy, dz = icell[0], icell[1], icell[2]
     rep_x: int | tuple[int, int]
@@ -537,12 +542,12 @@ def annotate_special_paths(
     **kwargs: Incomplete,
 ) -> None:
     """Annotates user indicated paths in k-space by plotting lines (or points) over the BZ."""
-    logger.debug(f"ax: {ax}")
-    logger.debug(f"paths: {paths}")
-    logger.debug(f"cell: {cell}")
-    logger.debug(f"offset: {offset}")
-    logger.debug(f"special_points: {special_points}")
-    logger.debug(f"labels: {labels}")
+    logger.debug(f"annotate-ax: {ax}")
+    logger.debug(f"annotate-paths: {paths}")
+    logger.debug(f"annotate-cell: {cell}")
+    logger.debug(f"annotate-offset: {offset}")
+    logger.debug(f"annotate-special_points: {special_points}")
+    logger.debug(f"annotate-labels: {labels}")
     if kwargs:
         for k, v in kwargs.items():
             logger.debug(f"kwargs: kyes: {k}, value: {v}")
@@ -556,12 +561,14 @@ def annotate_special_paths(
             labels = paths
 
         converted_paths = process_kpath(paths, cell, special_points=special_points)
+        logger.debug(f"converted_paths: {converted_paths}")
 
         if not isinstance(labels[0], list):
             labels = [labels]
 
         labels = [list(label) for label in labels]
         paths = list(zip(labels, converted_paths, strict=True))
+        logger.debug(f"paths in annotate_special_paths {paths}")
     fontsize = kwargs.pop("fontsize", 14)
 
     if offset is None:
@@ -644,15 +651,15 @@ def bz2d_segments(
     return segments_x, segments_y
 
 
-def twocell_to_bz1(cell):
+def twocell_to_bz1(cell: NDArray[np.float_]):
     from ase.dft.bz import bz_vertices
 
     # 2d in x-y plane
-    if len(cell) > 2:  # noqa: PLR2004
+    if len(cell) > TWO_DIMENSION:
         assert all(abs(cell[2][0:2]) < 1e-6)  # noqa: PLR2004
         assert all(abs(cell.T[2][0:2]) < 1e-6)  # noqa: PLR2004
     else:
-        cell = [[*list(c), 0] for c in cell] + [[0, 0, 1]]
+        cell = np.array([[*list(c), 0] for c in cell] + [[0, 0, 1]])
     icell = np.linalg.inv(cell).T
     try:
         bz1 = bz_vertices(icell[:3, :3], dim=2)
@@ -681,19 +688,17 @@ def bz2d_plot(
 
     Plots a Brillouin zone corresponding to a given unit cell
     """
-    logger.debug(f"cell: {cell}")
-    logger.debug(f"paths: {paths}")
-    logger.debug(f"points: {points}")
-    logger.debug(f"repeat: {repeat}")
-    logger.debug(f"transformations: {transformations}")
-    logger.debug(f"hide_ax: {hide_ax}")
-    logger.debug(f"vectors: {vectors}")
-    logger.debug(f"set_equal_aspect: {set_equal_aspect}")
-    if kwargs:
-        for k, v in kwargs.items():
-            logger.debug(f"kwargs: kyes: {k}, value: {v}")
+    logger.debug(f"bz2d_plot-cell: {cell}")
+    logger.debug(f"bz2d_plot-paths: {paths}")
+    logger.debug(f"bz2d_plot-points: {points}")
+    logger.debug(f"bz2d_plot-repeat: {repeat}")
+    logger.debug(f"bz2d_plot-transformations: {transformations}")
+    logger.debug(f"bz2d_plot-hide_ax: {hide_ax}")
+    logger.debug(f"bz2d_plot-vectors: {vectors}")
+    logger.debug(f"bz2d_plot-set_equal_aspect: {set_equal_aspect}")
     kpoints = points
     bz1, icell, cell = twocell_to_bz1(cell)
+    logger.debug(f"bz1 : {bz1}")
     if ax is None:
         ax = plt.axes()
 

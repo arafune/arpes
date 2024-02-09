@@ -1,11 +1,12 @@
 """Implements transform pipelines for pytorch_lightning with basic inverse transform."""
+
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import Field, dataclass, field
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from _typeshed import Incomplete
 
 __all__ = ["ComposeBoth", "ReversibleLambda", "Identity"]
 
@@ -13,13 +14,13 @@ __all__ = ["ComposeBoth", "ReversibleLambda", "Identity"]
 class Identity:
     """Represents a reversible identity transform."""
 
-    def encodes(self, x):
+    def encodes(self, x: Incomplete) -> Incomplete:
         return x
 
-    def __call__(self, x):
+    def __call__(self, x: Incomplete) -> Incomplete:
         return x
 
-    def decodes(self, x):
+    def decodes(self, x: Incomplete) -> Incomplete:
         return x
 
     def __repr__(self) -> str:
@@ -33,10 +34,10 @@ _identity = Identity()
 class ReversibleLambda:
     """A reversible anonymous function, so long as the caller supplies an inverse."""
 
-    encodes: Callable = field(repr=False)
-    decodes: Callable = field(default=lambda x: x, repr=False)
+    encodes: Field = field(repr=False)
+    decodes: Field = field(default=lambda x: x, repr=False)
 
-    def __call__(self, value):
+    def __call__(self, value: Incomplete) -> Field[Incomplete]:
         """Apply the inner lambda to the data in forward pass."""
         return self.encodes(value)
 
@@ -47,7 +48,7 @@ class ComposeBoth:
 
     transforms: list[Any]
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Replace missing transforms with identities."""
         safe_transforms = []
         for t in self.transforms:
@@ -60,7 +61,7 @@ class ComposeBoth:
         self.original_transforms = self.transforms
         self.transforms = safe_transforms
 
-    def __call__(self, x, y):
+    def __call__(self, x: Incomplete, y: Incomplete) -> Incomplete:
         """If this transform has separate data and target functions, apply separately.
 
         Otherwise, we apply the single transform to both the data and the target.
@@ -74,7 +75,7 @@ class ComposeBoth:
 
         return x, y
 
-    def decodes_target(self, y):
+    def decodes_target(self, y: Incomplete) -> Incomplete:
         """Pull the target back in the transform stack as far as possible.
 
         This is necessary only for the predicted target because

@@ -73,7 +73,12 @@ def sort_axis(data: xr.DataArray, axis_name: str) -> xr.DataArray:
 
 
 @update_provenance("Flip data along axis")
-def flip_axis(arr: xr.DataArray, axis_name: str, *, flip_data: bool = True) -> xr.DataArray:
+def flip_axis(
+    arr: xr.DataArray,  # valuse is used
+    axis_name: str,
+    *,
+    flip_data: bool = True,
+) -> xr.DataArray:
     """Flips the coordinate values along an axis w/o changing the data as well.
 
     Args:

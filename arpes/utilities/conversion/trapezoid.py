@@ -138,9 +138,15 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
         return self.arr.indexes
 
     def conversion_for(self, dim: str) -> Callable[..., NDArray[np.float_]]:
+        def _with_identity(*args: NDArray[np.float_]) -> NDArray[np.float_]:
+            return self.identity_transform(dim, *args)
+
         return {
             "phi": self.phi_to_phi,
-        }.get(dim, self.identity_transform)
+        }.get(
+            dim,
+            _with_identity,
+        )
 
     def phi_to_phi(
         self,

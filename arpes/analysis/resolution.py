@@ -6,6 +6,7 @@ import math
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
+import xarray as xr
 
 # all resolutions are given by (photon energy, entrance slit, exit slit size)
 from arpes.constants import K_BOLTZMANN_MEV_KELVIN
@@ -138,7 +139,7 @@ ENDSTATIONS_BEAMLINE_RESOLUTION = {
 }
 
 
-def analyzer_resolution_estimate(data: DataType, *, meV: bool = False) -> float:  # noqa: N803
+def analyzer_resolution_estimate(data: xr.DataArray, *, meV: bool = False) -> float:  # noqa: N803
     """Estimates the energy resolution of the analyzer.
 
     For hemispherical analyzers, this can be determined by the slit
@@ -151,7 +152,7 @@ def analyzer_resolution_estimate(data: DataType, *, meV: bool = False) -> float:
     Returns:
         The resolution in eV units.
     """
-    data_array = normalize_to_spectrum(data)
+    data_array = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
 
     endstation = data_array.S.endstation
     spectrometer_info = SPECTROMETER_INFORMATION[endstation]
@@ -209,8 +210,8 @@ def energy_resolution_from_beamline_slit(
     return by_area[low] + (by_area[high] - by_area[low]) * (slit_area - low) / (high - low)
 
 
-def beamline_resolution_estimate(data: DataType, *, meV: bool = False) -> None:  # noqa: N803
-    data_array = normalize_to_spectrum(data)
+def beamline_resolution_estimate(data: xr.DataArray, *, meV: bool = False) -> None:  # noqa: N803
+    data_array = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     resolution_table: dict[
         str,
         dict[tuple[float, tuple[float, float]], float],
