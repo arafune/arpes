@@ -1,2 +1,0 @@
-# Use dependencies from setup.py
-.

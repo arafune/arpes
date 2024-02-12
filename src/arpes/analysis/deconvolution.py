@@ -23,7 +23,6 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import DataType
 
 __all__ = (
     "deconvolve_ice",
@@ -40,7 +39,7 @@ def deconvolve_ice(
     psf: NDArray[np.float_],
     n_iterations: int = 5,
     deg: int | None = None,
-) -> DataType:
+) -> xr.DataArray | NDArray[np.float_]:
     """Deconvolves data by a given point spread function (PSF).
 
     The iterative convolution extrapolation method is used.
@@ -55,8 +54,8 @@ def deconvolve_ice(
     Returns:
         The deconvoled data in the same format.
     """
-    data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data).values
-    arr = data.values
+    data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
+    arr: NDArray[np.float_] = data.values
     if deg is None:
         deg = n_iterations - 3
     iteration_steps = list(range(1, n_iterations + 1))
@@ -65,10 +64,10 @@ def deconvolve_ice(
 
     for _ in range(n_iterations - 1):
         iteration_list.append(scipy.ndimage.convolve(iteration_list[-1], psf))
-    iteration_list = np.asarray(iteration_list)
+    iteration_array = np.asarray(iteration_list)
 
     deconv = arr * 0
-    for t, series in enumerate(iteration_list.T):
+    for t, series in enumerate(iteration_array.T):
         coefs = np.polyfit(iteration_steps, series, deg=deg)
         poly = np.poly1d(coefs)
         deconv[t] = poly(0)

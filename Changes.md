@@ -1,20 +1,31 @@
 Major Changes from 3.0.1
 
-- Introdcue a new attrs, "energy_notation" is introduced, which determines eithe "Kinetic" energy or "Binding" energy
-  - Add new method: S.switch_energy_notation(self, nonlinear_order=1)
-- Use correct method to convert from the angle to mthe omentum. (Original approach was found to be incorrect)
-- filters.boxcar: skip_nan has been removed
-- Dataset.S.spectra returns the list of the xr.DataArrays whose dims contains "eV". (See xarray_extensions.py)
-- Provide SPD_main.py & prodigy_itx.py
-- Add a new method S.swap_angle_unit() to change the angle unit (deg <-> radian)
-- Do not carelessly set deafult=None
+- Most important change:
 
-- Replace algorithms to make them simpler and more efficient
+  - Use correct method to convert from the angle to moementum. (Original approach was found to be incorrect)
+
+- New feature
+  - Provide SPD_main.py & prodigy_itx.py
+  - Provide IF\_\_UMCS.py & prodigy_xy.py
+  - Introduce Type annotation, which is major trend in the current python coding.
+    - Users are requested to know type of the object treated. Especially, the users should know the difference between xr.DataArray & xr.Dataset
+  - Introduce a new attrs, "energy_notation", which determines either "Kinetic" energy or "Binding" energy
+    - Add new method: S.switch_energy_notation(self, nonlinear_order=1)
+
+* Dataset.S.spectra returns the list of the xr.DataArrays whose dims contains "eV". (See xarray_extensions.py)
+  Add a new method S.swap_angle_unit() to change the angle unit (deg <-> radian)
+
+- Coding guide line
+
+* Do not carelessly set default=None
+* Replace algorithms to make them simpler and more efficient
 
   - stack_plot.py/flat_stack_plot
   - analysis/general.py/rebin
 
-- Removing
+* Removing
+
+  Many files/methods/class have been removed because of inconsistency, legacy style, useless. Here is just a short list the ones I remember now:
 
   - Remove arpes.all
 
@@ -46,7 +57,7 @@ Major Changes from 3.0.1
   - Remove original_id method, as I cannot figure out the purpose.
   - Remove lmfit_plot.py. The original ModelResult.plot() is sufficiently useful, and no reason for keeping to maintain this patched version.
   - Remove condensed_attrs: We should not enfoce camelcase on attributes, while original version did. Rather, the snake_case would be better from the modern pythonic viewpoint.
-  - Remove `trace` arg for debuggin. This technique may be sharp, but not so well fitted the current python trend; typing oriented.
+  - Remove `trace` arg for debugging. This technique may be sharp, but not so well fitted the current python trend; typing oriented.
 
 Fix from 3.0.1
 

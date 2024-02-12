@@ -167,9 +167,9 @@ def analyzer_resolution_estimate(data: xr.DataArray, *, meV: bool = False) -> fl
 
 
 def energy_resolution_from_beamline_slit(
-    table: dict[str, str | float | None],
+    table: dict[tuple[float, tuple[float, float]], float],
     photon_energy: float,
-    exit_slit_size: str | float | tuple[float, float] | None,
+    exit_slit_size: tuple[float, float],
 ) -> float:
     """Calculates the energy resolution contribution from the beamline slits.
 
@@ -184,7 +184,9 @@ def energy_resolution_from_beamline_slit(
     Returns:
         The energy broadening in eV.
     """
-    by_slits = {k[1]: v for k, v in table.items() if k[0] == photon_energy}
+    by_slits: dict[tuple[float, float], float] = {
+        k[1]: v for k, v in table.items() if k[0] == photon_energy
+    }
     if exit_slit_size in by_slits:
         return by_slits[exit_slit_size]
 
@@ -210,19 +212,23 @@ def energy_resolution_from_beamline_slit(
     return by_area[low] + (by_area[high] - by_area[low]) * (slit_area - low) / (high - low)
 
 
-def beamline_resolution_estimate(data: xr.DataArray, *, meV: bool = False) -> None:  # noqa: N803
+def beamline_resolution_estimate(
+    data: xr.DataArray,
+    *,
+    meV: bool = False,  # noqa: N803
+) -> float:
     data_array = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-    resolution_table: dict[
-        str,
-        dict[tuple[float, tuple[float, float]], float],
-    ] = ENDSTATIONS_BEAMLINE_RESOLUTION[data_array.S.endstation]
+    resolution_table: dict[str, dict[tuple[float, tuple[float, float]], float]] = (
+        ENDSTATIONS_BEAMLINE_RESOLUTION[data_array.S.endstation]
+    )
 
     if isinstance(next(iter(resolution_table.keys())), str):
         # need grating information
         settings = data_array.S.beamline_settings
-        resolution_table = resolution_table[settings["grating"]]
-
-        all_keys = list(resolution_table.keys())
+        resolution_table_selected: dict[tuple[float, tuple[float, float]], float] = (
+            resolution_table[settings["grating"]]
+        )
+        all_keys = list(resolution_table_selected.keys())
         hvs = {k[0] for k in all_keys}
 
         low_hv = max(hv for hv in hvs if hv < settings["hv"])
@@ -232,9 +238,16 @@ def beamline_resolution_estimate(data: xr.DataArray, *, meV: bool = False) -> No
             settings["entrance_slit"],
             settings["exit_slit"],
         )
-        low_hv_res = energy_resolution_from_beamline_slit(resolution_table, low_hv, slit_size)
-        high_hv_res = energy_resolution_from_beamline_slit(resolution_table, high_hv, slit_size)
-
+        low_hv_res = energy_resolution_from_beamline_slit(
+            resolution_table_selected,
+            low_hv,
+            slit_size,
+        )
+        high_hv_res = energy_resolution_from_beamline_slit(
+            resolution_table_selected,
+            high_hv,
+            slit_size,
+        )
         # interpolate between nearest values
         return low_hv_res + (high_hv_res - low_hv_res) * (settings["hv"] - low_hv) / (
             high_hv - low_hv
@@ -249,7 +262,7 @@ def thermal_broadening_estimate(data: DataType, *, meV: bool = False) -> float: 
 
 
 def total_resolution_estimate(
-    data: DataType,
+    data: xr.DataArray,
     *,
     include_thermal_broadening: bool = False,
     meV: bool = False,  # noqa: N803
@@ -262,7 +275,7 @@ def total_resolution_estimate(
     Returns:
         The estimated total resolution broadening.
     """
-    thermal_broadening = 0
+    thermal_broadening = 0.0
     if include_thermal_broadening:
         thermal_broadening = thermal_broadening_estimate(data, meV=meV)
     return math.sqrt(

@@ -461,7 +461,7 @@ def reduced_bz_axis_to(
     point_names = _POINT_NAMES_FOR_SYMMETRY[symmetry]
 
     symmetry_points, _ = data.S.symmetry_points()
-    points = {k: v[0] for k, v in symmetry_points.items() if k in point_names}
+    points = {k: v for k, v in symmetry_points.items() if k in point_names}
 
     coords_by_point = {
         k: np.array([v.get(d, 0) for d in data.dims if d in v or include_E and d == "eV"])
@@ -500,7 +500,7 @@ def reduced_bz_axes(data: XrTypes) -> tuple[NDArray[np.float_], NDArray[np.float
     point_names = _POINT_NAMES_FOR_SYMMETRY[symmetry]
 
     symmetry_points, _ = data.S.symmetry_points()
-    points = {k: v[0] for k, v in symmetry_points.items() if k in point_names}
+    points = {k: v for k, v in symmetry_points.items() if k in point_names}
 
     coords_by_point = {k: np.array([v[d] for d in data.dims if d in v]) for k, v in points.items()}
     if symmetry == "rect":
@@ -537,7 +537,7 @@ def axis_along(data: XrTypes, symbol: str) -> float:
     point_names = _POINT_NAMES_FOR_SYMMETRY[symmetry]
 
     symmetry_points, _ = data.S.symmetry_points()
-    points = {k: v[0] for k, v in symmetry_points.items() if k in point_names}
+    points = {k: v for k, v in symmetry_points.items() if k in point_names}
 
     coords_by_point = {k: np.array([v[d] for d in data.dims if d in v]) for k, v in points.items()}
 
@@ -576,7 +576,7 @@ def reduced_bz_poly(data: XrTypes, *, scale_zone: bool = False) -> NDArray[np.fl
         dy = 3 * dy
 
     symmetry_points, _ = data.S.symmetry_points()
-    points = {k: v[0] for k, v in symmetry_points.items() if k in point_names}
+    points = {k: v for k, v in symmetry_points.items() if k in point_names}
     coords_by_point = {
         k: np.array([v.get(d, 0) for d in data.dims if d in v]) for k, v in points.items()
     }
@@ -625,7 +625,7 @@ def reduced_bz_E_mask(
     point_names = _POINT_NAMES_FOR_SYMMETRY[symmetry]
 
     symmetry_points, _ = data.S.symmetry_points()
-    points = {k: v[0] for k, v in symmetry_points.items() if k in point_names}
+    points = {k: v for k, v in symmetry_points.items() if k in point_names}
     coords_by_point = {
         k: np.array([v.get(d, 0) for d in data.dims if d in v or d == "eV"])
         for k, v in points.items()

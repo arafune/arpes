@@ -48,7 +48,7 @@ __all__ = (
 
 
 LOGLEVELS = (DEBUG, INFO)
-LOGLEVEL = LOGLEVELS[1]
+LOGLEVEL = LOGLEVELS[0]
 logger = getLogger(__name__)
 fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
 formatter = Formatter(fmt)
@@ -228,6 +228,7 @@ def convert_through_angular_pair(  # noqa: PLR0913
 
         # perform the conversion
         logger.debug("Performing final momentum conversion.")
+        logger.debug("transverse_specification : {transverse_specification}")
         converted_data = convert_to_kspace(
             data,
             **transverse_specification,

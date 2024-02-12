@@ -6,7 +6,7 @@ from __future__ import annotations
 import warnings
 
 # Use both version conventions for people's sanity.
-VERSION = "3.1.0daredevil"
+VERSION = "4.0.0 beta1"
 __version__ = VERSION
 
 

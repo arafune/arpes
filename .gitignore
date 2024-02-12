@@ -41,7 +41,7 @@ cache/*.keep
 
 .idea/
 
-local_config.py
+src/local_config.py
 
 !datasets/Misc
 !experiments/Misc

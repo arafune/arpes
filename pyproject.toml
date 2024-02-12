@@ -1,4 +1,14 @@
 [project]
+name = "arpes"
+version = "4.0.0-beta0"
+description = "PyARPES: An analysis framework for multimodal angle-resolved photoemission spectroscopies"
+authors = [
+  { name = "Conrad Stansbury", email = "chstan@berkeley.edu" },
+  { name = "Ryuichi Arafune", email = "ryuichi.arafune@gmail.com" },
+]
+readme = "README.rst"
+requires-python = ">= 3.10"
+
 dependencies = [
   "holoviews",
   "astropy>=5.3",
@@ -15,23 +25,16 @@ dependencies = [
   "pyqtgraph>=0.12.4",
   "igorpy @ git+https://github.com/arafune/igorpy",
   "scikit-learn>=1.3.1",
+  "scikit-image>=0.20.0",
   "netcdf4>=1.6.4",
   "rx>=3.2.0",
   "ipywidgets",
 ]
-name = "arpes"
-version = "3.1.0-beta0"
-description = "PyARPES: An analysis framework for multimodal angle-resolved photoemission spectroscopies"
-authors = [
-  { name = "Conrad Stansbury", email = "chstan@berkeley.edu" },
-  { name = "Ryuichi Arafune", email = "ryuichi.arafune@gmail.com" },
-]
-readme = "README.rst"
-requires-python = ">= 3.10"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
 
 [tool.rye]
 managed = true
@@ -54,13 +57,15 @@ dev-dependencies = [
 [tool.hatch.metadata]
 allow-direct-references = true
 
+[tool.hatch.build.targets.wheel]
+packages = ["src/arpes"]
+
 [tool.coverge.run]
-include = ["arpes"]
 omit = [
   "tests/*",
-  "arpes/plotting/*",
-  "arpes/deep_learning/*",
-  "arpes/widgets.py",
+  "src/arpes/plotting/*",
+  "src/arpes/deep_learning/*",
+  "src/arpes/widgets.py",
 ]
 
 [tool.coverge.report]
@@ -100,11 +105,11 @@ convention = "google"
 
 
 [tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["F401"]                     # unused-import
-"arpes/__init__.py" = ["T201"]               # print used
-"arpes/experiment/__init__.py" = ["ALL"]
-"arpes/workflow.py" = ["T201", "T203"]
-"arpes/fits/lmfit_html_repr.py" = ["SLF001"] # private member accecced
+"__init__.py" = ["F401"]                         # unused-import
+"src/arpes/__init__.py" = ["T201"]               # print used
+"src/arpes/experiment/__init__.py" = ["ALL"]
+"src/arpes/workflow.py" = ["T201", "T203"]
+"src/arpes/fits/lmfit_html_repr.py" = ["SLF001"] # private member accecced
 
 [tool.mypy]
 ignore_missing_imports = true
@@ -116,7 +121,6 @@ line-length = 100
 name = "cz_emoji"
 version = "0.0.1"
 tag_format = "$version"
-
 
 [tool.coverage.report]
 exclude_also = ["if TYPE_CHECKING:"]

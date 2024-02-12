@@ -39,16 +39,24 @@ The `.F.` accessor:
 
 from __future__ import annotations
 
-import collections
 import contextlib
 import copy
 import itertools
 import warnings
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 from collections.abc import Collection, Hashable, Mapping, Sequence
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, Self, TypeAlias, Unpack
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Literal,
+    Self,
+    TypeAlias,
+    TypedDict,
+    TypeGuard,
+    Unpack,
+)
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -60,6 +68,7 @@ import arpes.constants
 import arpes.utilities.math
 from arpes.constants import TWO_DIMENSION
 
+from ._typing import MPLPlotKwargs
 from .analysis import param_getter, param_stderr_getter, rebin
 from .models.band import MultifitBand
 from .plotting.dispersion import (
@@ -102,6 +111,7 @@ if TYPE_CHECKING:
         SAMPLEINFO,
         SCANINFO,
         SPECTROMETER,
+        BeamLineSettings,
         DataType,
         PColorMeshKwargs,
         XrTypes,
@@ -144,7 +154,7 @@ logger.propagate = False
 
 
 def _iter_groups(
-    grouped: dict[str, Sequence[float] | float],
+    grouped: dict[str, NDArray[np.float_] | Sequence[float] | float],
 ) -> Iterator[tuple[str, float]]:
     """Iterates through a flattened sequence.
 
@@ -157,7 +167,7 @@ def _iter_groups(
     ToDo: Not tested
     """
     for k, value_or_list in grouped.items():
-        if isinstance(value_or_list, Sequence):
+        if isinstance(value_or_list, Sequence | np.ndarray):
             for list_item in value_or_list:
                 yield k, list_item
         else:
@@ -167,7 +177,20 @@ def _iter_groups(
 class ARPESAccessorBase:
     """Base class for the xarray extensions in PyARPES."""
 
-    def along(self, directions: NDArray[np.float_], **kwargs: Incomplete) -> xr.DataArray:
+    class _SliceAlongPathKwags(TypedDict, total=False):
+        arr: xr.DataArray
+        interpolation_points: NDArray[np.float_] | None
+        axis_name: str
+        resolution: float
+        n_points: int | None
+        extend_to_edge: bool
+        shift_gamma: bool
+
+    def along(
+        self,
+        directions: NDArray[np.float_],
+        **kwargs: Unpack[_SliceAlongPathKwags],
+    ) -> xr.Dataset:
         """TODO: Need description.
 
         ToDo: Test
@@ -394,7 +417,17 @@ class ARPESAccessorBase:
             ("eV", "kp", "kz"): "hv_map",
         }
         dims: tuple = tuple(sorted(self._obj.dims))
-        return dim_types.get(dims)
+        dim_type = dim_types.get(dims)
+
+        def _dim_type_check(
+            dim_type: str | None,
+        ) -> TypeGuard[Literal["cut", "map", "hv_map", "ucut", "spem", "xps"]]:
+            return dim_type in ("cut", "map", "hv_map", "ucut", "spem", "xps")
+
+        if _dim_type_check(dim_type):
+            return dim_type
+        msg = "Dimension type may be incorrect"
+        raise TypeError(msg)
 
     @property
     def is_differentiated(self) -> bool:
@@ -441,8 +474,8 @@ class ARPESAccessorBase:
 
     def select_around_data(
         self,
-        points: dict[str, xr.DataArray] | xr.Dataset | dict | tuple[float, ...] | list[float],
-        radius: dict[str, float] | float | None = None,  # radius={"phi": 0.005}
+        points: dict[Hashable, xr.DataArray],
+        radius: dict[Hashable, float] | float | None = None,  # radius={"phi": 0.005}
         *,
         mode: Literal["sum", "mean"] = "sum",
         **kwargs: Incomplete,
@@ -485,6 +518,7 @@ class ARPESAccessorBase:
             points = dict(zip(points, self._obj.dims, strict=True))
         if isinstance(points, xr.Dataset):
             points = {str(k): points[k].item() for k in points.data_vars}
+
         radius = self._radius(points, radius, **kwargs)
         assert isinstance(radius, dict)
 
@@ -536,7 +570,7 @@ class ARPESAccessorBase:
     def select_around(
         self,
         points: dict[Hashable, float] | xr.Dataset,
-        radius: dict[Hashable, float] | float | None = None,
+        radius: dict[Hashable, float] | float,
         *,
         mode: Literal["sum", "mean"] = "sum",
         **kwargs: Incomplete,
@@ -577,6 +611,7 @@ class ARPESAccessorBase:
         if isinstance(points, xr.Dataset):
             points = {k: points[k].item() for k in points.data_vars}
         logger.debug(f"points: {points}")
+        assert isinstance(points, dict)
         radius = self._radius(points, radius, **kwargs)
         logger.debug(f"radius: {radius}")
         nearest_sel_params = {}
@@ -609,7 +644,7 @@ class ARPESAccessorBase:
     def _radius(
         self,
         points: dict[Hashable, float],
-        radius: float | dict[Hashable, float] | None,
+        radius: float | dict[Hashable, float],
         **kwargs: float,
     ) -> dict[Hashable, float]:
         """Helper function. Generate radius dict.
@@ -643,73 +678,15 @@ class ARPESAccessorBase:
         Args:
             key (str): [TODO:description]
         """
-        return [h["record"][key] if isinstance(h, dict) else h for h in self.history]
-
-    def _calculate_symmetry_points(
-        self,
-        symmetry_points: dict[str, list[dict[str, float]]] | dict[str, dict[str, float]],
-        epsilon: float = 0.01,
-    ) -> tuple[defaultdict[str, list[dict[str, float]]], defaultdict[str, list[dict[str, float]]]]:
-        # For each symmetry point, we need to determine if it is projected or not
-        # if it is projected, we need to calculate its projected coordinates
-        """[TODO:summary].
-
-        Args:
-            symmetry_points: [TODO:description]
-            epsilon: [TODO:description]
-        """
-        points = collections.defaultdict(list)
-        projected_points = collections.defaultdict(list)
-
-        fixed_coords = {k: v for k, v in self._obj.coords.items() if k not in self._obj.indexes}
-        index_coords = self._obj.indexes
-
-        for point, locations in symmetry_points.items():
-            location_list = locations if isinstance(locations, list) else [locations]
-            for location in location_list:
-                # determine whether the location needs to be projected
-                projected = False
-                skip = False
-                for axis_name, value in location.items():
-                    if (
-                        axis_name in fixed_coords
-                        and np.abs(value - fixed_coords[axis_name]) > epsilon
-                    ):
-                        projected = True
-                    if axis_name not in fixed_coords and axis_name not in index_coords:
-                        # cannot even hope to do anything here, we don't have enough info
-                        skip = True
-                if skip:
-                    continue
-                location.copy()  # <== CHECK ME! Original: new_location = location.copy()
-                if projected:
-                    # Go and do the projection, for now we will assume we just get it by
-                    # replacing the value of the mismatched coordinates.
-                    # This does not work if the coordinate system is not orthogonal
-                    for axis in location:
-                        if axis in fixed_coords:
-                            fixed_coords[axis]
-                            # <== CHECK ME! Original new_locationn = fixed_coords[axis]
-                    projected_points[point].append(location)
-                else:
-                    points[point].append(location)
-
-        return points, projected_points
+        return [h["record"][key] if isinstance(h, dict) else h for h in self.history]  # type: ignore[literal-required]
 
     def symmetry_points(
         self,
-        *,
-        raw: bool = False,
-        **kwargs: float,
-    ) -> (
-        dict[str, dict[str, float]]
-        | tuple[defaultdict[str, list[dict[str, float]]], defaultdict[str, list[dict[str, float]]]]
-    ):
-        """[TODO:summary].
+    ) -> dict[str, dict[str, float]]:
+        """Return the dict object about symmetry point such as G-point in the ARPES data.
 
-        Args:
-            raw (bool): [TODO:description]
-            kwargs: pass to _calculate_symmetry_points (epsilon)
+        The original version was something complicated, but the coding seemed to be in
+        process and the purpose was unclear, so it was streamlined considerably.
         """
         symmetry_points: dict[str, dict[str, float]] = {}
         # An example of "symmetry_points": symmetry_points = {"G": {"phi": 0.405}}
@@ -717,25 +694,12 @@ class ARPESAccessorBase:
 
         symmetry_points.update(our_symmetry_points)
 
-        if raw:
-            return symmetry_points
-
-        return self._calculate_symmetry_points(symmetry_points, **kwargs)
+        return symmetry_points
 
     @property
     def iter_own_symmetry_points(self) -> Iterator[tuple[str, float]]:
-        sym_points, _ = self.symmetry_points()
+        sym_points = self.symmetry_points()
         return _iter_groups(sym_points)
-
-    @property
-    def iter_projected_symmetry_points(self) -> Iterator[tuple[str, float]]:
-        _, sym_points = self.symmetry_points()
-        return _iter_groups(sym_points)
-
-    @property
-    def iter_symmetry_points(self) -> Iterator[tuple[str, float]]:
-        yield from self.iter_own_symmetry_points
-        yield from self.iter_projected_symmetry_points
 
     @property
     def history(self) -> list[PROVENANCE | None]:
@@ -861,17 +825,18 @@ class ARPESAccessorBase:
         raise ValueError(msg)
 
     def lookup_offset(self, attr_name: str) -> float:
-        symmetry_points = self.symmetry_points(raw=True)
+        symmetry_points = self.symmetry_points()
+        assert isinstance(symmetry_points, dict)
         if "G" in symmetry_points:
-            gamma_point = symmetry_points["G"]
+            gamma_point = symmetry_points["G"]  # {"phi": 0.405}  (cut)
             if attr_name in gamma_point:
-                return unwrap_xarray_item(gamma_point[attr_name])
+                return gamma_point[attr_name]
 
         offset_name = attr_name + "_offset"
         if offset_name in self._obj.attrs:
-            return unwrap_xarray_item(self._obj.attrs[offset_name])
+            return self._obj.attrs[offset_name]
 
-        return unwrap_xarray_item(self._obj.attrs.get("data_preparation", {}).get(offset_name, 0))
+        return self._obj.attrs.get("data_preparation", {}).get(offset_name, 0)
 
     @property
     def beta_offset(self) -> float:
@@ -1307,26 +1272,15 @@ class ARPESAccessorBase:
         return settings
 
     @property
-    def beamline_settings(self) -> dict[str, Any]:
-        find_keys = {
-            "entrance_slit": {
-                "entrance_slit",
-            },
-            "exit_slit": {
-                "exit_slit",
-            },
-            "hv": {
-                "hv",
-                "photon_energy",
-            },
-            "grating": {},
-        }
-        settings = {}
-        for key, options in find_keys.items():
-            for option in options:
-                if option in self._obj.attrs:
-                    settings[key] = self._obj.attrs[option]
-                    break
+    def beamline_settings(self) -> BeamLineSettings:
+        settings: BeamLineSettings = {}
+        settings["entrance_slit"] = self._obj.attrs.get("entrance_slit", np.nan)
+        settings["exit_slit"] = self._obj.attrs.get("exit_slit", np.nan)
+        settings["hv"] = self._obj.attrs.get(
+            "exit_slit",
+            self._obj.attrs.get("photon_energy", np.nan),
+        )
+        settings["grating"] = self._obj.attrs.get("grating", None)
 
         return settings
 
@@ -1456,8 +1410,8 @@ class ARPESAccessorBase:
     @property
     def scan_info(self) -> SCANINFO:
         scan_info: SCANINFO = {
-            "time": self._obj.attrs.get("time"),
-            "date": self._obj.attrs.get("date"),
+            "time": self._obj.attrs.get("time", None),
+            "date": self._obj.attrs.get("date", None),
             "type": self.scan_type,
             "spectrum_type": self.spectrum_type,
             "experimenter": self._obj.attrs.get("experimenter"),
@@ -1537,11 +1491,11 @@ class ARPESAccessorBase:
         analyzer_info: ANALYZERINFO = {
             "lens_mode": self._obj.attrs.get("lens_mode"),
             "lens_mode_name": self._obj.attrs.get("lens_mode_name"),
-            "acquisition_mode": self._obj.attrs.get("acquisition_mode"),
+            "acquisition_mode": self._obj.attrs.get("acquisition_mode", None),
             "pass_energy": self._obj.attrs.get("pass_energy", np.nan),
-            "slit_shape": self._obj.attrs.get("slit_shape"),
+            "slit_shape": self._obj.attrs.get("slit_shape", None),
             "slit_width": self._obj.attrs.get("slit_width", np.nan),
-            "slit_number": self._obj.attrs.get("slit_number"),
+            "slit_number": self._obj.attrs.get("slit_number", np.nan),
             "lens_table": self._obj.attrs.get("lens_table"),
             "analyzer_type": self._obj.attrs.get("analyzer_type"),
             "mcp_voltage": self._obj.attrs.get("mcp_voltage", np.nan),
@@ -1556,7 +1510,7 @@ class ARPESAccessorBase:
             "daq_type": self._obj.attrs.get("daq_type"),
             "region": self._obj.attrs.get("daq_region"),
             "region_name": self._obj.attrs.get("daq_region_name"),
-            "center_energy": self._obj.attrs.get("daq_center_energy"),
+            "center_energy": self._obj.attrs.get("daq_center_energy", np.nan),
             "prebinning": self.prebinning,
             "trapezoidal_correction_strategy": self._obj.attrs.get(
                 "trapezoidal_correction_strategy",
@@ -1578,8 +1532,8 @@ class ARPESAccessorBase:
             "undulator_info": self.undulator_info,
             "repetition_rate": self._obj.attrs.get("repetition_rate", np.nan),
             "beam_current": self._obj.attrs.get("beam_current", np.nan),
-            "entrance_slit": self._obj.attrs.get("entrance_slit"),
-            "exit_slit": self._obj.attrs.get("exit_slit"),
+            "entrance_slit": self._obj.attrs.get("entrance_slit", None),
+            "exit_slit": self._obj.attrs.get("exit_slit", None),
             "monochromator_info": self.monochromator_info,
         }
         return beamline_info
@@ -1780,9 +1734,9 @@ class ARPESAccessorBase:
                     if isinstance(v, xr.DataArray):
                         min_hv = float(v.min())
                         max_hv = float(v.max())
-                        transformed_dict[
-                            k
-                        ] = f"<strong> from </strong> {min_hv} <strong>  to </strong> {max_hv} eV"
+                        transformed_dict[k] = (
+                            f"<strong> from </strong> {min_hv} <strong>  to </strong> {max_hv} eV"
+                        )
                     elif isinstance(v, float) and not np.isnan(v):
                         transformed_dict[k] = f"{v} eV"
             return transformed_dict
@@ -1958,20 +1912,21 @@ class ARPESDataArrayAccessor(ARPESAccessorBase):
     def fs_plot(
         self: Self,
         pattern: str = "{}.png",
-        **kwargs: Incomplete,
-    ) -> Path | None | tuple[Figure, Axes]:
+        **kwargs: Unpack[LabeledFermiSurfaceParam],
+    ) -> Path | tuple[Figure | None, Axes]:
         """Provides a reference plot of the approximate Fermi surface."""
         out = kwargs.get("out")
         if out is not None and isinstance(out, bool):
             out = pattern.format(f"{self.label}_fs")
             kwargs["out"] = out
+        assert isinstance(self._obj, xr.DataArray)
         return labeled_fermi_surface(self._obj, **kwargs)
 
     def fermi_edge_reference_plot(
         self: Self,
         pattern: str = "{}.png",
         **kwargs: str | Normalize | None,
-    ) -> Path | None:
+    ) -> Path | Axes:
         """Provides a reference plot for a Fermi edge reference.
 
         Args:
@@ -1985,7 +1940,7 @@ class ARPESDataArrayAccessor(ARPESAccessorBase):
         if out is not None and isinstance(out, bool):
             out = pattern.format(f"{self.label}_fermi_edge_reference")
             kwargs["out"] = out
-
+        assert isinstance(self._obj, xr.DataArray)
         return fermi_edge_reference(self._obj, **kwargs)
 
     def _referenced_scans_for_spatial_plot(
@@ -1993,7 +1948,7 @@ class ARPESDataArrayAccessor(ARPESAccessorBase):
         *,
         use_id: bool = True,
         pattern: str = "{}.png",
-        out: str | bool = "",
+        out: str | Path = "",
     ) -> Path | tuple[Figure, NDArray[np.object_]]:
         """[TODO:summary].
 
@@ -2037,8 +1992,8 @@ class ARPESDataArrayAccessor(ARPESAccessorBase):
         pattern: str = "{}.png",
         *,
         use_id: bool = True,
-        **kwargs: IncompleteMPL,
-    ) -> Path | None:
+        **kwargs: Unpack[HvRefScanParam],
+    ) -> Path | Axes:
         out = kwargs.get("out")
         label = self._obj.attrs["id"] if use_id else self.label
         if out is not None and isinstance(out, bool):
@@ -2232,6 +2187,7 @@ class ARPESDataArrayAccessor(ARPESAccessorBase):
                 )
             self._obj.attrs[angle_for_correction] = 0
             return
+        #
         if angle_for_correction == "beta" and self._obj.S.is_slit_vertical:
             self._obj.coords["phi"] = (
                 self._obj.coords["phi"] + self._obj.attrs[angle_for_correction]
@@ -2239,22 +2195,14 @@ class ARPESDataArrayAccessor(ARPESAccessorBase):
             self._obj.coords[angle_for_correction] = 0
             self._obj.attrs[angle_for_correction] = 0
             return
-        if (
-            angle_for_correction == "beta"
-            and not self._obj.S.is_slit_vertical
-            and "psi" in self._obj.dims
-        ):
+        if angle_for_correction == "beta" and not self._obj.S.is_slit_vertical:
             self._obj.coords["psi"] = (
                 self._obj.coords["psi"] + self._obj.attrs[angle_for_correction]
             )
             self._obj.coords[angle_for_correction] = 0
             self._obj.attrs[angle_for_correction] = 0
             return
-        if (
-            angle_for_correction == "theta"
-            and self._obj.S.is_slit_vertical
-            and "psi" in self._obj.dims
-        ):
+        if angle_for_correction == "theta" and self._obj.S.is_slit_vertical:
             self._obj.coords["psi"] = (
                 self._obj.coords["psi"] + self._obj.attrs[angle_for_correction]
             )
@@ -2800,7 +2748,7 @@ class GenericAccessorTools:
         self,
         *args: str | list[str] | tuple[str, ...],
         generic_dim_names: bool = True,
-    ) -> dict[str, float] | list[float] | float:
+    ) -> dict[Hashable, float] | list[float] | float:
         """Return the stride in each dimension.
 
         Note that the stride defined in this method is just a difference between first two values.
@@ -2825,15 +2773,13 @@ class GenericAccessorTools:
 
         result: dict[Hashable, float] = dict(zip(dim_names, indexed_strides, strict=True))
         if args:
-            if len(args) == 1:
-                if not isinstance(args[0], str):  # suppose args is list / tuple
-                    result = [result[selected_names] for selected_names in args[0]]
-                else:
-                    result = result[args[0]]
-            else:
-                # if passed several names as arguments
-                result = [result[selected_names] for selected_names in args]
-
+            if isinstance(args[0], str):
+                return (
+                    result[args[0]]
+                    if len(args) == 1
+                    else [result[str(selected_names)] for selected_names in args]
+                )
+            return [result[selected_names] for selected_names in args[0]]
         return result
 
     def shift_by(  # noqa: PLR0913
@@ -3130,7 +3076,15 @@ class ARPESFitToolsAccessor:
         """
         self._obj = xarray_obj
 
-    def plot_param(self, param_name: str, **kwargs: tuple[int, int] | RGBColorType) -> None:
+    class _PlotParamKwargs(MPLPlotKwargs, total=False):
+
+        ax: Axes | None
+        shift: float
+        x_shift: float
+        two_sigma: bool
+        figsize: tuple[float, float]
+
+    def plot_param(self, param_name: str, **kwargs: Unpack[_PlotParamKwargs]) -> None:
         """Creates a scatter plot of a parameter from a multidimensional curve fit.
 
         Args:

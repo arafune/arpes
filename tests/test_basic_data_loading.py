@@ -86,7 +86,7 @@ class TestMetadata:
                         "pass_energy": np.nan,
                         "slit_shape": None,
                         "slit_width": np.nan,
-                        "slit_number": None,
+                        "slit_number": np.nan,
                         "lens_table": None,
                         "analyzer_type": "hemispherical",
                         "mcp_voltage": np.nan,
@@ -107,7 +107,7 @@ class TestMetadata:
                         },
                         "frames_per_slice": 500,
                         "frame_duration": np.nan,
-                        "center_energy": None,
+                        "center_energy": np.nan,
                     },
                     "laser_info": {
                         "pump_wavelength": np.nan,

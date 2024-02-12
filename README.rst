@@ -68,29 +68,25 @@ If you use PyARPES in your work, please support the development of scientific so
 Installation
 ============
 
-PyARPES can be installed from source, or using either ``pip`` or ``conda`` into a Python 3.6 or 3.7 environment.
-``conda`` is preferred as a package manager in order to facilitate installing the libraries for reading HDF and
-NetCDF files.
+PyARPES can be installed from source.   Python version 3.11 or newer is strongly recommmended.
+
+The current version has been largely revised from the original version which are in PyPI and conda site. 
+Unfortunately, I don't have the right the updated version to these site, and I would not like to take over it from the original author.
+
+The main purpose of revision of the package is to make this be reliable. Actually, the original version outputs wrong results in many
+case, especially for angle-momentum conversion.
+
+
+Thus, the current package can be installed only through the github.
+
+
 
 Pip installation
 ----------------
 
 ::
 
-   pip install arpes
-
-
-Conda installation
-------------------
-
-PyARPES is distributed through the ``arpes`` Anaconda channel, but includes dependencies through ``conda-forge``.
-Please make sure not to put conda-forge above the main channel priority, as this can cause issues with installing BLAS.
-A minimal install looks like
-
-::
-
-   conda config --append channels conda-forge
-   conda install -c arpes -c conda-forge arpes
+   pip install git+http://github.com/arafune/arpes
 
 
 Local installation from source

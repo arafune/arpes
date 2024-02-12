@@ -1,6 +1,19 @@
 PyARPES
 =======
-**Non maintainer update**
+**V4 Release: Non maintainer update**
+After V3 release, the origiinal author/maintainer seems to have relinquished maintenance of PyArpes.
+While I have posted several pull-requests and comments, but very unfortunately, he have not responded at all.
+Furthermore, he does not seems to conduct ARPES related scientific work.
+That's would be main reason why he have not maintain it.  There is no motivation to maintain codes those are not used.
+
+And after previous version release, python ecosystem has been improved.  
+Conda is not necessarilly the best system, especially for Mac users.
+Rather, I believe that it has some adverse effects that tend to cause confusion.
+Thus I have decided to drop the conda related.
+I strongly recommend to use "rye", instead.
+
+While I have added many type hints in the codes, I still feel that the current package is not so easy to use for the less experienced Python users.
+I still recommended igor to analyze, especially to the student. 
 
 
 

@@ -262,6 +262,13 @@ class _BEAMLINEINFO(TypedDict, total=False):
     monochrometer_info: dict[str, float]
 
 
+class BeamLineSettings(TypedDict, total=False):
+    exit_slit: float | str
+    entrance_slit: float | str
+    hv: float
+    grating: str | None
+
+
 class LIGHTSOURCEINFO(_PROBEINFO, _PUMPINFO, _BEAMLINEINFO, total=False):
     polarization: float | tuple[float, float] | str
     photon_flux: float

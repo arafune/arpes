@@ -9,6 +9,49 @@ Primary (X.-.-) version numbers are used to denote backwards
 incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
+
+4.0.0 (2024-01-01)
+
+New
+~~~
+
+Non-original author update.
+
+* Provide SPD_main.py and prodigy_itx.py to load the data measured with SPECS prodigy.
+* A new method S.swap_angle_unit() to change the angle unit (deg <-> radian)
+
+Changed
+~~~~~~~
+* Required python version >= 3.11
+* Introduce type hints.  
+    - Type annotation sometimes limits the python's flexibility, but for induces the robustness, which is essentially useful for scientific analyais.
+    - Because of the same reason, drop the "flexibile" (from a certain view points, it may be pythonic) codes.
+* Drop PyQt5, use PySide6 instead.
+* Drop the Bokeh based functionalities because they are not compatible with the current jupyter. 
+    - curvature_tool, comparison_tool
+    - While some of them might be useful, but at least when I started to use this, the compatibility was broken.  I don't know how these were useful.
+* Remove arpes.all
+* And many!
+    * Remove G.extent
+    * Remove overlapped_stack_dispersion_plot
+        - use stack_dispersion_plot_with_appropriate_args
+    * Revise the k-conversion.  The origianl version is correct from the view of the coding, but incorrect from the physics!
+    * introduce new attrs, "energy_notation". if not specified, attrs["energy_notation"] = "Binding" is assumed to keep the consistency from the previous version.
+
+    * see Changes.md for others
+
+In coding style:
+
+* Drop carelessly set default=None
+
+Fixed
+~~~~~
+* broadcast_model concatenation error #18  (https://github.com/chstan/arpes/issues/18)
+* Fix error in BZ plot due to the recent version of ASE #20
+* Fix the import error in BZ plotting example #7
+
+
+
 3.0.1 (2021-07-27)
 
 New
@@ -220,7 +263,7 @@ New
    approximated
 
 Minor
-~~~~~~
+^^^^^
 
 1. Some wrappers around getting Jupyter/IPython state
 2. ``imread`` wrapper that chooses backend between ``imageio`` and

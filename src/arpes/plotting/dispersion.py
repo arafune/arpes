@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from matplotlib.figure import Figure, FigureBase
     from numpy.typing import NDArray
 
-    from arpes._typing import DataType, PColorMeshKwargs
+    from arpes._typing import PColorMeshKwargs, XrTypes
     from arpes.models.band import Band
 
 __all__ = [
@@ -304,8 +304,7 @@ def cut_dispersion_plot(  # noqa: PLR0913
 
 @save_plot_provenance
 def hv_reference_scan(
-    data: DataType,
-    out: str | Path = "",
+    data: XrTypes,
     e_cut: float = -0.05,
     bkg_subtraction: float = 0.8,
     **kwargs: Unpack[LabeledFermiSurfaceParam],
@@ -316,7 +315,11 @@ def hv_reference_scan(
     fs.data -= bkg_subtraction * np.mean(fs.data)
     fs.data[fs.data < 0] = 0
 
-    _, ax = labeled_fermi_surface(fs, **kwargs)
+    out = kwargs.pop("out", None)
+
+    lfs = labeled_fermi_surface(fs, **kwargs)
+    assert isinstance(lfs, tuple)
+    _, ax = lfs
 
     all_scans = data.attrs["df"]
     all_scans = all_scans[all_scans.id != data.attrs["id"]]
@@ -330,7 +333,7 @@ def hv_reference_scan(
 
         scans_by_hv[round(scan.S.hv)].append(scan.S.label.replace("_", " "))
 
-    dim_order = ax.dim_order
+    dim_order = [ax.get_xlabel(), ax.get_ylabel()]
     handles = []
     handle_labels = []
 
@@ -357,19 +360,19 @@ def hv_reference_scan(
         return path_for_plot(out)
 
     plt.show()
-    return None
+    return ax
 
 
 class LabeledFermiSurfaceParam(TypedDict, total=False):
     include_symmetry_points: bool
     include_bz: bool
     fermi_energy: float
+    out: str | Path
 
 
 @save_plot_provenance
 def reference_scan_fermi_surface(
-    data: DataType,
-    out: str | Path = "",
+    data: XrTypes,
     **kwargs: Unpack[LabeledFermiSurfaceParam],
 ) -> Path | Axes:
     """A reference plot for Fermi surfaces. Used internally by other code.
@@ -377,14 +380,19 @@ def reference_scan_fermi_surface(
     Warning: Not work correctly.  (Because S.referenced_scans has been removed.)
     """
     fs = data.S.fermi_surface
-    _, ax = labeled_fermi_surface(fs, **kwargs)
+
+    out = kwargs.pop("out", None)
+    lfs = labeled_fermi_surface(fs, **kwargs)
+    assert isinstance(lfs, tuple)
+    _, ax = lfs
 
     referenced_scans = data.S.referenced_scans
     handles = []
     for index, row in referenced_scans.iterrows():
         scan = load_data(row.id)
         remapped_coords = remap_coords_to(scan, data)
-        dim_order = ax.dim_order
+
+        dim_order = [ax.get_xlabel(), ax.get_ylabel()]
         ls = ax.plot(
             remapped_coords[dim_order[0]],
             remapped_coords[dim_order[1]],
@@ -447,7 +455,7 @@ def labeled_fermi_surface(  # noqa: PLR0913
     if include_symmetry_points:
         for point_name, point_location in data.S.iter_symmetry_points:
             warnings.warn("Symmetry point locations are not k-converted", stacklevel=2)
-            coords = [point_location[d] for d in dim_order]
+            coords = tuple([point_location[d] for d in dim_order])
             ax.plot(*coords, marker=".", color=marker_color)
             ax.annotate(
                 label_for_symmetry_point(point_name),

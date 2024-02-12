@@ -23,8 +23,6 @@ if TYPE_CHECKING:
     from matplotlib.colors import Normalize
     from matplotlib.figure import Figure
 
-    from arpes._typing import DataType
-
 __all__ = (
     "plot_dos",
     "plot_core_levels",
@@ -33,7 +31,7 @@ __all__ = (
 
 @save_plot_provenance
 def plot_core_levels(  # noqa: PLR0913
-    data: DataType,
+    data: xr.DataArray,
     title: str = "",
     out: str | Path = "",
     norm: Normalize | None = None,
@@ -43,7 +41,9 @@ def plot_core_levels(  # noqa: PLR0913
     promenance: int = 5,
 ) -> Path | tuple[Axes, Colorbar]:
     """Plots an XPS curve and approximate core level locations."""
-    _, axes, cbar = plot_dos(data=data, title=title, out="", norm=norm, dos_pow=dos_pow)
+    plotdos = plot_dos(data=data, title=title, out="", norm=norm, dos_pow=dos_pow)
+    assert isinstance(plotdos, tuple)
+    _, axes, cbar = plotdos
 
     if core_levels is None:
         core_levels = approximate_core_levels(data, binning=binning, promenance=promenance)
@@ -64,7 +64,7 @@ def plot_dos(
     out: str | Path = "",
     norm: Normalize | None = None,
     dos_pow: float = 1,
-) -> Path | tuple[Figure, Axes, Colorbar]:
+) -> Path | tuple[Figure, tuple[Axes], Colorbar]:
     """Plots the density of states (momentum integrated) image next to the original spectrum."""
     data_arr = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
 

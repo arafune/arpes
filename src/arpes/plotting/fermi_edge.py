@@ -110,7 +110,7 @@ def fermi_edge_reference(
     data: xr.DataArray,
     title: str = "",
     ax: Axes | None = None,
-    out: str = "",
+    out: str | Path = "",
     **kwargs: Incomplete,
 ) -> Path | Axes:
     """Fits for and plots results for the Fermi edge on a piece of data.

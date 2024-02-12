@@ -31,7 +31,6 @@ from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from typing import TYPE_CHECKING, Literal
 
 import numpy as np
-from numpy.typing import ArrayLike
 import xarray as xr
 from scipy.interpolate import RegularGridInterpolator
 

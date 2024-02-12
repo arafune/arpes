@@ -1,4 +1,5 @@
 """You can customize an equivalent file in order to control PyARPES behavior."""
+
 SETTINGS = {
     "interactive": {
         "main_width": 600,
