@@ -25,6 +25,8 @@ class TestXY:
         assert sample_xy.axis_info["d1"][1] == "eV"
         assert sample_xy.axis_info["d2"][1] == "nonenergy"
         assert sample_xy.axis_info["d3"][1] == "polar"
+        assert isinstance(sample_xy.params["detector_voltage"], float)
+        assert isinstance(sample_xy.params["values_curve"], int)
         np.testing.assert_almost_equal(sample_xy.params["eff_workfunction"], 4.31)
         np.testing.assert_almost_equal(sample_xy.params["excitation_energy"], 21.2182)
         np.testing.assert_almost_equal(sample_xy.axis_info["d1"][0][5], 20.080305)

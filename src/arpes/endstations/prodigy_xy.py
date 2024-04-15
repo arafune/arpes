@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, TypedDict, cast
+from typing import TYPE_CHECKING
 
 import numpy as np
 import xarray as xr
@@ -35,31 +35,8 @@ if TYPE_CHECKING:
 MAP_DIMENSION = 3
 SECOND_DIM_NAME = "nonenergy"
 
-Measure_type = Literal["FAT", "SnapshotFAT", "Magnification"]
 __all__ = ["load_xy"]
 
-
-class ProdigyXYParams(TypedDict, total=False):
-    group: str
-    region: str
-    acquisition_date: str
-    analysis_method: str
-    analyzer: str
-    analyzer_lens: str
-    analyzer_slit: str
-    scan_mode: Measure_type
-    curves_scan: int
-    values_curve: int
-    dwell_time: float
-    excitation_energy: float
-    kinetic_energy: float
-    pass_energy: float
-    bias_voltage: float
-    detector_voltage: float
-    eff_workfunction: float
-    source: str
-    comment: str
-    ordinate_range: str
 
 
 class ProdigyXY:
@@ -79,7 +56,7 @@ class ProdigyXY:
 
     def __init__(self, list_from_xy_file: list[str] | None = None) -> None:
         """Initialize."""
-        self.params: ProdigyXYParams = cast(ProdigyXYParams, {})
+        self.params: dict[str, str | float | int] = {}
         self.axis_info: dict[str, tuple[NDArray[np.float_], str]] = {}
         self.intensity: NDArray[np.float_]
         if list_from_xy_file is not None:
@@ -203,7 +180,7 @@ def load_xy(
         return data_array
 
 
-def _parse_xy_head(xy_data_params: list[str]) -> ProdigyXYParams:
+def _parse_xy_head(xy_data_params: list[str]) -> dict[str, str | int | float]:
     """Parse Common head part.
 
     Parameters
@@ -228,8 +205,12 @@ def _parse_xy_head(xy_data_params: list[str]) -> ProdigyXYParams:
             break
         key, _, value = line[1:].partition(":")
         temp_params[key.strip()] = _formatted_value(value)
-    common_params: ProdigyXYParams = cast(ProdigyXYParams, clean_keys(temp_params))
-    return common_params
+
+    temp_params = clean_keys(temp_params)
+    temp_params["curves_scan"] = int(temp_params["curves_scan"])
+    temp_params["values_curve"] = int(temp_params["values_curve"])
+
+    return temp_params
 
 
 def _parse_xy_dims(xy_data_params: list[str]) -> dict[str, NDArray[np.float_]]:
@@ -282,10 +263,9 @@ def _parse_xy_dims(xy_data_params: list[str]) -> dict[str, NDArray[np.float_]]:
     return clean_keys(xy_dims)
 
 
-def _formatted_value(value: str) -> int | float | str:
+def _formatted_value(value: str) -> float | str:
+    """Convert string value to float if possible."""
     value = value.strip()
-    if value.isnumeric():
-        return int(value)
     try:
         return float(value)
     except ValueError:
