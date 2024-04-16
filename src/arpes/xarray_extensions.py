@@ -1886,8 +1886,8 @@ class ARPESDataArrayAccessor(ARPESAccessorBase):
             args: Pass to xr.DataArray.plot
             kwargs: Pass to xr.DataArray.plot
         """
-        if len(self._obj.dims) == TWO_DIMENSION and "rasterized" not in kwargs:
-            kwargs["rasterized"] = True
+        if len(self._obj.dims) == TWO_DIMENSION:
+            kwargs.setdefault("rasterized", True)
         with plt.rc_context(rc={"text.usetex": False}):
             self._obj.plot(*args, **kwargs)
 
@@ -2377,7 +2377,7 @@ class GenericAccessorTools:
         if as_coordinate_name is None:
             as_coordinate_name = str(dim)
 
-        o = self._obj.rename({dim: as_coordinate_name}).copy(deep=True)
+        o = self._obj.rename({dim: as_coordinate_name})
         o.coords[as_coordinate_name] = o.values
 
         return o

@@ -2,26 +2,33 @@ Major Changes from 3.0.1
 
 - Most important change:
 
-  - Use correct method to convert from the angle to momentum. (The original way was incorrect)
+  - Use correct method to convert from the angle to momentum. (The original way was incorrect. And I find most of all python related libraries in github takes the wrong algorithm for converting. I don't want any more incorrect knowledge to spread, but there's nothing I can do about it. Sigh.)
 
 - New feature
+
   - Provide SPD_main.py & prodigy_itx.py
   - Provide IF\_\_UMCS.py & prodigy_xy.py
   - Introduce Type annotation, which is major trend in the current python coding.
     - Users are requested to know type of the object treated. Especially, the users should know the difference between xr.DataArray & xr.Dataset
   - Introduce a new attrs, "energy_notation", which determines either "Kinetic" energy or "Binding" energy
     - Add new method: S.switch_energy_notation(self, nonlinear_order=1)
+  - More comatible with ASE.
 
-* Dataset.S.spectra returns the list of the xr.DataArrays whose dims contains "eV". (See xarray_extensions.py)
-  Add a new method S.swap_angle_unit() to change the angle unit (deg <-> radian)
+    - After fd3e7cb8 (https://gitlab.com/ase/ase/-/commit/fd3e7cb830b1e0261ff29630b77c5d00868b23d4), plot_bz in ase accepts repeat and rotate.
+
+  - Dataset.S.spectra returns the list of the xr.DataArrays whose dims contains "eV". (See xarray_extensions.py)
+  - Add a new method S.swap_angle_unit() to change the angle unit (deg <-> radian)
+    For presenting the data, degrees unit is more familiar.
+  - Replace algorithms to make them simpler and more efficient
+
+    - stack_plot.py/flat_stack_plot
+    - analysis/general.py/rebin
 
 - Coding guide line
 
-* Do not carelessly set default=None
-* Replace algorithms to make them simpler and more efficient
-
-  - stack_plot.py/flat_stack_plot
-  - analysis/general.py/rebin
+  - Do not carelessly set default=None
+  - Not pursuing the graphinca user interface.
+    - In most case, just want to know the value of the coordinate when GUI is needed, which is enough for using current GUI interface including hvplot. And if GUI is essentially required (for not pythonic user?), using igor would be best. (You don't have to go that far to use Python.)
 
 * Removing
 
@@ -29,7 +36,8 @@ Major Changes from 3.0.1
 
   - Remove arpes.all
 
-    - Certainly, this it is indeed a lazy and carefree approach, but it's too rough method that leads to a bugs and does not mathc the current pythonic style.
+    - Certainly, this it is indeed a lazy and carefree approach, but it's too rough method that leads to
+      a bugs and does not mathc the current pythonic style.
 
   - Remove utilities/attrs.py
 
@@ -37,7 +45,7 @@ Major Changes from 3.0.1
 
   - modules that use the Bokeh.
 
-    There is a dependency problem among bokeh, tornard, and Jupyter, which I cannot fix because I'm haven't use Bokeh.
+    There is a dependency problem among bokeh, tornard, and Jupyter, which I cannot fix because I'm haven't use Bokeh. But note that hvplot can work with the current version.
 
     - arpes/plotting/band_tool.py
     - arpes/plotting/curvature_tool.py

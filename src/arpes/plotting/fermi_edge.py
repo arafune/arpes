@@ -121,8 +121,8 @@ def fermi_edge_reference(
         out:  Where to save the plot
         kwargs: pass to data.plot()
 
-    Returns:
-        [TODO:description]
+    Returns: Path | Axes
+        Plot of the result about the Fermi edge fitting
     """
     warnings.warn(
         "Not automatically correcting for slit shape distortions to the Fermi edge",

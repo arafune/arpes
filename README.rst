@@ -102,9 +102,9 @@ Suggested steps
 ---------------
 
 1. install `rye <https://rye-up.com>`__.
-2. Clone or duplicate the folder structure in this repository.
-3. `rye sync`
-4. Activate `arpes` environment.
+2. Clone or duplicate the folder structure in this repository by `git clone https://github.com/arafune/arpes.git`
+3. `rye sync` in `arpes` directory
+4. Activate `arpes` environment (the way to activate depends on the OS/shell: I have confirmed the arpes-V4 works on Mac/Linux/Windows).
 
 Contact
 =======
