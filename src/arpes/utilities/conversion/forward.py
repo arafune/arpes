@@ -33,6 +33,8 @@ from .bounds_calculations import (
 from .core import convert_to_kspace
 
 if TYPE_CHECKING:
+    from collections.abc import Hashable
+
     from arpes._typing import KspaceCoords, XrTypes
 
 __all__ = (
@@ -61,7 +63,7 @@ A = TypeVar("A", NDArray[np.float_], float)
 
 def convert_coordinate_forward(
     data: xr.DataArray,
-    coords: dict[str, float],
+    coords: dict[Hashable, float],
     **k_coords: Unpack[KspaceCoords],
 ) -> dict[str, float]:
     """Inverse/forward transform for the small angle volumetric k-conversion code.
@@ -129,7 +131,7 @@ def convert_coordinate_forward(
     data.loc[data.G.round_coordinates(coords)] = data.values.max() * 100000
     data = gaussian_filter_arr(data, default_size=3)
     kdata = convert_to_kspace(data, **k_coords)
-    near_target = kdata.G.argmax_coords()
+    near_target: dict[Hashable, float] = kdata.G.argmax_coords()
     if "eV" in near_target and data.spectrum_type == "cut":
         del near_target["eV"]
     kdata_close = convert_to_kspace(
@@ -139,7 +141,7 @@ def convert_coordinate_forward(
 
     # inconsistently, the energy coordinate is sometimes returned here
     # so we remove it just in case
-    coords = kdata_close.G.argmax_coords()
+    coords: dict[Hashable, float] = kdata_close.G.argmax_coords()
     if "eV" in coords:
         del coords["eV"]
     return coords
@@ -402,11 +404,9 @@ def convert_coordinates_to_kspace_forward(arr: XrTypes) -> xr.Dataset:
     arr = arr.copy(deep=True)
 
     skip = {"eV", "cycle", "delay", "T"}
-    keep = {
-        "eV",
-    }
+    keep = {"eV"}
     all_indexes = {k: v for k, v in arr.indexes.items() if k not in skip}
-    kept = {k: v for k, v in arr.indexes.items() if k in keep}
+    kept = {k: v for k, v in arr.indexes.items() if k in keep}  # TODO (RA): v has not been used.
     momentum_compatibles: list[str] = list(all_indexes.keys())
     momentum_compatibles.sort()
     if not momentum_compatibles:
@@ -425,7 +425,9 @@ def convert_coordinates_to_kspace_forward(arr: XrTypes) -> xr.Dataset:
         ("hv", "phi", "psi"): ["kx", "ky", "kz"],
         ("chi", "hv", "phi"): ["kx", "ky", "kz"],
     }.get(tuple(momentum_compatibles), [])
-    full_old_dims: list[str] = momentum_compatibles + list(kept.keys())
+    full_old_dims: list[str] = momentum_compatibles + list(
+        kept.keys(),
+    )  # TODO (RA): list(kept.keys()) can (should) be replaced with ["eV"]
     projection_vectors: NDArray[np.float_] = np.ndarray(
         shape=tuple(len(arr.coords[d]) for d in full_old_dims),
         dtype=object,

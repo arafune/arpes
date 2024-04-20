@@ -13,6 +13,8 @@ import itertools
 from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
+    from collections.abc import Hashable
+
     from _collections_abc import dict_keys
 
 __all__ = [
@@ -42,7 +44,7 @@ AxisType = Literal["angle", "k"]
 
 
 def determine_axis_type(
-    coordinate_names: dict_keys | list[str],
+    coordinate_names: dict_keys[Hashable, set[float]] | list[str],
     *,
     permissive: bool = True,
 ) -> AxisType:

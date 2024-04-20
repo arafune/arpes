@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import MOMENTUM
+    from arpes._typing import MOMENTUM, KspaceCoords
 
 __all__ = ["ConvertKpKzV0", "ConvertKxKyKz", "ConvertKpKz"]
 
@@ -90,10 +90,8 @@ class ConvertKpKz(CoordinateConverter):
         bounds: dict[MOMENTUM, tuple[float, float]] | None = None,
     ) -> dict[str, NDArray[np.float_]]:
         """Calculates appropriate coordinate bounds."""
-        if resolution is None:
-            resolution = {}
-        if bounds is None:
-            bounds = {}
+        resolution = resolution if resolution is not None else {}
+        bounds = bounds if bounds is not None else {}
         coordinates = super().get_coordinates(resolution=resolution, bounds=bounds)
         ((kp_low, kp_high), (kz_low, kz_high)) = calculate_kp_kz_bounds(self.arr)
         if "kp" in bounds:

@@ -65,15 +65,14 @@ def fit_for_effective_mass(
     We should probably include uncertainties here.
 
     Args:
-        data (DataType): ARPES data
+        data (xr.DataArray): ARPES data
         fit_kwargs: Passthrough for arguments to `broadcast_model`, used internally to
           obtain the Lorentzian peak locations
 
     Returns:
         The effective mass in units of the bare mass.
     """
-    if fit_kwargs is None:
-        fit_kwargs = {}
+    fit_kwargs = fit_kwargs if fit_kwargs is not None else {}
 
     mom_dim = next(
         dim for dim in ["kp", "kx", "ky", "kz", "phi", "beta", "theta"] if dim in data.dims

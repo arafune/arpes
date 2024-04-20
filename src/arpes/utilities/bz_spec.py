@@ -28,6 +28,7 @@ from ase.lattice import HEX2D
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from ase.cell import Cell
     from numpy.typing import NDArray
 
 A_GRAPHENE = 2.46 / (2 * np.pi)
@@ -69,6 +70,7 @@ class MaterialParams2D(TypedDict, total=False):
     image: str
     image_waypoints: list[list[float]]
     image_src: str
+    cell: Cell
 
 
 SURFACE_ZONE_DEFINITIONS: dict[str, MaterialParams2D] = {
@@ -76,19 +78,31 @@ SURFACE_ZONE_DEFINITIONS: dict[str, MaterialParams2D] = {
         "name": "2H-Tungsten Disulfide",
         "work_function": np.nan,
         "inner_potential": np.nan,
-        "bz_points": functools.partial(bz_points_for_hexagonal_lattice, a=A_WS2),
+        "cell": HEX2D(a=3.15),
+        "bz_points": functools.partial(
+            bz_points_for_hexagonal_lattice,
+            a=A_WS2,
+        ),  # TODO: Revise
     },
     "Graphene": {
         "name": "Graphene",
         "work_function": np.nan,
         "inner_potential": np.nan,
-        "bz_points": functools.partial(bz_points_for_hexagonal_lattice, a=A_GRAPHENE),
+        "cell": HEX2D(a=2.46),
+        "bz_points": functools.partial(
+            bz_points_for_hexagonal_lattice,
+            a=A_GRAPHENE,
+        ),  # TODO: Revise
     },
     "2H-WSe2": {
         "name": "Tungsten Diselenide",
         "work_function": np.nan,
         "inner_potential": np.nan,
-        "bz_points": functools.partial(bz_points_for_hexagonal_lattice, a=A_WS2),
+        "cell": HEX2D(a=3.297),
+        "bz_points": functools.partial(
+            bz_points_for_hexagonal_lattice,
+            a=A_WSe2,
+        ),  # TODO: Revise
     },
     "1T-TiSe2": {
         "name": "1T-Titanium Diselenide",

@@ -12,7 +12,7 @@ literally already data.
 from __future__ import annotations
 
 import uuid
-from typing import TYPE_CHECKING, Any, Literal, Required, TypeAlias, TypedDict, TypeVar
+from typing import TYPE_CHECKING, Any, Final, Literal, Required, TypeAlias, TypedDict, TypeVar
 
 import xarray as xr
 
@@ -72,6 +72,9 @@ __all__ = [
 MOMENTUM = Literal["kp", "kx", "ky", "kz"]
 EMISSION_ANGLE = Literal["phi", "psi"]
 ANGLE = Literal["alpha", "beta", "chi", "theta"] | EMISSION_ANGLE
+
+HIGH_SYMMETRY_POINTS = Literal["G", "X", "Y", "M", "K", "S", "A1", "H", "C", "H1"]
+HighSymmetryPoints: Final = ("G", "X", "Y", "M", "K", "S", "A1", "H", "C", "H1")
 
 LEGENDLOCATION = (
     Literal[

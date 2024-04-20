@@ -40,17 +40,21 @@ __all__ = (
     "process_kpath",
 )
 
+BRAVAISLATTICE = Literal["RECT", "SQR", "HEX2D"]
 
 _SYMMETRY_TYPES: dict[tuple[str, ...], str] = {
-    ("G", "X", "Y"): "rect",
-    ("G", "X"): "square",
-    ("G", "X", "BX"): "hex",
+    ("G", "X", "Y", "S"): "RECT",
+    ("G", "X", "M"): "SQR",
+    ("G", "X", "K"): "HEX2D",
 }
 
-_POINT_NAMES_FOR_SYMMETRY: dict[Literal["rect", "square", "hex"] | None, set[str]] = {
-    "rect": {"G", "X", "Y"},
-    "square": {"G", "X"},
-    "hex": {"G", "X", "BX"},
+_POINT_NAMES_FOR_SYMMETRY: dict[
+    BRAVAISLATTICE | None,
+    set[str],
+] = {  #  see ase.lattice.BravaisLattice
+    "RECT": {"G", "X", "Y", "S"},
+    "SQR": {"G", "X", "M"},
+    "HEX2D": {"G", "X", "K"},
 }
 
 T = TypeVar("T")
@@ -67,9 +71,7 @@ def process_kpath(
         cell (Cell): ASE Cell object
 
     Returns:
-        [TODO:description]
-
-    ToDo: Test
+        Get Cartesian kpoints of the bandpath.
     """
     bp = bandpath(path=path, cell=cell, npoints=len(path))
     return bp.cartesian_kpts()
@@ -159,7 +161,7 @@ def build_2dbz_poly(
     return raw_poly_to_mask(points_2d)
 
 
-def bz_symmetry(flat_symmetry_points: dict | None) -> Literal["rect", "square", "hex"] | None:
+def bz_symmetry(flat_symmetry_points: dict | None) -> BRAVAISLATTICE | None:
     """Determines symmetry from a list of the symmetry points.
 
     Args:
@@ -167,14 +169,12 @@ def bz_symmetry(flat_symmetry_points: dict | None) -> Literal["rect", "square", 
 
     Returns:
         [TODO:description]
-
-    ToDo: Test
     """
     if isinstance(flat_symmetry_points, dict):
         flat_symmetry_points = flat_symmetry_points.items()
 
     largest_identified = 0
-    symmetry: Literal["rect", "square", "hex"] | None = None
+    symmetry: BRAVAISLATTICE | None = None
 
     point_names = {k for k, _ in flat_symmetry_points}
 
@@ -208,8 +208,10 @@ def reduced_bz_axis_to(
 
     ToDo: Test
     """
-    symmetry: Literal["rect", "square", "hex"] | None = bz_symmetry(data.S.iter_own_symmetry_points)
-    point_names = _POINT_NAMES_FOR_SYMMETRY[symmetry]
+    bravais_lattice: BRAVAISLATTICE | None = bz_symmetry(
+        data.S.iter_own_symmetry_points,
+    )
+    point_names = _POINT_NAMES_FOR_SYMMETRY[bravais_lattice]
 
     symmetry_points, _ = data.S.symmetry_points()
     points = {k: v for k, v in symmetry_points.items() if k in point_names}
@@ -218,14 +220,14 @@ def reduced_bz_axis_to(
         k: np.array([v.get(d, 0) for d in data.dims if d in v or include_E and d == "eV"])
         for k, v in points.items()
     }
-    if symmetry == "rect":
+    if bravais_lattice == "RECT":
         if symbol == "X":
             return coords_by_point["X"] - coords_by_point["G"]
         return coords_by_point["Y"] - coords_by_point["G"]
-    if symmetry == "square":
+    if bravais_lattice == "SQR":
         raise NotImplementedError
         return coords_by_point["X"] - coords_by_point["G"]
-    if symmetry == "hex":
+    if bravais_lattice == "HEX2D":
         if symbol == "X":
             return coords_by_point["X"] - coords_by_point["G"]
         return coords_by_point["BX"] - coords_by_point["G"]
@@ -247,23 +249,23 @@ def reduced_bz_axes(data: XrTypes) -> tuple[NDArray[np.float_], NDArray[np.float
 
     ToDo: Test
     """
-    symmetry: Literal["rect", "square", "hex"] | None = bz_symmetry(data.S.iter_own_symmetry_points)
-    point_names = _POINT_NAMES_FOR_SYMMETRY[symmetry]
+    bravais_lattice: BRAVAISLATTICE | None = bz_symmetry(data.S.iter_own_symmetry_points)
+    point_names = _POINT_NAMES_FOR_SYMMETRY[bravais_lattice]
 
     symmetry_points, _ = data.S.symmetry_points()
     points = {k: v for k, v in symmetry_points.items() if k in point_names}
 
     coords_by_point = {k: np.array([v[d] for d in data.dims if d in v]) for k, v in points.items()}
-    if symmetry == "rect":
+    if bravais_lattice == "RECT":
         dx = coords_by_point["X"] - coords_by_point["G"]
         dy = coords_by_point["Y"] - coords_by_point["G"]
-    elif symmetry == "square":
+    elif bravais_lattice == "SQR":
         raise NotImplementedError
         dx = coords_by_point["X"] - coords_by_point["G"]
         dy = coords_by_point["X"] - coords_by_point["G"]
-    elif symmetry == "hex":
+    elif bravais_lattice == "HEX2D":
         dx = coords_by_point["X"] - coords_by_point["G"]
-        dy = coords_by_point["BX"] - coords_by_point["G"]
+        dy = coords_by_point["BX"] - coords_by_point["G"]  # TODO: Revise it (What is BX?)
     else:
         raise NotImplementedError
 
@@ -274,7 +276,7 @@ def axis_along(data: XrTypes, symbol: str) -> float:
     """Determines which axis lies principally along the direction G->S.
 
     Args:
-        data: [TODO:description]
+        data (xr.DataArray | xr.Dataset): ARPES data
         symbol: [TODO:description]
 
     Returns:
@@ -314,8 +316,8 @@ def reduced_bz_poly(data: XrTypes, *, scale_zone: bool = False) -> NDArray[np.fl
 
     ToDo: Test
     """
-    symmetry = bz_symmetry(data.S.iter_own_symmetry_points)
-    point_names = _POINT_NAMES_FOR_SYMMETRY[symmetry]
+    bravais_latticey = bz_symmetry(data.S.iter_own_symmetry_points)
+    point_names = _POINT_NAMES_FOR_SYMMETRY[bravais_latticey]
     dx, dy = reduced_bz_axes(data)
     if scale_zone:
         # should be good enough, reevaluate later
@@ -328,7 +330,7 @@ def reduced_bz_poly(data: XrTypes, *, scale_zone: bool = False) -> NDArray[np.fl
         k: np.array([v.get(d, 0) for d in data.dims if d in v]) for k, v in points.items()
     }
 
-    if symmetry == "hex":
+    if bravais_latticey == "HEX2D":
         return np.array(
             [
                 coords_by_point["G"],

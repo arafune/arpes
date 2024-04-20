@@ -1,6 +1,7 @@
 # TODO (2023/06/27)
 
-As the original author does not seem to maintain this package, every bug must be fixed by myself. Here is the guideline to maintain the code.
+As the original author does not seem to maintain this package, every bug must be fixed by myself.
+Here is the guideline to maintain the code.
 
 - More typing annotation
 - Use ruff for linting and follow the message as possible

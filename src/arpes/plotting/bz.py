@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
 from ase.dft.bz import bz_plot
-from ase.lattice import HEX2D
 from matplotlib.axes import Axes
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from scipy.spatial.transform import Rotation
@@ -18,7 +17,6 @@ from scipy.spatial.transform import Rotation
 from arpes.analysis.mask import apply_mask_to_coords
 from arpes.constants import TWO_DIMENSION
 from arpes.utilities.bz import build_2dbz_poly, process_kpath
-from arpes.utilities.bz_spec import A_GRAPHENE, A_WS2, A_WSe2
 from arpes.utilities.geometry import polyhedron_intersect_plane
 
 from .utils import path_for_plot
@@ -32,7 +30,7 @@ if TYPE_CHECKING:
     from matplotlib.figure import Figure
     from matplotlib.typing import ColorType
     from mpl_toolkits.mplot3d import Axes3D
-    from numpy.typing import ArrayLike, NDArray
+    from numpy.typing import NDArray
 
 
 __all__ = (
@@ -42,12 +40,6 @@ __all__ = (
     "bz2d_segments",
     "overplot_standard",
 )
-
-overplot_library: dict[str, Cell] = {
-    "graphene": HEX2D(a=A_GRAPHENE).tocell(),
-    "ws2": HEX2D(a=A_WS2).tocell(),
-    "wse2": HEX2D(a=A_WSe2).tocell(),
-}
 
 LOGLEVEL = (DEBUG, INFO)[1]
 logger = getLogger(__name__)
@@ -62,40 +54,31 @@ logger.propagate = False
 
 
 def segments_standard(
-    name: str = "graphene",
-    rotate_rad: float = 0.0,
+    cell: Cell,
+    transformations: list | None = None,
 ) -> tuple[list[NDArray[np.float_]], list[NDArray[np.float_]]]:
-    name = name.lower()
-    specification: Cell = overplot_library[name]
-    transformations = []
-    if rotate_rad:
-        transformations = [Rotation.from_rotvec([0, 0, rotate_rad])]
-
-    return bz2d_segments(specification, transformations)
+    return bz2d_segments(cell, transformations)
 
 
 def overplot_standard(
-    name: str = "graphene",
+    cell: Cell,
     repeat: tuple[int, int, int] | tuple[int, int] = (1, 1, 1),
-    rotate: float = 0,
+    transformations: list | None = None,
 ) -> Callable[[Axes], Axes]:
     """A higher order function to plot a Brillouin zone over a plot."""
-    specification = overplot_library[name]
     transformations = []
 
-    if rotate:
-        transformations = [Rotation.from_rotvec([0, 0, rotate])]
+    if transformations is None:
+        transformations = [Rotation.from_rotvec([0, 0, 0])]
 
     def overplot_the_bz(ax: Axes) -> Axes:
         return bz_plot(
-            cell=specification,
-            linewidth=2,
+            cell=cell,
             ax=ax,
             paths=[],
             repeat=repeat,
             transformations=transformations,
             zorder=5,
-            linestyle="-",
         )
 
     return overplot_the_bz
@@ -107,28 +90,25 @@ class Translation:
     Rotations are available from `scipy.spatial.transform.Rotation`.
     """
 
-    translation_vector = None
+    translation_vector: NDArray[np.float_]
 
-    def __init__(self, translation_vector: ArrayLike) -> None:
-        self.translation_vector = np.asarray(translation_vector)
+    def __init__(self, translation_vector: Sequence[float]) -> None:
+        self.dim = len(translation_vector)
+        self.translation_vector: NDArray[np.float_] = np.asarray(translation_vector)
 
-    def apply(self, vectors: ArrayLike, *, inverse: bool = False) -> NDArray[np.float_]:
+    def apply(self, vectors: NDArray[np.float_]) -> NDArray[np.float_]:
         """Applies the translation to a set of vectors.
 
         If this transform is D-dimensional (for D=2,3) and is applied to a different
         dimensional set of vectors, a ValueError will be thrown due to the dimension
         mismatch.
 
-        An inverse flag is available in order to apply the inverse coordinate transform.
-        Up to numerical accuracy,
-
         ```
-        self.apply(self.apply(vectors), inverse=True) == vectors
+        self.apply(self.apply(vectors)) == vectors
         ```
 
         Args:
             vectors: array_like with shape (2 or 3,) or (N, 2 or 3)
-            inverse: Applies the inverse coordinate transform instead
         """
         vectors = np.asarray(vectors)
 
@@ -139,14 +119,7 @@ class Translation:
                 msg,
             )
 
-        single_vector = False
-        if vectors.ndim == 1:
-            single_vector = True
-            vectors = vectors[None, :]  # expand dims
-
-        result = vectors - self.translation_vector if inverse else vectors + self.translation_vector
-
-        return result if not single_vector else result[0]
+        return vectors + self.translation_vector
 
 
 Transformation: TypeAlias = Rotation | Translation
@@ -155,24 +128,20 @@ Transformation: TypeAlias = Rotation | Translation
 def apply_transformations(
     points: NDArray[np.float_],
     transformations: list[Transformation] | None = None,
-    *,
-    inverse: bool = False,
 ) -> NDArray[np.float_]:
     """Applies a series of transformations to a sequence of vectors or a single vector.
 
     Args:
         points: point coordinate
         transformations: list of Transformation (Translation / Rotation)
-        inverse (bool): Applies the inverse coordinate transform instead
 
     Returns:
         The collection of transformed points.
     """
-    if transformations is None:
-        transformations = []
+    transformations = transformations if transformations is not None else []
 
     for transformation in transformations:
-        points = transformation.apply(points, inverse=inverse)
+        points = transformation.apply(points)
 
     return points
 

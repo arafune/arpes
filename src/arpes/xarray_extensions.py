@@ -55,6 +55,7 @@ from typing import (
     TypeAlias,
     TypedDict,
     TypeGuard,
+    TypeVar,
     Unpack,
 )
 
@@ -104,6 +105,7 @@ if TYPE_CHECKING:
 
     from ._typing import (
         ANGLE,
+        HIGH_SYMMETRY_POINTS,
         AnalyzerDetail,
         AnalyzerInfo,
         BeamLineSettings,
@@ -153,10 +155,12 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.propagate = False
 
+T = TypeVar("T")
+
 
 def _iter_groups(
-    grouped: dict[str, NDArray[np.float_] | Sequence[float] | float],
-) -> Iterator[tuple[str, float]]:
+    grouped: dict[T, NDArray[np.float_] | Sequence[float] | float],
+) -> Iterator[tuple[T, float]]:
     """Iterates through a flattened sequence.
 
     Sequentially yields keys and values from each sequence associated with a key.
@@ -680,14 +684,14 @@ class ARPESAccessorBase:
 
     def symmetry_points(
         self,
-    ) -> dict[str, dict[str, float]]:
+    ) -> dict[HIGH_SYMMETRY_POINTS, dict[str, float]]:
         """Return the dict object about symmetry point such as G-point in the ARPES data.
 
         The original version was something complicated, but the coding seemed to be in
         process and the purpose was unclear, so it was streamlined considerably.
 
 
-        Returns (dict[str, dict[str, float]]):
+        Returns (dict[HIGH_SYMMETRY_POINTS, dict[str, float]]):
             Dict object representing the symmpetry points in the ARPES data.
 
         Examples:
@@ -701,7 +705,7 @@ class ARPESAccessorBase:
         return symmetry_points
 
     @property
-    def iter_own_symmetry_points(self) -> Iterator[tuple[str, float]]:
+    def iter_own_symmetry_points(self) -> Iterator[tuple[HIGH_SYMMETRY_POINTS, float]]:
         sym_points = self.symmetry_points()
         return _iter_groups(sym_points)
 
@@ -2725,7 +2729,7 @@ class GenericAccessorTools:
             The range of each dimension.
         """
         indexed_coords = [self._obj.coords[d] for d in self._obj.dims]
-        indexed_ranges = [(np.min(coord.values), np.max(coord.values)) for coord in indexed_coords]
+        indexed_ranges = [(coord.min().item(), coord.max().item()) for coord in indexed_coords]
 
         dim_names: list[str] | tuple[Hashable, ...] = tuple(self._obj.dims)
         if generic_dim_names:

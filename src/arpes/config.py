@@ -369,7 +369,7 @@ def setup_logging() -> None:
             log_path = generate_logfile_path()
             log_path.parent.mkdir(exist_ok=True)
             if isinstance(ipython, InteractiveShell):
-                ipython.run_line_magic("logstart", log_path)
+                ipython.run_line_magic("logstart", str(log_path))
             CONFIG["LOGGING_FILE"] = log_path
     except AttributeError:
         logging.exception("Attribute Error occurs.  Check module loading for IPypthon")

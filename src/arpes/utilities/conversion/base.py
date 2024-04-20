@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import MOMENTUM
+    from arpes._typing import MOMENTUM, KspaceCoords
 
     from .calibration import DetectorCalibration
 
@@ -150,7 +150,7 @@ class CoordinateConverter:
         self,
         resolution: dict[MOMENTUM, float] | None = None,
         bounds: dict[MOMENTUM, tuple[float, float]] | None = None,
-    ) -> dict[str, NDArray[np.float_]]:
+    ) -> KspaceCoords:
         """Calculates the coordinates which should be used in momentum space.
 
         Args:
@@ -159,12 +159,10 @@ class CoordinateConverter:
             bounds(dict, optional): bounds of the momentum coordinates
 
         Returns:
-            dict[str, NDArray]: the key represents the axis name suchas "kp", "kx", and "eV".
+            KspaceCoords: the key represents the axis name suchas "kp", "kx", and "eV".
         """
-        if resolution is None:
-            resolution = {}
-        if bounds is None:
-            bounds = {}
-        coordinates: dict[str, NDArray[np.float_]] = {}
+        resolution = resolution if resolution is not None else {}
+        bounds = bounds if bounds is not None else {}
+        coordinates: KspaceCoords = {}
         coordinates["eV"] = self.arr.coords["eV"].values
         return coordinates
