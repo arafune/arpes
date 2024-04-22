@@ -57,7 +57,7 @@ class QuadraticModel(XModelMixin):
 
         return update_param_vals(pars, self.prefix, **kwargs)
 
-    __init__.doc = lf.models.COMMON_INIT_DOC
+    __init__.__doc__ = "Quadratic model" + lf.models.COMMON_INIT_DOC
     guess.__doc__ = lf.models.COMMON_GUESS_DOC
 
 
@@ -100,7 +100,7 @@ class FermiVelocityRenormalizationModel(XModelMixin):
 
         return update_param_vals(pars, self.prefix, **kwargs)
 
-    __init__.doc = lf.models.COMMON_INIT_DOC
+    __init__.__doc__ = "Fermi velocity renormalization model" + lf.models.COMMON_INIT_DOC
     guess.__doc__ = lf.models.COMMON_GUESS_DOC
 
 
@@ -155,5 +155,5 @@ class LogRenormalizationModel(XModelMixin):
 
         return update_param_vals(pars, self.prefix, **kwargs)
 
-    __init__.doc = lf.models.COMMON_INIT_DOC
+    __init__.__doc__ = "Log renormalization model" + lf.models.COMMON_INIT_DOC
     guess.__doc__ = lf.models.COMMON_GUESS_DOC

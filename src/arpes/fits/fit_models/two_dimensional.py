@@ -28,7 +28,7 @@ class Gaussian2DModel(XModelMixin):
     """2D Gaussian fitting."""
 
     n_dims = 2
-    dimension_order: ClassVar = [any_dim_sentinel, any_dim_sentinel]
+    dimension_order: ClassVar[list[str | None]] = [any_dim_sentinel, any_dim_sentinel]
 
     @staticmethod
     def gaussian_2d_bkg(  # noqa: PLR0913
@@ -169,5 +169,5 @@ class EffectiveMassModel(XModelMixin):
 
         return update_param_vals(pars, self.prefix, **kwargs)
 
-    __init__.doc = lf.models.COMMON_INIT_DOC
+    __init__.__doc__ = lf.models.COMMON_INIT_DOC
     guess.__doc__ = lf.models.COMMON_GUESS_DOC

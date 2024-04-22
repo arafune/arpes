@@ -150,7 +150,6 @@ def plot_plane_to_bz(
     cell: Cell,
     plane: str | list[NDArray[np.float_]],
     ax: Axes3D,
-    special_points: dict[str, NDArray[np.float_]] | None = None,
     facecolor: ColorType = "red",
 ) -> None:
     """Plots a 2D cut plane onto a Brillouin zone.
@@ -171,7 +170,6 @@ def plot_plane_to_bz(
         plane_points: list[NDArray[np.float_]] = process_kpath(
             plane,
             cell,
-            special_points=special_points,
         )[0]
     else:
         plane_points = plane
@@ -190,7 +188,7 @@ def plot_data_to_bz(
     data: xr.DataArray,
     cell: Cell,
     **kwargs: Incomplete,
-) -> Path | tuple[Figure, Axes]:
+) -> Path | tuple[Figure | None, Axes]:
     """A dimension agnostic tool used to plot ARPES data onto a Brillouin zone."""
     if len(data) == TWO_DIMENSION + 1:
         raise NotImplementedError
@@ -210,7 +208,7 @@ def plot_data_to_bz2d(  # noqa: PLR0913
     *,
     mask: bool = True,
     **kwargs: Incomplete,
-) -> Path | tuple[Figure, Axes]:
+) -> Path | tuple[Figure | None, Axes]:
     """Plots data onto the 2D Brillouin zone.
 
     Args:
@@ -269,8 +267,8 @@ def plot_data_to_bz2d(  # noqa: PLR0913
 
     cmap.set_bad((1, 1, 1, 0))
 
-    delta_x = np.dot(np.array(bz_number), icell[:2, 0])
-    delta_y = np.dot(np.array(bz_number), icell[:2, 1])
+    delta_x = np.dot(np.array(bz_number), np.array(icell)[:2, 0])
+    delta_y = np.dot(np.array(bz_number), np.array(icell)[:2, 1])
 
     ax.pcolormesh(
         raveled.data_vars[dims[0]].values + delta_x,

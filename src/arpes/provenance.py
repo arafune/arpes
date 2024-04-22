@@ -52,6 +52,7 @@ class Provenance(TypedDict, total=False):
 
     VERSION: str
     jupyter_notebook_name: str
+    name: str
 
     record: Provenance
     jupyter_context: list[str]

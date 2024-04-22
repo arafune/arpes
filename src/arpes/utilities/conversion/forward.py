@@ -141,7 +141,7 @@ def convert_coordinate_forward(
 
     # inconsistently, the energy coordinate is sometimes returned here
     # so we remove it just in case
-    coords: dict[Hashable, float] = kdata_close.G.argmax_coords()
+    coords = kdata_close.G.argmax_coords()
     if "eV" in coords:
         del coords["eV"]
     return coords

@@ -94,13 +94,20 @@ def find_e_fermi_linear_dos(
 
 def apply_direct_fermi_edge_correction(
     arr: xr.DataArray,
-    correction: xr.Dataset | None = None,
+    correction: xr.DataArray | None = None,
     *args: Incomplete,
     **kwargs: Incomplete,
 ) -> xr.DataArray:
     """Applies a direct fermi edge correction stencil."""
-    if correction is None:
-        correction = build_direct_fermi_edge_correction(arr, *args, **kwargs)
+    correction = (
+        correction
+        if correction
+        else build_direct_fermi_edge_correction(
+            arr,
+            *args,
+            **kwargs,
+        )
+    )
 
     assert isinstance(correction, xr.Dataset)
     shift_amount = -correction / arr.G.stride(generic_dim_names=False)["eV"]  # pylint: disable=invalid-unary-operand-type
@@ -141,7 +148,7 @@ def build_direct_fermi_edge_correction(
     along: str = "phi",
     *,
     plot: bool = False,
-) -> xr.Dataset:
+) -> xr.DataArray:
     """Builds a direct fermi edge correction stencil.
 
     This means that fits are performed at each value of the 'phi' coordinate
@@ -158,8 +165,7 @@ def build_direct_fermi_edge_correction(
     Returns:
         The array of fitted edge coordinates.
     """
-    if energy_range is None:
-        energy_range = slice(-0.1, 0.1)
+    energy_range = energy_range if energy_range else slice(-0.1, 0.1)
 
     exclude_axes = ["eV", along]
     others = [d for d in arr.dims if d not in exclude_axes]
@@ -168,7 +174,7 @@ def build_direct_fermi_edge_correction(
     def sieve(_: Incomplete, v: Incomplete) -> bool:
         return v.item().params["center"].stderr < 0.001  # noqa: PLR2004
 
-    corrections = edge_fit.G.filter_coord(along, sieve).G.map(
+    corrections: xr.DataArray = edge_fit.G.filter_coord(along, sieve).G.map(
         lambda x: x.params["center"].value,
     )
 

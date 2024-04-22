@@ -47,13 +47,7 @@ def convert_to_kinetic_energy(
     """
     # This should be simplified
     # Removed factors of ten and substituted mstar = 0.5
-    c = (
-        (0.5)
-        * (9.11e6)
-        * dataarray.S.spectrometer["mstar"]
-        * (dataarray.S.spectrometer["length"] ** 2)
-        / 1.6
-    )
+    c = (0.5) * (9.11e6) * dataarray.attrs["mstar"] * (dataarray.attrs["length"] ** 2) / 1.6
 
     new_dim_order = list(dataarray.dims)
     new_dim_order.remove("time")
@@ -117,10 +111,10 @@ def build_KE_coords_to_time_pixel_coords(
 ) -> Callable[..., tuple[xr.DataArray]]:
     """Constructs a coordinate conversion function from kinetic energy to time pixels."""
     conv = (
-        dataset.S.spectrometer["mstar"]
+        dataset.attrs["mstar"]
         * (BARE_ELECTRON_MASS * 1e37)
         * 0.5
-        * (dataset.S.spectrometer["length"] ** 2)
+        * (dataset.attrs["length"] ** 2)
         / 1.6
     )
     time_res = 0.17  # this is only approximate
@@ -162,15 +156,9 @@ def build_KE_coords_to_time_coords(
     Geometric transform assumes pixel -> pixel transformations so we need to get
     the index associated to the appropriate timing value
     """
-    conv = (
-        dataset.S.spectrometer["mstar"]
-        * (9.11e6)
-        * 0.5
-        * (dataset.S.spectrometer["length"] ** 2)
-        / 1.6
-    )
+    conv = dataset.attrs["mstar"] * (9.11e6) * 0.5 * (dataset.attrs["length"] ** 2) / 1.6
     timing = dataset.coords["time"]
-    photon_offset = dataset.attrs["laser_t0"] + dataset.S.spectrometer["length"] * (10 / 3)
+    photon_offset = dataset.attrs["laser_t0"] + dataset.attrs["length"] * (10 / 3)
     low_offset = np.min(timing)
     d_timing = timing[1] - timing[0]
 

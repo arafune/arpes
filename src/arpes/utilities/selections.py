@@ -40,7 +40,7 @@ def ravel_from_mask(data: DataType, mask: XrTypes) -> DataType:
     Returns:
         Raveled data with masked points removed.
     """
-    return data.stack(stacked=mask.dims).where(mask.stack(stacked=mask.dims), drop=True)
+    return data.stack(stacked=list(mask.dims)).where(mask.stack(stacked=list(mask.dims)), drop=True)
 
 
 def unravel_from_mask(
@@ -65,27 +65,30 @@ def unravel_from_mask(
     dest = template * 0 + 1
     dest_mask = np.logical_not(
         np.isnan(
-            template.stack(stacked=template.dims).where(mask.stack(stacked=template.dims)).values,
+            template.stack(stacked=list(template.dims))
+            .where(mask.stack(stacked=list(template.dims)))
+            .values,
         ),
     )
-    dest = (dest * default).stack(stacked=template.dims)
+    dest = (dest * default).stack(stacked=list(template.dims))
     dest.values[dest_mask] = values
     return dest.unstack("stacked")
 
 
 def _normalize_point(
     data: xr.DataArray,
-    around: dict[str, xr.DataArray] | xr.Dataset,
-    **kwargs: Incomplete,
+    around: dict[str, xr.DataArray] | xr.Dataset | None,
+    **kwargs: NDArray[np.float_] | float,
 ) -> dict[str, xr.DataArray]:
-    collected_kwargs = {k: kwargs[k] for k in data.dims if k in kwargs}
+    collected_kwargs = {k: kwargs[str(k)] for k in data.dims if k in kwargs}
 
     if around:
         if isinstance(around, xr.Dataset):
-            around = unwrap_xarray_dict({d: around[d] for d in data.dims})
+            around = unwrap_xarray_dict({str(d): around[d] for d in data.dims})
     else:
         around = collected_kwargs
 
+    assert isinstance(around, dict)
     assert set(around.keys()) == set(data.dims)
     return around
 

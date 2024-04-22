@@ -501,20 +501,20 @@ def convert_coordinates(
 
     # Wrap it all up
     def acceptable_coordinate(c: NDArray[np.float_] | xr.DataArray) -> bool:
-        """[TODO:summary].
+        """Return True if the dim of array is subset of dim of coordinate_transform.
 
         Currently we do this to filter out coordinates
         that are functions of the old angular dimensions,
         we could forward convert these, but right now we do not
 
         Args:
-            c: [TODO:description]
+            c (xr.DataArray): DataArray for check.
 
         Returns: bool
             [TODO:description]
         """
         if isinstance(c, xr.DataArray):
-            return bool(set(c.dims).issubset(coordinate_transform["dims"]))
+            return set(c.dims).issubset(coordinate_transform["dims"])
         return True
 
     target_coordinates = {k: v for k, v in target_coordinates.items() if acceptable_coordinate(v)}

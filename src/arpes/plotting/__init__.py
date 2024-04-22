@@ -18,7 +18,7 @@ from .dispersion import (
     scan_var_reference_plot,
 )
 from .dos import plot_core_levels, plot_dos
-from .fermi_edge import fermi_edge_reference, plot_fit
+from .fermi_edge import fermi_edge_reference
 from .fermi_surface import fermi_surface_slices, magnify_circular_regions_plot
 from .movie import plot_movie
 from .parameter import plot_parameter

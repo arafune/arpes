@@ -18,6 +18,7 @@ import arpes.config
 from arpes.endstations import EndstationBase, ScanDesc, find_clean_coords
 from arpes.provenance import Provenance, provenance_from_file
 from arpes.utilities import rename_keys
+from arpes._typing import Spectrometer
 
 __all__ = ("SpinToFEndstation",)
 
@@ -88,6 +89,11 @@ class SpinToFEndstation(EndstationBase):
         "Phi": "phi",
     }
 
+    MERGE_ATTRS: ClassVar[Spectrometer] = {
+        "length": 1.1456,  # This isn't correct but it should be a reasonable guess
+        "mstar": 0.5,
+    }
+
     def load_SToF_hdf5(self, scan_desc: ScanDesc | None = None) -> xr.Dataset:
         """Imports a FITS file that contains ToF spectra.
 
@@ -123,6 +129,7 @@ class SpinToFEndstation(EndstationBase):
         }
 
         provenance_from_file(dataset_contents["raw"], str(data_loc), pronance_context)
+
         return xr.Dataset(dataset_contents, attrs=scan_desc)
 
     def load_SToF_fits(self, scan_desc: ScanDesc) -> xr.Dataset:

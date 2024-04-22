@@ -85,20 +85,18 @@ pythonPlatform = "All"
 [tool.ruff]
 lint.ignore = [
   "PD",     # pandas-vet
+  "PD011",  # pandas-use-of-dot-values
   "ANN101", # missing-type-self (ANN101)
   "N802",   # invalid-function-name (N802)
-  "N806",   # non-lowercase-variable-in-function 
+  "N806",   # non-lowercase-variable-in-function
   "N999",   # invalid-module-name (N999)
   "S101",   # assert (S101)
-  "TD002",  # missing-todo-author 
+  "TD002",  # missing-todo-author
   "TD003",  # missing-todo-link
-  "PD011",  # pandas-use-of-dot-values
-  "FBT002", # boolean-default-value-in-function-definition
   "FIX002", # line-contains-todo
   "G004",   # logging-f-string
   #
-  "NPY201", #  Numpy 2.0, 
-  "ISC001", # single-line-implicit-string-concatenation
+  "NPY201", #  Numpy 2.0,
 ]
 lint.select = ["ALL"]
 target-version = "py311"

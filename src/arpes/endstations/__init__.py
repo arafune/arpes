@@ -966,9 +966,7 @@ class FITSEndstation(EndstationBase):
             # at least consistently records the offset from the edge
             # of the recorded window
             if "pixel" in data.coords:
-                phi_axis = (
-                    data.coords["pixel"].values * arpes.constants.SPECTROMETER_MC["rad_per_pixel"]
-                )
+                phi_axis = data.coords["pixel"].values * np.deg2rad(1 / 10)
 
                 if "pixel" in data.coords:
                     data = data.rename(pixel="phi")

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from typing import TYPE_CHECKING, Literal
 
 import numpy as np
@@ -28,6 +29,18 @@ __all__ = (
     "rebin",
     "fit_fermi_edge",
 )
+
+LOGLEVELS = (DEBUG, INFO)
+LOGLEVEL = LOGLEVELS[0]
+logger = getLogger(__name__)
+fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
+formatter = Formatter(fmt)
+handler = StreamHandler()
+handler.setLevel(LOGLEVEL)
+logger.setLevel(LOGLEVEL)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.propagate = False
 
 
 @update_provenance("Fit Fermi Edge")
@@ -225,14 +238,22 @@ def _bin(
     method: Literal["sum", "mean"],
 ) -> DataType:
     original_left, original_right = (
-        data.coords[bin_axis].values[0],
-        data.coords[bin_axis].values[-1],
+        data.coords[bin_axis].min().item(),
+        data.coords[bin_axis].max().item(),
     )
     original_region = original_right - original_left
     if method == "sum":
-        data = data.groupby_bins(bin_axis, bins).sum().rename({bin_axis + "_bins": bin_axis})
+        data = (
+            data.groupby_bins(bin_axis, bins, precision=10)
+            .sum()
+            .rename({bin_axis + "_bins": bin_axis})
+        )
     elif method == "mean":
-        data = data.groupby_bins(bin_axis, bins).mean().rename({bin_axis + "_bins": bin_axis})
+        data = (
+            data.groupby_bins(bin_axis, bins, precision=10)
+            .mean()
+            .rename({bin_axis + "_bins": bin_axis})
+        )
     else:
         msg = "method must be sum or mean"
         raise TypeError(msg)

@@ -70,5 +70,7 @@ class DiracDispersionModel(XModelMixin):
         pars = self.make_params()
         return update_param_vals(pars, self.prefix, **kwargs)
 
-    __init__.doc = lf.models.COMMON_INIT_DOC
+    __init__.__doc__ = (
+        "Model for dirac_dispersion symmetric about the dirac point." + lf.models.COMMON_INIT_DOC
+    )
     guess.__doc__ = lf.models.COMMON_GUESS_DOC

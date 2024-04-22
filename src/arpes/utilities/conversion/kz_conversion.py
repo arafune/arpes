@@ -88,7 +88,7 @@ class ConvertKpKz(CoordinateConverter):
         self,
         resolution: Incomplete | None = None,
         bounds: dict[MOMENTUM, tuple[float, float]] | None = None,
-    ) -> dict[str, NDArray[np.float_]]:
+    ) -> KspaceCoords:
         """Calculates appropriate coordinate bounds."""
         resolution = resolution if resolution is not None else {}
         bounds = bounds if bounds is not None else {}
@@ -114,8 +114,8 @@ class ConvertKpKz(CoordinateConverter):
             kz_high + K_SPACE_BORDER,
             resolution.get("kz", inferred_kz_res),
         )
-        base_coords = {
-            str(k): v for k, v in self.arr.coords.items() if k not in ["eV", "phi", "hv"]
+        base_coords: KspaceCoords = {
+            str(k): v.values for k, v in self.arr.coords.items() if k not in ["eV", "phi", "hv"]
         }  # should v.values ?
         coordinates.update(base_coords)
         return coordinates

@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import lmfit as lf
+    from numpy.typing import NDArray
 
 
 def plot_fit(model_result: lf.Model, ax: Axes | None = None) -> None:
@@ -49,11 +50,10 @@ def plot_fit(model_result: lf.Model, ax: Axes | None = None) -> None:
     ax.set_xlim(left=np.min(x), right=np.max(x))
 
 
-def plot_fits(model_results: list[lf.Model], ax: Axes | None = None) -> None:
+def plot_fits(model_results: list[lf.Model], axs: NDArray[np.object_] | None = None) -> None:
     """Plots several fits onto a grid of axes."""
     n_results = len(model_results)
-    if ax is None:
-        _fig, ax, _ax_extra = simple_ax_grid(n_results, sharex="col", sharey="row")
+    axs = axs if axs else simple_ax_grid(n_results, sharex="col", sharey="row")[1]
 
-    for axi, model_result in zip(ax, model_results, strict=False):
+    for axi, model_result in zip(axs, model_results, strict=False):
         plot_fit(model_result, ax=axi)

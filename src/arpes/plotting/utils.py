@@ -11,7 +11,7 @@ import pickle
 import re
 import warnings
 from collections import Counter
-from collections.abc import Generator, Hashable, Iterable, Iterator, Sequence
+from collections.abc import Callable, Generator, Hashable, Iterable, Iterator, Sequence
 from datetime import UTC
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from pathlib import Path
@@ -37,6 +37,7 @@ from arpes.utilities.jupyter import get_notebook_name, get_recent_history
 if TYPE_CHECKING:
     from _typeshed import Incomplete
     from lmfit.model import Model
+    from matplotlib.collections import PathCollection
     from matplotlib.font_manager import FontProperties
     from matplotlib.image import AxesImage
     from matplotlib.typing import ColorType
@@ -316,7 +317,6 @@ def simple_ax_grid(
     ax, ax_rest = ax.ravel()[:n_axes], ax.ravel()[n_axes:]
     for axi in ax_rest:
         invisible_axes(axi)
-
     return fig, ax, ax_rest
 
 
@@ -577,7 +577,7 @@ def lineplot_arr(
 
     xs = None
     if arr is not None:
-        fn = plt.plot
+        fn: Callable[..., list[Line2D]] | Callable[..., PathCollection] = plt.plot
         if method == "scatter":
             fn = plt.scatter
 
@@ -614,7 +614,7 @@ def plot_arr(
     if n_dims == TWO_DIMENSION:
         quad = None
         if arr is not None:
-            ax, quad = imshow_arr(arr, ax=ax, over=over, **kwargs)
+            fig, quad = imshow_arr(arr, ax=ax, over=over, **kwargs)
         if mask is not None:
             over = quad if over is None else over
             imshow_mask(mask, ax=ax, over=over, **kwargs)
@@ -861,17 +861,13 @@ def remove_colorbars(fig: Figure | None = None) -> None:
     # TODO: after colorbar removal, plots should be relaxed/rescaled to occupy space previously
     # allocated to colorbars for now, can follow this with plt.tight_layout()
     COLORBAR_ASPECT_RATIO = 20
-    try:
-        if fig is not None:
-            for ax in fig.axes:
-                aspect_ragio = ax.get_aspect()
-                assert isinstance(aspect_ragio, float)
-                if aspect_ragio >= COLORBAR_ASPECT_RATIO:
-                    ax.remove()
-        else:
-            remove_colorbars(plt.gcf())
-    except Exception:
-        logger.exception("Exception occurs")
+    if fig is not None:
+        for ax in fig.axes:
+            aspect_ratio = ax.get_aspect()
+            if isinstance(aspect_ratio, float) and aspect_ratio >= COLORBAR_ASPECT_RATIO:
+                ax.remove()
+    else:
+        remove_colorbars(plt.gcf())
 
 
 def calculate_aspect_ratio(data: xr.DataArray) -> float:

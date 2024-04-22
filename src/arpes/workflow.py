@@ -146,7 +146,7 @@ def go_to_figures() -> None:
     _open_path(path)
 
 
-def get_running_context() -> tuple[Incomplete, Path]:
+def get_running_context() -> tuple[str, Path]:
     return get_notebook_name(), Path.cwd()
 
 

@@ -109,7 +109,9 @@ class AffineBroadenedFD(XModelMixin):
 
         return update_param_vals(pars, self.prefix, **kwargs)
 
-    __init__.doc = lf.models.COMMON_INIT_DOC
+    __init__.__doc__ = (
+        "affine density of states broadened by Fermi-Dirac " + lf.models.COMMON_INIT_DOC
+    )
     guess.__doc__ = lf.models.COMMON_GUESS_DOC
 
 
@@ -175,7 +177,9 @@ class FermiLorentzianModel(XModelMixin):
 
         return update_param_vals(pars, self.prefix, **kwargs)
 
-    __init__.doc = lf.models.COMMON_INIT_DOC
+    __init__.__doc__ = (
+        "Lorentzian multiplied by a gstepb background model" + lf.models.COMMON_INIT_DOC
+    )
     guess.__doc__ = lf.models.COMMON_GUESS_DOC
 
 
@@ -201,7 +205,7 @@ class FermiDiracModel(XModelMixin):
 
         return update_param_vals(pars, self.prefix, **kwargs)
 
-    __init__.doc = lf.models.COMMON_INIT_DOC
+    __init__.__doc__ = "Fermi-Dirc distribution model" + lf.models.COMMON_INIT_DOC
     guess.__doc__ = lf.models.COMMON_GUESS_DOC
 
 
@@ -247,7 +251,9 @@ class GStepBModel(XModelMixin):
 
         return update_param_vals(pars, self.prefix, **kwargs)
 
-    __init__.doc = lf.models.COMMON_INIT_DOC
+    __init__.__doc__ = (
+        """Fermi functions with a linear background model""" + lf.models.COMMON_INIT_DOC
+    )
     guess.__doc__ = lf.models.COMMON_GUESS_DOC
 
 
@@ -389,10 +395,6 @@ class BandEdgeBGModel(XModelMixin):
         self.set_param_hint("offset", min=-10)
         self.set_param_hint("center", vary=False)
 
-        """
-
-        """
-
     def guess(
         self,
         data: XrTypes,
@@ -493,7 +495,10 @@ class FermiDiracAffGaussModel(XModelMixin):
 
         return update_param_vals(pars, self.prefix, **kwargs)
 
-    __init__.doc = lf.models.COMMON_INIT_DOC
+    __init__.__doc__ = (
+        "Fermi Dirac function with affine background multiplied, then all convolved with Gaussian"
+        + lf.models.COMMON_INIT_DOC
+    )
     guess.__doc__ = lf.models.COMMON_GUESS_DOC
 
 
@@ -553,7 +558,10 @@ class GStepBStdevModel(XModelMixin):
 
         return update_param_vals(pars, self.prefix, **kwargs)
 
-    __init__.doc = lf.models.COMMON_INIT_DOC
+    __init__.__doc__ = (
+        "Fermi-Dirac distribution function with a linear background model"
+        + lf.models.COMMON_INIT_DOC
+    )
     guess.__doc__ = lf.models.COMMON_GUESS_DOC
 
 
@@ -611,7 +619,10 @@ class GStepBStandardModel(XModelMixin):
 
         return update_param_vals(pars, self.prefix, **kwargs)
 
-    __init__.doc = lf.models.COMMON_INIT_DOC
+    __init__.__doc__ = (
+        """A model for fitting Fermi functions with a linear background."""
+        + lf.models.COMMON_INIT_DOC
+    )
     guess.__doc__ = lf.models.COMMON_GUESS_DOC
 
 
@@ -682,5 +693,8 @@ class TwoLorEdgeModel(XModelMixin):
 
         return update_param_vals(pars, self.prefix, **kwargs)
 
-    __init__.doc = lf.models.COMMON_INIT_DOC
+    __init__.__doc__ = (
+        "A model for (two lorentzians with an affine background) multiplied by a gstepb."
+        + lf.models.COMMON_INIT_DOC
+    )
     guess.__doc__ = lf.models.COMMON_GUESS_DOC

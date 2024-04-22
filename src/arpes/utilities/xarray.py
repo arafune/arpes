@@ -64,7 +64,7 @@ def unwrap_xarray_item(item: xr.DataArray) -> xr.DataArray | float:
 
 def unwrap_xarray_dict(
     input_dict: dict[str, xr.DataArray],
-) -> dict[str, xr.DataArray | NDArray[np.float_] | float]:
+) -> dict[str, xr.DataArray | float]:
     """Returns the attributes as unwrapped values rather than item() instances.
 
     Useful for unwrapping coordinate dicts where the values might be a bare type:

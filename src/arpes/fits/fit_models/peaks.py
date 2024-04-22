@@ -78,7 +78,7 @@ class TwoGaussianModel(XModelMixin):
 
         return update_param_vals(pars, self.prefix, **kwargs)
 
-    __init__.doc = lf.models.COMMON_INIT_DOC
+    __init__.__doc__ = "Two gaussian model" + lf.models.COMMON_INIT_DOC
     guess.__doc__ = lf.models.COMMON_GUESS_DOC
 
 
@@ -121,5 +121,5 @@ class TwoLorModel(XModelMixin):
 
         return update_param_vals(pars, self.prefix, **kwargs)
 
-    __init__.doc = lf.models.COMMON_INIT_DOC
+    __init__.__doc__ = "Two lorenzian model" + lf.models.COMMON_INIT_DOC
     guess.__doc__ = lf.models.COMMON_GUESS_DOC

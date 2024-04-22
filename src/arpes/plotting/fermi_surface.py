@@ -86,8 +86,8 @@ def magnify_circular_regions_plot(  # noqa: PLR0913
     radius: float = 0.05,
     # below this two can be treated as kwargs?
     cmap: Colormap | ColorType = "viridis",
-    color: ColorType | None = None,
-    edgecolor: ColorType = "red",
+    color: ColorType | list[ColorType] = "blue",
+    edgecolor: ColorType | list[ColorType] = "red",
     out: str | Path = "",
     ax: Axes | None = None,
     **kwargs: tuple[float, float],
@@ -122,14 +122,13 @@ def magnify_circular_regions_plot(  # noqa: PLR0913
     clim = list(mesh.get_clim())
     clim[1] = clim[1] / mag
 
-    mask = np.zeros(shape=(len(data_arr.values.ravel()),))
     pts = np.zeros(
         shape=(
             len(data_arr.values.ravel()),
             2,
         ),
     )
-    mask = mask > 0
+    mask = np.zeros(shape=len(data_arr.values.ravel())) > 0
 
     raveled = data_arr.G.ravel()
     pts[:, 0] = raveled[data_arr.dims[0]]
@@ -150,7 +149,6 @@ def magnify_circular_regions_plot(  # noqa: PLR0913
 
     if not isinstance(color, list):
         color = [color for _ in range(len(magnified_points))]
-    assert isinstance(color, list)
 
     pts[:, 1] = (pts[:, 1]) / (xlim[1] - xlim[0])
     pts[:, 0] = (pts[:, 0]) / (ylim[1] - ylim[0])
@@ -168,7 +166,7 @@ def magnify_circular_regions_plot(  # noqa: PLR0913
             linewidth=2,
             zorder=4,
         )
-        patchfake = matplotlib.patches.Ellipse([point[1], point[0]], radius, radius)
+        patchfake = matplotlib.patches.Ellipse((point[1], point[0]), radius, radius)
         ax.add_patch(patch)
         mask = np.logical_or(mask, patchfake.contains_points(pts))
 

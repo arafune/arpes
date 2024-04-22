@@ -106,8 +106,8 @@ def get_full_notebook_information() -> NoteBookInfomation | None:
     kernel_id = connection_file.split("-", 1)[1] if "-" in connection_file else connection_file
 
     servers = serverapp.list_running_servers()
-    logger.debug(f"servers: {list(servers)}")
     for server in servers:
+        logger.debug(f"server: {server}")
         try:
             passwordless = not server["token"] and not server["password"]
             url = (
@@ -130,7 +130,7 @@ def get_full_notebook_information() -> NoteBookInfomation | None:
     return None
 
 
-def get_notebook_name() -> str | None:
+def get_notebook_name() -> str:
     """Gets the unqualified name of the running Jupyter notebook if not password protected.
 
     As an example, if you were running a notebook called "Doping-Analysis.ipynb"
@@ -142,7 +142,7 @@ def get_notebook_name() -> str | None:
     jupyter_info = get_full_notebook_information()
     if jupyter_info:
         return Path(jupyter_info["session"]["notebook"]["name"]).stem
-    return None
+    return ""
 
 
 def generate_logfile_path() -> Path:

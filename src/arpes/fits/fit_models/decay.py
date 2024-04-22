@@ -79,7 +79,10 @@ class ExponentialDecayCModel(XModelMixin):
 
         return update_param_vals(pars, self.prefix, **kwargs)
 
-    __init__.doc = lf.models.COMMON_INIT_DOC
+    __init__.__doc__ = (
+        "A model for fitting an exponential decay with a constant background."
+        + lf.models.COMMON_INIT_DOC
+    )
     guess.__doc__ = lf.models.COMMON_GUESS_DOC
 
 
@@ -136,5 +139,7 @@ class TwoExponentialDecayCModel(XModelMixin):
 
         return update_param_vals(pars, self.prefix, **kwargs)
 
-    __init__.doc = lf.models.COMMON_INIT_DOC
+    __init__.__doc__ = (
+        "Like `exponential_decay_c`, except with two timescales." + lf.models.COMMON_INIT_DOC
+    )
     guess.__doc__ = lf.models.COMMON_GUESS_DOC

@@ -65,8 +65,9 @@ def extract_coords(
     Returns:
         A tuple consisting of the coordinate arrays, the dimension names, and their shapes
     """
-    if dimension_renamings is None:
-        dimension_renamings = DEFAULT_DIMENSION_RENAMINGS
+    dimension_renamings = (
+        dimension_renamings if dimension_renamings else DEFAULT_DIMENSION_RENAMINGS
+    )
 
     try:
         n_loops = attrs["LWLVLPN"]
@@ -181,7 +182,7 @@ def find_clean_coords(
     attrs: dict[str, Any],
     spectra: Any = None,
     mode: str = "ToF",
-    dimension_renamings: Any = None,
+    dimension_renamings: dict[str, str] | None = None,
 ) -> tuple[CoordsDict, dict[str, list[Dimension]], dict[str, Any]]:
     """Determines the scan degrees of freedom, and reads coordinates.
 
@@ -211,8 +212,9 @@ def find_clean_coords(
         A tuple consisting of
         (coordinates, dimensions, np shape of actual spectrum)
     """
-    if dimension_renamings is None:
-        dimension_renamings = DEFAULT_DIMENSION_RENAMINGS
+    dimension_renamings = (
+        dimension_renamings if dimension_renamings else DEFAULT_DIMENSION_RENAMINGS
+    )
 
     scan_coords, scan_dimension, scan_shape = extract_coords(
         attrs,

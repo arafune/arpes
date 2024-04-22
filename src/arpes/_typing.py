@@ -184,6 +184,8 @@ class AnalyzerInfo(TypedDict, total=False):
     see analyzer_info in xarray_extensions.py (around line# 1490)
     """
 
+    analyzer: str
+    analyzer_name: str
     lens_mode: str | None
     lens_mode_name: str | None
     acquisition_mode: str
@@ -192,24 +194,14 @@ class AnalyzerInfo(TypedDict, total=False):
     slit_width: float
     slit_number: str | int
     lens_table: None
+    parallel_deflectors: bool
+    perpendicular_deflectors: bool
     analyzer_type: str | None
     mcp_voltage: float
     work_function: float
     #
     is_slit_vertical: bool
-
-
-class AnalyzerDetail(TypedDict, total=False):
-    """TypedDict for analyzer_detail.
-
-    Used in analyzer_detail in xarray_extensions.py (around line# 1597)
-    """
-
-    name: str
-    parallel_deflectors: bool
-    perpendicular_deflectors: bool
-    type: str
-    radius: str | float
+    analyzer_radius: str | float
 
 
 class _PumpInfo(TypedDict, total=False):
@@ -331,7 +323,6 @@ class DAQInfo(TypedDict, total=False):
 
 
 class Spectrometer(AnalyzerInfo, Coordinates, DAQInfo, total=False):
-    name: str
     type: str
     rad_per_pixel: float
     dof: list[str]
@@ -347,7 +338,7 @@ class ExperimentInfo(
     AnalyzerInfo,
     total=False,
 ):
-    analyzer_detail: AnalyzerDetail
+    analyzer_detail: AnalyzerInfo
 
 
 class ARPESAttrs(Spectrometer, LightSourceInfo, SampleInfo, total=False):

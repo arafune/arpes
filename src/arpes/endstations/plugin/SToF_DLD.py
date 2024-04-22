@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 import h5py
 import numpy as np
@@ -17,6 +17,8 @@ from arpes.provenance import Provenance, provenance_from_file
 if TYPE_CHECKING:
     from _typeshed import Incomplete
 
+    from arpes._typing import Spectrometer
+
 __all__ = ("SToFDLDEndstation",)
 
 
@@ -24,6 +26,9 @@ class SToFDLDEndstation(EndstationBase):
     """Provides data loading for the Lanzara group experimental ARToF."""
 
     PRINCIPAL_NAME = "ALG-SToF-DLD"
+    MERGE_ATTRS: ClassVar[Spectrometer] = {
+        "length": 1.1456,  # This isn't correct but it should be a reasonable guess
+    }
 
     def load(self, scan_desc: ScanDesc | None = None, **kwargs: Incomplete) -> xr.Dataset:
         """Load a FITS file containing run data from Ping and Anton's delay line detector ARToF.

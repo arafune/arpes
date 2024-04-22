@@ -106,7 +106,6 @@ if TYPE_CHECKING:
     from ._typing import (
         ANGLE,
         HIGH_SYMMETRY_POINTS,
-        AnalyzerDetail,
         AnalyzerInfo,
         BeamLineSettings,
         DAQInfo,
@@ -116,7 +115,6 @@ if TYPE_CHECKING:
         PColorMeshKwargs,
         SampleInfo,
         ScanInfo,
-        Spectrometer,
         XrTypes,
     )
     from .provenance import Provenance
@@ -144,7 +142,7 @@ DEFAULT_RADII = {
 UNSPESIFIED = 0.1
 
 LOGLEVELS = (DEBUG, INFO)
-LOGLEVEL = LOGLEVELS[0]
+LOGLEVEL = LOGLEVELS[1]
 logger = getLogger(__name__)
 fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
 formatter = Formatter(fmt)
@@ -744,23 +742,6 @@ class ARPESAccessorBase:
             return first + _unwrap_provenance(rest)
 
         return _unwrap_provenance(provenance_recorded)
-
-    @property
-    def spectrometer(self) -> Spectrometer:
-        ds = self._obj
-        if "spectrometer_name" in ds.attrs:
-            return arpes.constants.SPECTROMETERS.get(ds.attrs["spectrometer_name"], {})
-        if isinstance(ds, xr.Dataset):
-            if "up" in ds.data_vars or ds.attrs.get("18  MCP3") == 0:
-                return arpes.constants.SPECTROMETERS["SToF"]
-        elif isinstance(ds, xr.DataArray) and (ds.name == "up" or ds.attrs.get("18  MCP3") == 0):
-            return arpes.constants.SPECTROMETERS["SToF"]
-        if "location" in ds.attrs:
-            return arpes.constants.SPECTROMETERS.get(ds.attrs["location"], {})
-        try:
-            return arpes.constants.SPECTROMETERS[ds.attrs["spectrometer_name"]]
-        except KeyError:
-            return {}
 
     @property
     def scan_name(self) -> str:
@@ -1588,14 +1569,17 @@ class ARPESAccessorBase:
         }
 
     @property
-    def analyzer_detail(self) -> AnalyzerDetail:
+    def analyzer_detail(self) -> AnalyzerInfo:
         """Details about the analyzer, its capabilities, and metadata."""
         return {
-            "name": self._obj.attrs.get("analyzer_name", self._obj.attrs.get("analyzer", "")),
+            "analyzer_name": self._obj.attrs.get(
+                "analyzer_name",
+                self._obj.attrs.get("analyzer", ""),
+            ),
             "parallel_deflectors": self._obj.attrs.get("parallel_deflectors", False),
             "perpendicular_deflectors": self._obj.attrs.get("perpendicular_deflectors", False),
-            "type": self._obj.attrs.get("analyzer_type", ""),
-            "radius": self._obj.attrs.get("analyzer_radius", np.nan),
+            "analyzer_type": self._obj.attrs.get("analyzer_type", ""),
+            "analyzer_radius": self._obj.attrs.get("analyzer_radius", np.nan),
         }
 
     @property
@@ -1622,7 +1606,7 @@ class ARPESAccessorBase:
             if attr in self._obj.attrs:
                 return self._obj.attrs[attr]
         msg = "Could not read temperature off any standard attr"
-        warnings.warn(msg, stacklevel=2)
+        logger.debug(msg, stacklevel=2)
         return np.nan
 
     def generic_fermi_surface(self, fermi_energy: float) -> XrTypes:
@@ -1684,11 +1668,7 @@ class ARPESAccessorBase:
         )
 
     def _repr_html_spectrometer_info(self) -> str:
-        skip_keys = {
-            "dof",
-        }
         ordered_settings = OrderedDict(self.spectrometer_settings)
-        ordered_settings.update({k: v for k, v in self.spectrometer.items() if k not in skip_keys})
 
         return ARPESAccessorBase.dict_to_html(ordered_settings)
 
@@ -2031,7 +2011,7 @@ class ARPESDataArrayAccessor(ARPESAccessorBase):
 
     def reference_plot(
         self,
-        **kwargs: Unpack[LabeledFermiSurfaceParam] | Unpack[PColorMeshKwargs],
+        **kwargs: Incomplete,
     ) -> Axes | Path | tuple[Figure, NDArray[np.object_]]:
         """Generates a reference plot for this piece of data according to its spectrum type.
 
@@ -2910,13 +2890,14 @@ class SelectionToolAccessor:
             data = data / data.max(dim)
 
         cond = data > value
+        cond_values = cond.values
         reindex = data.coords[dim]
 
         if reverse:
             reindex = np.flip(reindex)
-            cond = np.flip(cond, data.dims.index(dim)).values
+            cond_values = np.flip(cond_values, axis=data.dims.index(dim))
 
-        indices = cond.argmax(axis=data.dims.index(dim))
+        indices = cond_values.argmax(axis=data.dims.index(dim))
         if as_index:
             new_values = indices
             if reverse:
@@ -2927,7 +2908,7 @@ class SelectionToolAccessor:
         with contextlib.suppress(AttributeError):
             new_values = new_values.values
 
-        return data.isel({dim: 0}).S.rith_values(new_values)
+        return data.isel({dim: 0}).S.with_values(new_values)
 
     def last_exceeding(self, dim: str, value: float, *, relative: bool = False) -> xr.DataArray:
         return self.first_exceeding(dim, value, relative=relative, reverse=False)

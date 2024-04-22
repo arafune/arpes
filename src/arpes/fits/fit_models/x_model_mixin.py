@@ -5,7 +5,7 @@ from __future__ import annotations
 import operator
 import warnings
 from logging import DEBUG, INFO, WARNING, Formatter, StreamHandler, getLogger
-from typing import TYPE_CHECKING, Required, TypedDict
+from typing import TYPE_CHECKING, ClassVar, Required, TypedDict
 
 import lmfit as lf
 import numpy as np
@@ -109,7 +109,7 @@ class XModelMixin(lf.Model):
     """
 
     n_dims = 1
-    dimension_order = None
+    dimension_order: ClassVar[list[str | None]] = [None]
 
     def guess_fit(  # noqa: PLR0913
         self,
@@ -282,7 +282,7 @@ class XModelMixin(lf.Model):
         real_data, flat_data = data.values, data.values
         assert len(real_data.shape) == self.n_dims
         coord_values = {}
-        new_dim_order = None
+        new_dim_order: list[str] = []
         if self.n_dims == 1:
             coord_values["x"] = data.coords[next(iter(data.indexes))].values
         else:
@@ -297,14 +297,16 @@ class XModelMixin(lf.Model):
                 return next(iter(intersect))
 
             # resolve multidimensional parameters
-            if self.dimension_order is None or all(d is None for d in self.dimension_order):
-                new_dim_order = data.dims
+            if all(d is None for d in self.dimension_order):
+                new_dim_order = [str(dim) for dim in data.dims]
             else:
                 new_dim_order = [
-                    find_appropriate_dimension(dim_options) for dim_options in self.dimension_order
+                    find_appropriate_dimension(dim_options)
+                    for dim_options in self.dimension_order
+                    if dim_options is not None
                 ]
 
-            if list(new_dim_order) != list(data.dims):
+            if new_dim_order != list(data.dims):
                 warnings.warn("Transposing data for multidimensional fit.", stacklevel=2)
                 data = data.transpose(*new_dim_order)
 
