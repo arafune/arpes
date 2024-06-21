@@ -96,7 +96,7 @@ class ProdigyXY:
         else:
             num_of_en = int(self.params["values_curve"])
 
-        kinetic_ef_energy = np.linspace(energies[0], energies[num_of_en - 1], num_of_en)
+        kinetic_ef_energy = np.linspace(energies[0], energies[num_of_en-1], num_of_en)
         # first dimension is always energy
         self.axis_info["d1"] = (kinetic_ef_energy, "eV")
 
@@ -137,11 +137,11 @@ class ProdigyXY:
         coords: dict[str, NDArray[np.float64]] = {}
         # set energy axis
         coords[self.axis_info["d1"][1]] = self.axis_info["d1"][0]
-        # set the second dimension - non energy ordinate
+        # set second dimension - non energy ordinate
         coords[self.axis_info["d2"][1]] = self.axis_info["d2"][0]
-        # set the third dimension
+        # set third dimension
         if len(self.axis_info) == MAP_DIMENSION:
-            coords[self.axis_info["d3"][1]] = self.axis_info["d3"][0]
+            coords[self.axis_info["d3"][1]] = np.deg2rad(self.axis_info["d3"][0])
 
         dims = [v[1] for v in self.axis_info.values()]
         data_array = xr.DataArray(
