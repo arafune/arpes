@@ -13,6 +13,7 @@ def concat_along_phi(
     arr_a: xr.DataArray,
     arr_b: xr.DataArray,
     occupation_ratio: float | None = None,
+    enhance_a: float = 1.0,
 ) -> xr.DataArray:
     """Montage two arpes data.
 
@@ -20,6 +21,7 @@ def concat_along_phi(
         arr_a (xr.DataArray): one ARPES data
         arr_b (xr.DataArray): another ARPES data
         occupation_ratio(float | None): Identify the seam of "phi" axis.
+        enhance_a: (float): The enhancement factor for arr_a to correct the intensity.
 
     Returns:
         Concatenated ARPES array
@@ -30,6 +32,7 @@ def concat_along_phi(
         assert 0 <= occupation_ratio <= 1, "occupation_ratio should be between 0 and 1 (or None)."
     id_arr_a = arr_a.attrs["id"]
     id_arr_b = arr_b.attrs["id"]
+    arr_a = arr_a.G.with_values(arr_a.values * enhance_a, keep_attrs=True)
     id_add = _combine_id(id_arr_a, id_arr_b)
     if occupation_ratio is None:
         concat_array = xr.concat(
