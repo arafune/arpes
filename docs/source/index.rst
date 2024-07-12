@@ -236,7 +236,6 @@ Reference
 =========
 
 * :doc:`migration-guide`
-* :doc:`writing-interactive-tools`
 * :doc:`writing-plugins-basic`
 * :doc:`writing-plugins`
 * :doc:`data-provenance`
@@ -252,7 +251,6 @@ Reference
    :caption: Reference
 
    migration-guide
-   writing-interactive-tools
    writing-plugins-basic
    writing-plugins
    data-provenance
