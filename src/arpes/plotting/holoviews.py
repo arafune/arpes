@@ -207,8 +207,10 @@ def fit_inspection(
         ylim=plotlim_residual,
         xticks=3,
         yticks=0,
-        color="black",
+        color="darkgray",
         fontscale=0.5,
+        show_grid=True,
+        gridstyle={"grid_bounds": (-1, 1), "xgrid_line_dash": [4, 2, 2]},
     )
 
     return (img * vline << (profile_arpes * profile_fit)) + profile_residual
