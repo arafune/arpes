@@ -349,7 +349,7 @@ Incoherent Backgrounds
 .. autosummary::
    :toctree: generated/
    
-   corrections.background.remove_incoherent_background
+   correction.background.remove_incoherent_background
 
 
 Array Alignment
