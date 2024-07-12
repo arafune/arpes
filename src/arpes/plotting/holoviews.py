@@ -186,7 +186,6 @@ def fit_inspection(
         ),
         streams=[posx],
     )
-
     profile_residual = hv.DynamicMap(
         callback=lambda x: hv.Curve(
             (
@@ -210,5 +209,13 @@ def fit_inspection(
         color="black",
         fontscale=0.5,
     )
+    profile_residual_zero = hv.Curve(
+        (
+            residual.coords["eV"].values,
+            np.zeros_like(residual.coords["eV"].values),
+        ),
+    ).opts(invert_axes=True, color="gray")
 
-    return (img * vline << (profile_arpes * profile_fit)) + profile_residual
+    return (img * vline << (profile_arpes * profile_fit)) + (
+        profile_residual * profile_residual_zero
+    )
