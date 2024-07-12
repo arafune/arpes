@@ -100,6 +100,7 @@ class Provenance(_Provenance, total=False):
     parsed_interpolation_points: list[dict[Hashable, float]]
     interpolation_points: list[Hashable | dict[Hashable, float]]
     axes: list[str]
+    enhance_a: float
 
 
 def attach_id(data: XrTypes) -> None:

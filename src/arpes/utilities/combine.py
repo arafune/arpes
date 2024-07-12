@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import xarray as xr
 
-from arpes.provenance import provenance_multiple_parents
+from arpes.provenance import Provenance, provenance_multiple_parents
 
 __all__ = ("concat_along_phi",)
 
@@ -67,14 +67,18 @@ def concat_along_phi(
             combine_attrs="drop_conflicts",
         ).sortby("phi")
     concat_array.attrs["id"] = id_add
+    provenance_contents: Provenance = {
+        "what": "concat_along_phi",
+        "parant_id": (id_arr_a, id_arr_b),
+        "occupation_ratio": occupation_ratio,
+    }
+    if enhance_a != 1.0:
+        provenance_contents["enhance_a"] = enhance_a
+
     provenance_multiple_parents(
         concat_array,
         [arr_a, arr_b],
-        {
-            "what": "concat_along_phi",
-            "parant_id": (id_arr_a, id_arr_b),
-            "occupation_ratio": occupation_ratio,
-        },
+        record=provenance_contents,
         keep_parent_ref=True,
     )
     return concat_array
