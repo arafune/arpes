@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+
 import xarray as xr
 
 from arpes.provenance import Provenance, provenance_multiple_parents
