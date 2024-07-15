@@ -6,14 +6,13 @@ from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from typing import TYPE_CHECKING, Unpack
 
 import holoviews as hv
-from holoviews.core import data
 import numpy as np
 import xarray as xr
-from holoviews import AdjointLayout, DynamicMap, Image
+from holoviews import AdjointLayout, Dynamic, DynamicMap, Image
 
 from arpes.constants import TWO_DIMENSION
-from arpes.utilities.normalize import normalize_to_spectrum
 from arpes.utilities.combine import concat_along_phi
+from arpes.utilities.normalize import normalize_to_spectrum
 
 if TYPE_CHECKING:
     from arpes._typing import ProfileViewParam
@@ -36,7 +35,17 @@ hv.extension("bokeh")
 def concat_along_phi_ui(
     dataarray_a: xr.DataArray,
     dataarray_b: xr.DataArray,
-) -> DynamicMap:
+) -> Dynamic:
+    """UI for determination of appropriate parameters of concat_along_phi.
+
+    Args:
+        dataarray_a: An AREPS data.
+        dataarray_b: Another ARPES data.
+
+    Returns:
+        [TODO:description]
+    """
+
     def concate_along_phi_(ratio: float = 0, magnification: float = 1) -> hv.QuadMesh:
         concatenated_data = concat_along_phi(
             dataarray_a,
