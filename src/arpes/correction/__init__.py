@@ -11,7 +11,8 @@ earlier in a dataset which can be used to furnish equivalent references.
 
 from __future__ import annotations
 
-from .fermi_edge_corrections import (
+from .background import remove_incoherent_background
+from .fermi_edge import (
     apply_direct_fermi_edge_correction,
     apply_photon_energy_fermi_edge_correction,
     apply_quadratic_fermi_edge_correction,
