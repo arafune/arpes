@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from typing import TYPE_CHECKING, Unpack
 
 import holoviews as hv
@@ -15,7 +16,26 @@ from arpes.utilities.normalize import normalize_to_spectrum
 if TYPE_CHECKING:
     from arpes._typing import ProfileViewParam
 
+LOGLEVELS = (DEBUG, INFO)
+LOGLEVEL = LOGLEVELS[1]
+logger = getLogger(__name__)
+fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
+formatter = Formatter(fmt)
+handler = StreamHandler()
+handler.setLevel(LOGLEVEL)
+logger.setLevel(LOGLEVEL)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.propagate = False
+
 hv.extension("bokeh")
+
+
+def cnocat_along_phi(
+    dataarray_a: xr.DataArray,
+    dataarray_b: xr.DataArray,
+) -> DynamicMap:
+    pass
 
 
 def profile_view(

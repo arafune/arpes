@@ -2,11 +2,24 @@
 
 from __future__ import annotations
 
+from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 import xarray as xr
 
 from arpes.provenance import Provenance, provenance_multiple_parents
 
 __all__ = ("concat_along_phi",)
+
+LOGLEVELS = (DEBUG, INFO)
+LOGLEVEL = LOGLEVELS[1]
+logger = getLogger(__name__)
+fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
+formatter = Formatter(fmt)
+handler = StreamHandler()
+handler.setLevel(LOGLEVEL)
+logger.setLevel(LOGLEVEL)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.propagate = False
 
 
 def concat_along_phi(
@@ -32,7 +45,10 @@ def concat_along_phi(
         assert 0 <= occupation_ratio <= 1, "occupation_ratio should be between 0 and 1 (or None)."
     id_arr_a = arr_a.attrs["id"]
     id_arr_b = arr_b.attrs["id"]
-    arr_a = arr_a.G.with_values(arr_a.values * enhance_a, keep_attrs=True)
+    arr_a = arr_a.G.with_values(
+        arr_a.values * enhance_a,
+        keep_attrs=True,
+    )
     id_add = _combine_id(id_arr_a, id_arr_b)
     if occupation_ratio is None:
         concat_array = xr.concat(
