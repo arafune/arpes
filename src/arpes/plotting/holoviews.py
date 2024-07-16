@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Unpack
 import holoviews as hv
 import numpy as np
 import xarray as xr
-from holoviews import AdjointLayout, DynamicMap, Image
+from holoviews import AdjointLayout, DynamicMap, Image, QuadMesh
 
 from arpes.constants import TWO_DIMENSION
 from arpes.utilities.combine import concat_along_phi
@@ -134,7 +134,7 @@ def profile_view(
         streams=[posy],
     )
     # Memo: (ad-hoc fix) to avoid the problem concerning https://github.com/holoviz/holoviews/issues/6317
-    img: Image = hv.Image(
+    img: QuadMesh = hv.QuadMesh(
         dataarray,
     ).opts(
         width=kwargs["width"],
@@ -147,20 +147,31 @@ def profile_view(
     )
 
     profile_x = hv.DynamicMap(
-        lambda x: img.sample(**{str(dataarray.dims[0]): x or max_coords[dataarray.dims[0]]}),
+        callback=lambda x: hv.Curve(
+            dataarray.sel(
+                **{str(dataarray.dims[0]): x},
+                method="nearest",
+            ),
+        ),
         streams=[posx],
     ).opts(
         ylim=plot_lim,
         width=kwargs["profile_view_height"],
         logx=kwargs["log"],
     )
+
     profile_y = hv.DynamicMap(
-        lambda y: img.sample(**{str(dataarray.dims[1]): y or max_coords[dataarray.dims[1]]}),
+        callback=lambda y: hv.Curve(
+            dataarray.sel(
+                **{str(dataarray.dims[1]): y},
+                method="nearest",
+            ),
+        ),
         streams=[posy],
     ).opts(
         ylim=plot_lim,
         height=kwargs["profile_view_height"],
-        logy=kwargs["log"],
+        logx=kwargs["log"],
     )
 
     return img * hline * vline << profile_x << profile_y
