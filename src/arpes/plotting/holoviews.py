@@ -72,14 +72,7 @@ def concat_along_phi_ui(
             occupation_ratio=ratio,
             enhance_a=magnification,
         )
-        return hv.QuadMesh(
-            data=(
-                concatenated_data.coords[concatenated_data.dims[1]],
-                concatenated_data.coords[concatenated_data.dims[0]],
-                concatenated_data.values,
-            ),
-            kdims=[concatenated_data.dims[1], concatenated_data.dims[0]],
-        )
+        return hv.QuadMesh(concatenated_data)
 
     dmap: DynamicMap = hv.DynamicMap(
         callback=concate_along_phi_view,
@@ -198,13 +191,13 @@ def fit_inspection(
 
     assert "data" in dataset.data_vars
     arpes_measured: xr.DataArray = _fix_xarray_to_fit_with_holoview(
-        dataset.data,
+        dataset.data.S.transpose_to_back("eV"),
     )
     fit = arpes_measured + _fix_xarray_to_fit_with_holoview(
-        dataset.residual,
+        dataset.residual.S.transpose_to_back("eV"),
     )
     residual = _fix_xarray_to_fit_with_holoview(
-        dataset.residual,
+        dataset.residual.S.transpose_to_back("eV"),
     )
     max_coords = arpes_measured.G.argmax_coords()
     posx = hv.streams.PointerX(x=max_coords[arpes_measured.dims[0]])
@@ -222,7 +215,7 @@ def fit_inspection(
         lambda x: hv.VLine(x=x or max_coords[arpes_measured.dims[0]]),
         streams=[posx],
     )
-    img: Image = hv.QuadMesh(arpes_measured).opts(
+    img: QuadMesh = hv.QuadMesh(arpes_measured).opts(
         width=kwargs["width"],
         height=kwargs["height"],
         logz=kwargs["log"],
@@ -232,11 +225,10 @@ def fit_inspection(
         default_tools=["save", "box_zoom", "reset", "hover"],
         framewise=True,
     )
-    """
     profile_arpes = hv.DynamicMap(
         callback=lambda x: hv.Curve(
             arpes_measured.sel(
-                **{str(arpes_measured.dims[1]): x},
+                **{str(arpes_measured.dims[0]): x},
                 method="nearest",
             ),
         ),
@@ -250,28 +242,19 @@ def fit_inspection(
     )
     profile_fit = hv.DynamicMap(
         callback=lambda x: hv.Curve(
-            (
-                fit.coords["eV"].values,
-                fit.sel(
-                    **{arpes_measured.dims[1]: x},
-                    method="nearest",
-                ),
+            fit.sel(
+                **{str(arpes_measured.dims[0]): x},
+                method="nearest",
             ),
         ),
         streams=[posx],
     )
-
     profile_residual = hv.DynamicMap(
         callback=lambda x: hv.Curve(
-            (
-                residual.coords["eV"].values,
-                residual.sel(
-                    **{arpes_measured.dims[1]: x},
-                    method="nearest",
-                ),
+            residual.sel(
+                **{str(arpes_measured.dims[0]): x},
+                method="nearest",
             ),
-            kdims=["eV"],
-            vdims=["Residual"],
         ),
         streams=[posx],
     ).opts(
@@ -287,5 +270,3 @@ def fit_inspection(
         gridstyle={"grid_bounds": (-1, 1), "xgrid_line_dash": [4, 2, 2]},
     )
     return (img * vline << (profile_arpes * profile_fit)) + profile_residual
-    """
-    return img * vline
