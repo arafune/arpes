@@ -53,7 +53,6 @@ if TYPE_CHECKING:
     )
     from matplotlib.widgets import AxesWidget, Button, TextBox
     from numpy.typing import ArrayLike, NDArray
-    )
 
 DataType = TypeVar("DataType", xr.DataArray, xr.Dataset)
 NormalizableDataType: TypeAlias = DataType | str | uuid.UUID
