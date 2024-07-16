@@ -9,6 +9,17 @@ Primary (X.-.-) version numbers are used to denote backwards
 incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
+4.0.1 ()
+^^^^^^^^^^^^^^^^^^^
+
+New
+~~~
+
+Changed
+~~~~~~~
+
+* Remove Qt related modules.  (Move them to legacy_files)
+
 
 4.0.0 (2024-01-01)
 ^^^^^^^^^^^^^^^^^^^
