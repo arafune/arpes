@@ -126,11 +126,11 @@ def profile_view(
         else (None, dataarray.max().item() * 1.1)
     )
     vline: DynamicMap = hv.DynamicMap(
-        lambda x: hv.VLine(x=x or max_coords[dataarray.dims[1]]),
+        lambda x: hv.VLine(x=x or max_coords[dataarray.dims[0]]),
         streams=[posx],
     )
     hline: DynamicMap = hv.DynamicMap(
-        lambda y: hv.HLine(y=y or max_coords[dataarray.dims[0]]),
+        lambda y: hv.HLine(y=y or max_coords[dataarray.dims[1]]),
         streams=[posy],
     )
     # Memo: (ad-hoc fix) to avoid the problem concerning https://github.com/holoviz/holoviews/issues/6317
