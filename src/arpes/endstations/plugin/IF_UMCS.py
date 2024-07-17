@@ -144,6 +144,9 @@ class IF_UMCSEndstation(  # noqa: N801
                 s.attrs[k] = v
 
         data = data.rename({k: v for k, v in self.RENAME_KEYS.items() if k in data.coords})
+        if "theta" in data.coords:
+            data = data.assign_coords(theta=np.deg2rad(data.theta))
+
         return super().postprocess_final(data, scan_desc)
 
 
