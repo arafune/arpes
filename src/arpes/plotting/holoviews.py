@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Unpack
 import holoviews as hv
 import numpy as np
 import xarray as xr
-from holoviews import AdjointLayout, DynamicMap, Image, QuadMesh
+from holoviews import AdjointLayout, DynamicMap, QuadMesh
 
 from arpes.constants import TWO_DIMENSION
 from arpes.utilities.combine import concat_along_phi
@@ -33,7 +33,7 @@ hv.extension("bokeh")
 
 
 def _fix_xarray_to_fit_with_holoview(dataarray: xr.DataArray) -> xr.DataArray:
-    """Helper function to overcome the problem (#6327).
+    """Helper function to overcome the problem (#6327) in holoview.
 
     Args:
         dataarray (xr.DataArray): input Dataarray
@@ -52,18 +52,24 @@ def _fix_xarray_to_fit_with_holoview(dataarray: xr.DataArray) -> xr.DataArray:
 def concat_along_phi_ui(
     dataarray_a: xr.DataArray,
     dataarray_b: xr.DataArray,
+    **kwargs: Unpack[ProfileViewParam],
 ) -> hv.util.Dynamic:
     """UI for determination of appropriate parameters of concat_along_phi.
 
     Args:
         dataarray_a: An AREPS data.
         dataarray_b: Another ARPES data.
+        kwargs: Options for hv.QuadMesh (width, height, cmap, log)
 
     Returns:
         [TODO:description]
     """
     dataarray_a = _fix_xarray_to_fit_with_holoview(dataarray_a)
     dataarray_b = _fix_xarray_to_fit_with_holoview(dataarray_b)
+    kwargs.setdefault("width", 300)
+    kwargs.setdefault("height", 300)
+    kwargs.setdefault("cmap", "viridis")
+    kwargs.setdefault("log", False)
 
     def concate_along_phi_view(ratio: float = 0, magnification: float = 1) -> hv.QuadMesh:
         concatenated_data = concat_along_phi(
@@ -72,13 +78,20 @@ def concat_along_phi_ui(
             occupation_ratio=ratio,
             enhance_a=magnification,
         )
-        return hv.QuadMesh(concatenated_data)
+        return hv.QuadMesh(data=concatenated_data).opts(
+            width=kwargs["width"],
+            height=kwargs["height"],
+            logz=kwargs["log"],
+            cmap=kwargs["cmap"],
+            active_tools=["box_zoom"],
+            default_tools=["save", "box_zoom", "reset", "hover"],
+        )
 
     dmap: DynamicMap = hv.DynamicMap(
         callback=concate_along_phi_view,
         kdims=["ratio", "magnification"],
     )
-    return dmap.redim.values(ratio=np.linspace(0, 1, 2000), magnification=np.linspace(0, 2, 200))
+    return dmap.redim.values(ratio=np.linspace(0, 1, 201), magnification=np.linspace(0, 2, 201))
 
 
 def profile_view(
