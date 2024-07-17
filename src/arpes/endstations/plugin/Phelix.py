@@ -49,7 +49,7 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         "detector_voltage": "mcp_voltage",
         "excitation_energy": "hv",
         "region": "id",
-        "shift_x": "psi",
+        "shiftx": "psi",
         "anr1": "theta",
     }
 
@@ -137,6 +137,11 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
                 s.attrs[k] = v
 
         data = data.rename({k: v for k, v in self.RENAME_KEYS.items() if k in data.coords})
+        if "psi" in data.coords:
+            data = data.assign_coords(psi=np.deg2rad(data.psi))
+        if "theta" in data.coords:
+            data = data.assign_coords(theta=np.deg2rad(data.theta))
+
         return super().postprocess_final(data, scan_desc)
 
 
