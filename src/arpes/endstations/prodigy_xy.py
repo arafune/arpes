@@ -137,11 +137,11 @@ class ProdigyXY:
         coords: dict[str, NDArray[np.float64]] = {}
         # set energy axis
         coords[self.axis_info["d1"][1]] = self.axis_info["d1"][0]
-        # set second dimension - non energy ordinate
+        # set the second dimension - non energy ordinate
         coords[self.axis_info["d2"][1]] = self.axis_info["d2"][0]
-        # set third dimension
+        # set the third dimension
         if len(self.axis_info) == MAP_DIMENSION:
-            coords[self.axis_info["d3"][1]] = np.deg2rad(self.axis_info["d3"][0])
+            coords[self.axis_info["d3"][1]] = self.axis_info["d3"][0]
 
         dims = [v[1] for v in self.axis_info.values()]
         data_array = xr.DataArray(
