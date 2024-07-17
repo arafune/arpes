@@ -15,6 +15,7 @@ from arpes.endstations import (
     add_endstation,
 )
 from arpes.endstations.prodigy_xy import load_xy
+from arpes.endstations.prodigy_itx import load_itx
 
 if TYPE_CHECKING:
     from arpes._typing import Spectrometer
@@ -37,7 +38,7 @@ class IF_UMCSEndstation(  # noqa: N801
     LENS_MAPPING: ClassVar[dict[str, bool]] = {
         "HighAngularDispersion": True,
         "MediumAngularDispersion": True,
-        "LowAngularDispersion": True,
+        "LowAngularDispersion":  True,
         "WideAngleMode": True,
         "LowMagnification": False,
         "MediumMagnification": False,
@@ -74,15 +75,17 @@ class IF_UMCSEndstation(  # noqa: N801
             scan_desc = {}
         file = Path(frame_path)
         if file.suffix in self._TOLERATED_EXTENSIONS:
-            if file.suffix == ".xy":
+            if file.suffix == '.xy':
                 data = load_xy(frame_path, **kwargs)
-            elif file.suffix == ".itx":
+            elif file.suffix == '.itx':
                 msg = "Not suported yet..."
                 raise RuntimeWarning(msg)
-            return xr.Dataset({"spectrum": data}, attrs=data.attrs)
+                #data = load_itx(frame_path, **kwargs)
 
-        msg = "Data file must be ended with .xy or .itx"
-        raise RuntimeError(msg)
+            return xr.Dataset({"spectrum": data}, attrs=data.attrs)
+        else:
+            msg = "Data file must be ended with .xy or .itx"
+            raise RuntimeError(msg)
 
     def postprocess_final(
         self,
@@ -103,10 +106,12 @@ class IF_UMCSEndstation(  # noqa: N801
         Returns:
             xr.Dataset: pyARPES compatible.
         """
+
         # Convert to binding energy
         binding_energies = data.coords["eV"].values - data.attrs["hv"]
         data = data.assign_coords({"eV": binding_energies})
         lens_mode = data.attrs["lens_mode"].split(":")[0]
+        nonenergy_values = data.coords["nonenergy"].values
 
         if lens_mode in self.LENS_MAPPING:
             dispersion_mode = self.LENS_MAPPING[lens_mode]
@@ -139,9 +144,6 @@ class IF_UMCSEndstation(  # noqa: N801
                 s.attrs[k] = v
 
         data = data.rename({k: v for k, v in self.RENAME_KEYS.items() if k in data.coords})
-        if "theta" in data.coords:
-            data = data.assign_coords(theta=np.deg2rad(data.theta))
-
         return super().postprocess_final(data, scan_desc)
 
 
