@@ -26,6 +26,7 @@ dependencies = [
   "netcdf4>=1.6.4",
   "rx>=3.2.0",
   "jupyter_server>=2.8",
+  "hvplot>=0.10",
   "ipywidgets",
   "ipykernel",
   "more-itertools>=10.2.0",
