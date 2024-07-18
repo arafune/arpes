@@ -3,14 +3,9 @@ name: Run Tests
 on:
   push:
     branches:
-      - master
       - main
   pull_request:
     branches: "**"
-
-env:
-  DISPLAY: "99"
-  QT_QPA_PLATFORM: "offscreen"
 
 jobs:
   test:
@@ -25,12 +20,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
-
-      - name: Add conda to system path
-        run: |
-          # $CONDA is an environment variable pointing to the root of the miniconda directory
-          echo $CONDA/bin >> $GITHUB_PATH
+          python-version: "3.11"
 
       - name: Get pip cache dir
         id: pip-cache
@@ -38,35 +28,17 @@ jobs:
           # echo "::set-output name=dir::$(pip cache dir)"
           echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
 
-      - name: Get conda package dir
-        id: conda-cache
-        run: |
-          # echo "::set-output name=dir::$(conda info --json | python -c "import sys, json; print(json.load(sys.stdin)['pkgs_dirs'][0])")"
-          echo "dir=$(conda info --json | python -c "import sys, json; print(json.load(sys.stdin)['pkgs_dirs'][0])")"
-
-      - name: Cache conda and PyPI modules
+      - name: Cache PyPI modules
         uses: actions/cache@v3
         env:
-          cache-name: cache-conda-and-pypi
+          cache-name: cache-pypi
         with:
           path: |
             ${{ steps.pip-cache.outputs.dir }}
-            ${{ steps.conda-cache.outputs.dir }}
           key: ${{ runner.os }}-build-${{ env.cache-name}}-${{ hashFiles('**/environment*.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-conda
-
-      - name: Install dependencies
-        run: |
-          conda env create --quiet --file environment.yml
 
       - name: Source environment, test with pytest and generate coverage
         run: |
-          source activate arpes
-          conda env update --file environment-update-test.yml
-          sudo apt install libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xfixes0
-          echo "Installed dependencies as below"
-          pip freeze
           echo "Now running tests"
           python -m pytest -c pytest-config/pytest-coverage-codecov.ini
 

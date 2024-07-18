@@ -9,7 +9,7 @@ on:
     types: [published]
 
 jobs:
-  deploy-conda:
+  deploy:
     runs-on: ubuntu-latest
 
     strategy:
@@ -22,50 +22,25 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.10
-
-      - name: Add conda to system path
-        run: |
-          # $CONDA is an environment variable pointing to the root of the miniconda directory
-          echo $CONDA/bin >> $GITHUB_PATH
+          python-version: 3.11
 
       - name: Get pip cache dir
         id: pip-cache
         run: |
           echo "::set-output name=dir::$(pip cache dir)"
 
-      - name: Get conda package dir
-        id: conda-cache
-        run: |
-          echo "::set-output name=dir::$(conda info --json | python -c "import sys, json; print(json.load(sys.stdin)['pkgs_dirs'][0])")"
-
-      - name: Cache conda and PyPI modules
+      - name: Cache PyPI modules
         uses: actions/cache@v2
-        env:
-          cache-name: cache-conda-and-pypi
         with:
           path: |
             ${{ steps.pip-cache.outputs.dir }}
-            ${{ steps.conda-cache.outputs.dir }}
           key: ${{ runner.os }}-build-${{ env.cache-name}}-${{ hashFiles('**/environment*.yml') }}
           restore-keys: |
             ${{ runner.os }}-conda
 
-      - name: Install dependencies
-        run: |
-          conda env create --quiet --file environment.yml
-
       - name: Run tests
         run: |
-          source activate arpes
-          conda env update --file environment-update-test.yml
-          sudo apt install libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xfixes0
           python -m pytest -c pytest-config/pytest.ini
-
-      - name: Install build requirements
-        run: |
-          conda install -y conda-build anaconda-client
-          pip install setuptools setuptools-scm wheel twine check-manifest
 
       - name: Build wheels
         run: |
@@ -77,19 +52,9 @@ jobs:
         run: |
           python -m twine check dist/*
 
-      - name: Conda build
-        run: |
-          mkdir "conda-dist"
-          conda-build ./conda/ -c anaconda -c conda-forge --output-folder conda-dist
-
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
         with:
           user: __token__
           password: ${{ secrets.PYPI_TOKEN }}
           skip_existing: true
-
-      - name: Publish package to Conda
-        run: |
-          yes | anaconda login --username ${{ secrets.CONDA_USER }} --password ${{ secrets.CONDA_PASSWORD }}
-          anaconda upload -u arpes conda-dist/noarch/$(ls conda-dist/noarch/ | grep ".tar.bz2")
