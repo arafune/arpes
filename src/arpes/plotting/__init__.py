@@ -19,7 +19,7 @@ from .dispersion import (
 from .dos import plot_core_levels, plot_dos
 from .fermi_edge import fermi_edge_reference
 from .fermi_surface import fermi_surface_slices, magnify_circular_regions_plot
-from .holoviews import fit_inspection, profile_view
+from .holoviews import concat_along_phi_ui, fit_inspection, profile_view
 from .movie import plot_movie
 from .parameter import plot_parameter
 from .spatial import plot_spatial_reference, reference_scan_spatial

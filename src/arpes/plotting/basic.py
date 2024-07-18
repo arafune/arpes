@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import warnings
-from logging import INFO, Formatter, StreamHandler, getLogger
+from collections.abc import Sequence
+from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from typing import TYPE_CHECKING
 
 import matplotlib.pyplot as plt
@@ -18,7 +19,8 @@ if TYPE_CHECKING:
     from matplotlib.axes import Axes
     from matplotlib.figure import Figure
 
-LOGLEVEL = INFO
+LOGLEVELS = (DEBUG, INFO)
+LOGLEVEL = LOGLEVELS[1]
 logger = getLogger(__name__)
 fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
 formatter = Formatter(fmt)
@@ -33,7 +35,10 @@ logger.propagate = False
 __all__ = ["make_reference_plots", "make_overview"]
 
 
-def make_overview(data_all: list[xr.DataArray], ncols: int = 3) -> tuple[Figure, list[Axes]]:
+def make_overview(
+    data_all: Sequence[xr.DataArray],
+    ncols: int = 3,
+) -> tuple[Figure, list[Axes]]:
     """Build overview of the measured data.
 
     Args:
@@ -43,6 +48,7 @@ def make_overview(data_all: list[xr.DataArray], ncols: int = 3) -> tuple[Figure,
     Returns: tuple[Figure, list[Axes]]
         Overview of ARPES data.
     """
+    assert isinstance(data_all, Sequence)
     num_figs = len(data_all)
     nrows = num_figs // ncols
     if num_figs % ncols:

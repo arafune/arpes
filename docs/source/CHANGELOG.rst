@@ -10,18 +10,30 @@ incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
 4.0.1 ()
-^^^^^^^^^^^^^^^^^^^
 
 New
 ~~~
 
+
+
 Changed
 ~~~~~~~
 
+The name change
+
+* corrections -> correction
+
+     This is somehow backwards incopatibilities.  However, the effect for most is really minor,
+     because this functionalites are not so frequently used. Thus the major version number has not been changed.
+
+* New UI
+
+  * concat_along_phi_ui (based on holoviews)
+ 
 * Remove Qt related modules.  (Move them to legacy_files)
 
 
-4.0.0 (2024-01-01)
+4.0.0 (2024-07-12)
 ^^^^^^^^^^^^^^^^^^^
 
 New

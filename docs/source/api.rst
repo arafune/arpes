@@ -349,7 +349,7 @@ Incoherent Backgrounds
 .. autosummary::
    :toctree: generated/
    
-   corrections.background.remove_incoherent_background
+   correction.background.remove_incoherent_background
 
 
 Array Alignment
@@ -504,6 +504,7 @@ Interactive Utilities: holoviews Based
 .. autosummary::
    :toctree: generated/
 
+   plotting.holoviews.concat_along_phi_ui
    plotting.holoviews.profile_view
    plotting.holoviews.fit_inspection
 
