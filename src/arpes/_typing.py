@@ -53,11 +53,6 @@ if TYPE_CHECKING:
     )
     from matplotlib.widgets import AxesWidget, Button, TextBox
     from numpy.typing import ArrayLike, NDArray
-    from PySide6 import QtCore
-    from PySide6.QtGui import QIcon, QPixmap
-    from PySide6.QtWidgets import (
-        QWidget,
-    )
 
 DataType = TypeVar("DataType", xr.DataArray, xr.Dataset)
 NormalizableDataType: TypeAlias = DataType | str | uuid.UUID
@@ -357,25 +352,6 @@ class ARPESAttrs(Spectrometer, LightSourceInfo, SampleInfo, total=False):
         "kinetic",
         "kinetic energy",
     ]
-
-
-# TypedDict for Qt
-
-
-class QSliderArgs(TypedDict, total=False):
-    orientation: QtCore.Qt.Orientation
-    parent: QWidget | None
-
-
-class QWidgetArgs(TypedDict, total=False):
-    parent: QWidget | None
-    f: QtCore.Qt.WindowType
-
-
-class QPushButtonArgs(TypedDict, total=False):
-    icon: QIcon | QPixmap
-    text: str
-    parent: QWidget | None
 
 
 #

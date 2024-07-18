@@ -10,7 +10,6 @@ incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
 4.0.1 ()
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 New
 ~~~
@@ -31,6 +30,7 @@ The name change
 
   * concat_along_phi_ui (based on holoviews)
  
+* Remove Qt related modules.  (Move them to legacy_files)
 
 
 4.0.0 (2024-07-12)

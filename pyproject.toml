@@ -18,11 +18,9 @@ dependencies = [
   "pint>=0.22",
   "h5py>=3.11.0",
   "ase>=3.23.0",
-  "PySide6>=6.2.2",
   "dill>=0.3.6",
   "tqdm>=4.65.0",
   "numba>=0.57.1",
-  "pyqtgraph>=0.12.4",
   "scikit-learn>=1.4.2",
   "scikit-image>=0.20.0",
   "netcdf4>=1.6.4",
@@ -47,7 +45,6 @@ dev-dependencies = [
   "ruff>=0.3.3",
   "pytest>=7.3.2",
   "pytest-cov",
-  "pytest-qt>=4.2.0",
   "pytest-clarity",
   "types-tqdm>=4.65.0.1",
   "pluggy",
@@ -70,8 +67,8 @@ packages = ["src/arpes"]
 
 [tool.coverge.run]
 omit = [
-  "tests/*",
   "src/arpes/plotting/*",
+  "tests/*",
   "src/arpes/deep_learning/*",
   "src/arpes/widgets.py",
 ]
@@ -92,14 +89,6 @@ exclude = [
   "**/MGS.py",
   "**/kaindl.py",
   "**/merlin.py",
-  #
-  "**/fit_tool",
-  "**/qt_tool",
-  "**/qt_ktool",
-  "**/bz_tool",
-  "**/basic_tools",
-  "**/dynamic_tool.py",
-  "**/qt/",
 ]
 
 typeCheckingMode = "standard" # "off", "basic" "standard" "strict"
@@ -185,13 +174,6 @@ exclude = [
   "kaindl\\.py",
   "merlin\\.py",
   # might be included in the future, though
-  "fit_tool/",
-  "qt_tool/",
-  "qt_ktool/",
-  "bz_tool/",
-  "basic_tools/",
-  "dynamic_tool\\.py",
-  "qt/__init__\\.py",
   "widgets\\.py",
 ]
 
