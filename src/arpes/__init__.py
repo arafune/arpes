@@ -18,19 +18,7 @@ __all__ = ["__version__"]
 
 SOURCE_ROOT = str(Path(__file__).parent)
 DATA_PATH: str | None = None
+HAS_LOADED: bool = False
 
-SETTINGS: ConfigSettings = {
-    "interactive": {
-        "main_width": 350,
-        "marginal_width": 150,
-        "palette": "magma",
-    },
-    "use_tex": False,
-}
-CONFIG: ConfigType = {
-    "WORKSPACE": {},
-    "CURRENT_CONTEXT": None,
-    "ENABLE_LOGGING": True,
-    "LOGGING_STARTED": False,
-    "LOGGING_FILE": None,
-}
+if not HAS_LOADED:
+    import arpes.config

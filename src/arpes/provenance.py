@@ -33,8 +33,9 @@ from typing import TYPE_CHECKING, ParamSpec, TypedDict, TypeVar
 
 import xarray as xr
 
-from . import CONFIG, VERSION
+from . import VERSION
 from ._typing import XrTypes
+from .config import CONFIG
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Hashable, Sequence

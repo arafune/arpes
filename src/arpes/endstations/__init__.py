@@ -15,8 +15,8 @@ import numpy as np
 import xarray as xr
 from astropy.io import fits
 
-from arpes import CONFIG, DATA_PATH
-from arpes.config import load_plugins
+from arpes import DATA_PATH
+from arpes.config import CONFIG, load_plugins
 from arpes.load_pxt import find_ses_files_associated, read_single_pxt
 from arpes.provenance import Provenance, provenance_from_file
 from arpes.repair import negate_energy

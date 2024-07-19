@@ -18,7 +18,7 @@ from jupyter_server import serverapp
 from tqdm.notebook import tqdm
 from traitlets.config import MultipleInstanceError
 
-from arpes import CONFIG
+from arpes.config import CONFIG
 
 if TYPE_CHECKING:
     from collections.abc import Iterable

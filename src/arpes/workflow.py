@@ -39,8 +39,7 @@ from typing import TYPE_CHECKING, ParamSpec, TypeVar
 
 import dill
 
-from . import CONFIG
-from .config import WorkspaceManager
+from .config import CONFIG, WorkspaceManager
 from .plotting.utils import path_for_plot
 from .utilities.jupyter import get_notebook_name
 
