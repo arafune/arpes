@@ -112,7 +112,7 @@ DATA_EXAMPLES: dict[str, tuple[str, str]] = {
     "nano_xps": ("example_data", "nano_xps.nc"),
     "temperature_dependence": ("example_data", "temperature_dependence.nc"),
     "cut2": ("SPD", "example_itx_data.itx"),
-    "map2": ("IF_UMCS", "BLGr_GK_example_xy_data.xy"),
+    "cut3": ("IF_UMCS", "example_xy_data_bulk_si.xy"),
 }
 
 
@@ -166,8 +166,8 @@ class ExampleData:
         return load_example_data("cut2")
 
     @property
-    def map2(self) -> xr.Dataset:
-        return load_example_data("map2")
+    def cut3(self) -> xr.Dataset:
+        return load_example_data("cut3")
 
 
 example_data = ExampleData()
