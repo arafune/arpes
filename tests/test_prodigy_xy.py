@@ -12,7 +12,7 @@ data_dir = Path(__file__).parent.parent / "src" / "arpes" / "example_data"
 @pytest.fixture()
 def sample_xy() -> ProdigyXY:
     """Fixture."""
-    with Path(data_dir / "example_xy_data_si_bulk.xy").open(mode="r") as xy_file:
+    with Path(data_dir / "example_xy_data_bulk_si.xy").open(mode="r") as xy_file:
         xy_data: list[str] = xy_file.readlines()
     return ProdigyXY(xy_data)
 
