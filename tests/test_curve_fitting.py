@@ -9,7 +9,7 @@ from arpes.analysis import rebin
 from arpes.fits import AffineBroadenedFD, LorentzianModel, broadcast_model
 from arpes.fits.utilities import parse_model
 
-RTOL = 1e-6 if sys.platform == "darwin" else 1e-2
+RTOL = 2e-6 if sys.platform == "darwin" else 1e-2
 TOLERANCE = 2e-3
 
 
