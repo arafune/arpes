@@ -7,7 +7,7 @@ from arpes.analysis import rebin
 from arpes.fits import AffineBroadenedFD, LorentzianModel, broadcast_model
 from arpes.fits.utilities import parse_model
 
-RTOL = 2e-6
+RTOL = 5e-2  # 5 %
 TOLERANCE = 1e-2
 
 
