@@ -1,6 +1,5 @@
 """Unit test for conversion.forward."""
 
-import sys
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -18,7 +17,7 @@ from arpes.utilities.conversion.forward import (
 if TYPE_CHECKING:
     from collections.abc import Hashable
 
-RTOL = 2e-6 if sys.platform == "darwin" else 1e-2
+RTOL = 1e-4
 
 
 @pytest.fixture()
