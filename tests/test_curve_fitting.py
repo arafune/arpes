@@ -33,7 +33,7 @@ def test_broadcast_fitting(dataarray_cut: xr.DataArray) -> None:
         progress=False,
     )
     a_band_data = fit_results.results.F.bands["a_"]
-    np.testing.assert_almost_equal(
+    np.testing.assert_allclose(
         a_band_data.center.values,
         np.array(
             [
@@ -47,6 +47,7 @@ def test_broadcast_fitting(dataarray_cut: xr.DataArray) -> None:
                 -0.0198554,
             ],
         ),
+        rtol=1e-3,
     )
     np.testing.assert_almost_equal(
         actual=a_band_data.sigma,

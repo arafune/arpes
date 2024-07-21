@@ -9,7 +9,6 @@ a higher quality format.
 
 from __future__ import annotations
 
-import warnings
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from typing import TYPE_CHECKING, ClassVar
 
