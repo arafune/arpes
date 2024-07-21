@@ -16,11 +16,15 @@ TOLERANCE = 2e-3
 def test_parse_model() -> None:
     """Test parse_model."""
     assert parse_model(AffineBroadenedFD) == AffineBroadenedFD
-    assert parse_model((AffineBroadenedFD, LorentzianModel)) == (AffineBroadenedFD, LorentzianModel)
     assert parse_model([AffineBroadenedFD, LorentzianModel]) == [AffineBroadenedFD, LorentzianModel]
     assert parse_model("AffineBroadenedFD + LorentzianModel") == [
         AffineBroadenedFD,
         "+",
+        LorentzianModel,
+    ]
+    assert parse_model("AffineBroadenedFD * LorentzianModel") == [
+        AffineBroadenedFD,
+        "*",
         LorentzianModel,
     ]
 

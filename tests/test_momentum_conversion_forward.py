@@ -52,7 +52,7 @@ def test_convert_through_angular_point(energy_corrected: xr.DataArray) -> None:
     np.testing.assert_allclose(
         cut.values[-5:],
         np.array([2153.6281264, 2145.0536287, 2136.4768379, 2133.0278227, 2140.2402017]),
-        rtol=1e-3,
+        rtol=RTOL,
     )
 
 
