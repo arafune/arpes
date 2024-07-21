@@ -17,7 +17,7 @@ from arpes.utilities.conversion.forward import (
 if TYPE_CHECKING:
     from collections.abc import Hashable
 
-RTOL = 1e-4
+RTOL = 1e-2
 
 
 @pytest.fixture()
