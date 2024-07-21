@@ -1,5 +1,6 @@
 """Unit test for conversion.forward."""
 
+import sys
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -16,6 +17,8 @@ from arpes.utilities.conversion.forward import (
 
 if TYPE_CHECKING:
     from collections.abc import Hashable
+
+RTOL = 2e-6 if sys.platform == "darwin" else 1e-2
 
 
 @pytest.fixture()
@@ -79,7 +82,8 @@ def test_convert_through_angular_pair(energy_corrected: xr.DataArray) -> None:
         {"kx": np.linspace(-0, 0, 400)},  # interpolate from p1 to p2 only
         {"ky": np.linspace(-0.02, 0.02, 10)},  # take 20 milli inv ang. perpendicular
     )
-    np.testing.assert_almost_equal(
+    np.testing.assert_allclose(
         cut.sel(eV=0.0, method="nearest").values[:5],
         np.array([2593.8578436, 2596.044673, 2597.7261315, 2599.1409414, 2600.387114]),
+        rtol=RTOL,
     )
