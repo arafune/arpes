@@ -1,7 +1,5 @@
 """Unit test for curve fitting."""
 
-import sys
-
 import numpy as np
 import xarray as xr
 
@@ -9,7 +7,7 @@ from arpes.analysis import rebin
 from arpes.fits import AffineBroadenedFD, LorentzianModel, broadcast_model
 from arpes.fits.utilities import parse_model
 
-RTOL = 2e-6 if sys.platform == "darwin" else 1
+RTOL = 2e-6
 TOLERANCE = 1e-2
 
 
@@ -38,6 +36,12 @@ def test_broadcast_fitting(dataarray_cut: xr.DataArray) -> None:
         [AffineBroadenedFD],
         near_ef_rebin,
         "phi",
+        prefixes=("a_",),
+        params={
+            "a_center": {"value": 0.0, "vary": True, "min": -0.1},
+            "a_width": {"value": 0.1},
+            "a_lin_bkg": {"value": 20000, "max": 30000, "min": 10000},
+        },
         progress=False,
     )
     a_band_data = fit_results.results.F.bands["a_"]
@@ -45,28 +49,30 @@ def test_broadcast_fitting(dataarray_cut: xr.DataArray) -> None:
         a_band_data.center.values,
         np.array(
             [
-                -0.00456955,
-                -0.00217572,
-                -0.00268341,
-                -0.02043154,
-                -0.00331786,
-                -0.00397203,
-                -0.00390515,
-                -0.0198554,
+                -0.03744157,
+                -0.03853184,
+                -0.035255,
+                -0.04542634,
+                -0.04720573,
+                -0.0463577,
+                -0.04804507,
+                -0.03251984,
             ],
         ),
         rtol=RTOL,  # TODO: [RA]  Consider why this value strongly depends on the platform.
     )
-    np.testing.assert_almost_equal(
+    np.testing.assert_allclose(
         actual=a_band_data.sigma,
         desired=np.array((np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan)),
     )
 
-    np.testing.assert_almost_equal(
+    np.testing.assert_allclose(
         actual=a_band_data.amplitude,
         desired=np.array((np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan)),
     )
-    assert np.abs(fit_results.results.F.p("a_center").mean().item() + 0.00761) < TOLERANCE
+    assert (
+        np.abs(fit_results.results.F.p("a_center").mean().item() + 0.04134788683594517) < TOLERANCE
+    )
 
     fit_results = broadcast_model(
         [AffineBroadenedFD],
