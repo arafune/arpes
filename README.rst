@@ -12,8 +12,8 @@
 
 .. |docs_status| image:: https://readthedocs.org/projects/arpes-v4/badge/?version=daredevil&style=flat
    :target: https://arpes-v4.readthedocs.io/en/daredevil/
-.. |coverage| image:: https://codecov.io/gh/chstan/arpes/branch/master/graph/badge.svg?token=mVrFuVRr3p
-   :target:  https://app.codecov.io/gh/arafune/arpes
+.. image:: https://codecov.io/gh/arafune/arpes/graph/badge.svg?token=TW9EPVB1VE 
+   :target: https://codecov.io/gh/arafune/arpes
 .. |test_status| image:: https://github.com/arafune/arpes/actions/workflows/test.yml/badge.svg?branch=master
    :target: https://github.com/arafune/arpes/actions/workflows/test.yml
 .. |code style| image:: https://img.shields.io/badge/code%20style-black-000000.svg
