@@ -92,7 +92,7 @@ def test_broadcast_fitting(dataarray_cut: xr.DataArray) -> None:
                 403335.4076894,
             ],
         ),
-        rto=1e-3,
+        rtol=1e-3,
     )
 
     params_ = fit_results.results.F.param_as_dataset("a_conv_width")
@@ -110,5 +110,5 @@ def test_broadcast_fitting(dataarray_cut: xr.DataArray) -> None:
                 0.1502903,
             ],
         ),
-        etol=1e-3,
+        rtol=1e-3,
     )
