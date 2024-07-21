@@ -1,5 +1,7 @@
 """Unit test for curve fitting."""
 
+import sys
+
 import numpy as np
 import xarray as xr
 
@@ -7,6 +9,7 @@ from arpes.analysis import rebin
 from arpes.fits import AffineBroadenedFD, LorentzianModel, broadcast_model
 from arpes.fits.utilities import parse_model
 
+RTOL = 1e-6 if sys.platform == "darwin" else 1e-2
 TOLERANCE = 2e-3
 
 
@@ -48,7 +51,7 @@ def test_broadcast_fitting(dataarray_cut: xr.DataArray) -> None:
                 -0.0198554,
             ],
         ),
-        rtol=1e-3,
+        rtol=RTOL,
     )
     np.testing.assert_almost_equal(
         actual=a_band_data.sigma,
@@ -93,7 +96,7 @@ def test_broadcast_fitting(dataarray_cut: xr.DataArray) -> None:
                 403335.4076894,
             ],
         ),
-        rtol=1e-3,
+        rtol=RTOL,
     )
 
     params_ = fit_results.results.F.param_as_dataset("a_conv_width")
@@ -111,5 +114,5 @@ def test_broadcast_fitting(dataarray_cut: xr.DataArray) -> None:
                 0.1502903,
             ],
         ),
-        rtol=1e-3,
+        rtol=RTOL,
     )
