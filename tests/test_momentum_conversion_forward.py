@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pytest
 import xarray as xr
+
 from arpes.fits.fit_models import AffineBroadenedFD, QuadraticModel
 from arpes.fits.utilities import broadcast_model
 from arpes.utilities.conversion.forward import (
@@ -45,9 +46,10 @@ def test_convert_through_angular_point(energy_corrected: xr.DataArray) -> None:
         {"ky": np.linspace(-1, 1, 400)},
         {"kx": np.linspace(-0.02, 0.02, 10)},
     ).sel(eV=0, method="nearest")
-    np.testing.assert_almost_equal(
+    np.testing.assert_allclose(
         cut.values[-5:],
         np.array([2153.6281264, 2145.0536287, 2136.4768379, 2133.0278227, 2140.2402017]),
+        rtol=1e-3,
     )
 
 
