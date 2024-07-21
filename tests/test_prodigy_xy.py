@@ -4,6 +4,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+
 from arpes.endstations.prodigy_xy import ProdigyXY
 
 data_dir = Path(__file__).parent.parent / "src" / "arpes" / "example_data"
