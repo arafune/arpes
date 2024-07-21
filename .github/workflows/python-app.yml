@@ -39,4 +39,4 @@ jobs:
           rye sync
 
       - name: test with rye
-        run: rye test -v
+        run: rye run pytest -vv --color=yes
