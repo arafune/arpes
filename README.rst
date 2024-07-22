@@ -7,7 +7,7 @@
 .. |Documentation| image:: https://img.shields.io/badge/api-reference-blue.svg
    :target: https://arpes-v4.readthedocs.io/en/daredevil/
 
-|test_status| |coverage| |docs_status| |code style| 
+|coverage| |docs_status| |code style| 
 
 
 .. |docs_status| image:: https://readthedocs.org/projects/arpes-v4/badge/?version=daredevil&style=flat
@@ -21,6 +21,7 @@
 .. image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/rye/main/artwork/badge.json
     :target: https://rye-up.com
     :alt: Rye
+
 PyARPES corrected  (V4)
 =======================
 
