@@ -5,7 +5,7 @@ In most case, you can start with
 
 .. code:: python
 
-   import arpes.config
+   import arpes
 
 Loading example data
 --------------------
@@ -15,7 +15,7 @@ spectrum of the topological insulator bismuth selenide:
 
 .. code:: python
 
-   import arpes.config
+   import arpes
    from arpes.io import load_example_data
    load_example_data()
 
@@ -29,7 +29,7 @@ data source it comes from (see the section on
 
 .. code:: python
 
-   import arpes.config
+   import arpes
    from arpes.io import load_data
    load_data('epath/to/my/data.h5', location='ALS-BL7')
 
