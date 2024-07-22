@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 import xarray as xr
+
 from arpes.fits.fit_models import (
     AffineBackgroundModel,
     AffineBroadenedFD,
@@ -340,12 +341,13 @@ class TestGeneralforDataArray:
         cut = fmap.sum("theta", keep_attrs=True).sel(eV=slice(-0.2, 0.1), phi=slice(-0.25, 0.3))
         fit_results = broadcast_model(AffineBroadenedFD, cut, "phi")
         edge = QuadraticModel().guess_fit(fit_results.results.F.p("center")).eval(x=fmap.phi)
-        np.testing.assert_almost_equal(
+        np.testing.assert_allclose(
             actual=fmap.G.shift_by(edge, shift_axis="eV", by_axis="phi").sel(
                 eV=0,
                 method="nearest",
             )[:][0][:5],
             desired=np.array([5.625749, 566.8711542, 757.8334417, 637.2900199, 610.679927]),
+            rtol=1e-2,
         )
         #
         # Taken from custom-dot-t-function

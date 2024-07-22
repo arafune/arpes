@@ -2,6 +2,7 @@
 
 import numpy as np
 import xarray as xr
+
 from arpes.analysis.xps import approximate_core_levels
 
 
@@ -14,7 +15,7 @@ class TestXPS:
     def test_approximate_core_levels(self, dataarray_cut2: xr.DataArray) -> None:
         """Test for approximate_core_levels."""
         energies = approximate_core_levels(dataarray_cut2.S.sum_other(["eV"]))
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             energies,
             [9.36826347305, 9.58383233535, 9.89520958085],
         )

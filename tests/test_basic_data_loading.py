@@ -5,10 +5,11 @@ from __future__ import annotations
 import contextlib
 from typing import TYPE_CHECKING, Any, ClassVar
 
-import arpes.xarray_extensions  # pylint: disable=unused-import, redefined-outer-name  # noqa: F401
 import numpy as np
 import pytest
 import xarray as xr
+
+import arpes.xarray_extensions  # pylint: disable=unused-import, redefined-outer-name  # noqa: F401
 from arpes.utilities.conversion import convert_to_kspace
 
 if TYPE_CHECKING:

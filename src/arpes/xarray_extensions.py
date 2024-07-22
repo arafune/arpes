@@ -2937,7 +2937,7 @@ class GenericDataArrayAccessor(GenericAccessorBase):
         """
         return apply_dataarray(self._obj, np.vectorize(fn, **kwargs))
 
-    def shift_by(  # noqa: PLR0913
+    def shift_by(
         self,
         other: xr.DataArray | NDArray[np.float64],
         shift_axis: str = "",
@@ -3098,7 +3098,7 @@ class SelectionToolAccessor:
 
         return destination
 
-    def first_exceeding(  # noqa: PLR0913
+    def first_exceeding(
         self,
         dim: str,
         value: float,

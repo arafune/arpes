@@ -5,7 +5,7 @@ name: Python application
 
 on:
   push:
-    branches: ["main"]
+    branches: ["**"]
   pull_request:
     branches: ["main"]
 
@@ -37,4 +37,15 @@ jobs:
       - name: Rye activation
         run: |
           rye sync
-          rye run pytest tests
+
+      - name: test with rye
+        run: rye run pytest -vv --color=yes --cov=./  --cov-report=xml
+
+      - uses: codecov/codecov-action@v4
+        with:
+          fail_ci_if_error: true # optional (default = false)
+          files: ./coverage.xml
+          flags: unittests # optional
+          name: codecov-umbrella # optional
+          token: ${{ secrets.CODECOV_TOKEN }} # required
+          verbose: true # optional (default = false)

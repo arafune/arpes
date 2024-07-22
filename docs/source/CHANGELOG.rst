@@ -9,11 +9,7 @@ Primary (X.-.-) version numbers are used to denote backwards
 incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
-4.0.1 ()
-
-New
-~~~
-
+4.0.1 (2024-07-21)
 
 
 Changed

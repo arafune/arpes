@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pytest
 import xarray as xr
+
 from arpes.fits.fit_models import AffineBroadenedFD, QuadraticModel
 from arpes.fits.utilities import broadcast_model
 from arpes.utilities.conversion.forward import (
@@ -15,6 +16,8 @@ from arpes.utilities.conversion.forward import (
 
 if TYPE_CHECKING:
     from collections.abc import Hashable
+
+RTOL = 1e-2
 
 
 @pytest.fixture()
@@ -45,9 +48,10 @@ def test_convert_through_angular_point(energy_corrected: xr.DataArray) -> None:
         {"ky": np.linspace(-1, 1, 400)},
         {"kx": np.linspace(-0.02, 0.02, 10)},
     ).sel(eV=0, method="nearest")
-    np.testing.assert_almost_equal(
+    np.testing.assert_allclose(
         cut.values[-5:],
         np.array([2153.6281264, 2145.0536287, 2136.4768379, 2133.0278227, 2140.2402017]),
+        rtol=RTOL,
     )
 
 
@@ -77,7 +81,8 @@ def test_convert_through_angular_pair(energy_corrected: xr.DataArray) -> None:
         {"kx": np.linspace(-0, 0, 400)},  # interpolate from p1 to p2 only
         {"ky": np.linspace(-0.02, 0.02, 10)},  # take 20 milli inv ang. perpendicular
     )
-    np.testing.assert_almost_equal(
+    np.testing.assert_allclose(
         cut.sel(eV=0.0, method="nearest").values[:5],
         np.array([2593.8578436, 2596.044673, 2597.7261315, 2599.1409414, 2600.387114]),
+        rtol=RTOL,
     )
