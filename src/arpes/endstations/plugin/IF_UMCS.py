@@ -32,16 +32,16 @@ class IF_UMCSEndstation(  # noqa: N801
     PRINCIPAL_NAME = "IF_UMCS"
     ALIASES: ClassVar[list[str]] = ["IF_UMCS", "LubARPES", "LublinARPRES"]
 
-    _TOLERATED_EXTENSIONS: ClassVar[set[str]] = {".xy"}
+    _TOLERATED_EXTENSIONS: ClassVar[set[str]] = {".xy", ".itx"}
 
-    LENS_MAPPING: ClassVar[dict[str, tuple[float, bool]]] = {
-        "HighAngularDispersion": (np.deg2rad(1.0) / 3.2, True),
-        "MediumAngularDispersion": (np.deg2rad(1.0) / 2.2, True),
-        "LowAngularDispersion": (np.deg2rad(1.0) / 1.5, True),
-        "WideAngleMode": (np.deg2rad(1.0) / 0.5, True),
-        "LowMagnification": (2.0, False),
-        "MediumMagnification": (5.0, False),
-        "HighMagnification": (10.0, False),
+    LENS_MAPPING: ClassVar[dict[str, bool]] = {
+        "HighAngularDispersion": True,
+        "MediumAngularDispersion": True,
+        "LowAngularDispersion":  True,
+        "WideAngleMode": True,
+        "LowMagnification": False,
+        "MediumMagnification": False,
+        "HighMagnification": False,
     }
 
     RENAME_KEYS: ClassVar[dict[str, str]] = {
@@ -69,15 +69,19 @@ class IF_UMCSEndstation(  # noqa: N801
         scan_desc: ScanDesc | None = None,
         **kwargs: str | float,
     ) -> xr.Dataset:
-        """Load single xy file."""
+        """Load single file."""
         if scan_desc is None:
             scan_desc = {}
         file = Path(frame_path)
         if file.suffix in self._TOLERATED_EXTENSIONS:
-            data = load_xy(frame_path, **kwargs)
+            if file.suffix == ".xy":
+                data = load_xy(frame_path, **kwargs)
+            elif file.suffix == ".itx":
+                msg = "Not suported yet..."
+                raise RuntimeWarning(msg)
             return xr.Dataset({"spectrum": data}, attrs=data.attrs)
 
-        msg = "Data file must be ended with .xy"
+        msg = "Data file must be ended with .xy or .itx"
         raise RuntimeError(msg)
 
     def postprocess_final(
@@ -102,23 +106,18 @@ class IF_UMCSEndstation(  # noqa: N801
         # Convert to binding energy
         binding_energies = data.coords["eV"].values - data.attrs["hv"]
         data = data.assign_coords({"eV": binding_energies})
-
         lens_mode = data.attrs["lens_mode"].split(":")[0]
-        nonenergy_values = data.coords["nonenergy"].values
 
         if lens_mode in self.LENS_MAPPING:
-            dim_scale, dispersion_mode = self.LENS_MAPPING[lens_mode]
-            nonenergy_coord = nonenergy_values * dim_scale
+            dispersion_mode = self.LENS_MAPPING[lens_mode]
+            if dispersion_mode:
+                data = data.rename({"nonenergy": "phi"})
+                data = data.assign_coords(phi=np.deg2rad(data.phi))
+            else:
+                data = data.rename({"nonenergy": "x"})
         else:
             msg = f"Unknown Analyzer Lens: {lens_mode}"
             raise ValueError(msg)
-
-        if dispersion_mode:
-            data = data.rename({"nonenergy": "phi"})
-            data = data.assign_coords({"phi": nonenergy_coord})
-        else:
-            data = data.rename({"nonenergy": "x"})
-            data = data.assign_coords({"x": nonenergy_coord})
 
         """Add missing parameters."""
         if scan_desc is None:
@@ -140,6 +139,9 @@ class IF_UMCSEndstation(  # noqa: N801
                 s.attrs[k] = v
 
         data = data.rename({k: v for k, v in self.RENAME_KEYS.items() if k in data.coords})
+        if "theta" in data.coords:
+            data = data.assign_coords(theta=np.deg2rad(data.theta))
+
         return super().postprocess_final(data, scan_desc)
 
 

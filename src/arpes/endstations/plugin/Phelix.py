@@ -31,15 +31,15 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
 
     _TOLERATED_EXTENSIONS: ClassVar[set[str]] = {".xy"}
 
-    LENS_MAPPING: ClassVar[dict[str, tuple[float, bool]]] = {
-        "HighAngularDispersion": (np.deg2rad(1.0) / 3.2, True),
-        "MediumAngularDispersion": (np.deg2rad(1.0) / 2.3, True),
-        "LowAngularDispersion": (np.deg2rad(1.0) / 1.5, True),
-        "MediumAngleMode": (np.deg2rad(1.0) / 1.0, True),
-        "WideAngleMode": (np.deg2rad(1.0) / 0.75, True),
-        "LowMagnification": (2.0, False),
-        "MediumMagnification": (5.0, False),
-        "HighMagnification": (10.0, False),
+    LENS_MAPPING: ClassVar[dict[str, bool]] = {
+        "HighAngularDispersion": True,
+        "MediumAngularDispersion": True,
+        "LowAngularDispersion": True,
+        "MediumAngleMode": True,
+        "WideAngleMode": True,
+        "LowMagnification": False,
+        "MediumMagnification": False,
+        "HighMagnification": False,
     }
 
     RENAME_KEYS: ClassVar[dict[str, str]] = {
@@ -49,7 +49,7 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         "detector_voltage": "mcp_voltage",
         "excitation_energy": "hv",
         "region": "id",
-        "shift_x": "psi",
+        "shiftx": "psi",
         "anr1": "theta",
     }
 
@@ -107,16 +107,15 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
 
         lens_mode = data.attrs["lens_mode"].split(":")[0]
         if lens_mode in self.LENS_MAPPING:
-            _, dispersion_mode = self.LENS_MAPPING[lens_mode]
+            dispersion_mode = self.LENS_MAPPING[lens_mode]
+            if dispersion_mode:
+                data = data.rename({"nonenergy": "phi"})
+                data = data.assign_coords(phi=np.deg2rad(data.phi))
+            else:
+                data = data.rename({"nonenergy": "x"})
         else:
             msg = f"Unknown Analyzer Lens: {lens_mode}"
             raise ValueError(msg)
-
-        if dispersion_mode:
-            data = data.rename({"nonenergy": "phi"})
-            data = data.assign_coords(phi=np.deg2rad(data.phi))
-        else:
-            data = data.rename({"nonenergy": "x"})
 
         """Add missing parameters."""
         if scan_desc is None:
@@ -138,6 +137,11 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
                 s.attrs[k] = v
 
         data = data.rename({k: v for k, v in self.RENAME_KEYS.items() if k in data.coords})
+        if "psi" in data.coords:
+            data = data.assign_coords(psi=np.deg2rad(data.psi))
+        if "theta" in data.coords:
+            data = data.assign_coords(theta=np.deg2rad(data.theta))
+
         return super().postprocess_final(data, scan_desc)
 
 

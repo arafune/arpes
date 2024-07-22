@@ -6,9 +6,8 @@ import lmfit as lf
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
-from matplotlib.axes import Axes
-
 from arpes.plotting.fits import plot_fit, plot_fits
+from matplotlib.axes import Axes
 
 
 @pytest.fixture()

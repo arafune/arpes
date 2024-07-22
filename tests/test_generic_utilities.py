@@ -1,7 +1,6 @@
 """Test for generic utility."""
 
 import pytest
-
 from arpes.utilities import clean_keys, deep_equals, deep_update
 
 
