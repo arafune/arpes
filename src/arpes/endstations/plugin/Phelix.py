@@ -1,4 +1,4 @@
-"""Implements data loading for the IF UMCS Lublin ARPES group."""
+"""Implements data loading for the Phelix beamline @ Solaris."""
 
 from __future__ import annotations
 
