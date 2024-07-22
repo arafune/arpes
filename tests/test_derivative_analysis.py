@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import pytest
-
 from arpes.analysis import (
     curvature1d,
     curvature2d,

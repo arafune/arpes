@@ -1,9 +1,8 @@
 """Unit test for plotting/holoviews.py."""
 
 import xarray as xr
-from holoviews.core.layout import AdjointLayout
-
 from arpes.plotting import profile_view
+from holoviews.core.layout import AdjointLayout
 
 
 class TestProfileView:
