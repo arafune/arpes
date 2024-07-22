@@ -28,7 +28,7 @@ import pint
 from . import HAS_LOADED
 
 if TYPE_CHECKING:
-    from ._typing import ConfigSettings, WorkSpaceType
+    from ._typing import ConfigSettings, ConfigType, WorkSpaceType
 
 # pylint: disable=global-statement
 
