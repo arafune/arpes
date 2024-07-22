@@ -11,7 +11,7 @@ in a Jupyter cell. This is a complement to the text based approach that merely p
 offers. Note, as of PyARPES v3.x.y, the xarray version has been bumped and this representation
 is no longer necessary as one is provided upstream.
 
-The main accessors are .S, .G, .X. and .F.
+The main accessors are .S, .G, and .F.
 
 The `.S` accessor:
     The `.S` accessor contains functionality related to spectroscopy. Utilities
@@ -23,12 +23,6 @@ The `.G.` accessor:
     what already exists in the xarray data model. As an example, there are various tools
     for simultaneous iteration of data and coordinates here, as well as for vectorized
     application of functions to data or coordinates.
-
-The `.X` accessor:
-    This is an accessor which contains tools related to selecting and subselecting
-    data. The two most notable tools here are `.X.first_exceeding` which is very useful
-    for initializing curve fits and `.X.max_in_window` which is useful for refining
-    these initial parameter choices.
 
 The `.F` accessor:
     This is an accessor which contains tools related to interpreting curve fitting
@@ -3057,84 +3051,6 @@ class GenericDataArrayAccessor(GenericAccessorBase):
             coords=self._obj.coords,
             dims=self._obj.dims,
         )
-
-
-@xr.register_dataarray_accessor("X")
-class SelectionToolAccessor:
-    _obj: xr.DataArray
-
-    def __init__(self, xarray_obj: xr.DataArray) -> None:
-        self._obj = xarray_obj
-
-    def max_in_window(
-        self,
-        around: xr.DataArray,
-        window: float,
-        n_iters: int = 1,
-    ) -> xr.DataArray:
-        # TODO: refactor into a transform and finish the transform refactor to allow
-        # simultaneous iteration
-        assert isinstance(self._obj, xr.DataArray)
-        destination = around.copy(deep=True) * 0
-
-        # should only be one!
-        (other_dim,) = list(set(self._obj.dims).difference(around.dims))
-
-        for coord in around.G.iter_coords(around.dims):
-            value_item = around.sel(coord, method="nearest").item()
-            marg = self._obj.sel(coord)
-
-            if isinstance(value_item, float):
-                marg = marg.sel({other_dim: slice(value_item - window, value_item + window)})
-            else:
-                marg = marg.isel({other_dim: slice(value_item - window, value_item + window)})
-            marg_argmax = marg.argmax(None)
-            assert isinstance(marg_argmax, xr.DataArray)
-
-            destination.loc[coord] = marg.coords[other_dim][marg_argmax.item()]
-
-        if n_iters > 1:
-            return self.max_in_window(destination, window, n_iters - 1)
-
-        return destination
-
-    def first_exceeding(
-        self,
-        dim: str,
-        value: float,
-        *,
-        relative: bool = False,
-        reverse: bool = False,
-        as_index: bool = False,
-    ) -> xr.DataArray:
-        data = self._obj
-
-        if relative:
-            data = data / data.max(dim)
-
-        cond = data > value
-        cond_values = cond.values
-        reindex = data.coords[dim]
-
-        if reverse:
-            reindex = np.flip(reindex)
-            cond_values = np.flip(cond_values, axis=data.dims.index(dim))
-
-        indices = cond_values.argmax(axis=data.dims.index(dim))
-        if as_index:
-            new_values = indices
-            if reverse:
-                new_values = -new_values + len(reindex) - 1
-        else:
-            new_values = reindex[indices]
-
-        with contextlib.suppress(AttributeError):
-            new_values = new_values.values
-
-        return data.isel({dim: 0}).G.with_values(new_values)
-
-    def last_exceeding(self, dim: str, value: float, *, relative: bool = False) -> xr.DataArray:
-        return self.first_exceeding(dim, value, relative=relative, reverse=False)
 
 
 @xr.register_dataset_accessor("F")
