@@ -2,7 +2,6 @@
 
 import numpy as np
 import pytest
-
 from arpes.utilities import bz_spec
 
 

@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pytest
 import xarray as xr
-
 from arpes.fits.fit_models import AffineBroadenedFD, QuadraticModel
 from arpes.fits.utilities import broadcast_model
 from arpes.utilities.conversion.forward import (

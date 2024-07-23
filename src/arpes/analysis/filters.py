@@ -22,6 +22,7 @@ __all__ = (
     "boxcar_filter_arr",
     "gaussian_filter",
     "gaussian_filter_arr",
+    "savitzky_golay_filter",
 )
 
 

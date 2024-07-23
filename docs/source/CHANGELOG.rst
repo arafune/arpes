@@ -10,6 +10,7 @@ incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
 4.0.2 (2024-xx-xx)
+^^^^^^^^^^^^^^^^^^
 
 Changed
 ~~~~~~~
@@ -18,6 +19,7 @@ Changed
 
 
 4.0.1 (2024-07-21)
+^^^^^^^^^^^^^^^^^^
 
 Changed
 ~~~~~~~
@@ -37,7 +39,7 @@ The name change
 
 
 4.0.0 (2024-07-12)
-^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^
 
 New
 ~~~
