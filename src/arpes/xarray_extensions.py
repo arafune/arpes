@@ -138,6 +138,7 @@ DEFAULT_RADII: dict[str, float] = {
     "phi": 0.02,
     "beta": 0.02,
     "theta": 0.02,
+    "psi": 0.02,
     "eV": 0.05,
     "delay": 0.2,
     "T": 2,
@@ -1445,6 +1446,7 @@ class ARPESAccessorBase(ARPESProperty):
             default_widths["phi"] = 1.0
             default_widths["beta"] = 1.0
             default_widths["theta"] = 1.0
+            default_widths["psi"] = 1.0
         extra_kwargs: dict[str, Incomplete] = {
             k: v for k, v in kwargs.items() if k not in self._obj.dims
         }

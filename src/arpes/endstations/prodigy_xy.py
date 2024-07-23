@@ -83,10 +83,12 @@ class ProdigyXY:
 
         second_dim_name: str = str(dim_names[0])
         second_dim_values = dim_values[0]
+        num_of_second = len(second_dim_values)
+        second_dim_values = np.linspace(second_dim_values[0], second_dim_values[-1], num_of_second)
+
         third_dim_name: str = str(dim_names[1])
         third_dim_values = dim_values[1]
 
-        num_of_second = len(second_dim_values)
         num_of_third = 1 if len(third_dim_values) == 0 else len(third_dim_values)
 
         if self.params["scan_mode"] == "SnapshotFAT":
@@ -94,9 +96,10 @@ class ProdigyXY:
         else:
             num_of_en = int(self.params["values_curve"])
 
-        kinetic_ef_energy = energies[0:num_of_en]
+        kinetic_ef_energy = np.linspace(energies[0], energies[num_of_en-1], num_of_en)
         # first dimension is always energy
         self.axis_info["d1"] = (kinetic_ef_energy, "eV")
+
         # second dimension could be phi angle or x position on the sample in magnification modes
         self.axis_info["d2"] = (second_dim_values, second_dim_name)
         # third dimension - polar angle of the manipulator od deflector shift - psi angle
@@ -134,11 +137,11 @@ class ProdigyXY:
         coords: dict[str, NDArray[np.float64]] = {}
         # set energy axis
         coords[self.axis_info["d1"][1]] = self.axis_info["d1"][0]
-        # set second dimension - non energy ordinate
+        # set the second dimension - non energy ordinate
         coords[self.axis_info["d2"][1]] = self.axis_info["d2"][0]
-        # set third dimension
+        # set the third dimension
         if len(self.axis_info) == MAP_DIMENSION:
-            coords[self.axis_info["d3"][1]] = np.deg2rad(self.axis_info["d3"][0])
+            coords[self.axis_info["d3"][1]] = self.axis_info["d3"][0]
 
         dims = [v[1] for v in self.axis_info.values()]
         data_array = xr.DataArray(

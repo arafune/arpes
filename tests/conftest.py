@@ -6,18 +6,17 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, TypedDict
 
-import pytest
-
 import arpes.config
 import arpes.endstations
+import pytest
 from arpes.io import example_data
+
 from tests.utils import cache_loader
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
 
     import xarray as xr
-
     from arpes._typing import ScanInfo, WorkSpaceType
 
 
