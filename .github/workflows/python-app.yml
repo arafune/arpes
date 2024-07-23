@@ -42,9 +42,11 @@ jobs:
         run: rye run pytest -vv --color=yes --cov=./  --cov-report=xml
 
       - name: Build docs
-        run: |
-          cd docs
-          make latex
+        uses: ammaraskar/sphinx-action@master
+        with:
+          docs-folder: "docs/"
+          pre-build-command: "apt-get update -y && apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended"
+          build-command: "make latexpdf"
 
       - uses: codecov/codecov-action@v4
         with:
