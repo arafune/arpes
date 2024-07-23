@@ -7,18 +7,18 @@
 .. |Documentation| image:: https://img.shields.io/badge/api-reference-blue.svg
    :target: https://arpes-v4.readthedocs.io/en/daredevil/
 
-|coverage| |docs_status| |code style| 
+|coverage| |docs_status| |code_format| |code style| |rye| 
 
 
-.. |docs_status| image:: https://readthedocs.org/projects/arpes-v4/badge/?version=daredevil&style=flat
-   :target: https://arpes-v4.readthedocs.io/en/daredevil/
+.. |docs_status| image:: https://readthedocs.org/projects/arpes-v4/badge/?version=stable&style=flat
+   :target: https://arpes-v4.readthedocs.io/en/stable/
 .. |coverage| image:: https://codecov.io/gh/arafune/arpes/graph/badge.svg?token=TW9EPVB1VE
    :target:  https://app.codecov.io/gh/arafune/arpes
 .. |code style| image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/psf/black
-.. |code fromat| image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
+.. |code_format| image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
    :target: https://github.com/astral-sh/ruff
-.. image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/rye/main/artwork/badge.json
+.. |rye| image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/rye/main/artwork/badge.json
     :target: https://rye-up.com
     :alt: Rye
 
