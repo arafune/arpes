@@ -45,10 +45,9 @@ jobs:
         run: source .venv/bin/activate
 
       - name: Build docs
-        uses: ammaraskar/sphinx-action@master
-        with:
-          docs-folder: "docs/"
-          build-command: "make html"
+        run: |
+          cd docs
+          make html
 
       - uses: codecov/codecov-action@v4
         with:
