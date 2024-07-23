@@ -41,11 +41,9 @@ jobs:
       - name: test with rye
         run: rye run pytest -vv --color=yes --cov=./  --cov-report=xml
 
-      - name: change venv
-        run: source .venv/bin/activate
-
       - name: Build docs
         run: |
+          source .venv/bin/activate
           cd docs
           make html
 
