@@ -461,15 +461,6 @@ Models
    
    fits.fit_models
 
-Helpful Methods for Setting Initial Parameters
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autosummary::
-   :toctree: generated/
-   
-   xarray_extensions.SelectionToolAccessor.first_exceeding
-   xarray_extensions.SelectionToolAccessor.max_in_window
-
 Plotting
 ========
 
