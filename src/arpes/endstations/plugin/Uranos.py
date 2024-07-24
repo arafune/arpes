@@ -12,6 +12,7 @@ from zipfile import ZipFile
 
 import numpy as np
 import xarray as xr
+from arpes.utilities import clean_keys
 
 from arpes.load_pxt import read_single_pxt
 from arpes.endstations import (
@@ -24,13 +25,12 @@ from arpes.endstations import (
 if TYPE_CHECKING:
     from arpes._typing import Spectrometer
     from arpes.endstations import ScanDesc
-    from _typeshed import Incomplete
     from numpy._typing import NDArray
 
 __all__ = ["Uranos"]
 
-class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstation):
 
+class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstation):
     PRINCIPAL_NAME = "Uranos"
     ALIASES: ClassVar[list[str]] = ["Uranos", "Uranos_JU", "Uranos_Solaris"]
 
@@ -121,10 +121,12 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
             attr_conf.read_file(attr_io)
 
             attrs = {
-                v.replace(" ", "_"): k
+                v : _formatted_value(k)
                 for section in attr_conf.sections()
                 for v, k in attr_conf.items(section)
             }
+            attrs = clean_keys(attrs)
+
             data = xr.DataArray(
                 loaded_data,
                 dims=["psi", "phi", "eV"],
@@ -135,13 +137,12 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
                 phi=np.deg2rad(data.phi),
                 psi=np.deg2rad(data.psi),
             )
-
             return xr.Dataset(
                 {"spectrum": data},
-                attrs={**scan_desc},
+                attrs=data.attrs,
             )
-        err_msg = "Check your file is it really suitable?"
-        raise RuntimeError(err_msg)
+        msg = "Not supported file extension"
+        raise RuntimeError(msg)
 
     def postprocess_final(
             self,
@@ -183,6 +184,7 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
 
         return super().postprocess_final(data, scan_desc)
 
+
 def determine_dim(viewer_ini: ConfigParser, dim_name: str) -> tuple[int, NDArray[np.float64], str]:
     """Determine dimension values from the ini file.
 
@@ -205,5 +207,15 @@ def determine_dim(viewer_ini: ConfigParser, dim_name: str) -> tuple[int, NDArray
     name = viewer_ini.get(spectrum_info, dim_name + "_label")
 
     return num, coord, name
+
+
+def _formatted_value(value: str) -> float | str:
+    """Convert string value to float if possible."""
+    value = value.strip()
+    try:
+        return float(value)
+    except ValueError:
+        return value
+
 
 add_endstation(Uranos)
