@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import io
-
-import warnings
 from configparser import ConfigParser
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
@@ -12,25 +10,27 @@ from zipfile import ZipFile
 
 import numpy as np
 import xarray as xr
-from arpes.utilities import clean_keys
 
-from arpes.load_pxt import read_single_pxt
 from arpes.endstations import (
     HemisphericalEndstation,
     SingleFileEndstation,
     SynchrotronEndstation,
     add_endstation,
 )
+from arpes.load_pxt import read_single_pxt
+from arpes.utilities import clean_keys
 
 if TYPE_CHECKING:
+    from numpy._typing import NDArray
+
     from arpes._typing import Spectrometer
     from arpes.endstations import ScanDesc
-    from numpy._typing import NDArray
 
 __all__ = ["Uranos"]
 
 
 class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstation):
+    """Class for Uranos beamline at Solaris Krakow, PL."""
     PRINCIPAL_NAME = "Uranos"
     ALIASES: ClassVar[list[str]] = ["Uranos", "Uranos_JU", "Uranos_Solaris"]
 
@@ -67,20 +67,24 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
             scan_desc: ScanDesc | None = None,
             **kwargs: str | float,
     ) -> xr.Dataset:
+        """Load arpes data: cut (pxt file) or map (zip file)."""
         if scan_desc is None:
             scan_desc = {}
 
         file = Path(frame_path)
 
         if file.suffix == ".pxt":
-            datas = read_single_pxt(frame_path, byte_order="<", allow_multiple=True).rename(W="eV", X="phi")
-            data_var_name = list(datas.data_vars.keys())[0]
+            datas = read_single_pxt(frame_path,
+                                    byte_order="<",
+                                    allow_multiple=True,
+                                    **kwargs).rename(W="eV", X="phi")
+            data_var_name = next(iter(datas.data_vars.keys()))
             data = datas[data_var_name]
             data = data.assign_coords(phi=np.deg2rad(data.phi))
             return xr.Dataset({"spectrum": data}, attrs=data.attrs)
 
         if file.suffix == ".zip":
-            zf = ZipFile(frame_path)
+            zf = ZipFile(frame_path, **kwargs)
             viewer_ini_ziped = zf.open("viewer.ini", "r")
             viewer_ini_io = io.TextIOWrapper(viewer_ini_ziped)
             viewer_ini: ConfigParser = ConfigParser(strict=False)
@@ -160,7 +164,6 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         Returns:
             xr.Dataset: pyARPES compatible.
         """
-
         """Add missing parameters."""
         if scan_desc is None:
             scan_desc = {}
