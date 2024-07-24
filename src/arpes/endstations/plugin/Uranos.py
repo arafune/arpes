@@ -24,9 +24,10 @@ from arpes.endstations import (
 if TYPE_CHECKING:
     from arpes._typing import Spectrometer
     from arpes.endstations import ScanDesc
+    from _typeshed import Incomplete
+    from numpy._typing import NDArray
 
 __all__ = ["Uranos"]
-
 
 class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstation):
 
@@ -34,7 +35,7 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
     ALIASES: ClassVar[list[str]] = ["Uranos", "Uranos_JU", "Uranos_Solaris"]
 
     _SEARCH_DIRECTORIES = ("zip", "pxt")
-    _TOLERATED_EXTENSIONS: ClassVar[set[str]] = {".zip", ".pxt", ".txt"}
+    _TOLERATED_EXTENSIONS: ClassVar[set[str]] = {".zip", ".pxt"}
 
     RENAME_KEYS: ClassVar[dict[str, str]] = {
         "sample": "sample_name",
@@ -45,14 +46,18 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         "step_time": "n_sweeps",
         "energy_step": "sweep_step",
         "instrument": "analyzer",
-        "region_name": "spectrum_type",
+        "region_name": "id",
+        "excitation_energy": "hv",
     }
 
+    ANALYZER_WORKFUNCTION = 4.38
+
     MERGE_ATTRS: ClassVar[Spectrometer] = {
-        "analyzer_name": "DA30-L",
+        "analyzer_name": "DA30L",
         "analyzer_type": "hemispherical",
         "perpendicular_deflectors": True,
         "parallel_deflectors": True,
+        "workfunction": ANALYZER_WORKFUNCTION,
         "alpha": np.deg2rad(90),
     }
 
@@ -60,22 +65,19 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
             self,
             frame_path: str | Path = "",
             scan_desc: ScanDesc | None = None,
-            **kwargs: Incomplete,
+            **kwargs: str | float,
     ) -> xr.Dataset:
-        if kwargs:
-            warnings.warn("Any kwargs is not supported in this function.", stacklevel=2)
         if scan_desc is None:
             scan_desc = {}
+
         file = Path(frame_path)
 
         if file.suffix == ".pxt":
-            frame = read_single_pxt(frame_path).rename(W="eV", X="phi")
-            frame = frame.assign_coords(phi=np.deg2rad(frame.phi))
-
-            return xr.Dataset(
-                {"spectrum": frame},
-                attrs=scan_desc,
-            )
+            datas = read_single_pxt(frame_path, byte_order="<", allow_multiple=True).rename(W="eV", X="phi")
+            data_var_name = list(datas.data_vars.keys())[0]
+            data = datas[data_var_name]
+            data = data.assign_coords(phi=np.deg2rad(data.phi))
+            return xr.Dataset({"spectrum": data}, attrs=data.attrs)
 
         if file.suffix == ".zip":
             zf = ZipFile(frame_path)
@@ -141,9 +143,48 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         err_msg = "Check your file is it really suitable?"
         raise RuntimeError(err_msg)
 
+    def postprocess_final(
+            self,
+            data: xr.Dataset,
+            scan_desc: ScanDesc | None = None,
+    ) -> xr.Dataset:
+        """Perform final processing on the ARPES data.
+
+        - Add missing parameters.
+
+        Args:
+            data(xr.Dataset): ARPES data
+            scan_desc(SCANDESC | None): scan_description. Not used currently
+
+        Returns:
+            xr.Dataset: pyARPES compatible.
+        """
+
+        """Add missing parameters."""
+        if scan_desc is None:
+            scan_desc = {}
+        defaults = {
+            "beta": 0.0,
+            "chi": 0.0,
+            "psi": 0.0,
+            "theta": 0.0,
+            "alpha": np.deg2rad(90),
+            "energy_notation": "Binding",
+        }
+        for k, v in defaults.items():
+            data.attrs[k] = v
+            for s in [dv for dv in data.data_vars.values() if "eV" in dv.dims]:
+                s.attrs[k] = v
+
+        binding_energies = (data.coords["eV"].values
+                            - data.attrs["hv"]
+                            + Uranos.ANALYZER_WORKFUNCTION)
+        data = data.assign_coords({"eV": binding_energies})
+
+        return super().postprocess_final(data, scan_desc)
 
 def determine_dim(viewer_ini: ConfigParser, dim_name: str) -> tuple[int, NDArray[np.float64], str]:
-    """Determine dimension values from from the ini file.
+    """Determine dimension values from the ini file.
 
     Args:
         viewer_ini (ConfigParser): Parser of "viewer.ini"
