@@ -3063,7 +3063,7 @@ class ARPESDatasetFitToolAccessor:
     def __init__(self, xarray_obj: xr.Dataset) -> None:
         self._obj = xarray_obj
 
-    def show(self, **kwargs: Unpack[ProfileViewParam]) -> None:
+    def show(self, **kwargs: Unpack[ProfileViewParam]) -> AdjointLayout:
         """[TODO:summary].
 
         Todo:
