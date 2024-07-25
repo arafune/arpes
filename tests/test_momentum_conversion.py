@@ -2,11 +2,10 @@
 
 from typing import TYPE_CHECKING
 
+import arpes.xarray_extensions  # pylint: disable=unused-import, redefined-outer-name  # noqa: F401
 import numpy as np
 import pytest
 import xarray as xr
-
-import arpes.xarray_extensions  # pylint: disable=unused-import, redefined-outer-name  # noqa: F401
 from arpes.utilities.conversion import convert_to_kspace
 from arpes.utilities.conversion.base import CoordinateConverter
 from arpes.utilities.conversion.forward import (
