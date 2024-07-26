@@ -714,11 +714,22 @@ class PColorMeshKwargs(QuadmeshParam, total=False):
     shading: Literal["flat", "nearest", "gouraud", "auto"]
 
 
-class ProfileViewParam(TypedDict):
-    """Kwargs for profile_view."""
+class InteractiveUIParam(TypedDict):
+    """Kwargs for profile_view.
+
+    width (int): The width of the plot
+    height (int): The height of the plot
+    cmap (str): coloramap in the plot
+    profile_view_height (int): The height of the crosssection profile view.
+    log (bool): if True, the plot is logarithmic.
+    use_quadmesh (bool): If true, use hv.QuadMesh instead of hv.Image.
+        In most case, hv.Image is sufficient. However, if the coords is irregulaly spaced,
+        hv.QuadMesh would be more accurate mapping, but slow.
+    """
 
     width: int
     height: int
     cmap: str
     log: bool
     profile_view_height: int
+    use_quadmesh: bool

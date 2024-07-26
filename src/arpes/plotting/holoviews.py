@@ -15,7 +15,9 @@ from arpes.utilities.combine import concat_along_phi
 from arpes.utilities.normalize import normalize_to_spectrum
 
 if TYPE_CHECKING:
-    from arpes._typing import ProfileViewParam
+    from collections.abc import Callable
+
+    from arpes._typing import InteractiveUIParam
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
@@ -41,6 +43,9 @@ def _fix_xarray_to_fit_with_holoviews(dataarray: xr.DataArray) -> xr.DataArray:
     Returns:
         xr.DataArray, whose coordinates is regularly orderd determined by dataarray.dims.
     """
+    dataarray = (
+        dataarray if isinstance(dataarray, xr.DataArray) else normalize_to_spectrum(dataarray)
+    )
     for coord_name in dataarray.coords:
         if coord_name not in dataarray.dims:
             dataarray = dataarray.drop_vars(str(coord_name))
@@ -49,20 +54,63 @@ def _fix_xarray_to_fit_with_holoviews(dataarray: xr.DataArray) -> xr.DataArray:
     )
 
 
+def interactive_ui(
+    data: xr.DataArray,
+    func: Callable[..., xr.DataArray],
+    str_var: dict[str, tuple[str, ...]],
+    variables: dict[str, tuple[float, float, float]],
+    **kwargs: Unpack[InteractiveUIParam],
+) -> hv.util.Dynamic:
+    """Base of Interactive UI.
+
+    [TODO:description]
+
+    Args:
+        data (xr.DataArray): Data
+        func (Callable): filter function that convert data to another data.
+        str_var tuple[str, tuple[str, ...]): string variable used in the filter function.
+        variables: variables used in the filter function. the value of dict is the tuple.
+            [start_value, end_value, step_value], which is used in redim.range and redim.step
+        kwargs: Options for hv.Image/hv.QuadMesh (width, height, cmap, log, etc.)
+
+    Returns:
+        [TODO:description]
+    """
+    assert data.ndim == TWO_DIMENSION
+    data = _fix_xarray_to_fit_with_holoviews(data)
+    kwargs.setdefault("width", 300)
+    kwargs.setdefault("height", 300)
+    kwargs.setdefault("cmap", "viridis")
+    kwargs.setdefault("log", False)
+    kwargs.setdefault("use_quadmesh", False)
+
+    max_coords = data.G.argmax_coords()
+    posx = hv.streams.PointerX(x=max_coords[data.dims[0]])
+    posy = hv.streams.PointerY(y=max_coords[data.dims[1]])
+
+    second_weakest_intensity = np.partition(np.unique(data.values.flatten()), 1)[1]
+    plot_lim: tuple[None | np.float64, np.float64] = (
+        (second_weakest_intensity * 0.1, data.max().item() * 10)
+        if kwargs["log"]
+        else (None, datay.max().item() * 1.1)
+    )
+
+
+def _as_is(data: xr.DataArray) -> xr.DataArray:
+    return data
+
+
 def concat_along_phi_ui(
     dataarray_a: xr.DataArray,
     dataarray_b: xr.DataArray,
-    **kwargs: Unpack[ProfileViewParam],
+    **kwargs: Unpack[InteractiveUIParam],
 ) -> hv.util.Dynamic:
     """UI for determination of appropriate parameters of concat_along_phi.
 
     Args:
-        dataarray_a: An AREPS data.
-        dataarray_b: Another ARPES data.
-        use_quadmesh (bool): If true, use hv.QuadMesh instead of hv.Image.
-            In most case, hv.Image is sufficient. However, if the coords is irregulaly spaced,
-            hv.QuadMesh would be more accurate mapping, but slow.
-        kwargs: Options for hv.Image/hv.QuadMesh (width, height, cmap, log)
+       dataarray_a: An AREPS data.
+       dataarray_b: Another ARPES data.
+       kwargs: Options for hv.Image/hv.QuadMesh (width, height, cmap, log)
 
     Returns:
         [TODO:description]
@@ -73,6 +121,7 @@ def concat_along_phi_ui(
     kwargs.setdefault("height", 300)
     kwargs.setdefault("cmap", "viridis")
     kwargs.setdefault("log", False)
+    kwargs.setdefault("use_quadmesh", False)
 
     def concate_along_phi_view(
         ratio: float = 0,
@@ -105,18 +154,13 @@ def concat_along_phi_ui(
 
 def profile_view(
     dataarray: xr.DataArray,
-    *,
-    use_quadmesh: bool = False,
-    **kwargs: Unpack[ProfileViewParam],
+    **kwargs: Unpack[InteractiveUIParam],
 ) -> AdjointLayout:
     """Show Profile view interactively.
 
     Args:
-        dataarray: An AREPS data.
-        use_quadmesh (bool): If true, use hv.QuadMesh instead of hv.Image.
-            In most case, hv.Image is sufficient. However, if the coords is irregulaly spaced,
-            hv.QuadMesh would be more accurate mapping, but slow.
-        kwargs: Options for hv.Image/hv.QuadMesh (width, height, cmap, log)
+       dataarray: An AREPS data.
+       kwargs: Options for hv.Image/hv.QuadMesh (width, height, cmap, log)
 
     Todo:
     There are some issues.
@@ -131,6 +175,7 @@ def profile_view(
     kwargs.setdefault("cmap", "viridis")
     kwargs.setdefault("log", False)
     kwargs.setdefault("profile_view_height", 100)
+    kwargs.setdefault("use_quadmesh", False)
 
     assert dataarray.ndim == TWO_DIMENSION
     dataarray = _fix_xarray_to_fit_with_holoviews(dataarray)
@@ -139,9 +184,6 @@ def profile_view(
     posy = hv.streams.PointerY(y=max_coords[dataarray.dims[1]])
 
     second_weakest_intensity = np.partition(np.unique(dataarray.values.flatten()), 1)[1]
-    dataarray = (
-        dataarray if isinstance(dataarray, xr.DataArray) else normalize_to_spectrum(dataarray)
-    )
     plot_lim: tuple[None | np.float64, np.float64] = (
         (second_weakest_intensity * 0.1, dataarray.max().item() * 10)
         if kwargs["log"]
@@ -164,11 +206,11 @@ def profile_view(
         "active_tools": ["box_zoom"],
         "default_tools": ["save", "box_zoom", "reset", "hover"],
     }
-    if use_quadmesh:
-        img: QuadMesh | Image = hv.QuadMesh(dataarray).opts(**image_options)
+    if kwargs["use_quadmesh"]:
+        img = hv.QuadMesh(dataarray).opts(**image_options)
     else:
         img = hv.Image(dataarray).opts(**image_options)
-
+    assert isinstance(img, QuadMesh | Image)
     profile_x = hv.DynamicMap(
         callback=lambda x: hv.Curve(
             dataarray.sel(
@@ -201,17 +243,12 @@ def profile_view(
 
 def fit_inspection(
     dataset: xr.Dataset,
-    *,
-    use_quadmesh: bool = False,
-    **kwargs: Unpack[ProfileViewParam],
+    **kwargs: Unpack[InteractiveUIParam],
 ) -> AdjointLayout:
     """Fit results inspector.
 
     Args:
         dataset: [TODO:description]
-        use_quadmesh (bool): If true, use hv.QuadMesh instead of hv.Image.
-            In most case, hv.Image is sufficient. However, if the coords is irregulaly spaced,
-            hv.QuadMesh would be more accurate mapping, but very slow.
         kwargs: [TODO:description]
 
     Returns:
@@ -222,6 +259,7 @@ def fit_inspection(
     kwargs.setdefault("cmap", "viridis")
     kwargs.setdefault("log", False)
     kwargs.setdefault("profile_view_height", 200)
+    kwargs.setdefault("use_quadmesh", False)
 
     assert "data" in dataset.data_vars
     arpes_measured: xr.DataArray = _fix_xarray_to_fit_with_holoviews(
@@ -259,10 +297,11 @@ def fit_inspection(
         "default_tools": ["save", "box_zoom", "reset", "hover"],
         "framewise": True,
     }
-    if use_quadmesh:
-        img: QuadMesh | Image = hv.QuadMesh(arpes_measured).opts(**image_options)
+    if kwargs["use_quadmesh"]:
+        img = hv.QuadMesh(arpes_measured).opts(**image_options)
     else:
         img = hv.Image(arpes_measured).opts(**image_options)
+    assert isinstance(img, QuadMesh | Image)
     profile_arpes = hv.DynamicMap(
         callback=lambda x: hv.Curve(
             arpes_measured.sel(
