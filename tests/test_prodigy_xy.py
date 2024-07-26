@@ -27,18 +27,18 @@ class TestXY:
         assert sample_xy.axis_info["d3"][1] == "polar"
         assert isinstance(sample_xy.params["detector_voltage"], float)
         assert isinstance(sample_xy.params["values_curve"], int)
-        np.testing.assert_almost_equal(sample_xy.params["eff_workfunction"], 4.31)
-        np.testing.assert_almost_equal(sample_xy.params["excitation_energy"], 21.2182)
-        np.testing.assert_almost_equal(sample_xy.axis_info["d1"][0][5], 20.0803034134)
-        np.testing.assert_almost_equal(sample_xy.axis_info["d3"][0][0], -65.0)
+        np.testing.assert_allclose(sample_xy.params["eff_workfunction"], 4.31)
+        np.testing.assert_allclose(sample_xy.params["excitation_energy"], 21.2182)
+        np.testing.assert_allclose(sample_xy.axis_info["d1"][0][5], 20.0803034134)
+        np.testing.assert_allclose(sample_xy.axis_info["d3"][0][0], -65.0)
 
     def test_integrated_intensity(self, sample_xy: ProdigyXY) -> None:
         """Test for integrated_intensity property."""
-        np.testing.assert_almost_equal(sample_xy.integrated_intensity, 242431787.20654204)
+        np.testing.assert_allclose(sample_xy.integrated_intensity, 242431787.20654204)
 
     def test_convert_to_data_array(self, sample_xy: ProdigyXY) -> None:
         """Test for convert to xr.DataArray."""
         sample_data_array = sample_xy.to_data_array()
         assert sample_data_array.dims == ("eV", "nonenergy", "polar")
         assert sample_data_array.shape == (105, 100, 201)
-        np.testing.assert_almost_equal(sample_data_array.coords["polar"][0], -65.0)
+        np.testing.assert_allclose(sample_data_array.coords["polar"][0], -65.0)

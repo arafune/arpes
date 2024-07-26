@@ -37,7 +37,7 @@ class TestHelperFunction:
             marginal=dataarray_cut2.sel(first_coord),
             scale_parameters=(1, 10, False),
         )
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             ys1[:5],
             np.array([-0.21780313, -0.27563663, -0.26491503, -0.28873633, -0.23568213]),
         )
@@ -127,7 +127,7 @@ class TestStackDispersionPlot:
         )
         assert len(ax.collections) == 10
         paths = ax.collections
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             paths[0].get_paths()[0].vertices[:3],
             np.array([[9.0, 0.19602282], [9.0, 0.19632079], [9.002, 0.19634603]]),
         )

@@ -38,7 +38,7 @@ class TestItx:
 
     def test_integrated_intensity(self, sample_itx: ProdigyItx) -> None:
         """Test for integrated_intensity property."""
-        np.testing.assert_almost_equal(sample_itx.integrated_intensity, 666371.3147352)
+        np.testing.assert_allclose(sample_itx.integrated_intensity, 666371.3147352)
 
     def test_convert_to_dataarray(self, sample_itx: ProdigyItx) -> None:
         """Test for convert to xr.DataArray."""

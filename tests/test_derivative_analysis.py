@@ -64,7 +64,7 @@ class TestCurvature:
             alpha=0.1,
         )
         assert curvature1d_.S.is_differentiated
-        np.testing.assert_almost_equal(
+        np.testing.assert_allclose(
             curvature1d_.S.fat_sel(phi=0).values[:10],
             np.array(
                 [
@@ -90,7 +90,7 @@ class TestCurvature:
             alpha=0.1,
         )
         assert curvature2d_.S.is_differentiated
-        np.testing.assert_almost_equal(
+        np.testing.assert_allclose(
             curvature2d_.S.fat_sel(phi=0).values[:10],
             np.array(
                 [
@@ -114,7 +114,7 @@ class TestCurvature:
             gaussian_filter_arr(arr=dataarray_cut2, sigma={"eV": 0.01, "phi": 0.01}, repeat_n=3),
         )
         assert minimum_gradient_.S.is_differentiated
-        np.testing.assert_almost_equal(
+        np.testing.assert_allclose(
             minimum_gradient_.S.fat_sel(phi=0).values[:10],
             np.array(
                 [
