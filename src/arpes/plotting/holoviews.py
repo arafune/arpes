@@ -32,8 +32,8 @@ logger.propagate = False
 hv.extension("bokeh")
 
 
-def _fix_xarray_to_fit_with_holoview(dataarray: xr.DataArray) -> xr.DataArray:
-    """Helper function to overcome the problem (#6327) in holoview.
+def _fix_xarray_to_fit_with_holoviews(dataarray: xr.DataArray) -> xr.DataArray:
+    """Helper function to overcome the problem (#6327) in holoviews.
 
     Args:
         dataarray (xr.DataArray): input Dataarray
@@ -67,8 +67,8 @@ def concat_along_phi_ui(
     Returns:
         [TODO:description]
     """
-    dataarray_a = _fix_xarray_to_fit_with_holoview(dataarray_a)
-    dataarray_b = _fix_xarray_to_fit_with_holoview(dataarray_b)
+    dataarray_a = _fix_xarray_to_fit_with_holoviews(dataarray_a)
+    dataarray_b = _fix_xarray_to_fit_with_holoviews(dataarray_b)
     kwargs.setdefault("width", 300)
     kwargs.setdefault("height", 300)
     kwargs.setdefault("cmap", "viridis")
@@ -133,7 +133,7 @@ def profile_view(
     kwargs.setdefault("profile_view_height", 100)
 
     assert dataarray.ndim == TWO_DIMENSION
-    dataarray = _fix_xarray_to_fit_with_holoview(dataarray)
+    dataarray = _fix_xarray_to_fit_with_holoviews(dataarray)
     max_coords = dataarray.G.argmax_coords()
     posx = hv.streams.PointerX(x=max_coords[dataarray.dims[0]])
     posy = hv.streams.PointerY(y=max_coords[dataarray.dims[1]])
@@ -224,13 +224,13 @@ def fit_inspection(
     kwargs.setdefault("profile_view_height", 200)
 
     assert "data" in dataset.data_vars
-    arpes_measured: xr.DataArray = _fix_xarray_to_fit_with_holoview(
+    arpes_measured: xr.DataArray = _fix_xarray_to_fit_with_holoviews(
         dataset.data.S.transpose_to_back("eV"),
     )
-    fit = arpes_measured + _fix_xarray_to_fit_with_holoview(
+    fit = arpes_measured + _fix_xarray_to_fit_with_holoviews(
         dataset.residual.S.transpose_to_back("eV"),
     )
-    residual = _fix_xarray_to_fit_with_holoview(
+    residual = _fix_xarray_to_fit_with_holoviews(
         dataset.residual.S.transpose_to_back("eV"),
     )
     max_coords = arpes_measured.G.argmax_coords()
