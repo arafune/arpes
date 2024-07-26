@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, TypedDict
 import arpes.config
 import arpes.endstations
 import pytest
-from arpes.io import example_data
+from arpes.io import example_data, load_data
 
 from tests.utils import cache_loader
 
@@ -18,6 +18,9 @@ if TYPE_CHECKING:
 
     import xarray as xr
     from arpes._typing import ScanInfo, WorkSpaceType
+
+
+datadir = Path(__file__).parent / "resources/datasets/basic/"
 
 
 class Expected(TypedDict, total=False):
@@ -84,6 +87,18 @@ def dataarray_cut2() -> xr.DataArray:
 def dataset_temperature_dependence() -> xr.Dataset:
     """A fixture for loading Dataset (temperature_dependence)."""
     return example_data.temperature_dependence
+
+
+@pytest.fixture()
+def mote2_1() -> xr.Dataset:
+    """A fixture for loading MoTe2."""
+    return load_data(datadir / "MoTe2_42.itx", location="SPD")
+
+
+@pytest.fixture()
+def mote2_2() -> xr.Dataset:
+    """A fixture for loading MoTe2."""
+    return load_data(datadir / "MoTe2_47.itx", location="SPD")
 
 
 @dataclass
