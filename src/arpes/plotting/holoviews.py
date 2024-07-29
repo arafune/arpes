@@ -92,7 +92,7 @@ def interactive_ui(
     plot_lim: tuple[None | np.float64, np.float64] = (
         (second_weakest_intensity * 0.1, data.max().item() * 10)
         if kwargs["log"]
-        else (None, datay.max().item() * 1.1)
+        else (None, data.max().item() * 1.1)
     )
 
 
