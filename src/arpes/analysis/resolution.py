@@ -139,7 +139,11 @@ ENDSTATIONS_BEAMLINE_RESOLUTION = {
 }
 
 
-def analyzer_resolution_estimate(data: xr.DataArray, *, meV: bool = False) -> float:  # noqa: N803
+def analyzer_resolution_estimate(
+    data: xr.DataArray,
+    *,
+    meV: bool = False,  # noqa: N803
+) -> float:
     """Estimates the energy resolution of the analyzer.
 
     For hemispherical analyzers, this can be determined by the slit
@@ -256,7 +260,11 @@ def beamline_resolution_estimate(
     raise NotImplementedError
 
 
-def thermal_broadening_estimate(data: DataType, *, meV: bool = False) -> float:  # noqa: N803
+def thermal_broadening_estimate(
+    data: DataType,
+    *,
+    meV: bool = False,  # noqa: N803
+) -> float:
     """Calculates the thermal broadening from the temperature on the data."""
     return normalize_to_spectrum(data).S.temp * K_BOLTZMANN_MEV_KELVIN * (1 if meV else 0.001)
 
