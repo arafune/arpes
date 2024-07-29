@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Unpack
 
 import holoviews as hv
 import numpy as np
-from param import Magnitude
 import xarray as xr
 from holoviews import AdjointLayout, DynamicMap, Image, QuadMesh
 
