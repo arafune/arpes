@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 __all__ = (
     "curvature1d",
     "curvature2d",
+    "dn_along_axis",
     "d1_along_axis",
     "d2_along_axis",
     "minimum_gradient",

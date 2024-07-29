@@ -57,20 +57,21 @@ def _fix_xarray_to_fit_with_holoviews(dataarray: xr.DataArray) -> xr.DataArray:
 def interactive_ui(
     data: xr.DataArray,
     func: Callable[..., xr.DataArray],
-    str_var: dict[str, tuple[str, ...]],
     variables: dict[str, tuple[float, float, float]],
     **kwargs: Unpack[InteractiveUIParam],
 ) -> hv.util.Dynamic:
-    """Base of Interactive UI.
-
-    [TODO:description]
+    """Base of Interactive UI for  analysis function using ``derivative``.
 
     Args:
         data (xr.DataArray): Data
         func (Callable): filter function that convert data to another data.
+                At least, "curvature1d", "curvature2d", "dn_along_axis", "d1_along_axis",
+                "d2_along_axis", and "minimum_gradient" should work.
+        func_smooth (Callable): smoothing function that is applied before conversion.
         str_var tuple[str, tuple[str, ...]): string variable used in the filter function.
-        variables: variables used in the filter function. the value of dict is the tuple.
-            [start_value, end_value, step_value], which is used in redim.range and redim.step
+        variables (dict[str, tuple[float, float, float]]): variables used in the filter function.
+            the value of dict is the tuple. [start_value, end_value, step_value], which is used
+            in redim.range and redim.step
         kwargs: Options for hv.Image/hv.QuadMesh (width, height, cmap, log, etc.)
 
     Returns:
@@ -83,10 +84,20 @@ def interactive_ui(
     kwargs.setdefault("cmap", "viridis")
     kwargs.setdefault("log", False)
     kwargs.setdefault("use_quadmesh", False)
+    range_ = {key: (value[0], value[1]) for key, value in variables.items()}
+    step_ = {key: value[2] for key, value in variables.items()}
 
     max_coords = data.G.argmax_coords()
     posx = hv.streams.PointerX(x=max_coords[data.dims[0]])
     posy = hv.streams.PointerY(y=max_coords[data.dims[1]])
+    vline: DynamicMap = hv.DynamicMap(
+        lambda x: hv.VLine(x=x or max_coords[data.dims[0]]),
+        streams=[posx],
+    )
+    hline: DynamicMap = hv.DynamicMap(
+        lambda y: hv.HLine(y=y or max_coords[data.dims[1]]),
+        streams=[posy],
+    )
 
     second_weakest_intensity = np.partition(np.unique(data.values.flatten()), 1)[1]
     plot_lim: tuple[None | np.float64, np.float64] = (
@@ -94,6 +105,50 @@ def interactive_ui(
         if kwargs["log"]
         else (None, data.max().item() * 1.1)
     )
+
+    def view_converted() -> hv.Image:
+        image_options = {
+            "width": kwargs["width"],
+            "height": kwargs["height"],
+            "logz": kwargs["log"],
+            "cmap": kwargs["cmap"],
+            "active_tools": ["box_zoom"],
+            "default_tools": ["save", "box_zoom", "reset", "hover"],
+        }
+
+        converted_data = func(data)
+        return hv.Image(converted_data).opts(
+            **image_options,
+        )
+
+    dmap: DynamicMap = hv.DynamicMap(callback=view_converted, kdims=list(variables))
+    profile_x = hv.DynamicMap(
+        callback=lambda x: hv.Curve(
+            data.sel(
+                **{str(data.dims[0]): x},
+                method="nearest",
+            ),
+        ),
+        streams=[posx],
+    ).opts(
+        ylim=plot_lim,
+        width=kwargs["profile_view_height"],
+        logx=kwargs["log"],
+    )
+    profile_y = hv.DynamicMap(
+        callback=lambda y: hv.Curve(
+            data.sel(
+                **{str(data.dims[1]): y},
+                method="nearest",
+            ),
+        ),
+        streams=[posy],
+    ).opts(
+        ylim=plot_lim,
+        height=kwargs["profile_view_height"],
+        logx=kwargs["log"],
+    )
+    return dmap.redim.range(**range_).redim.step(**step_) * hline * vline << profile_x << profile_y
 
 
 def _as_is(data: xr.DataArray) -> xr.DataArray:
@@ -149,7 +204,7 @@ def concat_along_phi_ui(
         callback=concate_along_phi_view,
         kdims=["ratio", "magnification"],
     )
-    return dmap.redim.values(ratio=np.linspace(0, 1, 201), magnification=np.linspace(0, 2, 201))
+    dmap.redim.range(**range_).redim.step(**step_)
 
 
 def profile_view(
