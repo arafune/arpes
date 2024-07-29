@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Unpack
 
 import holoviews as hv
 import numpy as np
+from param import Magnitude
 import xarray as xr
 from holoviews import AdjointLayout, DynamicMap, Image, QuadMesh
 
@@ -204,7 +205,9 @@ def concat_along_phi_ui(
         callback=concate_along_phi_view,
         kdims=["ratio", "magnification"],
     )
-    dmap.redim.range(**range_).redim.step(**step_)
+    range_ = {"ratio": (0.0, 1.0), "magnification": (0.0, 2.0)}
+    step_ = {"ratio": 0.01, "magnification": 0.01}
+    return dmap.redim.range(**range_).redim.step(**step_)
 
 
 def profile_view(
