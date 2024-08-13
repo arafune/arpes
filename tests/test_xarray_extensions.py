@@ -30,9 +30,10 @@ class TestforProperties:
 
     def test_find_spectrum_energy_edges(self, dataarray_cut: xr.DataArray) -> None:
         """Test for find_spectrum_energy_edges."""
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             np.array([-0.3883721, -0.14883726, 0.00465109]),
             dataarray_cut.S.find_spectrum_energy_edges(),
+            rtol=1e-5,
         )
         np.testing.assert_array_equal(
             np.array([16, 119, 185]),
@@ -41,11 +42,12 @@ class TestforProperties:
 
     def test_find_spectrum_angular_edges(self, dataarray_cut: xr.DataArray) -> None:
         """Test for find_spectrum_angular_edges."""
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             np.array([0.249582, 0.350811, 0.385718, 0.577704]),
             dataarray_cut.S.find_spectrum_angular_edges(),
+            rtol=1e-5,
         )
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             np.array([16, 74, 94, 204]),
             dataarray_cut.S.find_spectrum_angular_edges(indices=True),
         )
@@ -63,13 +65,13 @@ class TestforProperties:
     def test_sum_other(self, dataarray_cut: xr.DataArray) -> None:
         """Test S.sum_other / mean_other."""
         small_region = dataarray_cut.sel({"eV": slice(-0.001, 0.0), "phi": slice(0.40, 0.41)})
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             small_region.S.sum_other(["phi"]),
             np.array(
                 [467, 472, 464, 458, 438],
             ),
         )
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             small_region.S.mean_other(["phi"]),
             np.array(
                 [467, 472, 464, 458, 438],
@@ -83,8 +85,8 @@ class TestforProperties:
         transpose_to_back_ndarray = (
             dataarray_cut.S.transpose_to_front("eV").S.transpose_to_back("eV").values
         )
-        np.testing.assert_array_equal(original_ndarray, transpose_to_front_ndarray.T)
-        np.testing.assert_array_equal(original_ndarray, transpose_to_back_ndarray)
+        np.testing.assert_allclose(original_ndarray, transpose_to_front_ndarray.T)
+        np.testing.assert_allclose(original_ndarray, transpose_to_back_ndarray)
 
     def test_property_for_degrees_of_freedom(
         self,
@@ -116,9 +118,10 @@ class TestforProperties:
         assert dataarray_cut.S.sample_angles[0] == 0
         assert dataarray_cut.S.sample_angles[1] == 0
         assert dataarray_cut.S.sample_angles[2] == -0.10909301748228785
-        np.testing.assert_almost_equal(
+        np.testing.assert_allclose(
             dataarray_cut.S.sample_angles[3][0:3].values,
             np.array([0.2216568, 0.2234021, 0.2251475]),
+            rtol=1e-5,
         )
         assert dataarray_cut.S.sample_angles[4] == 0
         assert dataarray_cut.S.sample_angles[5] == 0
@@ -167,20 +170,20 @@ class TestforProperties:
         assert "x" in generic_stride
         assert "y" in generic_stride
         generic_stride = dataarray_cut.G.stride("eV", generic_dim_names=False)
-        np.testing.assert_almost_equal(generic_stride, 0.0023255810)
+        np.testing.assert_allclose(generic_stride, 0.0023255810)
         stride = dataarray_cut.G.stride(["eV"], generic_dim_names=False)
-        np.testing.assert_almost_equal(stride, 0.0023255810)
+        np.testing.assert_allclose(stride, 0.0023255810)
         stride = dataarray_cut.G.stride(["eV", "phi"], generic_dim_names=False)
-        np.testing.assert_array_almost_equal(stride, (0.0023255810, 0.001745))
+        np.testing.assert_allclose(stride, (0.0023255810, 0.001745), rtol=1e-3)
         range_ = dataarray_cut.G.range(generic_dim_names=False)
-        np.testing.assert_array_almost_equal(range_["eV"], (-0.4255814, 0.13023245))
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(range_["eV"], (-0.4255814, 0.13023245))
+        np.testing.assert_allclose(
             range_["phi"],
             (0.22165681500327986, 0.6387905062299246),
         )
         range_ = dataarray_cut.G.range(generic_dim_names=True)
-        np.testing.assert_array_almost_equal(range_["y"], (-0.4255814, 0.13023245))
-        np.testing.assert_array_almost_equal(range_["x"], (0.22165681500327986, 0.6387905062299246))
+        np.testing.assert_allclose(range_["y"], (-0.4255814, 0.13023245))
+        np.testing.assert_allclose(range_["x"], (0.22165681500327986, 0.6387905062299246))
 
     def test_experimental_conditions(self, dataset_cut: xr.Dataset) -> None:
         """Test for property experimenta_conditions."""
@@ -220,17 +223,17 @@ def test_select_around(dataarray_cut: xr.DataArray) -> None:
     """Test for select_around."""
     data_1 = dataarray_cut.S.select_around(point={"phi": 0.30}, radius={"phi": 0.05}).values
     data_2 = dataarray_cut.sel(phi=slice(0.25, 0.35)).sum("phi").values
-    np.testing.assert_almost_equal(data_1, data_2)
+    np.testing.assert_allclose(data_1, data_2)
     data_1 = dataarray_cut.S.select_around(
         point={"phi": 0.30},
         radius={"phi": 0.05},
         mode="mean",
     ).values
     data_2 = dataarray_cut.sel(phi=slice(0.25, 0.35)).mean("phi").values
-    np.testing.assert_almost_equal(data_1, data_2)
+    np.testing.assert_allclose(data_1, data_2)
     data_1 = dataarray_cut.S.select_around(point={"phi": 0.30}, radius={"phi": 0.000001}).values
     data_2 = dataarray_cut.sel(phi=0.3, method="nearest").values
-    np.testing.assert_almost_equal(data_1, data_2)
+    np.testing.assert_allclose(data_1, data_2)
 
 
 def test_find(dataarray_cut: xr.DataArray) -> None:
@@ -362,7 +365,7 @@ class TestGeneralforDataArray:
             "temperature",
         ).results.F.p("b_center")
         near_ef.G.shift_by(phis - phis.mean(), shift_axis="phi")
-        np.testing.assert_almost_equal(
+        np.testing.assert_allclose(
             near_ef.sel(phi=-0.12, method="nearest").values,
             np.array(
                 [
@@ -481,7 +484,7 @@ class TestAngleUnitforDataArray:
         # rad -> deg
         dataarray_cut.S.swap_angle_unit()
         phi_coords = dataarray_cut.coords["phi"].values
-        np.testing.assert_array_almost_equal(phi_coords[0:6], [12.7, 12.8, 12.9, 13.0, 13.1, 13.2])
+        np.testing.assert_allclose(phi_coords[0:6], [12.7, 12.8, 12.9, 13.0, 13.1, 13.2])
         assert (
             dataarray_cut.coords["chi"]
             == dataarray_cut.attrs["chi_offset"]
@@ -492,7 +495,7 @@ class TestAngleUnitforDataArray:
         # deg -> rad
         dataarray_cut.S.swap_angle_unit()
 
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             dataarray_cut.coords["phi"].values[0:6],
             original_phi_coords[0:6],
         )
@@ -530,7 +533,7 @@ class TestAngleUnitForDataset:
         # rad -> deg
         dataset_cut.S.swap_angle_unit()
         phi_coords = dataset_cut.coords["phi"].values
-        np.testing.assert_array_almost_equal(phi_coords[0:6], [12.7, 12.8, 12.9, 13.0, 13.1, 13.2])
+        np.testing.assert_allclose(phi_coords[0:6], [12.7, 12.8, 12.9, 13.0, 13.1, 13.2])
         assert (
             dataset_cut.coords["chi"]
             == dataset_cut.attrs["chi_offset"]
@@ -544,21 +547,21 @@ class TestAngleUnitForDataset:
                 == spectrum.attrs["chi_offset"]
                 == np.rad2deg(-0.10909301748228785)
             )
-            np.testing.assert_array_almost_equal(
+            np.testing.assert_allclose(
                 spectrum.coords["phi"][0:6],
                 [12.7, 12.8, 12.9, 13.0, 13.1, 13.2],
             )
 
         # deg -> rad
         dataset_cut.S.swap_angle_unit()
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             dataset_cut.coords["phi"].values[0:6],
             original_phi_coords[0:6],
         )
         assert dataset_cut.S.angle_unit == "Radians"
 
         for spectrum in dataset_cut.S.spectra:
-            np.testing.assert_array_almost_equal(
+            np.testing.assert_allclose(
                 spectrum.coords["phi"].values[0:6],
                 original_phi_coords[0:6],
             )

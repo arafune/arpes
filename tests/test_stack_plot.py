@@ -19,7 +19,7 @@ class TestHelperFunction:
             marginal=dataarray_cut2.sel(first_coord),
             scale_parameters=(1, 10, False),
         )
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             ys0[:5],
             np.array(
                 [
@@ -37,7 +37,7 @@ class TestHelperFunction:
             marginal=dataarray_cut2.sel(first_coord),
             scale_parameters=(1, 10, False),
         )
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             ys1[:5],
             np.array([-0.21780313, -0.27563663, -0.26491503, -0.28873633, -0.23568213]),
         )
@@ -47,7 +47,7 @@ class TestHelperFunction:
         rebinning = stack_plot._rebinning(dataarray_cut2, stack_axis="phi", max_stacks=10)
         assert rebinning[1] == "phi"
         assert rebinning[2] == "eV"
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             rebinning[0].values[0][:10],
             np.array(
                 [
@@ -66,22 +66,22 @@ class TestHelperFunction:
         )
 
         not_rebinning = stack_plot._rebinning(dataarray_cut2, stack_axis="phi", max_stacks=830)
-        np.testing.assert_array_almost_equal(not_rebinning[0].values, dataarray_cut2.values)
+        np.testing.assert_allclose(not_rebinning[0].values, dataarray_cut2.values)
 
     def test__scale_factor(self, dataarray_cut2: xr.DataArray) -> None:
         """Test for helperfuncsion, _scale_factor."""
         scale_factor = stack_plot._scale_factor(dataarray_cut2, "phi")
-        np.testing.assert_almost_equal(scale_factor, 0.19045560735480058)
-        np.testing.assert_almost_equal(
+        np.testing.assert_allclose(scale_factor, 0.19045560735480058)
+        np.testing.assert_allclose(
             stack_plot._scale_factor(dataarray_cut2, "phi", offset_correction="constant"),
             desired=0.19896425702750428,
         )
-        np.testing.assert_almost_equal(
+        np.testing.assert_allclose(
             stack_plot._scale_factor(dataarray_cut2, "phi", offset_correction="constant_right"),
             desired=0.19896425702750428,
         )
 
-        np.testing.assert_almost_equal(
+        np.testing.assert_allclose(
             stack_plot._scale_factor(dataarray_cut2, "phi", offset_correction=None),
             desired=0.19184807723402728,
         )
@@ -127,11 +127,11 @@ class TestStackDispersionPlot:
         )
         assert len(ax.collections) == 10
         paths = ax.collections
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             paths[0].get_paths()[0].vertices[:3],
             np.array([[9.0, 0.19602282], [9.0, 0.19632079], [9.002, 0.19634603]]),
         )
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_allclose(
             actual=paths[-1].get_paths()[0].vertices[:3],
             desired=np.array([[9.0, -0.19602282], [9.0, -0.19578132], [9.002, -0.19573485]]),
         )
