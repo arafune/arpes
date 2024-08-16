@@ -96,7 +96,7 @@ class ProdigyXY:
         else:
             num_of_en = int(self.params["values_curve"])
 
-        kinetic_ef_energy = np.linspace(energies[0], energies[num_of_en-1], num_of_en)
+        kinetic_ef_energy = np.linspace(energies[0], energies[num_of_en - 1], num_of_en)
         # first dimension is always energy
         self.axis_info["d1"] = (kinetic_ef_energy, "eV")
 

@@ -96,7 +96,17 @@ def apply_dataarray(
     *args: Incomplete,
     **kwargs: Incomplete,
 ) -> xr.DataArray:
-    """Applies a function onto the values of a DataArray."""
+    """Applies a function onto the values of a DataArray.
+
+    Args:
+        arr (xr.DataArray): original DataArray.
+        f (Callable): Function to apple the DataArray.
+        args: argments for "f".
+        kwargs: keyword arguments for "f"
+
+    Returns:
+        xr.Dataarray replaced after the function.
+    """
     return arr.G.with_values(
         f(arr.values, *args, **kwargs),
         keep_attrs=True,
