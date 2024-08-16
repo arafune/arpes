@@ -37,7 +37,7 @@ class IF_UMCSEndstation(  # noqa: N801
     LENS_MAPPING: ClassVar[dict[str, bool]] = {
         "HighAngularDispersion": True,
         "MediumAngularDispersion": True,
-        "LowAngularDispersion":  True,
+        "LowAngularDispersion": True,
         "WideAngleMode": True,
         "LowMagnification": False,
         "MediumMagnification": False,
