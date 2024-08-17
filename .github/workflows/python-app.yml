@@ -45,7 +45,6 @@ jobs:
         run: |
           source .venv/bin/activate
           cd docs
-          echo ${{ secrets.CODECOV_TOKEN }}
           make html
 
       - uses: codecov/codecov-action@v4
