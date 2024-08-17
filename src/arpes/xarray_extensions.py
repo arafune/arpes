@@ -100,6 +100,7 @@ if TYPE_CHECKING:
 
     import lmfit
     from _typeshed import Incomplete
+    from holoviews import AdjointLayout
     from matplotlib import animation
     from matplotlib.axes import Axes
     from matplotlib.figure import Figure
@@ -2152,7 +2153,7 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
         with plt.rc_context(rc={"text.usetex": False}):
             self._obj.plot(*args, **kwargs)
 
-    def show(self, **kwargs: Unpack[ProfileViewParam]) -> None:
+    def show(self, **kwargs: Unpack[ProfileViewParam]) -> AdjointLayout:
         """Show holoviews based plot."""
         return profile_view(self._obj, **kwargs)
 
@@ -3062,7 +3063,7 @@ class ARPESDatasetFitToolAccessor:
     def __init__(self, xarray_obj: xr.Dataset) -> None:
         self._obj = xarray_obj
 
-    def show(self, **kwargs: Unpack[ProfileViewParam]) -> None:
+    def show(self, **kwargs: Unpack[ProfileViewParam]) -> AdjointLayout:
         """[TODO:summary].
 
         Todo:

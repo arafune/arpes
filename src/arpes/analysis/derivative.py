@@ -288,7 +288,7 @@ def dn_along_axis(
 
     Args:
         arr (xr.DataArray): ARPES data
-        dim (str): dimension for derivative
+        dim (str): dimension for derivative (default is the first item in dims)
         smooth_fn (Callable | None): smoothing function. Define like as:
 
             def warpped_filter(arr: xr.DataArray):

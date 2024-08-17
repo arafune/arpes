@@ -477,7 +477,7 @@ def labeled_fermi_surface(  # noqa: PLR0913
     if include_symmetry_points:
         for point_name, point_location in data.S.iter_symmetry_points:
             warnings.warn("Symmetry point locations are not k-converted", stacklevel=2)
-            coords = tuple([point_location[d] for d in dim_order])
+            coords: Sequence[float] = [point_location[d] for d in dim_order]
             ax.plot(*coords, marker=".", color=marker_color)
             ax.annotate(
                 label_for_symmetry_point(point_name),

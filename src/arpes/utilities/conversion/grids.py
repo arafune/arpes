@@ -119,6 +119,7 @@ def _is_dims_match_coordinate_convert(
         ("theta",),
         ("beta",),
         ("phi", "theta"),
+        ("phi", "psi"),
         ("beta", "phi"),
         ("hv", "phi"),
         ("hv",),

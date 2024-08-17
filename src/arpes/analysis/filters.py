@@ -115,7 +115,7 @@ def boxcar_filter_arr(
     for dim in arr.dims:
         if dim not in integered_size:
             integered_size[str(dim)] = default_size
-    widths_pixel: tuple[int, ...] = tuple([integered_size[str(k)] for k in arr.dims])
+    widths_pixel: list[int, ...] = [integered_size[str(k)] for k in arr.dims]
     array_values: NDArray[np.float64] = np.nan_to_num(arr.values, nan=0.0, copy=True)
     for _ in range(repeat_n):
         array_values = ndimage.uniform_filter(

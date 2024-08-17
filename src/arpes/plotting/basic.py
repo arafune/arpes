@@ -32,7 +32,7 @@ logger.addHandler(handler)
 logger.propagate = False
 
 
-__all__ = ["make_reference_plots", "make_overview"]
+__all__ = ["make_overview", "make_reference_plots"]
 
 
 def make_overview(
