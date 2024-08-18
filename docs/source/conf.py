@@ -10,6 +10,7 @@ sys.path.append(os.path.abspath(".."))
 
 import warnings
 warnings.filterwarnings("ignore")
+os.environ["PYTHONWARNINGS"] = "ignore"
 
 import datetime
 
