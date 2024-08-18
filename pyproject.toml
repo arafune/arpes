@@ -58,6 +58,7 @@ dev-dependencies = [
   "pydata-sphinx-theme",
   "neovim",
   "mypy",
+  "nbstripout"
 ]
 
 [tool.hatch.metadata]

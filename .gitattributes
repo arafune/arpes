@@ -5,3 +5,6 @@
 *.h5   binary
 *.pxt  binary
 *.nc   binary
+*.ipynb filter=nbstripout
+*.zpln filter=nbstripout
+*.ipynb diff=ipynb
