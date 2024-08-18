@@ -203,9 +203,10 @@ def load_json_configuration(filename: str) -> None:
 try:
     from local_config import *  # noqa: F403
 except ImportError:
-    warn(
+    warnings.warn(
         "Could not find local configuration file. If you don't "
         "have one, you can safely ignore this message.",
+        stacklevel=2,
     )
 
 
