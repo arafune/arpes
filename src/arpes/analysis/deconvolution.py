@@ -160,7 +160,7 @@ def make_psf(
     pixels: dict[Hashable, int] = dict(
         zip(
             data.dims,
-            tuple([i - 1 if i % 2 == 0 else i for i in data.shape]),
+            [i - 1 if i % 2 == 0 else i for i in data.shape],
             strict=True,
         ),
     )
