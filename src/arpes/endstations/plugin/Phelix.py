@@ -75,7 +75,7 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         if file.suffix in self._TOLERATED_EXTENSIONS:
             data = load_xy(frame_path, **kwargs)
             if "anr1" in data.coords:
-                data = data.assign_coords(anr1=data.anr1 + np.deg2rad(85))
+                data = data.assign_coords(anr1=data.anr1 + 85)
 
             return xr.Dataset({"spectrum": data}, attrs=data.attrs)
 
