@@ -48,6 +48,16 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         "instrument": "analyzer",
         "region_name": "id",
         "excitation_energy": "hv",
+        "X": "x",
+        "Y": "y",
+        "z": "z",
+        "r1": "theta",
+        "r3": "beta",
+    }
+
+    NORMAL_EMISSION: ClassVar[dict[str, float]] = {
+        "r1": 178.0,
+        "r3": -88,
     }
 
     ANALYZER_WORKFUNCTION = 4.38
@@ -81,6 +91,11 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
             data_var_name = next(iter(datas.data_vars.keys()))
             data = datas[data_var_name]
             data = data.assign_coords(phi=np.deg2rad(data.phi))
+            for rot_axis in ["r1", "r3"]:
+                try:
+                    data.attrs[rot_axis] = np.deg2rad(data.attrs[rot_axis] - Uranos.NORMAL_EMISSION[rot_axis])
+                except KeyError:
+                    print(f"Angle: {rot_axis} not found in attributes.")
             return xr.Dataset({"spectrum": data}, attrs=data.attrs)
 
         if file.suffix == ".zip":
@@ -131,6 +146,12 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
             }
             attrs = clean_keys(attrs)
 
+            for rot_axis in ["r1", "r3"]:
+                try:
+                    attrs[rot_axis] = -(np.deg2rad(attrs[rot_axis] - Uranos.NORMAL_EMISSION[rot_axis]))
+                except KeyError:
+                    print(f"Angle: {rot_axis} not found in attributes.")
+
             data = xr.DataArray(
                 loaded_data,
                 dims=["psi", "phi", "eV"],
@@ -172,18 +193,22 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
             "chi": 0.0,
             "psi": 0.0,
             "theta": 0.0,
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
             "alpha": np.deg2rad(90),
             "energy_notation": "Binding",
         }
         for k, v in defaults.items():
-            data.attrs[k] = v
+            data.attrs[k] = data.attrs.get(k, v)
             for s in [dv for dv in data.data_vars.values() if "eV" in dv.dims]:
-                s.attrs[k] = v
+                s.attrs[k] = s.attrs.get(k, v)
 
         binding_energies = (data.coords["eV"].values
                             - data.attrs["hv"]
                             + Uranos.ANALYZER_WORKFUNCTION)
         data = data.assign_coords({"eV": binding_energies})
+        data = data.rename({k: v for k, v in self.RENAME_KEYS.items() if k in data.coords})
 
         return super().postprocess_final(data, scan_desc)
 
