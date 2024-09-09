@@ -2,11 +2,15 @@
 
 # -- Path setup --------------------------------------------------------------
 import os
+from os.path import abspath
 import sys
 
 sys.path.append(os.path.abspath("../src/arpes"))
 sys.path.append(os.path.abspath(".."))
 
+import warnings
+warnings.filterwarnings("ignore")
+os.environ["PYTHONWARNINGS"] = "ignore"
 
 import datetime
 
@@ -27,7 +31,6 @@ version = ".".join(arpes.__version__.split(".")[:2])
 release = arpes.__version__
 
 # supress some output information for nbconvert, don't open tools
-arpes.config.DOCS_BUILD = True
 
 nbsphinx_allow_errors = True
 

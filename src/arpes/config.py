@@ -51,7 +51,11 @@ __all__ = ("load_plugins", "setup_logging", "update_configuration")
 
 
 # these are all set by ``update_configuration``
+
 DOCS_BUILD: bool = False
+
+HAS_LOADED: bool = False
+
 FIGURE_PATH: str | Path | None = None
 DATASET_PATH: str | Path | None = None
 
@@ -71,16 +75,6 @@ CONFIG: ConfigType = {
     "LOGGING_STARTED": False,
     "LOGGING_FILE": None,
 }
-
-
-def warn(msg: str) -> None:
-    """Conditionally render a warning using `warnings.warn`.
-
-    ToDo: TEST
-    """
-    if DOCS_BUILD:
-        return
-    warnings.warn(msg, stacklevel=2)
 
 
 def update_configuration(user_path: Path | str = "") -> None:
@@ -230,9 +224,10 @@ def load_json_configuration(filename: str) -> None:
 try:
     from local_config import *  # noqa: F403
 except ImportError:
-    warn(
+    warnings.warn(
         "Could not find local configuration file. If you don't "
         "have one, you can safely ignore this message.",
+        stacklevel=2,
     )
 
 
