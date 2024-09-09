@@ -25,8 +25,6 @@ from typing import TYPE_CHECKING, Any
 import matplotlib as mpl
 import pint
 
-from . import HAS_LOADED
-
 if TYPE_CHECKING:
     from ._typing import ConfigSettings, ConfigType, WorkSpaceType
 
