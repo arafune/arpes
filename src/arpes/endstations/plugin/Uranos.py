@@ -56,8 +56,8 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
     }
 
     NORMAL_EMISSION: ClassVar[dict[str, float]] = {
-        "r1": 178.0,
-        "r3": -88,
+        "theta": 178.0,
+        "beta": -88.0,
     }
 
     ANALYZER_WORKFUNCTION = 4.38
@@ -77,7 +77,7 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
             scan_desc: ScanDesc | None = None,
             **kwargs: str | float,
     ) -> xr.Dataset:
-        """Load arpes data: cut (pxt file) or map (zip file)."""
+        """Load arpes data: cut / cuts (pxt file) or map (zip file)."""
         if scan_desc is None:
             scan_desc = {}
 
@@ -90,12 +90,6 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
                                     **kwargs).rename(W="eV", X="phi")
             data_var_name = next(iter(datas.data_vars.keys()))
             data = datas[data_var_name]
-            data = data.assign_coords(phi=np.deg2rad(data.phi))
-            for rot_axis in ["r1", "r3"]:
-                try:
-                    data.attrs[rot_axis] = np.deg2rad(data.attrs[rot_axis] - Uranos.NORMAL_EMISSION[rot_axis])
-                except KeyError:
-                    print(f"Angle: {rot_axis} not found in attributes.")
             return xr.Dataset({"spectrum": data}, attrs=data.attrs)
 
         if file.suffix == ".zip":
@@ -146,21 +140,11 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
             }
             attrs = clean_keys(attrs)
 
-            for rot_axis in ["r1", "r3"]:
-                try:
-                    attrs[rot_axis] = -(np.deg2rad(attrs[rot_axis] - Uranos.NORMAL_EMISSION[rot_axis]))
-                except KeyError:
-                    print(f"Angle: {rot_axis} not found in attributes.")
-
             data = xr.DataArray(
                 loaded_data,
                 dims=["psi", "phi", "eV"],
                 coords=built_coords,
                 attrs=attrs,
-            )
-            data = data.assign_coords(
-                phi=np.deg2rad(data.phi),
-                psi=np.deg2rad(data.psi),
             )
             return xr.Dataset(
                 {"spectrum": data},
@@ -189,10 +173,10 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         if scan_desc is None:
             scan_desc = {}
         defaults = {
-            "beta": 0.0,
+            "beta": Uranos.NORMAL_EMISSION["beta"],
             "chi": 0.0,
             "psi": 0.0,
-            "theta": 0.0,
+            "theta": Uranos.NORMAL_EMISSION["theta"],
             "x": 0.0,
             "y": 0.0,
             "z": 0.0,
@@ -208,7 +192,16 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
                             - data.attrs["hv"]
                             + Uranos.ANALYZER_WORKFUNCTION)
         data = data.assign_coords({"eV": binding_energies})
+
         data = data.rename({k: v for k, v in self.RENAME_KEYS.items() if k in data.coords})
+
+        for coord in ["psi", "phi"]:
+            if coord in data.coords:
+                data = data.assign_coords({coord: np.deg2rad(data[coord])})
+
+        for coord in ["theta", "beta"]:
+            if coord in data.attrs:
+                data.attrs[coord] = np.deg2rad(data.attrs[coord] - Uranos.NORMAL_EMISSION[coord])
 
         return super().postprocess_final(data, scan_desc)
 
