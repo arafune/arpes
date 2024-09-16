@@ -53,6 +53,10 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         "anr1": "theta",
     }
 
+    NORMAL_EMISSION: ClassVar[dict[str, float]] = {
+        "theta": 83.5,
+    }
+
     MERGE_ATTRS: ClassVar[Spectrometer] = {
         "analyzer": "Specs PHOIBOS 225",
         "analyzer_name": "Specs PHOIBOS 225",
@@ -74,8 +78,6 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         file = Path(frame_path)
         if file.suffix in self._TOLERATED_EXTENSIONS:
             data = load_xy(frame_path, **kwargs)
-            if "anr1" in data.coords:
-                data = data.assign_coords(anr1=data.anr1 + 85)
 
             return xr.Dataset({"spectrum": data}, attrs=data.attrs)
 
@@ -137,11 +139,12 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
                 s.attrs[k] = v
 
         data = data.rename({k: v for k, v in self.RENAME_KEYS.items() if k in data.coords})
+
         if "psi" in data.coords:
             data = data.assign_coords(psi=np.deg2rad(data.psi))
         if "theta" in data.coords:
-            data = data.assign_coords(theta=np.deg2rad(data.theta))
-
+            data = data.assign_coords(theta=np.deg2rad(-data.theta - Phelix.NORMAL_EMISSION['theta']))
+            data = data.isel(theta=slice(None,None,-1))
         return super().postprocess_final(data, scan_desc)
 
 
