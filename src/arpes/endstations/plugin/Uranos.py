@@ -1,8 +1,12 @@
-"""Implements data loading for the URANOS beamline @ Solaris."""
+"""Implements data loading for the URANOS beamline @ Solaris.
+
+Plugin based on the SSRF_NSRL.
+"""
 
 from __future__ import annotations
 
 import io
+import warnings
 from configparser import ConfigParser
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
@@ -60,14 +64,14 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         "beta": -88.0,
     }
 
-    ANALYZER_WORKFUNCTION = 4.38
+    ANALYZER_WORK_FUNCTION = 4.38
 
     MERGE_ATTRS: ClassVar[Spectrometer] = {
         "analyzer_name": "DA30L",
         "analyzer_type": "hemispherical",
         "perpendicular_deflectors": True,
         "parallel_deflectors": True,
-        "workfunction": ANALYZER_WORKFUNCTION,
+        "work_function": ANALYZER_WORK_FUNCTION,
         "alpha": np.deg2rad(90),
     }
 
@@ -78,6 +82,8 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
             **kwargs: str | float,
     ) -> xr.Dataset:
         """Load arpes data: cut / cuts (pxt file) or map (zip file)."""
+        if kwargs:
+            warnings.warn("Any kwargs is not supported in this function.", stacklevel=2)
         if scan_desc is None:
             scan_desc = {}
 
@@ -87,13 +93,13 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
             datas = read_single_pxt(frame_path,
                                     byte_order="<",
                                     allow_multiple=True,
-                                    **kwargs).rename(W="eV", X="phi")
+                                    ).rename(W="eV", X="phi")
             data_var_name = next(iter(datas.data_vars.keys()))
             data = datas[data_var_name]
             return xr.Dataset({"spectrum": data}, attrs=data.attrs)
 
         if file.suffix == ".zip":
-            zf = ZipFile(frame_path, **kwargs)
+            zf = ZipFile(frame_path)
             viewer_ini_ziped = zf.open("viewer.ini", "r")
             viewer_ini_io = io.TextIOWrapper(viewer_ini_ziped)
             viewer_ini: ConfigParser = ConfigParser(strict=False)
@@ -134,7 +140,7 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
             attr_conf.read_file(attr_io)
 
             attrs = {
-                v : _formatted_value(k)
+                v: _formatted_value(k)
                 for section in attr_conf.sections()
                 for v, k in attr_conf.items(section)
             }
@@ -190,7 +196,7 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
 
         binding_energies = (data.coords["eV"].values
                             - data.attrs["hv"]
-                            + Uranos.ANALYZER_WORKFUNCTION)
+                            + Uranos.ANALYZER_WORK_FUNCTION)
         data = data.assign_coords({"eV": binding_energies})
 
         data = data.rename({k: v for k, v in self.RENAME_KEYS.items() if k in data.coords})
