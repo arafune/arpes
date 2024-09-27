@@ -113,6 +113,7 @@ SCAN_FIXTURE_LOCATIONS = {
     "basic/MAESTRO_PHONY_15.fits": "BL7",
     "basic/MAESTRO_16.fits": "BL7",
     "basic/MAESTRO_nARPES_focus_17.fits": "BL7-nano",
+    "basic/Uranos_cut.pxt": "Uranos",
 }
 
 
