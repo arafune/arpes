@@ -9,6 +9,15 @@ Primary (X.-.-) version numbers are used to denote backwards
 incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
+4.0.2 (XXXX-YY-ZZ)
+^^^^^^^^^^^^^^^^^^
+
+Changed
+~~~~~~~
+
+* Required python version >= 3.11
+* Add new endstation
+
 4.0.1 (2024-07-21)
 ^^^^^^^^^^^^^^^^^^
 

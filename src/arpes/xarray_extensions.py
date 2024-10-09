@@ -46,7 +46,6 @@ from typing import (
     Any,
     Literal,
     Self,
-    TypeAlias,
     TypedDict,
     TypeGuard,
     TypeVar,
@@ -123,7 +122,7 @@ if TYPE_CHECKING:
     )
     from .provenance import Provenance
 
-    IncompleteMPL: TypeAlias = Incomplete
+    type IncompleteMPL = Incomplete
 
 __all__ = ["ARPESDataArrayAccessor", "ARPESDatasetAccessor", "ARPESFitToolsAccessor"]
 

@@ -2,23 +2,16 @@
 
 In particular, we frequently allow using the `DataType` annotation,
 which refers to either an xarray.DataArray|xarray.Dataset.
-
-Additionally, we often use `NormalizableDataType` which
-means essentially anything that can be turned into a dataset,
-for instance by loading from the cache using an ID,|which is
-literally already data.
 """
 
 from __future__ import annotations
 
-import uuid
 from typing import (
     TYPE_CHECKING,
     Any,
     Final,
     Literal,
     Required,
-    TypeAlias,
     TypedDict,
     TypeGuard,
     TypeVar,
@@ -55,9 +48,8 @@ if TYPE_CHECKING:
     from numpy.typing import ArrayLike, NDArray
 
 DataType = TypeVar("DataType", xr.DataArray, xr.Dataset)
-NormalizableDataType: TypeAlias = DataType | str | uuid.UUID
 
-XrTypes: TypeAlias = xr.DataArray | xr.Dataset
+type XrTypes = xr.DataArray | xr.Dataset
 
 
 __all__ = [
@@ -67,7 +59,6 @@ __all__ = [
     "AnalyzerInfo",
     "ConfigType",
     "DataType",
-    "NormalizableDataType",
     "Spectrometer",
     "WorkSpaceType",
     "XrTypes",
