@@ -9,14 +9,15 @@ Primary (X.-.-) version numbers are used to denote backwards
 incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
-4.0.2 (2024-xx-xx)
+
+4.1.0 (YYYY-MM-DD)
 ^^^^^^^^^^^^^^^^^^
 
 Changed
 ~~~~~~~
 
-* As this version,  we can begin with `import arpes`.
-
+* As this version, we can begin with `import arpes`.
+* Add new endstation
 
 4.0.1 (2024-07-21)
 ^^^^^^^^^^^^^^^^^^
