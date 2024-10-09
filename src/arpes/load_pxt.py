@@ -7,7 +7,7 @@ import re
 import warnings
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, TypeAlias
+from typing import TYPE_CHECKING, Any, Literal
 
 import numpy as np
 import xarray as xr
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
     from ._typing import XrTypes
 
-Wave: TypeAlias = Any  # really, igor.Wave but we do not assume installation
+type Wave = Any
 
 __all__ = (
     "find_ses_files_associated",
