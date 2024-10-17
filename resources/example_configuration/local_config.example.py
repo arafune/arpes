@@ -6,5 +6,5 @@ SETTINGS = {
         "marginal_width": 300,
         "palette": "magma",
     },
-    "DEBUG": True,
+    "use_tex": True,
 }
