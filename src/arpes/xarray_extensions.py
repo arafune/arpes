@@ -3186,7 +3186,7 @@ class ARPESFitToolsAccessor:
             Test
         """
         assert isinstance(self._obj, xr.DataArray)
-        stacked = self._obj.stack(dimensions={"by_error": self._obj.dims})
+        stacked = self._obj.stack(dim={"by_error": self._obj.dims})
 
         error = stacked.F.mean_square_error()
 
