@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ._typing import ConfigSettings, ConfigType
 # Use both version conventions for people's sanity.
-VERSION = "4.0.1"
+VERSION = "4.1.0"
 __version__ = VERSION
 
 
