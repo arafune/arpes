@@ -10,6 +10,7 @@ from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from os import SEEK_END
 from pathlib import Path
 from typing import TYPE_CHECKING, Required, TypedDict, TypeVar
+from urllib.error import HTTPError
 
 import ipykernel
 from IPython.core.getipython import get_ipython
@@ -17,7 +18,6 @@ from IPython.core.interactiveshell import InteractiveShell
 from jupyter_server import serverapp
 from tqdm.notebook import tqdm
 from traitlets.config import MultipleInstanceError
-from urllib.error import HTTPError
 
 from arpes.config import CONFIG
 
