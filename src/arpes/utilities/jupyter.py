@@ -17,6 +17,7 @@ from IPython.core.interactiveshell import InteractiveShell
 from jupyter_server import serverapp
 from tqdm.notebook import tqdm
 from traitlets.config import MultipleInstanceError
+from urllib.error import HTTPError
 
 from arpes.config import CONFIG
 
@@ -127,6 +128,8 @@ def get_full_notebook_information() -> NoteBookInfomation | None:
                     }
         except (KeyError, TypeError):
             pass
+        except HTTPError:
+            logger.debug("Could not read notebook information")
     return None
 
 
