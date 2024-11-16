@@ -10,6 +10,7 @@ from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from os import SEEK_END
 from pathlib import Path
 from typing import TYPE_CHECKING, Required, TypedDict, TypeVar
+from urllib.error import HTTPError
 
 import ipykernel
 from IPython.core.getipython import get_ipython
@@ -127,6 +128,8 @@ def get_full_notebook_information() -> NoteBookInfomation | None:
                     }
         except (KeyError, TypeError):
             pass
+        except HTTPError:
+            logger.debug("Could not read notebook information")
     return None
 
 
