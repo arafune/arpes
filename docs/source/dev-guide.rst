@@ -7,18 +7,17 @@ Topics
 Installing an editable copy of PyARPES
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1. Install `rye <https://rye-up.com/>` to make an isolated environment for development.
+1. Install `uv <https://docs.astral.sh/uv/guides/projects/>` to make an isolated environment for development.
 2. Clone the respository
 
 .. code:: bash
 
    git clone https://gitlab.com/arafune/arpes
 
-3. Install libraries to develop PyARPES with
+3. Make virtual environment in the cloned directory, and activate it.
+4. Install libraries to develop PyARPES with
 
-   ``rye sync``.
-
-4. After that, activate the .venv/ environment.
+   ``uv sync``.
 
 Tests (with coverage information)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

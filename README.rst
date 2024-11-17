@@ -7,7 +7,7 @@
 .. |Documentation| image:: https://img.shields.io/badge/api-reference-blue.svg
    :target: https://arpes-v4.readthedocs.io/en/daredevil/
 
-|coverage| |docs_status| |code_format| |code style| |rye| 
+|coverage| |docs_status| |code_format| |code style| |uv| 
 
 
 .. |docs_status| image:: https://readthedocs.org/projects/arpes-v4/badge/?version=stable&style=flat
@@ -18,9 +18,10 @@
    :target: https://github.com/psf/black
 .. |code_format| image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
    :target: https://github.com/astral-sh/ruff
-.. |rye| image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/rye/main/artwork/badge.json
-    :target: https://rye-up.com
-    :alt: Rye
+.. |uv| image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json
+    :target: https://github.com/astral-sh/uv 
+    :alt: uv
+
 
 PyARPES corrected  (V4)
 =======================
@@ -95,15 +96,13 @@ Local installation from source
 If you want to modify the source for PyARPES as you use it, you might prefer a local installation from source.
 Details can be found on `the documentation site`_.
 
-
-
 Suggested steps
 ---------------
 
-1. install `rye <https://rye-up.com>`__.
+1. Install `uv <https://docs.astral.sh/uv/guides/projects/>`__
 2. Clone or duplicate the folder structure in this repository by `git clone https://github.com/arafune/arpes.git`
-3. ``rye sync`` in ``arpes`` directory
-4. Activate ``arpes`` environment (the way to activate depends on the OS/shell: I have confirmed the arpes-V4 works on Mac/Linux/Windows).
+3. In the ``arpes`` directory, make the virtual environment, and activate it. The way of activation depends on your shell (bash, fish, zsh, powershell, etc.).
+4 . ``uv sync`` in ``arpes`` directory
 
 Contact
 =======
@@ -112,8 +111,6 @@ Very unfortunately, we cannot get any responses from the original author.  The c
 
 Questions, difficulties, and suggestions can be directed to Conrad Stansbury (chstan@berkeley.edu)
 or added to the repository as an issue. In the case of trouble, also check the `FAQ`_.
-
-
 
 Copyright |copy| 2018-2019 by Conrad Stansbury, all rights reserved.
 

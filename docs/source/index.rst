@@ -8,10 +8,10 @@ That is likely th main reason he has not maintained it.
 There is no motivation to maintain codes that is not being used.
 
 Since the previous version release, the  python ecosystem has been improved significantly.
-Conda is no longer necessarily the best system, especially for Macintosh users.
+Conda is no longer necessarily the best system, especially for the Macintosh users.
 In fact, I believe that it can sometimes cause confusion.
-Therefore,  I have decided to drop the Conda-related support. Instead,
-I strongly recommend to use "rye".
+Thus,  I have decided to drop the Conda-related support. Instead,
+I strongly recommend to use "uv".
 
 While I have added many type hints in the codes to improve usability and maintainability,
 I still feel that the current package is not very user-friencdly for less experienced Python users.

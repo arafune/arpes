@@ -20,25 +20,21 @@ frequently change the source of PyARPES as you work. You can use code
 available either from the main repository at
 `GitHub <https://github.com/arafune/arpes>`.
 
-1. Install `rye <https://rye-up.com>`__
+1. Install `uv <https://docs.astral.sh/uv/guides/projects/>`__
 2. Clone or otherwise download the respository
 
 .. code:: bash
 
    git clone https://github.com/arafune/arpes
 
-3. Make a python environment according to our provided specification
+3. Make a python environment according to our provided specification, and activate
 
 .. code:: bash
 
-   cd path/to/python-arpes
-   rye sync
-
-3. Activate the environment
-
-.. code:: bash
-
-   activate .venv/bin/activate
+   cd path/to/pyarpes
+   uv venv  (if path/to/pyarpes/.venv does not exist.)
+   source .venv/bin/activate  (Activation way depends on your shell.)
+   uv sync
 
 4. *Recommended:* Configure IPython kernel according to the **Barebones
    Kernel Installation** below. Especially, to use pyarpes on JupyterLab,
@@ -48,14 +44,10 @@ available either from the main repository at
    python -m ipykernel install --user --display-name "My Name Here"
 
 Additional Suggested Steps
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-
 1. Install and configure standard tools like
-   `Jupyter <https://jupyter.org/>`__ or `Jupyter Lab <https://jupyterlab.readthedocs.io/en/latest>`__. Notes on
-   installing and configuring Jupyter based installations can be found
-   in ``jupyter.md``
+   `Jupyter <https://jupyter.org/>`__ or `Jupyter Lab <https://jupyterlab.readthedocs.io/en/latest>`__. 
 2. Explore the documentation and example notebooks at 
    `the documentation site <https://arpes-v4.readthedocs.io/en/daredevil/>`__.
 
