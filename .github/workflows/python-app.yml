@@ -33,7 +33,7 @@ jobs:
           sudo apt -y update
           sudo apt -y install libhdf5-dev libnetcdf-dev make pandoc
 
-      - name: Rye activation
+      - name: uv sync
         run: |
           uv sync --all-extras --dev
 
