@@ -15,31 +15,34 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-      - name: Install rye
-        uses: eifinger/setup-rye@v4
-        id: setup-rye
-        with:
-          enable-cache: true
-          version: "latest"
+          python-version: ${{ matrix.python-version }}
+      - name: Install uv
+        uses: eifinger/setup-uv@v3
+
+      - name: Set up Python
+        run: uv python install ${{ matrix.python-version }}
 
       - name: Install libhdf5-dev by apt
         run: |
           sudo apt -y update
           sudo apt -y install libhdf5-dev libnetcdf-dev make pandoc
 
-      - name: Rye activation
+      - name: uv sync
         run: |
-          rye sync
+          uv sync --all-extras --dev
 
-      - name: test with rye
-        run: rye run pytest -vv --color=yes --cov=./  --cov-report=xml
+      - name: test with uv
+        run: uv run pytest -vv --color=yes --cov=./  --cov-report=xml
 
       - name: Build docs
         run: |
