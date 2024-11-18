@@ -959,8 +959,7 @@ def load_data_for_figure(p: str | Path) -> None:
     """Tries to load the data associated with a given figure by unpickling the saved data."""
     path = str(p)
     stem = str(Path(path).parent / Path(path).stem)
-    if stem.endswith("-PAPER"):
-        stem = stem[:-6]
+    stem = stem.removesuffix("-PAPER")
 
     pickle_file = stem + ".pickle"
 
