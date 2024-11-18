@@ -19,6 +19,11 @@ Changed
 * As this version, we can begin with `import arpes`.
 * Add new endstation
 
+Miror
+~~~~~
+
+* Recommend to use uv, instead of rye.
+
 4.0.1 (2024-07-21)
 ^^^^^^^^^^^^^^^^^^
 
