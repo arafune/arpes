@@ -74,6 +74,8 @@ CONFIG: ConfigType = {
     "LOGGING_FILE": None,
 }
 
+PLUGINS: set[str] = set()
+
 
 def update_configuration(user_path: Path | str = "") -> None:
     """Performs an update of PyARPES configuration from a module.
