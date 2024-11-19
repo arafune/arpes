@@ -102,7 +102,7 @@ Suggested steps
 1. Install `uv <https://docs.astral.sh/uv/guides/projects/>`__
 2. Clone or duplicate the folder structure in this repository by `git clone https://github.com/arafune/arpes.git`
 3. In the ``arpes`` directory, make the virtual environment, and activate it. The way of activation depends on your shell (bash, fish, zsh, powershell, etc.).
-4 . ``uv sync`` in ``arpes`` directory
+4. ``uv sync`` in ``arpes`` directory
 
 Contact
 =======
