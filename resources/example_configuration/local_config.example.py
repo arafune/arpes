@@ -8,3 +8,13 @@ SETTINGS = {
     },
     "use_tex": True,
 }
+
+CONFIG = {
+    "WORKSPACE": {},
+    "CURRENT_CONTEXT": None,
+    "ENABLE_LOGGING": True,
+    "LOGGING_STARTED": False,
+    "LOGGING_FILE": None,
+}
+
+PLUGINS: set[str] = set()

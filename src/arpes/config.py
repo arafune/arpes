@@ -25,13 +25,15 @@ from typing import TYPE_CHECKING, Any
 import matplotlib as mpl
 import pint
 
+from . import HAS_LOADED
+
 if TYPE_CHECKING:
     from ._typing import ConfigSettings, ConfigType, WorkSpaceType
 
 # pylint: disable=global-statement
 
 LOGLEVELS = (DEBUG, INFO)
-LOGLEVEL = LOGLEVELS[1]
+LOGLEVEL = LOGLEVELS[0]
 logger = getLogger(__name__)
 fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
 formatter = Formatter(fmt)
@@ -52,8 +54,6 @@ __all__ = ("load_plugins", "setup_logging", "update_configuration")
 
 DOCS_BUILD: bool = False
 
-HAS_LOADED: bool = False
-
 FIGURE_PATH: str | Path | None = None
 DATASET_PATH: str | Path | None = None
 
@@ -73,6 +73,8 @@ CONFIG: ConfigType = {
     "LOGGING_STARTED": False,
     "LOGGING_FILE": None,
 }
+
+PLUGINS: set[str] = set()
 
 
 def update_configuration(user_path: Path | str = "") -> None:
@@ -259,6 +261,7 @@ def load_plugins() -> None:
         for m in Path(plugins_dir).iterdir()
         if m.stem not in skip_modules
     ]
+    logger.debug(f"modules are {modules}")
     for module in modules:
         try:
             loaded_module = importlib.import_module(f"arpes.endstations.plugin.{module}")
@@ -351,13 +354,17 @@ def setup_logging() -> None:
     except ImportError:
         return
 
+    if not CONFIG["ENABLE_LOGGING"]:
+        logger.debug(f'CONFIG["ENABLE_LOGGING"]: {CONFIG["ENABLE_LOGGING"]}')
+        return
+
     if isinstance(ipython, InteractiveShell) and ipython.logfile:
         CONFIG["LOGGING_STARTED"] = True
         CONFIG["LOGGING_FILE"] = ipython.logfile
         logger.debug(f'CONFIG["LOGGING_FILE"]: {CONFIG["LOGGING_FILE"]}')
 
     try:
-        if CONFIG["ENABLE_LOGGING"] and not CONFIG["LOGGING_STARTED"]:
+        if not CONFIG["LOGGING_STARTED"]:
             CONFIG["LOGGING_STARTED"] = True
             from .utilities.jupyter import generate_logfile_path
 
@@ -370,8 +377,11 @@ def setup_logging() -> None:
         logging.exception("Attribute Error occurs.  Check module loading for IPypthon")
 
 
+logger.debug("setup_logging")
 setup_logging()
+logger.debug("update_configuration")
 update_configuration()
+logger.debug("load_plugins")
 load_plugins()
-
+logger.debug("load_plugins:done")
 from . import xarray_extensions  # noqa: E402, F401

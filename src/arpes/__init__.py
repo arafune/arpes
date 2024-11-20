@@ -4,10 +4,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from ._typing import ConfigSettings, ConfigType
 # Use both version conventions for people's sanity.
 VERSION = "4.1.0"
 __version__ = VERSION
