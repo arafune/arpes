@@ -21,9 +21,10 @@ from dataclasses import dataclass, field
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-
 import matplotlib as mpl
 import pint
+
+from . import HAS_LOADED
 
 if TYPE_CHECKING:
     from ._typing import ConfigSettings, ConfigType, WorkSpaceType
@@ -51,8 +52,6 @@ __all__ = ("load_plugins", "setup_logging", "update_configuration")
 # these are all set by ``update_configuration``
 
 DOCS_BUILD: bool = False
-
-HAS_LOADED: bool = False
 
 FIGURE_PATH: str | Path | None = None
 DATASET_PATH: str | Path | None = None
@@ -261,6 +260,7 @@ def load_plugins() -> None:
         for m in Path(plugins_dir).iterdir()
         if m.stem not in skip_modules
     ]
+    logger.debug(f"modules are {modules}")
     for module in modules:
         try:
             loaded_module = importlib.import_module(f"arpes.endstations.plugin.{module}")
@@ -372,8 +372,11 @@ def setup_logging() -> None:
         logging.exception("Attribute Error occurs.  Check module loading for IPypthon")
 
 
+logger.debug("setup_logging")
 setup_logging()
+logger.debug("update_configuration")
 update_configuration()
+logger.debug("load_plugins")
 load_plugins()
-
+logger.debug("load_plugins:done")
 from . import xarray_extensions  # noqa: E402, F401
