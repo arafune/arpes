@@ -20,6 +20,12 @@ adjust settings on various interactive tools. Have a look at
        # contents here
    }
 
+   CONFIG  = {
+       # contents here
+}
+
+
+
 If you want to override defaults, place a copy of a ``local_config.py``
 file in the repository root (i.e. above the ``arpes`` directory), or
 call ``arpes.config.override_settings({...})`` with your changes.
