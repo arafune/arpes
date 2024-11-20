@@ -21,6 +21,7 @@ from dataclasses import dataclass, field
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+
 import matplotlib as mpl
 import pint
 
