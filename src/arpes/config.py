@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 # pylint: disable=global-statement
 
 LOGLEVELS = (DEBUG, INFO)
-LOGLEVEL = LOGLEVELS[1]
+LOGLEVEL = LOGLEVELS[0]
 logger = getLogger(__name__)
 fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
 formatter = Formatter(fmt)
@@ -354,13 +354,17 @@ def setup_logging() -> None:
     except ImportError:
         return
 
+    if not CONFIG["ENABLE_LOGGING"]:
+        logger.debug(f'CONFIG["ENABLE_LOGGING"]: {CONFIG["ENABLE_LOGGING"]}')
+        return
+
     if isinstance(ipython, InteractiveShell) and ipython.logfile:
         CONFIG["LOGGING_STARTED"] = True
         CONFIG["LOGGING_FILE"] = ipython.logfile
         logger.debug(f'CONFIG["LOGGING_FILE"]: {CONFIG["LOGGING_FILE"]}')
 
     try:
-        if CONFIG["ENABLE_LOGGING"] and not CONFIG["LOGGING_STARTED"]:
+        if not CONFIG["LOGGING_STARTED"]:
             CONFIG["LOGGING_STARTED"] = True
             from .utilities.jupyter import generate_logfile_path
 
