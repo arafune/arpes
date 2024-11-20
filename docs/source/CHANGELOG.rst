@@ -10,7 +10,7 @@ incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
 
-4.1.0 (YYYY-MM-DD)
+4.1.0 (2024-11-20)
 ^^^^^^^^^^^^^^^^^^
 
 Changed
@@ -18,6 +18,7 @@ Changed
 
 * As this version, we can begin with `import arpes`.
 * Add new endstation
+* Logging and endstation plugin can be selected from local_config.py
 
 Miror
 ~~~~~
