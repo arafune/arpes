@@ -201,7 +201,7 @@ def rebin(
     When both ``shape`` and ``bin_width`` are supplied, ``shape`` is used.
 
     Dimensions corresponding to missing entries in ``shape`` or ``reduction`` will not
-    be changed.
+    be changed
 
     Args:
         data: ARPES data
@@ -217,9 +217,9 @@ def rebin(
         The rebinned data.
     """
     bin_width = bin_width or {}
-    for k in kwargs:
+    for k, v in kwargs.items():
         if k in data.dims:
-            bin_width[k] = kwargs[k]
+            bin_width[k] = v
     if shape is None:
         shape = {}
         for k, v in bin_width.items():
