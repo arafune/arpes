@@ -43,7 +43,7 @@ build-backend = "hatchling.build"
 managed = true
 dev-dependencies = [
   "colorama>=0.4.6",
-  "ruff>=0.3.3",
+  "ruff>=0.8.0",
   "pytest>=7.3.2",
   "pytest-cov",
   "pytest-clarity",
@@ -113,7 +113,6 @@ exclude = ["scripts", "docs", "conda"]
 ignore = [
   "PD",     # pandas-vet
   "PD011",  # pandas-use-of-dot-values
-  "ANN101", # missing-type-self (ANN101)
   "N802",   # invalid-function-name (N802)
   "N806",   # non-lowercase-variable-in-function
   "N999",   # invalid-module-name (N999)
