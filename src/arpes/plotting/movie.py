@@ -49,7 +49,8 @@ def plot_movie(  # noqa: PLR0913
         kwargs: Additional keyword arguments for the plot
 
     Returns:
-        Path | animation.FuncAnimation: The path to the saved animation or the animation object itself
+        Path | animation.FuncAnimation: The path to the saved animation or the animation object
+            itself
 
     Raises:
         TypeError: If the argument types are incorrect.
