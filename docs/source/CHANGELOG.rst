@@ -20,7 +20,7 @@ Changed
 * Add new endstation
 * Logging and endstation plugin can be selected from local_config.py
 
-Miror
+Minor
 ~~~~~
 
 * Recommend to use uv, instead of rye.
