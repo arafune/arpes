@@ -1632,15 +1632,51 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
         *,
         indices: bool = False,
     ) -> NDArray[np.float64] | NDArray[np.int_]:
-        """Return energy position corresponding to the (1D) spectrum edge.
+        """Compute the angular edges of the spectrum over the specified energy range.
 
-        Spectrum edge is infection point of the peak.
+        This method identifies the low and high angular edges for each slice of the spectrum
+        within a given energy range. The energy range is divided into slices using the specified
+        `energy_division`. For each slice, edges are detected using the Canny edge detection
+        algorithm after applying Gaussian smoothing.
 
         Args:
-            indices (bool): if True, return the pixel (index) number.
+            indices (bool, optional):
+                If `True`, returns the edge positions as indices. If `False`, returns the
+                edge positions as physical coordinates. Defaults to `False`.
+            energy_division (float, optional):
+                The step size for dividing the energy range. Smaller values provide finer
+                resolution for edge detection. Defaults to 0.05.
 
-        Returns: NDArray[np.float64]
-            Energy position
+        Returns:
+            tuple[NDArray[np.float64], NDArray[np.float64], xr.DataArray]:
+                - If `indices=True`:
+                    - Low edge indices.
+                    - High edge indices.
+                    - Corresponding energy coordinates.
+                - If `indices=False`:
+                    - Low edge physical coordinates.
+                    - High edge physical coordinates.
+                    - Corresponding energy coordinates.
+
+        Raises:
+            ValueError: If the energy range is too narrow for proper edge detection.
+
+        Example:
+            ```python
+            # Assuming `data` is an xarray.DataArray with "eV" and "phi" or "pixel" dimensions
+            low_edges, high_edges, energy_coords = data.find_spectrum_angular_edges_full(
+                indices=False, energy_division=0.1
+            )
+
+            print("High edges:", high_edges)
+            print("Low edges:", low_edges)
+            print("Energy coordinates:", energy_coords)
+            ```
+
+        Todo:
+            - Add unit tests for edge cases and different data configurations.
+            - Investigate optimal parameters for edge detection.
+              (e.g., Gaussian filter size, thresholds).
         """
         assert isinstance(
             self._obj,
