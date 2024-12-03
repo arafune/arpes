@@ -241,15 +241,14 @@ class XModelMixin(lf.Model):
         xr_weights: xr.DataArray,
         new_dim_order: Sequence[Hashable] | None,
     ) -> NDArray[np.float64]:
-        """Return Weigths ndarray from xarray.
+        """Convert xarray weights to a flattened ndarray with an optional new dimension order.
 
         Args:
-            xr_weights (xr.DataArray): [TODO:description]
-            new_dim_order (Sequence[Hashable] | None): new dimension order
-
+            xr_weights (xr.DataArray): The weights data stored in an xarray DataArray.
+            new_dim_order (Sequence[Hashable] | None): The desired order for dimensions, or None.
 
         Returns:
-            [TODO:description]
+            NDArray[np.float64]: Flattened NumPy array of weights, reordered if specified.
         """
         if self.n_dims == 1:
             return xr_weights.values
@@ -266,13 +265,17 @@ class XModelMixin(lf.Model):
         dict[str, NDArray[np.float64]],
         Sequence[Hashable] | None,
     ]:
-        """Helper function: Return real_data, flat_data, coord_valuesn, new_dim_order from xarray.
+        """Helper function: Returns real data, flat data, coordinates, and new dimension order.
 
         Args:
-            data: (xr.DataArray) [TODO:description]
+            data (xr.DataArray): The data array containing the information to process.
 
         Returns:
-            real_data, flat_data, coord_values and new_dim_order from xarray
+            tuple: A tuple containing:
+                - real_data (NDArray[np.float64]): The raw data values from the array.
+                - flat_data (NDArray[np.float64]): The flattened data values.
+                - coord_values (dict[str, NDArray[np.float64]]): A dictionary of coordinate values.
+                - new_dim_order (Sequence[Hashable] | None): The new dimension order if changed.
         """
         real_data, flat_data = data.values, data.values
         assert len(real_data.shape) == self.n_dims
