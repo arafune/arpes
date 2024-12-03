@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import DataType, XrTypes
+    from arpes._typing import XrTypes
     from arpes.fits import ModelArgs
 
 __all__ = (
