@@ -159,8 +159,8 @@ def update_provenance(
     """A decorator that promotes a function to one that records data provenance.
 
     Args:
-        what: Description of what transpired, to put into the record.
-        keep_parent_ref: Whether to keep a pointer to the parents in the hierarchy or not.
+        what (str): Description of what transpired, to put into the record.
+        keep_parent_ref (bool): Whether to keep a pointer to the parents in the hierarchy or not.
 
     Returns:
         A decorator which can be applied to a function.
@@ -169,10 +169,13 @@ def update_provenance(
     def update_provenance_decorator(
         fn: Callable[P, R],
     ) -> Callable[P, R]:
-        """[TODO:summary].
+        """A wrapper function that records data provenance for the execution of a function.
 
         Args:
-            fn: [TODO:description]
+            fn (Callable): The function for which provenance will be recorded.
+
+        Returns:
+            Callable: A function that has been extended to record data provenance.[TODO:summary].
         """
 
         @functools.wraps(fn)
@@ -237,14 +240,14 @@ def save_plot_provenance(plot_fn: Callable[P, R]) -> Callable[P, R]:
 
     @functools.wraps(plot_fn)
     def func_wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-        """[TODO:summary].
+        """A wrapper function that records provenance information after generating a plot.
 
         Args:
-            args: [TODO:description]
-            kwargs: [TODO:description]
+            args: Positional arguments passed to `plot_fn`
+            kwargs: Keyword arguments passed to `plot_fn`
 
         Returns:
-            [TODO:description]
+            str: The file path where the plot is saved[TODO:summary].
         """
         path = plot_fn(*args, **kwargs)
         if isinstance(path, str) and Path(path).exists():

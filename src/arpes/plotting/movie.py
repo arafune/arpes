@@ -37,19 +37,23 @@ def plot_movie(  # noqa: PLR0913
     figsize: tuple[float, float] | None = None,
     **kwargs: Unpack[PColorMeshKwargs],
 ) -> Path | animation.FuncAnimation:
-    """Make an animated plot of a 3D dataset using one dimension as "time".
+    """Creates an animated plot of a 3D dataset using one dimension as "time".
 
     Args:
         data (xr.DataArray): ARPES data
-        time_dim (str): dimension name for time, default is "delay".
-        interval_ms: Delay between frames in milliseconds.
-        fig_ax (tuple[Figure, Axes]): matplotlib object
-        out: [TODO:description]
-        figsize (tuple[float, float]) : figure size of the movie.
-        kwargs: [TODO:description]
+        time_dim (str): Dimension name for time, default is "delay"
+        interval_ms (float): Delay between frames in milliseconds
+        fig_ax (tuple[Figure, Axes]): matplotlib Figure and Axes objects
+        out (str | Path): Output path for saving the animation (optional)
+        figsize (tuple[float, float]): Size of the movie figure
+        kwargs: Additional keyword arguments for the plot
+
+    Returns:
+        Path | animation.FuncAnimation: The path to the saved animation or the animation object itself
 
     Raises:
-        TypeError: [TODO:description]
+        TypeError: If the argument types are incorrect.
+
     """
     figsize = figsize or (7.0, 7.0)
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)

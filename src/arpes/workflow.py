@@ -83,12 +83,22 @@ def with_workspace(f: Callable[P, R]) -> Callable[P, R]:
         *args: P.args,
         **kwargs: P.kwargs,
     ) -> R:
-        """[TODO:summary].
+        """Wraps a function execution with a context manager for handling workspace settings.
+
+        This function wraps the execution of another function by setting up the appropriate
+        workspace environment using the `WorkspaceManager`. The workspace name can be specified
+        through the `kwargs` as `workspace_name`. The workspace is then passed to the original
+        function during its execution.
 
         Args:
-            args: args of the original function.
-            workspace (str | None): [TODO:description]
-            kwargs: [TODO:description]
+            args: Arguments for the original function.
+            workspace_name (str | None): The name of the workspace to be used.
+                If not provided, defaults to an empty string.
+            kwargs: Additional keyword arguments for the original function.
+                The `workspace` is added as a keyword argument.
+
+        Returns:
+            R: The result returned by the wrapped function.
         """
         workspace_name: str = kwargs.pop("workspace_name", "")
         with WorkspaceManager(workspace_name=workspace_name):

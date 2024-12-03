@@ -162,16 +162,25 @@ def unpack_bands_from_fit(
             *,
             is_value: bool,
         ) -> xr.DataArray | None:
-            """Return DataArray representing the fit results.
+            """Return a DataArray representing the fit results for a specific parameter.
+
+            This function retrieves the values (or standard errors) of a specified fit parameter
+            (such as "center", "amplitude", "sigma", or "gamma") for each band in the
+            `identified_band_results`. The result is returned as an `xr.DataArray`. If the parameter
+            is not available in the fitting results for a given band, `None` is returned.
 
             Args:
-                param_name (Literal["center", "amplitude", "sigma", "gamma"]): [TODO:description]
-                i (int): index for band names in identified_band_results.
-                is_value (bool): if True, return the value, else return stderr.
+                param_name (Literal["center", "amplitude", "sigma", "gamma"]): The name of the fit
+                    parameter whose values are being retrieved (e.g., "center", "amplitude", etc.).
+                i (int): Index for band names in the `identified_band_results` list. It is used to
+                    identify the correct band in the results.
+                is_value (bool): If `True`, the function returns the fit parameter's value; if
+                    `False`, it returns the standard error (stderr) of the fit.
 
-            Returns: xr.DataArray | None
-                DataArray storing the fitting data. if the corresponding parameter name is not used,
-                returns None.
+            Returns:
+                xr.DataArray | None: An `xr.DataArray` containing the fit parameter values
+                    (or stderr). Returns `None` if the corresponding parameter is not found for the
+                    given index.
             """
             values: NDArray[np.float64] = np.zeros_like(
                 band_results.values,
@@ -303,13 +312,25 @@ def _modelresult_to_array(
     prefix: str = "",
     weights: tuple[float, float, float] = (2, 0, 10),
 ) -> NDArray[np.float64]:
-    """Convert ModelResult to NDArray.
+    """Convert ModelResult to a weighted NDArray of fit parameter values.
+
+    This function extracts the values and standard errors for the parameters
+    "sigma", "gamma", "amplitude", and "center" from the `model_fit` object,
+    applies weights for each parameter (sigma, amplitude, center), and
+    returns the result as a NumPy array.
+
+    If any parameter is missing from `model_fit`, a default value and
+    standard error are assigned. The weights are applied to the parameters
+    during the conversion process.
 
     Args:
-        model_fit (ModelResult): [TODO:description]
-        prefix (str): Prefix in ModelResult
-        weights (tuple[float, float, float]): Weight for (sigma, amplitude, center)
+        model_fit (ModelResult): The model fitting result containing the parameters.
+        prefix (str): Prefix to be added to parameter names for identification.
+        weights (tuple[float, float, float]): Weights for the parameters in the order
+            (sigma, amplitude, center). Default is (2, 0, 10).
 
+    Returns:
+        NDArray[np.float64]: A NumPy array containing the weighted parameter values.
     """
     parameter_names: set[str] = set(model_fit.params.keys())
     if prefix + "sigma" in parameter_names:
@@ -358,34 +379,32 @@ def fit_patterned_bands(  # noqa: PLR0913
     interactive: bool = True,
     dataset: bool = True,
 ) -> XrTypes:
-    """Fits bands and determines dispersion in some region of a spectrum.
+    """Fits bands and determines dispersion in a region of a spectrum.
 
     The dimensions of the dataset are partitioned into three types:
 
-    1. Fit directions, these are coordinates along the 1D (or maybe later 2D) marginals
-    2. Broadcast directions, these are directions used to interpolate against the patterned
-    3. Free directions, these are broadcasted but they are not used to extract initial values of the
-       directions
-       fit parameters
+    1. Fit directions: Coordinates along the 1D (or later 2D) marginals, e.g., energy (E).
+    2. Broadcast directions: Directions used to interpolate against the patterned, e.g., k.
+    3. Free directions: Broadcasted directions not used to extract the initial parameter values.
 
-    For instance, if you laid out band patterns in a E, k_p, delay spectrum at delta_t=0, then if
-    you are using MDCs, k_p is the fit direction, E is the broadcast direction, and delay is a free
-    direction.
-
-    In general we can recover the free directions and the broadcast directions implicitly by
-    examining the band_set passed as a pattern.
+    For example, in a spectrum at delta_t=0, if using MDCs, `k_p` could be the fit direction,
+    `E` the broadcast direction, and `delay` a free direction.
 
     Args:
-        arr (xr.DataArray): [ToDo: description]
-        band_set: dictionary with bands and points along the spectrum
-        fit_direction (str): [ToDo: description]
-        stray (float, optional): [ToDo: description]
-        background (bool): [ToDo: description]
-        interactive(bool): [ToDo: description]
-        dataset(bool): if true, return as xr.Dataset.
+        arr (xr.DataArray): The data array containing the spectrum to fit.
+        band_set (dict[Incomplete, Incomplete]): A dictionary defining the bands and points along
+            the spectrum.
+        fit_direction (str): The direction to fit the data (e.g., "energy").
+        stray (float, optional): A parameter used for adjusting fits. Defaults to None.
+        background (bool | type[Band]): If True, includes background fitting, otherwise specifies
+            the background band class.
+        interactive (bool): If True, show an interactive progress bar.
+        dataset (bool): If True, return the results as an `xr.Dataset`. If False, return just the
+            `band_results`.
 
-    Returns: XrTypes
-        Dataset or DataArray, as controlled by the parameter "dataset"
+    Returns:
+        XrTypes: Either an `xr.DataArray` or an `xr.Dataset` depending on the `dataset` argument.
+        The returned object contains fitting results, residuals, and normalized residuals.
     """
     if background:
         from arpes.models.band import BackgroundBand

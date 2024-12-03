@@ -1708,17 +1708,26 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
         indices: bool = False,
         energy_division: float = 0.05,
     ) -> tuple[NDArray[np.float64], NDArray[np.float64], xr.DataArray]:
-        """[TODO:summary].
+        """Finds the angular edges of the spectrum based on energy slicing and rebinning.
+
+        This method uses edge detection techniques to identify boundaries in the angular dimension.
 
         Args:
-            indices: [TODO:description]
-            energy_division: [TODO:description]
+            indices (bool, optional): If True, returns edge indices; if False, returns physical
+                angular coordinates. Defaults to False.
+            energy_division (float, optional): Specifies the energy division step for rebinning.
+                Defaults to 0.05 eV.
 
         Returns:
-            [TODO:description]
+            tuple: A tuple containing:
+                - low_edges (NDArray[np.float64]): Values or indices of the low edges
+                    of the spectrum.
+                - high_edges (NDArray[np.float64]): Values or indices of the high edges
+                    of the spectrum.
+                - eV_coords (xr.DataArray): The coordinates of the rebinned energy axis.
 
         Todo:
-            Test
+            - Add unit tests for this function.
         """
         # as a first pass, we need to find the bottom of the spectrum, we will use this
         # to select the active region and then to rebin into course steps in energy from 0
@@ -1782,19 +1791,28 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
         low: Sequence[float] | NDArray[np.float64] | None = None,
         high: Sequence[float] | NDArray[np.float64] | None = None,
     ) -> xr.DataArray:
-        """[TODO:summary].
+        """Zeros out the spectrum data outside of the specified low and high edges.
+
+        It uses the provided or inferred edge information, applying cut margins and optionally
+        interpolating over a given range.
 
         Args:
-            cut_margin: [TODO:description]
-            interp_range: [TODO:description]
-            low: [TODO:description]
-            high: [TODO:description]
+            cut_margin (int or float, optional): Margin to apply when invalidating data near edges.
+                Use `int` for pixel-based margins or `float` for angular physical units.
+                Defaults to 50 pixels or 0.08 in angular units, depending on the data type.
+            interp_range (float or None, optional): Specifies the interpolation range for edge data.
+                If provided, the edge values are interpolated within this range.
+            low (Sequence[float], NDArray[np.float64], or None, optional): Low edge values.
+                Use this to manually specify the low edge. Defaults to None.
+            high (Sequence[float], NDArray[np.float64], or None, optional): High edge values.
+                Use this to manually specify the high edge. Defaults to None.
 
         Returns:
-            [TODO:description]
+            xr.DataArray: The spectrum data with values outside the edges set to zero.
 
         Todo:
-            Test
+            - Add tests.
+
         """
         assert isinstance(self._obj, xr.DataArray)
         if low is not None:
@@ -1893,16 +1911,21 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
         return edges * delta[angular_dim] + self._obj.coords[angular_dim].values[0]
 
     def wide_angle_selector(self, *, include_margin: bool = True) -> slice:
-        """[TODO:summary].
+        """Generates a slice for selecting the wide angular range of the spectrum.
+
+        Optionally includes a margin to slightly reduce the range.
 
         Args:
-            include_margin: [TODO:description]
+            include_margin (bool, optional): If True, includes a margin to shrink the range.
+                Defaults to True.
 
         Returns:
-            [TODO:description]
+            slice: A slice object representing the wide angular range of the spectrum.
 
         Todo:
-            Test/Consider to remove
+            - Add tests.
+            - Consider removing the function.
+
         """
         edges = self.find_spectrum_angular_edges()
         low_edge, high_edge = np.min(edges), np.max(edges)
@@ -1919,13 +1942,18 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
         return slice(low_edge, high_edge)
 
     def meso_effective_selector(self) -> slice:
-        """[TODO:summary].
+        """Creates a slice to select the "meso-effective" range of the spectrum.
+
+        The range is defined as the upper energy range from `max(energy_edge) - 0.3` to
+        `max(energy_edge) - 0.1`.
 
         Returns:
-            [TODO:description]
+            slice: A slice object representing the meso-effective energy range.
 
         Todo:
-            Test/Consider to remove
+            - Add tests.
+            - Consider removing the function.
+
         """
         energy_edge = self.find_spectrum_energy_edges()
         return slice(np.max(energy_edge) - 0.3, np.max(energy_edge) - 0.1)
@@ -1935,19 +1963,26 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
         *regions: Literal["copper_prior", "wide_angular", "narrow_angular"]
         | dict[str, DesignatedRegions],
     ) -> XrTypes:
-        """[TODO:summary].
+        """Filters the data by selecting specified regions and applying those regions to the object.
+
+        Regions can be provided as literal strings or as a dictionary of `DesignatedRegions`.
 
         Args:
-            regions: [TODO:description]
+            regions (Literal or dict[str, DesignatedRegions]): The regions to select.
+                Valid regions include:
+                - "copper_prior": A specific region.
+                - "wide_angular": The wide angular region.
+                - "narrow_angular": The narrow angular region.
+                Alternatively, use the `DesignatedRegions` enumeration.
 
         Returns:
-            [TODO:description]
+            XrTypes: The data with the selected regions applied.
 
         Raises:
-            NotImplementedError: [TODO:description]
+            NotImplementedError: If a specified region cannot be resolved.
 
         Todo:
-            Test
+            - Add tests.
         """
 
         def process_region_selector(
@@ -2214,13 +2249,25 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
     ) -> Path | Axes:
         """Provides a reference plot for a Fermi edge reference.
 
+        This function generates a reference plot for a Fermi edge, which can be useful for analyzing
+        energy spectra. It calls the `fermi_edge_reference` function and passes any additional
+        keyword arguments to it for plotting customization. The output file name can be specified
+        using the `out` argument, with a default name pattern.
+
         Args:
-            pattern ([TODO:type]): [TODO:description]
-            out (str | Path): Path name for output figure.
-            kwargs: pass to plotting.fermi_edge.fermi_edge_reference
+            pattern (str): A string pattern for the output file name. The pattern can include
+                placeholders that will be replaced by the label or other variables.
+                Default is "{}.png".
+            out (str | Path): The path for saving the output figure. If set to `None` or `False`,
+                no figure will be saved. If a boolean `True` is passed, it will use the `pattern`
+                to generate the filename.
+            kwargs: Additional arguments passed to the `fermi_edge_reference` function for
+                customizing the plot.
 
         Returns:
-            [TODO:description]
+            Path | Axes: The path to the saved figure (if `out` is provided), or the Axes object of
+            the plot.Provides a reference plot for a Fermi edge reference.
+
         """
         assert isinstance(self._obj, xr.DataArray)
         if out is not None and isinstance(out, bool):
@@ -2234,15 +2281,27 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
         pattern: str = "{}.png",
         out: str | Path = "",
     ) -> Path | tuple[Figure, NDArray[np.object_]]:
-        """[TODO:summary].
+        """Helper function for generating a spatial plot of referenced scans.
 
-        A Helper function.
+        This function assists in generating a spatial plot for referenced scans, either by using a
+        unique identifier or a predefined label. The output file name can be automatically generated
+        or specified by the user. The function calls `reference_scan_spatial` for generating the
+        plot and optionally saves the output figure.
 
         Args:
-            use_id (bool): [TODO:description]
-            pattern (str): [TODO:description]
-            out (str|bool): if str, Path for output figure. if True,
-                the file name is automatically set. If False/"", no output is given.
+            use_id (bool): If `True`, uses the "id" attribute from the object's metadata as the
+                label. If `False`, uses the predefined label. Default is `True`.
+            pattern (str): A string pattern for the output file name. The placeholder `{}` will be
+                replaced by the label or identifier. Default is `"{}.png"`.
+            out (str | bool): The path to save the output figure. If `True`, the file name is
+                generated using the `pattern`. If `False` or an empty string (`""`), no output is
+                saved.
+
+        Returns:
+            Path | tuple[Figure, NDArray[np.object_]]:
+                - If `out` is provided, returns the path to the saved figure.
+                - Otherwise, returns the Figure and an array of the spatial data.
+
         """
         label = self._obj.attrs["id"] if use_id else self.label
         if isinstance(out, bool) and out is True:
@@ -2360,18 +2419,19 @@ class GenericAccessorBase:
         copy: bool = True,
         **selections: Incomplete,
     ) -> XrTypes:
-        """[TODO:summary].
+        """Applies a function to a data region and updates the dataset with the result.
 
         Args:
-            fn: [TODO:description]
-            copy: [TODO:description]
-            selections: [TODO:description]
+            fn (Callable): The function to apply.
+            copy (bool, optional): If True, operates on a deep copy of the data.
+                If False, modifies the data in-place. Defaults to True.
+            selections (Incomplete): Keyword arguments specifying the region of the data to select.
 
         Returns:
-            [TODO:description]
+            XrTypes: The dataset after the function has been applied.
 
         Todo:
-            Test
+            - Add tests.
         """
         assert isinstance(self._obj, xr.DataArray | xr.Dataset)
         data = self._obj
@@ -2583,16 +2643,17 @@ class GenericDatasetAccessor(GenericAccessorBase):
         self,
         f: Callable[[Hashable, xr.DataArray], bool],
     ) -> xr.Dataset:
-        """[TODO:summary].
+        """Filters data variables based on the specified condition and returns a new dataset.
 
         Args:
-            f: [TODO:description]
+            f (Callable[[Hashable, xr.DataArray], bool]): A function to filter data variables.
+                It takes a variable name (key) and its data and returns a boolean.
 
         Returns:
-            [TODO:description]
+            xr.Dataset: A new dataset with the filtered data variables.
 
         Todo:
-            Test
+            - Add tests.
         """
         assert isinstance(self._obj, xr.Dataset)  # ._obj.data_vars
         return xr.Dataset(
@@ -2605,20 +2666,21 @@ class GenericDatasetAccessor(GenericAccessorBase):
         dims: tuple[str, ...],
         shift: NDArray[np.float64] | float,
     ) -> xr.Dataset:
-        """[TODO:summary].
+        """Shifts the coordinates and returns a new dataset with the shifted coordinates.
 
         Args:
-            dims: [TODO:description]
-            shift: [TODO:description]
+            dims (tuple[str, ...]): The list of dimensions whose coordinates will be shifted.
+            shift (NDArray[np.float64] or float): The amount to shift the coordinates. If a float,
+                the same shift is applied to all dimensions.
 
         Returns:
-            [TODO:description]
+            xr.Dataset: A new dataset with the shifted coordinates.
 
         Raises:
-            RuntimeError: [TODO:description]
+            RuntimeError: If an invalid shift amount is provided.
 
         Todo:
-            Test
+            - Add tests.
         """
         if not isinstance(shift, np.ndarray):
             shift = np.ones((len(dims),)) * shift
@@ -2637,17 +2699,18 @@ class GenericDatasetAccessor(GenericAccessorBase):
         dims: tuple[str, ...],
         scale: float | NDArray[np.float64],
     ) -> xr.Dataset:
-        """[TODO:summary].
+        """Scales the coordinates and returns a new dataset with the scaled coordinates.
 
         Args:
-            dims: [TODO:description]
-            scale: [TODO:description]
+            dims (tuple[str, ...]): The list of dimensions whose coordinates will be scaled.
+            scale (float or NDArray[np.float64]): The amount to scale the coordinates. If a float,
+                the same scaling is applied to all dimensions.
 
         Returns:
-            [TODO:description]
+            xr.Dataset: A new dataset with the scaled coordinates.
 
         Todo:
-            Test
+            - Add tests.
         """
         if not isinstance(scale, np.ndarray):
             n_dims = len(dims)
@@ -3044,14 +3107,14 @@ class GenericDataArrayAccessor(GenericAccessorBase):
         fn: Callable[[NDArray[np.float64], Any], NDArray[np.float64]],
         **kwargs: Incomplete,
     ) -> xr.DataArray:
-        """[TODO:summary].
+        """Applies the specified function to the values of an xarray and returns a new DataArray.
 
         Args:
-            fn (Callable): Function applying to xarray.values
-            kwargs: [TODO:description]
+            fn (Callable): The function to apply to the xarray values.
+            kwargs: Additional arguments to pass to the function.
 
         Returns:
-            [TODO:description]
+            xr.DataArray: A new DataArray with the function applied to the values.
         """
         return apply_dataarray(self._obj, np.vectorize(fn, **kwargs))
 
@@ -3064,24 +3127,22 @@ class GenericDataArrayAccessor(GenericAccessorBase):
         zero_nans: bool = True,
         shift_coords: bool = False,
     ) -> xr.DataArray:
-        """Data shift along the axis.
+        """Shifts the data along the specified axis.
 
-        For now we only support shifting by a one dimensional array
+        Currently, only supports shifting by a one-dimensional array.
 
         Args:
-            other (xr.DataArray | NDArray): [TODO:description]
-                 we only support shifting by a one dimensional array
-            shift_axis (str): [TODO:description]
-            by_axis (str): The dimension name of `other`.  When `other` is xr.DataArray, this value
-                 is ignored.
-            zero_nans (bool): if True, fill 0 for np.nan
-            shift_coords (bool): [TODO:description]
+            other (xr.DataArray | NDArray): Data to shift by. Only supports one-dimensional array.
+            shift_axis (str): The axis to shift along.
+            by_axis (str): The dimension name of `other`. Ignored when `other` is an xr.DataArray.
+            zero_nans (bool): If True, fill np.nan with 0.
+            shift_coords (bool): Whether to shift the coordinates as well.
 
-        Returns (xr.DataArray):
-            Shifted xr.DataArray
+        Returns:
+            xr.DataArray: The shifted xr.DataArray.
 
         Todo:
-            Test
+            - Add tests.Data shift along the axis.
         """
         assert shift_axis, "shift_by must take shift_axis argument."
         data = self._obj.copy(deep=True)
@@ -3127,13 +3188,13 @@ class GenericDataArrayAccessor(GenericAccessorBase):
         return built_data
 
     def drop_nan(self) -> xr.DataArray:
-        """[TODO:summary]..
+        """Drops the NaN values from the data.
 
         Returns:
-            [TODO:description]
+            xr.DataArray: The xr.DataArray with NaN values removed.
 
         Todo:
-            Test
+            - Add tests.
         """
         assert len(self._obj.dims) == 1
 

@@ -105,20 +105,32 @@ class XModelMixin(lf.Model):
         transpose: bool = False,
         **kwargs: Incomplete,
     ) -> ModelResult:
-        """Performs a fit on xarray data after guessing parameters.
+        """Performs a fit on xarray or ndarray data after guessing parameters.
 
-        Params allows you to pass in hints as to what the values and bounds on parameters
-        should be. Look at the lmfit docs to get hints about structure
+        This method uses the `lmfit` library for fitting and allows for parameter guesses.
+        You can pass initial values and bounds for the parameters through the `params` argument.
+        The fitting can be done with optional weights, and additional keyword arguments can be
+        passed to the `lmfit.Model.fit` function.
 
         Args:
-            data (xr.DataArray): [TODO:description]
-            params (lf.Parameters|dict| None): Fitting parameters
-            weights ([TODO:type]): [TODO:description]
-            guess (bool): [TODO:description]
-            prefix_params: [TODO:description]
-            transpose: [TODO:description]
-            kwargs([TODO:type]): pass to lf.Model.fit
-                Additional keyword arguments, passed to model function.
+            data (xr.DataArray | NDArray[np.float64]): The data to fit.
+                It can be either an xarray DataArray or a NumPy ndarray.
+            params (lf.Parameters | dict[str, ParametersArgs] | None, optional): Initial fitting
+                parameters. This can be an `lf.Parameters` object or a dictionary of parameter
+                names and their initial values or bounds.
+            weights (xr.DataArray | NDArray[np.float64] | None, optional): Weights for the fitting
+                process, either as an xarray DataArray or a NumPy ndarray.
+            guess (bool, optional): If True, guess the initial parameters based on the data.
+                Default is True.
+            prefix_params (bool, optional): If True, prefix parameters with the object's prefix.
+                Default is True.
+            transpose (bool, optional): If True, transpose the data before fitting.
+                Default is False.
+            kwargs: Additional keyword arguments passed to the `lmfit.Model.fit` function.
+
+        Returns:
+            ModelResult: The result of the fitting process, including the fit parameters and other
+                information.
         """
         if isinstance(data, xr.DataArray):
             real_data, flat_data, coord_values, new_dim_order = self._real_data_etc_from_xarray(

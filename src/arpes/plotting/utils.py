@@ -674,16 +674,17 @@ def imshow_arr(
     over: AxesImage | None = None,
     **kwargs: Unpack[IMshowParam],
 ) -> tuple[Figure | None, AxesImage]:
-    """Similar to plt.imshow but users different default origin, and sets appropriate extents.
+    """Display ARPES data using imshow with default settings suited for xr.DataArray.
 
     Args:
-        arr (xr.DataArray): ARPES data
-        ax (Axes): [TODO:description]
-        over ([TODO:type]): [TODO:description]
-        kwargs: pass to ax.imshow
+        arr (xr.DataArray): ARPES data to be visualized.
+        ax (Axes | None): The Axes object to plot on; creates a new figure if None.
+        over (AxesImage | None): Optional, overlays an existing image if provided.
+        kwargs: Additional arguments to pass to ax.imshow, such as colormap, alpha, etc.
 
     Returns:
-        The axes and quadmesh instance.
+        tuple: A tuple containing the figure (or None if ax is provided) and the
+               AxesImage instance resulting from imshow.
     """
     fig: Figure | None = None
     if ax is None:

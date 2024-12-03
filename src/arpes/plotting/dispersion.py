@@ -508,20 +508,27 @@ def fancy_dispersion(
     include_symmetry_points: bool = True,
     **kwargs: Unpack[PColorMeshKwargs],
 ) -> Axes | Path:
-    """Generates a 2D ARPES cut with some fancy annotations for throwing plots together.
+    """Generates a 2D ARPES cut with additional annotations, useful for quick presentations.
 
-    Useful for brief slides/quick presentations.
+    This function creates a plot of ARPES data with optional symmetry points and custom styling for
+    quick visualization. It is designed to help create figures rapidly for presentations or reports.
+    Symmetry points are annotated if `include_symmetry_points` is set to True.
 
     Args:
-        data (xr.DataArray): ARPES data.
-        title (str): Title of Figure.
-        ax (Axes): matpplotlib Axes object
-        out (str | Path): str or Path object for output image.
-        include_symmetry_points: [TODO:description]
-        kwargs: pass to xr.Dataset.plot or xr.DataArray.plot()
+        data (xr.DataArray): ARPES data to plot.
+        title (str): Title of the figure. If not provided, the title is derived from the dataset
+            label.
+        ax (Axes, optional): Matplotlib Axes object for plotting. If not provided, a new Axes is
+            created.
+        out (str | Path, optional): Output file path for saving the figure. If not provided, the
+            figure is not saved.
+        include_symmetry_points (bool): Whether to include symmetry points in the plot
+            (default is True).
+        kwargs: Additional keyword arguments passed to `xr.DataArray.plot()` for further
+            customization.
 
     Returns:
-        [TODO:description]
+        Axes | Path: The Axes object containing the plot, or the file path if the plot is saved.
     """
     if ax is None:
         _, ax = plt.subplots(figsize=(8, 5))
@@ -579,19 +586,23 @@ def scan_var_reference_plot(
     norm: Normalize | None = None,
     out: str | Path = "",
 ) -> Axes | Path:
-    """Makes a straightforward plot of a DataArray with reasonable axes.
+    """Generates a simple plot of a DataArray with appropriately labeled axes.
 
-    Used internally by other scripts.
+    This function is used internally by other scripts to quickly generate plots for DataArrays. It
+    supports normalization and customization of axes labels and titles. The plot can optionally be
+    saved to a file.
 
     Args:
-        data: [TODO:description]
-        title: [TODO:description]
-        ax: Axes on which to plot. By default, use the current axes.
-        norm ([TODO:type]): [TODO:description]
-        out: [TODO:description]
+        data (xr.DataArray): The input data to plot, typically a DataArray.
+        title (str): The title of the plot. If not provided, it is derived from the DataArray label.
+        ax (Axes, optional): The Matplotlib Axes object to plot on. If not provided, a new Axes is
+            created.
+        norm (Normalize, optional): Normalization to apply to the plot. Default is None.
+        out (str | Path, optional): File path to save the plot. If not provided, the plot is not
+            saved.
 
     Returns:
-        [TODO:description]
+        Axes | Path: The Axes object containing the plot, or the file path if the plot is saved.
     """
     assert isinstance(data, xr.DataArray)
     if ax is None:

@@ -385,26 +385,28 @@ class EndstationBase:
     def load(self, scan_desc: ScanDesc | None = None, **kwargs: Incomplete) -> xr.Dataset:
         """Loads a scan from a single file or a sequence of files.
 
-        This defines the contract and structure for standard data loading plugins:
-        1. Search for files (`.resolve_frame_locations`)
-        2. Load them sequentially (`.load_single_frame`)
-        3. Apply cleaning code to each frame (`.postprocess`)
-        4. Concatenate these loaded files  (`.concatenate_frames`)
-        5. Apply postprocessing code to the concatenated dataset
+        This method provides the standard procedure for loading data from one or more files:
+        1. Resolves file locations (`.resolve_frame_locations`).
+        2. Loads each file sequentially (`.load_single_frame`).
+        3. Applies any cleaning or processing to each frame (`.postprocess`).
+        4. Concatenates the loaded frames into a single dataset (`.concatenate_frames`).
+        5. Applies any final postprocessing to the concatenated dataset (`.postprocess_final`).
 
-        You can read more about the plugin system in the detailed documentation,
-        but for the most part loaders just specializing one or more of these different steps
-        as appropriate for a beamline.
+        This loading workflow can be customized by overriding the respective methods for specific
+        beamlines or data sources. It provides a flexible way to integrate with different types of
+        data formats and handling strategies.
 
         Args:
-            scan_desc(ScanDesc): scan description
-            kwargs: pass to load_sing_frame
+            scan_desc (ScanDesc): The description of the scan, which may contain information such as
+                file paths or other metadata.
+            kwargs: Additional keyword arguments that will be passed to the `.load_single_frame`
+                method for loading each frame.
 
         Returns:
-            [TODO:description]
+            xr.Dataset: The concatenated and processed dataset containing the scan data.
 
         Raises:
-            RuntimeError: [TODO:description]
+            RuntimeError: If no files are found or if there is an error in loading the scan data.
         """
         scan_desc = scan_desc or {}
         logger.debug("Resolving frame locations")
@@ -429,12 +431,19 @@ class EndstationBase:
     def _modify_a_data(self, a_data: DataType, spectrum_type: str | None) -> DataType:
         """Helper function to modify the Dataset and DataArray that are contained in the Dataset.
 
+        This method modifies the attributes and coordinates of a given data object
+            (either an xarray Dataset or DataArray). It ensures that the "phi" coordinate is
+            set to 0 if it doesn't exist, updates the "spectrum_type" attribute, and applies any
+            transformations defined in `ATTR_TRANSFORMS`. Additionally, it ensures that default
+            attributes from `MERGE_ATTRS` are added to the dataset if they don't already exist.
+
         Args:
-            a_data: [TODO:description]
-            spectrum_type: [TODO:description]
+            a_data (DataType): The data object (either an xarray Dataset or DataArray) to modify.
+            spectrum_type (str | None): The spectrum type to set as an attribute for the data
+                object.
 
         Returns:
-            [TODO:description]
+            DataType: The modified data object with updated attributes and coordinates.
         """
         if "phi" not in a_data.coords:
             a_data.coords["phi"] = 0
@@ -546,17 +555,24 @@ class SESEndstation(EndstationBase):
         scan_desc: ScanDesc | None = None,
         **kwargs: bool,
     ) -> xr.Dataset:
-        """Load the single frame fro the file.
+        """Load the single frame from the specified file.
 
-        [TODO:description]
+        This method loads a single frame of data from a file.
+            If the file is in NetCDF (".nc") format, it loads the data using the `load_SES_nc`
+            method, passing along the `scan_desc` dictionary and any additional keyword arguments.
+            If the file is in PXT format, it reads the data, negates the energy values, and returns
+            the data as an `xarray.Dataset` with the `spectrum` key.
 
         Args:
-            frame_path: [TODO:description]
-            scan_desc (ScanDesc): [TODO:description]
-            kwargs: pass to load_SES_nc, thus only "robust_dimension_labels" can be accepted.
+            frame_path (str | Path): The path to the file containing the single frame of data.
+            scan_desc (ScanDesc | None): A description of the scan, which is passed to the
+            `load_SES_nc` function if the file is in NetCDF format. Defaults to `None`.
+            kwargs (bool): Additional keyword arguments passed to `load_SES_nc`. The only accepted
+            argument is "robust_dimension_labels".
 
         Returns:
-            [TODO:description]
+            xr.Dataset: The dataset containing the loaded spectrum data.
+            Load the single frame fro the file.
         """
         ext = Path(frame_path).suffix
         if scan_desc is None:
@@ -734,15 +750,22 @@ class FITSEndstation(EndstationBase):
     def resolve_frame_locations(self, scan_desc: ScanDesc | None = None) -> list[Path]:
         """Determines all files associated with a given scan.
 
+        This function resolves the file location(s) based on the provided `scan_desc` dictionary.
+        It looks for the "path" or "file" key in the `scan_desc` to determine the file location.
+        If the file does not exist at the provided location, it will attempt to find it in the
+        `DATA_PATH` directory. If the file is still not found, a `RuntimeError` is raised.
+
         Args:
-            scan_desc: [TODO:description]
+            scan_desc (ScanDesc | None): A dictionary containing scan metadata.
+            It must include a "path" or "file" key specifying the location of the scan data file.
 
         Returns:
-            [TODO:description]
+            list[Path]: A list containing the resolved file path(s).
 
         Raises:
-            ValueError: [TODO:description]
-            RuntimeError: [TODO:description]
+            ValueError: If `scan_desc` is not provided or is `None`.
+            RuntimeError: If the file cannot be found at the specified location or in the
+                `DATA_PATH` directory.
         """
         if scan_desc is None:
             msg = "Must pass dictionary as file scan_desc to all endstation loading code."

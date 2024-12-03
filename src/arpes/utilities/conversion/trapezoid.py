@@ -157,13 +157,21 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
         binding_energy: NDArray[np.float64],
         phi: NDArray[np.float64],
     ) -> NDArray[np.float64]:
-        """[TODO:summary].
+        """Converts the given phi values to a new phi representation based on binding energy.
+
+        This method computes the new phi values based on the provided binding energy and phi values,
+        and stores the result in `self.phi`. If `self.phi` is already set, it simply returns
+        the existing value.
 
         Args:
-            binding_energy: [TODO:description]
-            phi: [TODO:description]
-            args: [TODO:description]
-            kwargs: [TODO:description]
+            binding_energy (NDArray[np.float64]): The array of binding energy values.
+            phi (NDArray[np.float64]): The array of phi values to be converted.
+
+        Returns:
+            NDArray[np.float64]: The transformed phi values.
+
+        Raises:
+            ValueError: If any required attributes are missing or invalid.
         """
         if self.phi is not None:
             return self.phi
@@ -176,13 +184,17 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
         binding_energy: NDArray[np.float64],
         phi: NDArray[np.float64],
     ) -> NDArray[np.float64]:
-        """[TODO:summary].
+        """Transforms phi values based on binding energy using a forward method.
+
+        This method computes the new phi values based on the provided binding energy and phi values,
+        applying a forward transformation. The result is stored in the `phi_out` array.
 
         Args:
-            binding_energy: [TODO:description]
-            phi: [TODO:description]
-            args: [TODO:description]
-            kwargs: [TODO:description]
+            binding_energy (NDArray[np.float64]): The array of binding energy values.
+            phi (NDArray[np.float64]): The array of phi values to be converted.
+
+        Returns:
+            NDArray[np.float64]: The transformed phi values after the forward transformation.
         """
         phi_out = np.zeros_like(phi)
         _phi_to_phi_forward(binding_energy, phi, phi_out, self.corner_angles)

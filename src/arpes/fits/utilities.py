@@ -293,14 +293,17 @@ def broadcast_model(  # noqa: PLR0913
 
 
 def _fake_wqdm(x: Iterable[T], **kwargs: str | float) -> Iterable[T]:
-    """Fake of tqdm.notebook.tqdm.
+    """A placeholder for tqdm.notebook.tqdm that returns the input iterable unchanged.
+
+    This function simulates the behavior of tqdm for cases where progress tracking
+    is not needed, effectively acting as a no-op that passes the iterable through.
 
     Args:
-        x (Iterable[int]): [TODO:description]
-        kwargs: its dummy parameters, not used.
+        x (Iterable[T]): An iterable to be processed.
+        kwargs: Dummy parameters that are not used in the function.
 
     Returns:
-        Same iterable.
+        Iterable[T]: The same iterable passed as the argument.
     """
     del kwargs  # kwargs is dummy parameter
     return x
