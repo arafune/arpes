@@ -2750,16 +2750,29 @@ class GenericDataArrayAccessor(GenericAccessorBase):
         return (self._obj.coords[self._obj.dims[0]].values, self._obj.values)
 
     def clean_outliers(self, clip: float = 0.5) -> xr.DataArray:
-        """[TODO:summary].
+        """Clip outliers in the DataArray by limiting values to a specified percentile range.
+
+        This method modifies the values of an `xarray.DataArray` to ensure that they fall within a
+        specified range defined by percentiles. Any value below the lower percentile is set to the
+        lower limit, and any value above the upper percentile is set to the upper limit.
 
         Args:
-            clip: [TODO:description]
+            clip (float, optional): The percentile range to use for clipping. The lower and upper
+                bounds are determined by the `clip` value and its complement:
+                - Lower bound: `clip` percentile.
+                - Upper bound: `(100 - clip)` percentile.
+                For example, if `clip=0.5`, the lower 0.5% and upper 99.5% of
+                    the data will be clipped.
+                Default is 0.5.
 
         Returns:
-            [TODO:description]
+        xr.DataArray: A new DataArray with outliers clipped to the specified range.
+
+        Raises:
+            AssertionError: If the underlying object is not an `xarray.DataArray`.
 
         Todo:
-            Test
+            - Add unit tests to ensure the method behaves as expected.
         """
         assert isinstance(self._obj, xr.DataArray)
         low, high = np.percentile(self._obj.values, [clip, 100 - clip])
@@ -2776,19 +2789,57 @@ class GenericDataArrayAccessor(GenericAccessorBase):
         out: str | bool = "",
         **kwargs: Unpack[PColorMeshKwargs],
     ) -> Path | animation.FuncAnimation:
-        """[TODO:summary].
+        """Create an animation or save images showing the DataArray's evolution over time.
+
+            This method creates a time-based visualization of an `xarray.DataArray`, either as an
+            animation or as a sequence of images saved to disk. The `time_dim` parameter specifies
+            the dimension used for the temporal progression.
 
         Args:
-            time_dim: [TODO:description]
-            pattern: [TODO:description]
-            out: [TODO:description]
-            kwargs: [TODO:description]
+            time_dim (str, optional): The name of the dimension representing time or progression
+                in the DataArray. Defaults to "delay".
+            pattern (str, optional): A format string to name output image files. The string should
+                include a placeholder (`{}`) for dynamic naming. Defaults to "{}.png".
+            out (str | bool, optional): Determines the output format:
+                - If a string is provided, it is used as the base name for the output file or
+                    directory.
+                - If `True`, the file name is automatically generated using the DataArray's label
+                and the provided `pattern`.
+                - If `False` or an empty string, the animation is returned without saving.
+                    Defaults to "".
+            kwargs (optional): Additional keyword arguments passed to the `plot_movie` function.
+                    These can customize the appearance of the generated images or animation.
 
         Returns:
-            [TODO:description]
+            Path | animation.FuncAnimation:
+                - If `out` is specified (as a string or `True`), returns a `Path` to the saved file.
+                - If `out` is `False` or an empty string, returns a
+                  `matplotlib.animation.FuncAnimation` object.
 
+        Raises:
+            AssertionError: If the underlying object is not an `xarray.DataArray`.
+            AssertionError: If `out` is not a valid string when required.
+
+        Example:
+            ```python
+            import xarray as xr
+
+            # Create a sample DataArray with a time dimension
+            data = xr.DataArray(
+                [[[i + j for j in range(10)] for i in range(10)] for _ in range(5)],
+                dims=("time", "x", "y"),
+                coords={"time": range(5), "x": range(10), "y": range(10)},
+            )
+
+            # Generate an animation
+            animation = data.as_movie(time_dim="time")
+
+            # Save as images or a movie file
+            data.as_movie(time_dim="time", out=True, pattern="frame_{}.png")
+            ```
         Todo:
-            Test
+            - Add unit tests to verify functionality with various data configurations.
+            - Enhance compatibility with additional plot types.
         """
         assert isinstance(self._obj, xr.DataArray)
 
@@ -2803,18 +2854,52 @@ class GenericDataArrayAccessor(GenericAccessorBase):
         fn: Callable[[XrTypes, dict[str, float]], DataType],
         dtype: DTypeLike = None,
     ) -> xr.DataArray:
-        """[TODO:summary].
+        """Apply a function along specified axes of the DataArray, creating a new DataArray.
+
+        This method iterates over the coordinates of the specified axes, applies the provided
+        function to each coordinate, and assigns the result to the corresponding position
+        in the output DataArray. Optionally, the data type of the output array can be specified.
 
         Args:
-            axes ([TODO:type]): [TODO:description]
-            fn: [TODO:description]
-            dtype: [TODO:description]
+            axes (list[str] | str): The axis or axes along which to iterate and apply the function.
+            fn (Callable[[XrTypes, dict[str, float]], DataType]): A function that takes the selected
+                data and its coordinates as input and returns the transformed data.
+            dtype (DTypeLike, optional): The desired data type for the output DataArray. If not
+                specified, the type is inferred from the function's output.
+
+        Returns:
+            xr.DataArray: A new DataArray with the function applied along the specified axes.
 
         Raises:
-            TypeError: [TODO:description]
+            TypeError: If the input arguments or operations result in a type mismatch.
+
+        Example:
+            ```python
+            import xarray as xr
+            import numpy as np
+
+            # Create a sample DataArray
+            data = xr.DataArray(
+                np.random.rand(5, 5),
+                dims=["x", "y"],
+                coords={"x": range(5), "y": range(5)},
+            )
+
+            # Define a function to scale data
+            def scale_fn(data, coord):
+                scale_factor = coord["x"] + 1
+                return data * scale_factor
+
+            # Apply the function along the "x" axis
+            result = data.map_axes(axes="x", fn=scale_fn)
+
+            print(result)
+            ```
 
         Todo:
-            Test
+            - Add tests to validate the behavior with complex axes configurations.
+            - Optimize performance for high-dimensional DataArrays.
+
         """
         obj = self._obj.copy(deep=True)
 
