@@ -276,7 +276,7 @@ def propagate_errors(f: Callable[P, R]) -> Callable[P, R]:
         f: The inner function to wrap
 
     Returns:
-        The wrapped function handling distributions tranparently.
+        The wrapped function handling distributions transparently.
     """
 
     @functools.wraps(f)

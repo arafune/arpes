@@ -245,7 +245,7 @@ class SpinToFEndstation(EndstationBase):
                 except Exception:
                     # we should probably zero pad in the case where the slices are not the right
                     # size
-                    logger.exception("Exception Occure")
+                    logger.exception("Exception Occur")
                     continue
 
                 altered_dimension = dimensions[spectrum_name][0]

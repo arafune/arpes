@@ -2,7 +2,7 @@
 
 Common code is provided by a base class reflecting DAQ similarities between micro- and nanoARPES
 at MAESTRO. This is subclassed for the individual experiments to handle some subtle differences
-in how nanoARPES handles its spatial coordiantes (they are hierarchical) and in the spectrometers.
+in how nanoARPES handles its spatial coordinates (they are hierarchical) and in the spectrometers.
 """
 
 from __future__ import annotations
@@ -294,7 +294,7 @@ class MAESTRONanoARPESEndstation(MAESTROARPESEndstationBase):
         high-resolution motion axis of a nano-ARPES system.
 
         Working in two coordinate systems is frustrating, and it makes comparing data cumbersome. In
-        PyARPES x,y,z is always the total inferrable coordinate value,
+        PyARPES x,y,z is always the total inferable coordinate value,
         i.e. (+/- long range +/- high resolution) as appropriate. You can still access the
         underlying coordinates in this case as `long_{dim}` and `short_{dim}`.
 

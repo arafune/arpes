@@ -128,7 +128,7 @@ def calculate_shirley_background_full_range(
         n_samples: The number of samples to use at the boundaries of the input data.
 
     Returns:
-        A monotonic Shirley backgruond over the entire energy range.
+        A monotonic Shirley background over the entire energy range.
     """
     xps_array = (
         xps.copy(deep=True)
@@ -173,7 +173,7 @@ def calculate_shirley_background(
         n_samples: The number of samples to use at the boundaries of the input data.
 
     Returns:
-        A monotonic Shirley backgruond over the entire energy range.
+        A monotonic Shirley background over the entire energy range.
     """
     if energy_range is None:
         energy_range = slice(None, None)

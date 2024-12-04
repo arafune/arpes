@@ -91,7 +91,7 @@ def plot_dos(
     Args:
         data: ARPES data to plot.
         out (str | Path): Path to the figure.
-        orientation (Literal["horizontal", "vetical"]): Orientation of the figures.
+        orientation (Literal["horizontal", "vertical"]): Orientation of the figures.
         figsize: The figure size (arg of plt.figure())
         kwargs: Pass to the original data.
 

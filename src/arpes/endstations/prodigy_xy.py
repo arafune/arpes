@@ -9,7 +9,7 @@ First dimension is always energy. It is stored as a first column of the xy data.
 
 Second dimension "nonenegy" is perpendicular to the energy on the MCP detector,
 stored as # NonEnergyOrdinate in each block of the data.
-This could be both: angular (phi angle) or spacial (along the slit direction).
+This could be both: angular (phi angle) or spatial (along the slit direction).
 
 Third dimension/parameter could be:
 - the deflector shift (psi angle)
@@ -96,7 +96,7 @@ class ProdigyXY:
         else:
             num_of_en = int(self.params["values_curve"])
 
-        kinetic_ef_energy = np.linspace(energies[0], energies[num_of_en-1], num_of_en)
+        kinetic_ef_energy = np.linspace(energies[0], energies[num_of_en - 1], num_of_en)
         # first dimension is always energy
         self.axis_info["d1"] = (kinetic_ef_energy, "eV")
 

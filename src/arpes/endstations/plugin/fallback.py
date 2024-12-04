@@ -115,7 +115,7 @@ class FallbackEndstation(EndstationBase):
         """Finds any file associated to this scan.
 
         Instead actually using the superclass code here, we first try to determine
-        which loading pluging should be used. Then, we delegate to that class to
+        which loading plugin should be used. Then, we delegate to that class to
         find the first associated file.
         """
         associated_loader = cls.determine_associated_loader(str(file_number))

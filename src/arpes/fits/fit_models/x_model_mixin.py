@@ -48,7 +48,7 @@ def _prep_parameters(
 
     Returns:
         lf.Parameters
-        Note that lf.Paramters class not, lf.Parameter
+        Note that lf.Parameters class not, lf.Parameter
 
     Notes:
         Example of lf.Parameters()

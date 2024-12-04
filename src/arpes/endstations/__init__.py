@@ -572,7 +572,7 @@ class SESEndstation(EndstationBase):
 
         Returns:
             xr.Dataset: The dataset containing the loaded spectrum data.
-            Load the single frame fro the file.
+            Load the single frame from the file.
         """
         ext = Path(frame_path).suffix
         if scan_desc is None:

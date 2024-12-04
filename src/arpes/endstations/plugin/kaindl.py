@@ -189,7 +189,7 @@ class KaindlEndstation(HemisphericalEndstation, SESEndstation):
         data: xr.Dataset,
         scan_desc: ScanDesc | None = None,
     ) -> xr.Dataset:
-        """Peforms final data preprocessing for the Kaindl lab Tr-ARPES setup.
+        """Performs final data preprocessing for the Kaindl lab Tr-ARPES setup.
 
         This is very similar to what happens at BL4/MERLIN because the code was adopted
         from an old version of the DAQ on that beamline.

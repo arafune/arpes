@@ -59,7 +59,7 @@ def process_kpath(
     path: str,
     cell: Cell,
 ) -> NDArray[np.float64]:
-    """Converts paths consiting of point definitions to raw coordinates.
+    """Converts paths consisting of point definitions to raw coordinates.
 
     Args:
         path: String that represents the high symmetry points such as "GMK".

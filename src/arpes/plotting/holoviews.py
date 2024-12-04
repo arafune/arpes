@@ -39,7 +39,7 @@ def _fix_xarray_to_fit_with_holoview(dataarray: xr.DataArray) -> xr.DataArray:
         dataarray (xr.DataArray): input Dataarray
 
     Returns:
-        xr.DataArray, whose coordinates is regularly orderd determined by dataarray.dims.
+        xr.DataArray, whose coordinates is regularly ordered determined by dataarray.dims.
     """
     for coord_name in dataarray.coords:
         if coord_name not in dataarray.dims:

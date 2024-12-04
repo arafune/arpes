@@ -154,7 +154,7 @@ def build_direct_fermi_edge_correction(
 
     Args:
         arr (xr.DataArray) : input DataArray
-        energy_range (slice): Energy range, which is used in xr.DataArray.sel(). defautl (-0.1, 0.1)
+        energy_range (slice): Energy range, which is used in xr.DataArray.sel(). default (-0.1, 0.1)
         plot (bool): if True, show the plot
         along (str): axis for non energy axis
 

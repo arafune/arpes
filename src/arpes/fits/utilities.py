@@ -67,7 +67,7 @@ def result_to_hints(
         defaults: Returned if `model_result` is None, useful for cell re-evaluation in Jupyter
 
     Returns:
-        A dict containing parameter specifications in key-value rathar than `lmfit.Parameter`
+        A dict containing parameter specifications in key-value rather than `lmfit.Parameter`
         format, as you might pass as `params=` to PyARPES fitting code.
     """
     if model_result is None:
@@ -170,7 +170,7 @@ def broadcast_model(  # noqa: PLR0913
         prefixes: Prefix for the parameter name.  Pass to MPWorker that pass to
           broadcast_common.compile_model.  When prefixes are specified, the number of prefixes must
           be same as the number of models for fitting. If not specified, the prefix automatically is
-          determined as "a\_", "b\_",....  (We recommend to specifiy them explicitly.)
+          determined as "a\_", "b\_",....  (We recommend to specify them explicitly.)
         window: A specification of cuts/windows to apply to each curve fit
         parallelize: Whether to parallelize curve fits, defaults to True if unspecified and more
           than 20 fits were requested.

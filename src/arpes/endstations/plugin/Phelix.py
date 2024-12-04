@@ -94,7 +94,7 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         - Calculate phi or x values depending on the lens mode.
         - Add missing parameters.
         - Rename keys and dimensions in particular the third dimension that
-        could be psi andle or theta angle in this endstation.
+        could be psi angle or theta angle in this endstation.
 
         Args:
             data(xr.Dataset): ARPES data
@@ -143,10 +143,12 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         if "psi" in data.coords:
             data = data.assign_coords(psi=np.deg2rad(data.psi))
         if "theta" in data.coords:
-            data = data.assign_coords(theta=np.deg2rad(
-                - data.theta - Phelix.NORMAL_EMISSION["theta"],
-            ))
-            data = data.isel(theta=slice(None,None,-1))
+            data = data.assign_coords(
+                theta=np.deg2rad(
+                    -data.theta - Phelix.NORMAL_EMISSION["theta"],
+                )
+            )
+            data = data.isel(theta=slice(None, None, -1))
         return super().postprocess_final(data, scan_desc)
 
 

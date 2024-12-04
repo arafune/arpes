@@ -54,7 +54,7 @@ def build_crosscorrelation(
     Args:
         datalist (Sequence[xr.DataArray]): Data series from the cross-correlation experiments.
         delayline_dim: the dimension name for "delay line", which must be in key of data.attrs
-            When this is the "position" dimention, the unit is assumed to be "mm". If the value has
+            When this is the "position" dimension, the unit is assumed to be "mm". If the value has
             already been converted to "time" dimension, set convert_position_to_time=True
         delayline_origin (float): The value corresponding to the delay zero.
         convert_position_to_time: (bool) If true, no conversion into "delay" is processed.
@@ -189,7 +189,7 @@ def find_t_for_max_intensity(data: xr.DataArray, e_bound: float = 0.02) -> float
     """Finds the time corresponding to the maximum (integrated) intensity.
 
     While the time returned can be used to "t=0" in pump probe exepriments, especially for
-    realtively slow (~ps) phenomena, but not always true.
+    relatively slow (~ps) phenomena, but not always true.
 
     Args:
         data: A spectrum with "eV" and "delay" dimensions.

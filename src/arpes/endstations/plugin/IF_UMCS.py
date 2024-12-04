@@ -37,7 +37,7 @@ class IF_UMCSEndstation(  # noqa: N801
     LENS_MAPPING: ClassVar[dict[str, bool]] = {
         "HighAngularDispersion": True,
         "MediumAngularDispersion": True,
-        "LowAngularDispersion":  True,
+        "LowAngularDispersion": True,
         "WideAngleMode": True,
         "LowMagnification": False,
         "MediumMagnification": False,
@@ -77,7 +77,7 @@ class IF_UMCSEndstation(  # noqa: N801
             if file.suffix == ".xy":
                 data = load_xy(frame_path, **kwargs)
             elif file.suffix == ".itx":
-                msg = "Not suported yet..."
+                msg = "Not supported yet..."
                 raise RuntimeWarning(msg)
             return xr.Dataset({"spectrum": data}, attrs=data.attrs)
 

@@ -254,7 +254,7 @@ def _df_or_list_to_files(
     assert not isinstance(
         df_or_list,
         list | tuple,
-    ), "Expected an interable for a list of the scans to stitch together"
+    ), "Expected an iterable for a list of the scans to stitch together"
     return list(df_or_list)
 
 

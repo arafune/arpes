@@ -101,7 +101,7 @@ def apply_dataarray(
     Args:
         arr (xr.DataArray): original DataArray.
         f (Callable): Function to apple the DataArray.
-        args: argments for "f".
+        args: arguments for "f".
         kwargs: keyword arguments for "f"
 
     Returns:

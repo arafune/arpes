@@ -478,7 +478,7 @@ class ARPESPhysicalProperty:
                 )
                 self._obj.attrs["energy_notation"] = "Binding"
         else:
-            msg = "Not impremented yet."
+            msg = "Not implemented yet."
             raise RuntimeError(msg)
 
 
@@ -939,7 +939,7 @@ class ARPESProvenanceProperty:
         """Return the short version of history.
 
         Args:
-            key (str): key str in recored dict of self.history.  (default: "by")
+            key (str): key str in recorded dict of self.history.  (default: "by")
         """
         return [h["record"][key] if isinstance(h, dict) else h for h in self.history]  # type: ignore[literal-required]
 
@@ -1129,7 +1129,7 @@ class ARPESProperty(ARPESPropertyBase):
 
     @staticmethod
     def dict_to_html(d: Mapping[str, float | str]) -> str:
-        """Returnn html format of dict object.
+        """Return html format of dict object.
 
         Args:
             d: dict object
@@ -1333,7 +1333,7 @@ class ARPESAccessorBase(ARPESProperty):
         Returns: (XrTypes)
             Transposed ARPES data
 
-        Tooo:
+        Todo:
             Test
         """
         dims = list(self._obj.dims)
@@ -1350,7 +1350,7 @@ class ARPESAccessorBase(ARPESProperty):
         Returns: (XrTypes)
             Transposed ARPES data.
 
-        Tooo:
+        Todo:
             Test
         """
         dims = list(self._obj.dims)
@@ -2512,7 +2512,7 @@ class GenericAccessorBase:
         *,
         reverse: bool = False,
     ) -> Iterator[dict[Hashable, float]]:
-        """Iterator for cooridinates along the axis.
+        """Iterator for coordinates along the axis.
 
         Args:
             dim_names (Sequence[Hashable]): Dimensions for iteration.
