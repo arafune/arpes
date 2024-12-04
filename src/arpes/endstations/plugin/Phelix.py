@@ -146,7 +146,7 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
             data = data.assign_coords(
                 theta=np.deg2rad(
                     -data.theta - Phelix.NORMAL_EMISSION["theta"],
-                )
+                ),
             )
             data = data.isel(theta=slice(None, None, -1))
         return super().postprocess_final(data, scan_desc)
