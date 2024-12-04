@@ -19,7 +19,7 @@ I recommend igor to analyze, especially for students.
 
 
 
-**December 2020, V3 Release**: The current relase focuses on improving
+**December 2020, V3 Release**: The current release focuses on improving
 usage and workflow for less experienced Python users, lifting version
 incompatibilities with dependencies, and ironing out edges in the user
 experience.

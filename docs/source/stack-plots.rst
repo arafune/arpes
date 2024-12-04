@@ -63,7 +63,7 @@ axes with ``cbarmap=``. Utilities for colorbars are
 
 Finally, as an example of how you might use the code in a real
 situation, we can do some preprocessing of the data before creating the
-figure. Here we subract and normalize by the low temperature data, which
+figure. Here we subtract and normalize by the low temperature data, which
 highlights the Fermi edge width changing.
 
 .. figure:: _static/flat-stack-difference.png

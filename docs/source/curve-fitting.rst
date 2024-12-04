@@ -20,7 +20,7 @@ complicated models using operators like ``+`` and ``*``, but also makes
 the process of curve fitting transparent and simple.
 
 Here we will prepare an EDC with a step edge, and fit it with a linear
-density of states multipled by the Fermi distribution and convolved with
+density of states multiplied by the Fermi distribution and convolved with
 Gaussian instrumental broadening (``AffineBroadenedFD``). In general in
 PyARPES, we use extensions of the models available in ``lmfit``, which
 provides an ``xarray`` compatible and unitful fitting function

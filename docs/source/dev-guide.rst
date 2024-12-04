@@ -8,7 +8,7 @@ Installing an editable copy of PyARPES
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 1. Install `uv <https://docs.astral.sh/uv/guides/projects/>` to make an isolated environment for development.
-2. Clone the respository
+2. Clone the repository
 
 .. code:: bash
 

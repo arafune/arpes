@@ -27,7 +27,7 @@ repo <https://gitlab.com/lanzara-group/python-arpes>`__.
 What you’ll need
 ----------------
 
-Here’s a summary of what you’ll need to do, if you’are already familar
+Here’s a summary of what you’ll need to do, if you’are already familiar
 with contributing to open source. If you are less familiar, much more
 detail on this is described in the :doc:`developer’s guide </dev-guide>`.
 

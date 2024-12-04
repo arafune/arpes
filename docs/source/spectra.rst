@@ -42,7 +42,7 @@ cases, this imaged axis will always be treated in the same role as the
 high-resolution motion axis of a nano-ARPES system.
 
 Working in two coordinate systems is frustrating, and it makes comparing
-data cumbersome. In PyARPES x,y,z is always the total inferrable
+data cumbersome. In PyARPES x,y,z is always the total inferable
 coordinate value, i.e. (+/- long range +/- high resolution) as
 appropriate. You can still access the underlying coordinates in this
 case as ``long_{dim}`` and ``short_{dim}``.

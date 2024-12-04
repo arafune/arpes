@@ -4,7 +4,7 @@ Frequently Asked Questions
 Igor Installation
 -----------------
 
-Using the suggested invokation I get a pip error
+Using the suggested invocation I get a pip error
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Pip on Windows appears not to like certain archival formats. While

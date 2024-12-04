@@ -21,7 +21,7 @@ available either from the main repository at
 `GitHub <https://github.com/arafune/arpes>`.
 
 1. Install `uv <https://docs.astral.sh/uv/guides/projects/>`__
-2. Clone or otherwise download the respository
+2. Clone or otherwise download the repository
 
 .. code:: bash
 
