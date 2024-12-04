@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 import xarray as xr
+
 from arpes.plotting import stack_plot
 
 

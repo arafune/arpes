@@ -6,17 +6,18 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, TypedDict
 
+import pytest
+
 import arpes.config
 import arpes.endstations
-import pytest
 from arpes.io import example_data
-
 from tests.utils import cache_loader
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
 
     import xarray as xr
+
     from arpes._typing import ScanInfo, WorkSpaceType
 
 
@@ -32,55 +33,55 @@ class Scenario(TypedDict, total=False):
     file: str
 
 
-@pytest.fixture()
+@pytest.fixture
 def dataset_cut() -> xr.Dataset:
     """A fixture for loading Dataset."""
     return example_data.cut
 
 
-@pytest.fixture()
+@pytest.fixture
 def dataarray_cut() -> xr.DataArray:
     """A fixture for loading DataArray."""
     return example_data.cut.spectrum
 
 
-@pytest.fixture()
+@pytest.fixture
 def dataset_map() -> xr.Dataset:
     """A fixture for loading Dataset."""
     return example_data.map.spectrum
 
 
-@pytest.fixture()
+@pytest.fixture
 def dataarray_map() -> xr.DataArray:
     """A fixture for loading DataArray."""
     return example_data.map.spectrum
 
 
-@pytest.fixture()
+@pytest.fixture
 def xps_map() -> xr.Dataset:
     """A fixture for loading example_data.xps."""
     return example_data.nano_xps
 
 
-@pytest.fixture()
+@pytest.fixture
 def hv_map() -> xr.Dataset:
     """A fixture for loading photonenergy dependence."""
     return example_data.photon_energy
 
 
-@pytest.fixture()
+@pytest.fixture
 def dataset_cut2() -> xr.Dataset:
     """A fixture for loading Dataset."""
     return example_data.cut2
 
 
-@pytest.fixture()
+@pytest.fixture
 def dataarray_cut2() -> xr.DataArray:
     """A fixture for loading Dataset."""
     return example_data.cut2.spectrum
 
 
-@pytest.fixture()
+@pytest.fixture
 def dataset_temperature_dependence() -> xr.Dataset:
     """A fixture for loading Dataset (temperature_dependence)."""
     return example_data.temperature_dependence
@@ -117,7 +118,7 @@ SCAN_FIXTURE_LOCATIONS = {
 }
 
 
-@pytest.fixture()
+@pytest.fixture
 def sandbox_configuration() -> Iterator[Sandbox]:
     """Generates a sandboxed configuration of the ARPES data analysis suite."""
     resources_dir = Path.cwd() / "tests" / "resources"

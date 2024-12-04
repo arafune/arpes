@@ -5,12 +5,13 @@ from pathlib import Path
 import numpy as np
 import pytest
 import xarray as xr
+
 from arpes.endstations.prodigy_itx import ProdigyItx, load_sp2
 
 data_dir = Path(__file__).parent.parent / "src" / "arpes" / "example_data"
 
 
-@pytest.fixture()
+@pytest.fixture
 def sample_itx() -> ProdigyItx:
     """Fixture."""
     with Path(data_dir / "example_itx_data.itx").open(mode="r") as itx_file:
@@ -18,7 +19,7 @@ def sample_itx() -> ProdigyItx:
     return ProdigyItx(itx_data)
 
 
-@pytest.fixture()
+@pytest.fixture
 def sample_sp2() -> xr.DataArray:
     """Fixture: produce xr.DataArray."""
     return load_sp2(data_dir / "GrIr_111_20230410_1.sp2")

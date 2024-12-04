@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 import xarray as xr
+
 from arpes.fits.fit_models import (
     AffineBackgroundModel,
     AffineBroadenedFD,

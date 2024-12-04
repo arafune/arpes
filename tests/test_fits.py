@@ -6,11 +6,12 @@ import lmfit as lf
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
-from arpes.plotting.fits import plot_fit, plot_fits
 from matplotlib.axes import Axes
 
+from arpes.plotting.fits import plot_fit, plot_fits
 
-@pytest.fixture()
+
+@pytest.fixture
 def mock_model_results() -> list[lf.model.ModelResult]:
     results = []
     for _ in range(4):
@@ -30,7 +31,7 @@ def mock_model_results() -> list[lf.model.ModelResult]:
     return results
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_model_result():
     mock_result = MagicMock()
     x = np.linspace(0, 10, 100)

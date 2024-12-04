@@ -4,12 +4,13 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+
 from arpes.endstations.prodigy_xy import ProdigyXY
 
 data_dir = Path(__file__).parent.parent / "src" / "arpes" / "example_data"
 
 
-@pytest.fixture()
+@pytest.fixture
 def sample_xy() -> ProdigyXY:
     """Fixture."""
     with Path(data_dir / "BLGr_GK_example_xy_data.xy").open(mode="r") as xy_file:

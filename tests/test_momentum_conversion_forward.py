@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pytest
 import xarray as xr
+
 from arpes.fits.fit_models import AffineBroadenedFD, QuadraticModel
 from arpes.fits.utilities import broadcast_model
 from arpes.utilities.conversion.forward import (
@@ -19,7 +20,7 @@ if TYPE_CHECKING:
 RTOL = 1e-2
 
 
-@pytest.fixture()
+@pytest.fixture
 def energy_corrected(dataarray_map: xr.DataArray) -> xr.DataArray:
     """A fixture for loading DataArray."""
     fmap = dataarray_map

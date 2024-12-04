@@ -2,6 +2,7 @@
 
 import numpy as np
 import xarray as xr
+
 from arpes.analysis import rebin
 from arpes.fits import AffineBroadenedFD, LorentzianModel, broadcast_model
 from arpes.fits.utilities import parse_model
