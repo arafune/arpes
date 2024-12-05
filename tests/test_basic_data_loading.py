@@ -427,10 +427,10 @@ class TestMetadata:
         data = sandbox_configuration.load(file)
         assert isinstance(data, xr.Dataset)
 
-        for k in expected:
+        for k, v in expected.items():
             metadata = getattr(data.S, k)
             assert k
-            assert metadata == expected[k]
+            assert metadata == v
 
 
 class TestBasicDataLoading:
@@ -727,8 +727,7 @@ class TestBasicDataLoading:
                         "eV": [-3.619399, 0.1806009, 0.003999],
                         "phi": [-0.28633, 0.26867, 0.0008409],
                     },
-                    "offset_coords": {
-                    },
+                    "offset_coords": {},
                 },
             },
         ),
