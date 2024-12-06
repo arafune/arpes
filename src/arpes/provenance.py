@@ -153,14 +153,11 @@ R = TypeVar("R")
 
 def update_provenance(
     what: str,
-    *,
-    keep_parent_ref: bool = False,
 ) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """A decorator that promotes a function to one that records data provenance.
 
     Args:
         what (str): Description of what transpired, to put into the record.
-        keep_parent_ref (bool): Whether to keep a pointer to the parents in the hierarchy or not.
 
     Returns:
         A decorator which can be applied to a function.
@@ -211,7 +208,6 @@ def update_provenance(
                         child_arr=result,
                         parents=all_parents,
                         record=provenance_context,
-                        keep_parent_ref=keep_parent_ref,
                     )
             return result
 
@@ -293,8 +289,6 @@ def provenance(
     child_arr: XrTypes,
     parents: list[XrTypes] | XrTypes,
     record: Provenance,
-    *,
-    keep_parent_ref: bool = False,
 ) -> None:
     """Updates the provenance in place for a piece of data with a single parent.
 
@@ -302,7 +296,6 @@ def provenance(
         child_arr: The array to update. This argument is modified.
         parents: The parent array.
         record: An annotation to add.
-        keep_parent_ref: Whether we should keep a reference to the parents.
     """
     from .utilities.jupyter import get_recent_history
 
@@ -335,16 +328,11 @@ def provenance(
         "version": VERSION,
     }
 
-    if keep_parent_ref:
-        child_arr.attrs["provenance"]["parent"] = parents
-
 
 def provenance_multiple_parents(
     child_arr: XrTypes,
     parents: list[XrTypes] | XrTypes,
     record: Provenance,
-    *,
-    keep_parent_ref: bool = False,
 ) -> None:
     """Updates provenance in place when there are multiple array-like data inputs.
 
@@ -356,7 +344,6 @@ def provenance_multiple_parents(
         child_arr: The array to update. This argument is modified.
         parents: The collection of parents.
         record: An annotation to add.
-        keep_parent_ref: Whether we should keep a reference to the parents.
     """
     from .utilities.jupyter import get_recent_history
 
@@ -379,6 +366,3 @@ def provenance_multiple_parents(
         "time": datetime.datetime.now(UTC).isoformat(),
         "version": VERSION,
     }
-
-    if keep_parent_ref:
-        child_arr.attrs["provenance"]["parent"] = parents

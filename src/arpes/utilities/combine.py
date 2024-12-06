@@ -96,7 +96,6 @@ def concat_along_phi(
         concat_array,
         [arr_a, arr_b],
         record=provenance_contents,
-        keep_parent_ref=True,
     )
     return concat_array
 
