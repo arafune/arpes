@@ -1,8 +1,8 @@
 """Unit test for tarpes.py."""
 
 import numpy as np
-from scipy.special import erf
 import xarray as xr
+from scipy.special import erf
 
 from arpes.analysis import tarpes
 
@@ -47,7 +47,18 @@ mock_tarpes = [
 ]
 
 
-def test_find_t0():
+def test_find_t_for_max_intensity():
     """Test for find_t_for_max_intensity."""
-    tarpes_dataarray = tarpes.build_crosscorrelation(mock_tarpes, delayline_dim="position")
-    assert tarpes.find_t_for_max_intensity(tarpes_dataarray) == 670083.2548638314
+    tarpes_dataarray = tarpes.build_crosscorrelation(
+        mock_tarpes,
+        delayline_dim="position",
+        delayline_origin=100.31,
+    )
+    assert tarpes.find_t_for_max_intensity(tarpes_dataarray) == 886.9670772986807
+    tarpes_dataarray = tarpes.build_crosscorrelation(
+        mock_tarpes,
+        delayline_dim="position",
+        delayline_origin=100.31,
+        convert_position_to_time=False,
+    )
+    assert tarpes.find_t_for_max_intensity(tarpes_dataarray) == 0.13295302013422372
