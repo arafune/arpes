@@ -15,10 +15,12 @@ from arpes.endstations import (
     add_endstation,
 )
 from arpes.endstations.prodigy_xy import load_xy
+from arpes.provenance import Provenance, provenance_from_file
 
 if TYPE_CHECKING:
     from arpes._typing import Spectrometer
     from arpes.endstations import ScanDesc
+
 
 __all__ = ["IF_UMCSEndstation"]
 
@@ -70,16 +72,28 @@ class IF_UMCSEndstation(  # noqa: N801
         **kwargs: str | float,
     ) -> xr.Dataset:
         """Load single file."""
+
+        provenance_context: Provenance = {
+            "what": "Loaded xy dataset",
+            "by": "load_single_frame",
+        }
+
         if scan_desc is None:
             scan_desc = {}
         file = Path(frame_path)
         if file.suffix in self._TOLERATED_EXTENSIONS:
             if file.suffix == ".xy":
                 data = load_xy(frame_path, **kwargs)
+                dataset = xr.Dataset({"spectrum": data}, attrs=data.attrs)
+                provenance_from_file(
+                    child_arr=dataset["spectrum"],
+                    file=str(frame_path),
+                    record=provenance_context,
+                )
+                return dataset
             elif file.suffix == ".itx":
                 msg = "Not supported yet..."
-                raise RuntimeWarning(msg)
-            return xr.Dataset({"spectrum": data}, attrs=data.attrs)
+                raise RuntimeError(msg)
 
         msg = "Data file must be ended with .xy or .itx"
         raise RuntimeError(msg)
