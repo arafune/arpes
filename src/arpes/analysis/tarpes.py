@@ -180,7 +180,10 @@ def relative_change(
     return data - before_t0.mean("delay")
 
 
-def find_t_for_max_intensity(data: xr.DataArray, e_bound: float = 0.02) -> float:
+def find_t_for_max_intensity(
+    data: xr.DataArray,
+    e_bounds: tuple[float | None, float | None] = (None, None),
+) -> float:
     """Finds the time corresponding to the maximum (integrated) intensity.
 
     While the time returned can be used to "t=0" in pump probe exepriments, especially for
@@ -188,7 +191,7 @@ def find_t_for_max_intensity(data: xr.DataArray, e_bound: float = 0.02) -> float
 
     Args:
         data: A spectrum with "eV" and "delay" dimensions.
-        e_bound: Lower bound on the energy to use for the fitting
+        e_bounds: Lower and Higher bound on the energy to use for the fitting
 
     Returns:
         The  value at the estimated t0.
@@ -203,6 +206,5 @@ def find_t_for_max_intensity(data: xr.DataArray, e_bound: float = 0.02) -> float
     sum_dims.remove("delay")
     sum_dims.remove("eV")
 
-    summed = data.sum(list(sum_dims)).sel(eV=slice(e_bound, None)).mean("eV")
-    coord_max = np.argmax(summed)
-    return summed.coords["delay"].values[coord_max]
+    summed = data.sum(list(sum_dims)).sel(eV=slice(e_bounds[0], e_bounds[1])).mean("eV")
+    return summed.idxmax().item()
