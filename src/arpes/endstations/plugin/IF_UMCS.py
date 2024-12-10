@@ -34,7 +34,7 @@ class IF_UMCSEndstation(  # noqa: N801
 
     _TOLERATED_EXTENSIONS: ClassVar[set[str]] = {".xy", ".itx"}
 
-    LENS_MAPPING: ClassVar[dict[str, bool]] = {
+    _LENS_MAPPING: ClassVar[dict[str, bool]] = {
         "HighAngularDispersion": True,
         "MediumAngularDispersion": True,
         "LowAngularDispersion": True,
@@ -108,8 +108,8 @@ class IF_UMCSEndstation(  # noqa: N801
         data = data.assign_coords({"eV": binding_energies})
         lens_mode = data.attrs["lens_mode"].split(":")[0]
 
-        if lens_mode in self.LENS_MAPPING:
-            dispersion_mode = self.LENS_MAPPING[lens_mode]
+        if lens_mode in self._LENS_MAPPING:
+            dispersion_mode = self._LENS_MAPPING[lens_mode]
             if dispersion_mode:
                 data = data.rename({"nonenergy": "phi"})
                 data = data.assign_coords(phi=np.deg2rad(data.phi))

@@ -31,7 +31,7 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
 
     _TOLERATED_EXTENSIONS: ClassVar[set[str]] = {".xy"}
 
-    LENS_MAPPING: ClassVar[dict[str, bool]] = {
+    _LENS_MAPPING: ClassVar[dict[str, bool]] = {
         "HighAngularDispersion": True,
         "MediumAngularDispersion": True,
         "LowAngularDispersion": True,
@@ -40,6 +40,10 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         "LowMagnification": False,
         "MediumMagnification": False,
         "HighMagnification": False,
+    }
+    
+    _NORMAL_EMISSION: ClassVar[dict[str, float]] = {
+        "theta": 83.5,
     }
 
     RENAME_KEYS: ClassVar[dict[str, str]] = {
@@ -53,9 +57,6 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         "anr1": "theta",
     }
 
-    NORMAL_EMISSION: ClassVar[dict[str, float]] = {
-        "theta": 83.5,
-    }
 
     MERGE_ATTRS: ClassVar[Spectrometer] = {
         "analyzer": "Specs PHOIBOS 225",
@@ -108,8 +109,8 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         data = data.assign_coords({"eV": binding_energies})
 
         lens_mode = data.attrs["lens_mode"].split(":")[0]
-        if lens_mode in self.LENS_MAPPING:
-            dispersion_mode = self.LENS_MAPPING[lens_mode]
+        if lens_mode in self._LENS_MAPPING:
+            dispersion_mode = self._LENS_MAPPING[lens_mode]
             if dispersion_mode:
                 data = data.rename({"nonenergy": "phi"})
                 data = data.assign_coords(phi=np.deg2rad(data.phi))
@@ -145,7 +146,7 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         if "theta" in data.coords:
             data = data.assign_coords(
                 theta=np.deg2rad(
-                    -data.theta - Phelix.NORMAL_EMISSION["theta"],
+                    -data.theta - Phelix._NORMAL_EMISSION["theta"],
                 ),
             )
             data = data.isel(theta=slice(None, None, -1))

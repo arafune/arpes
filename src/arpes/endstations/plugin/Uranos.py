@@ -41,6 +41,13 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
     _SEARCH_DIRECTORIES = ("zip", "pxt")
     _TOLERATED_EXTENSIONS: ClassVar[set[str]] = {".zip", ".pxt"}
 
+    _NORMAL_EMISSION: ClassVar[dict[str, float]] = {
+        "theta": 178.0,
+        "beta": -88.0,
+    }
+
+    _ANALYZER_WORK_FUNCTION = 4.38
+
     RENAME_KEYS: ClassVar[dict[str, str]] = {
         "sample": "sample_name",
         "spectrum_name": "spectrum_type",
@@ -59,19 +66,14 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         "r3": "beta",
     }
 
-    NORMAL_EMISSION: ClassVar[dict[str, float]] = {
-        "theta": 178.0,
-        "beta": -88.0,
-    }
 
-    ANALYZER_WORK_FUNCTION = 4.38
 
     MERGE_ATTRS: ClassVar[Spectrometer] = {
         "analyzer_name": "DA30L",
         "analyzer_type": "hemispherical",
         "perpendicular_deflectors": True,
         "parallel_deflectors": True,
-        "work_function": ANALYZER_WORK_FUNCTION,
+        "work_function": _ANALYZER_WORK_FUNCTION,
         "alpha": np.deg2rad(90),
     }
 
@@ -179,10 +181,10 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         if scan_desc is None:
             scan_desc = {}
         defaults = {
-            "beta": Uranos.NORMAL_EMISSION["beta"],
+            "beta": Uranos._NORMAL_EMISSION["beta"],
             "chi": 0.0,
             "psi": 0.0,
-            "theta": Uranos.NORMAL_EMISSION["theta"],
+            "theta": Uranos._NORMAL_EMISSION["theta"],
             "x": 0.0,
             "y": 0.0,
             "z": 0.0,
@@ -196,7 +198,7 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
 
         binding_energies = (data.coords["eV"].values
                             - data.attrs["hv"]
-                            + Uranos.ANALYZER_WORK_FUNCTION)
+                            + Uranos._ANALYZER_WORK_FUNCTION)
         data = data.assign_coords({"eV": binding_energies})
 
         data = data.rename({k: v for k, v in self.RENAME_KEYS.items() if k in data.coords})
@@ -207,7 +209,7 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
 
         for coord in ["theta", "beta"]:
             if coord in data.attrs:
-                data.attrs[coord] = np.deg2rad(data.attrs[coord] - Uranos.NORMAL_EMISSION[coord])
+                data.attrs[coord] = np.deg2rad(data.attrs[coord] - Uranos._NORMAL_EMISSION[coord])
 
         return super().postprocess_final(data, scan_desc)
 
