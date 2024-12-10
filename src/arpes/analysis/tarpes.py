@@ -87,7 +87,7 @@ def delaytime_fs(mirror_movement_um: A) -> A:
         mirror_movement_um (float): mirror movement in micron unit.
 
     >>> delaytime_fs(10)
-    3.3.35640951981521
+    3.335640951981521
 
     Returns: float
         delay time in fs.
@@ -105,9 +105,6 @@ def position_to_delaytime(position_mm: A, delayline_offset_mm: float) -> A:
 
     Returns: np.ndarray | float
         delay time in fs unit.
-
-
-
 
     """
     return delaytime_fs(2 * (position_mm - delayline_offset_mm) * 1000)
