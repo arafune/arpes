@@ -41,7 +41,7 @@ mock_tarpes = [
             "phi": np.linspace(np.deg2rad(-10), np.deg2rad(10), 20),
             "eV": np.linspace(5, 6, 20),
         },
-        attrs={"position": position[i]},
+        attrs={"position": position[i], "id": int(i + 1)},
     )
     for i in range(n_data)
 ]
