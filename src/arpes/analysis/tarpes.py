@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING
 
 import numpy as np
 import xarray as xr
-from numpy.typing import NDArray
 
 from arpes.preparation import normalize_dim
 from arpes.provenance import update_provenance
@@ -39,9 +38,6 @@ logger.addHandler(handler)
 logger.propagate = False
 
 
-A = TypeVar("A", NDArray[np.float64], float)
-
-
 def build_crosscorrelation(
     datalist: Sequence[xr.DataArray],
     delayline_dim: str = "position",
@@ -68,26 +64,28 @@ def build_crosscorrelation(
             spectrum if isinstance(spectrum, xr.DataArray) else normalize_to_spectrum(spectrum)
         )
         if convert_position_to_time:
-            delay_time = spectrum_arr.attrs[delayline_dim] - delayline_origin
-        else:
             delay_time = position_to_delaytime(
                 float(spectrum_arr[delayline_dim]),
                 delayline_origin,
             )
+        else:
+            delay_time = spectrum_arr.attrs[delayline_dim] - delayline_origin
         cross_correlations.append(
             spectrum_arr.assign_coords({"delay": delay_time}).expand_dims("delay"),
         )
-    return xr.concat(cross_correlations, dim="delay")
+    cross_correlation: xr.DataArray = xr.concat(cross_correlations, dim="delay")
+    del cross_correlation.attrs[delayline_dim]
+    return cross_correlation
 
 
-def delaytime_fs(mirror_movement_um: A) -> A:
+def delaytime_fs(mirror_movement_um: float) -> float:
     """Return delaytime from the mirror movement (not position).
 
     Args:
         mirror_movement_um (float): mirror movement in micron unit.
 
     >>> delaytime_fs(10)
-    3.335640951981521
+    33.35640951981521
 
     Returns: float
         delay time in fs.
@@ -96,7 +94,7 @@ def delaytime_fs(mirror_movement_um: A) -> A:
     return 3.335640951981521 * mirror_movement_um
 
 
-def position_to_delaytime(position_mm: A, delayline_offset_mm: float) -> A:
+def position_to_delaytime(position_mm: float, delayline_offset_mm: float) -> float:
     """Return delay time from the mirror position.
 
     Args:
