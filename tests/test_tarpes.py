@@ -1,0 +1,53 @@
+"""Unit test for tarpes.py."""
+
+import numpy as np
+from scipy.special import erf
+import xarray as xr
+
+from arpes.analysis import tarpes
+
+
+def temporal_from_rate(t: float, g: float, sigma: float, k_ex: float, t0: float = 0) -> float:
+    """Temporal profile.
+
+    From a rate equation, which is used in (for example)
+    10.1021/acs.nanolett.3c03251
+    """
+    return (
+        (g / 2)
+        * np.exp(k_ex * t0 + sigma**2 * (k_ex**2) / 2)
+        * np.exp(-k_ex * t)
+        * (
+            erf((t - t0 + (sigma**2) * k_ex) / (sigma * np.sqrt(2)))
+            + erf((t0 + (sigma**2) * k_ex) / (sigma * np.sqrt(2)))
+        )
+    )
+
+
+n_data = 150
+position = np.linspace(100, 103, n_data)
+delaytime = np.linspace(-100e-15, 2500e-15, n_data)
+rng = np.random.default_rng(42)
+noise = rng.normal(loc=0, scale=0.01, size=n_data)
+tempo_intensity = (
+    temporal_from_rate(t=delaytime, g=1, sigma=50e-15, k_ex=2e12, t0=0.2e-12) + noise + 0.02
+)
+
+mock_tarpes = [
+    xr.DataArray(
+        data=np.arange(400).reshape(20, 20) * tempo_intensity[i],
+        dims=["phi", "eV"],
+        coords={
+            "phi": np.linspace(np.deg2rad(-10), np.deg2rad(10), 20),
+            "eV": np.linspace(5, 6, 20),
+        },
+        attrs={"position": position[i]},
+    )
+    for i in range(n_data)
+]
+
+
+def test_find_t0():
+    """Test for find_t_for_max_intensity."""
+    tarpes_dataarray = tarpes.build_crosscorrelation(mock_tarpes, delayline_dim="position")
+    assert tarpes.find_t_for_max_intensity(tarpes_dataarray) == 670083.2548638314

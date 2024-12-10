@@ -201,7 +201,6 @@ def find_t_for_max_intensity(
     assert isinstance(data, xr.DataArray)
     assert "delay" in data.dims
     assert "eV" in data.dims
-
     sum_dims = set(data.dims)
     sum_dims.remove("delay")
     sum_dims.remove("eV")
