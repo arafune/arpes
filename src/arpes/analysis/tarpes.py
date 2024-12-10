@@ -65,7 +65,7 @@ def build_crosscorrelation(
         )
         if convert_position_to_time:
             delay_time = position_to_delaytime(
-                float(spectrum_arr[delayline_dim]),
+                float(spectrum_arr.attrs[delayline_dim]),
                 delayline_origin,
             )
         else:
