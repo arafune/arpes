@@ -2883,9 +2883,8 @@ class GenericDataArrayAccessor(GenericAccessorBase):
     def as_movie(
         self,
         time_dim: str = "delay",
-        pattern: str = "{}.png",
         *,
-        out: str | bool = "",
+        out: str = "",
         **kwargs: Unpack[PColorMeshKwargs],
     ) -> Path | animation.FuncAnimation:
         """Create an animation or save images showing the DataArray's evolution over time.
@@ -2899,52 +2898,25 @@ class GenericDataArrayAccessor(GenericAccessorBase):
                 in the DataArray. Defaults to "delay".
             pattern (str, optional): A format string to name output image files. The string should
                 include a placeholder (`{}`) for dynamic naming. Defaults to "{}.png".
-            out (str | bool, optional): Determines the output format:
+            out (str, optional): Determines the output format:
                 - If a string is provided, it is used as the base name for the output file or
                     directory.
-                - If `True`, the file name is automatically generated using the DataArray's label
-                and the provided `pattern`.
-                - If `False` or an empty string, the animation is returned without saving.
-                    Defaults to "".
             kwargs (optional): Additional keyword arguments passed to the `plot_movie` function.
                     These can customize the appearance of the generated images or animation.
 
         Returns:
             Path | animation.FuncAnimation:
                 - If `out` is specified (as a string or `True`), returns a `Path` to the saved file.
-                - If `out` is `False` or an empty string, returns a
-                  `matplotlib.animation.FuncAnimation` object.
+                  if not specified, returns a `matplotlib.animation.FuncAnimation` object.
 
         Raises:
             AssertionError: If the underlying object is not an `xarray.DataArray`.
-            AssertionError: If `out` is not a valid string when required.
 
-        Example:
-            ```python
-            import xarray as xr
-
-            # Create a sample DataArray with a time dimension
-            data = xr.DataArray(
-                [[[i + j for j in range(10)] for i in range(10)] for _ in range(5)],
-                dims=("time", "x", "y"),
-                coords={"time": range(5), "x": range(10), "y": range(10)},
-            )
-
-            # Generate an animation
-            animation = data.as_movie(time_dim="time")
-
-            # Save as images or a movie file
-            data.as_movie(time_dim="time", out=True, pattern="frame_{}.png")
-            ```
         Todo:
             - Add unit tests to verify functionality with various data configurations.
             - Enhance compatibility with additional plot types.
         """
-        assert isinstance(self._obj, xr.DataArray)
 
-        if isinstance(out, bool) and out is True:
-            out = pattern.format(f"{self._obj.S.label}_animation")
-        assert isinstance(out, str)
         return plot_movie(self._obj, time_dim, out=out, **kwargs)
 
     def map_axes(
