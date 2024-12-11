@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Unpack
 
 import numpy as np
-from pandas._libs import interval
 import xarray as xr
 from matplotlib import animation
 from matplotlib import pyplot as plt
@@ -23,7 +22,6 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from matplotlib.collections import QuadMesh
-    from numpy.typing import NDArray
 
     from arpes._typing import PColorMeshKwargs
 
@@ -89,11 +87,12 @@ def plot_movie(  # noqa: PLR0913
         ax.clear()
         return ax.pcolormesh(data.isel({time_dim: frame}).values, **kwargs)
 
-    anim: animation.FuncAnimation = animation.FuncAnimation(fig, update, frame=data.sizes[time_dim], interval=interval ms)
-
-    def init() -> tuple[QuadMesh]:
-        plot.set_array(np.asarray([]))
-        return (plot,)
+    anim: animation.FuncAnimation = animation.FuncAnimation(
+        fig,
+        update,
+        frame=data.sizes[time_dim],
+        interval=interval_ms,
+    )
 
     animation_writer = animation.writers["ffmpeg"]
     writer = animation_writer(
