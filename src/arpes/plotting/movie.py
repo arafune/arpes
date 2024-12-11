@@ -12,6 +12,7 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
 import arpes.config
+from arpes.constants import TWO_DIMENSION
 from arpes.provenance import save_plot_provenance
 from arpes.utilities import normalize_to_spectrum
 
@@ -33,15 +34,15 @@ def plot_movie(  # noqa: PLR0913
     data: xr.DataArray,
     time_dim: str = "delay",
     interval_ms: float = 100,
-    fig_ax: tuple[Figure | None, Axes | None] = (None, None),
+    fig_ax: tuple[Figure | None, Axes | None] | None = None,
     out: str | Path = "",
     figsize: tuple[float, float] | None = None,
     **kwargs: Unpack[PColorMeshKwargs],
 ) -> Path | animation.FuncAnimation:
-    """Creates an animated plot of a 3D dataset using one dimension as "time".
+    """Create an animated moview of a 3D dataset using one dimension as "time".
 
     Args:
-        data (xr.DataArray): ARPES data
+        data (xr.DataArray): ARPES data containing time-series data to animate.
         time_dim (str): Dimension name for time, default is "delay"
         interval_ms (float): Delay between frames in milliseconds
         fig_ax (tuple[Figure, Axes]): matplotlib Figure and Axes objects
@@ -55,17 +56,17 @@ def plot_movie(  # noqa: PLR0913
 
     Raises:
         TypeError: If the argument types are incorrect.
-
+        RuntimeError: If saving the movie file fails.
     """
     figsize = figsize or (7.0, 7.0)
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-    fig, ax = fig_ax
-    if ax is None:
-        fig, ax = plt.subplots(figsize=figsize)
+    fig, ax = fig_ax if fig_ax else plt.subplots(figsize=figsize)
 
     assert isinstance(ax, Axes)
     assert isinstance(fig, Figure)
+    assert isinstance(data, xr.DataArray)
     assert isinstance(arpes.config.SETTINGS, dict)
+    assert data.ndim == TWO_DIMENSION + 1
 
     kwargs.setdefault(
         "cmap",
@@ -83,13 +84,7 @@ def plot_movie(  # noqa: PLR0913
         kwargs["vmax"] = np.max([np.abs(kwargs["vmin"]), np.abs(kwargs["vmax"])])
         kwargs["vmin"] = -kwargs["vmax"]
 
-    plot: QuadMesh = (
-        data.mean(time_dim)
-        .transpose()
-        .S.plot(
-            **kwargs,
-        )
-    )
+    plot: QuadMesh = data.mean(time_dim).transpose().plot.pcolormesh(**kwargs)
 
     def init() -> tuple[QuadMesh]:
         plot.set_array(np.asarray([]))
