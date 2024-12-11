@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Unpack
 
 import numpy as np
+from pandas._libs import interval
 import xarray as xr
 from matplotlib import animation
 from matplotlib import pyplot as plt
@@ -44,11 +45,11 @@ def plot_movie(  # noqa: PLR0913
     Args:
         data (xr.DataArray): ARPES data containing time-series data to animate.
         time_dim (str): Dimension name for time, default is "delay"
-        interval_ms (float): Delay between frames in milliseconds
-        fig_ax (tuple[Figure, Axes]): matplotlib Figure and Axes objects
-        out (str | Path): Output path for saving the animation (optional)
-        figsize (tuple[float, float]): Size of the movie figure
-        kwargs: Additional keyword arguments for the plot
+        interval_ms (float): Delay between frames in milliseconds,  default 100
+        fig_ax (tuple[Figure, Axes]): matplotlib Figure and Axes objects, optional
+        out (str | Path): Output path for saving the animation, optional.
+        figsize (tuple[float, float]): Size of the movie figure, optional
+        kwargs: Additional keyword arguments for `pcolormesh`
 
     Returns:
         Path | animation.FuncAnimation: The path to the saved animation or the animation object
@@ -84,29 +85,15 @@ def plot_movie(  # noqa: PLR0913
         kwargs["vmax"] = np.max([np.abs(kwargs["vmin"]), np.abs(kwargs["vmax"])])
         kwargs["vmin"] = -kwargs["vmax"]
 
-    plot: QuadMesh = data.mean(time_dim).transpose().plot.pcolormesh(**kwargs)
+    def update(frame: int) -> QuadMesh:
+        ax.clear()
+        return ax.pcolormesh(data.isel({time_dim: frame}).values, **kwargs)
+
+    anim: animation.FuncAnimation = animation.FuncAnimation(fig, update, frame=data.sizes[time_dim], interval=interval ms)
 
     def init() -> tuple[QuadMesh]:
         plot.set_array(np.asarray([]))
         return (plot,)
-
-    animation_coords: NDArray[np.float64] = data.coords[time_dim].values
-
-    def animate(i: int) -> tuple[QuadMesh]:
-        coordinate = animation_coords[i]
-        data_for_plot = data.sel({time_dim: coordinate})
-        plot.set_array(data_for_plot.values.ravel())
-        return (plot,)
-
-    anim = animation.FuncAnimation(
-        fig,
-        animate,
-        init_func=init,
-        repeat=500,
-        frames=len(animation_coords),
-        interval=interval_ms,
-        blit=True,
-    )
 
     animation_writer = animation.writers["ffmpeg"]
     writer = animation_writer(
