@@ -746,7 +746,7 @@ class ARPESInfoProperty(ARPESPhysicalProperty):
             ("eV", "kx", "ky"): "map",
             ("eV", "kp", "kz"): "hv_map",
         }
-        dims: tuple[str, ..] = tuple(sorted(str(dim) for dim in self._obj.dims))
+        dims: tuple[str, ...] = tuple(sorted(str(dim) for dim in self._obj.dims))
         if dims in dim_types:
             dim_type = dim_types.get(dims)
         else:
