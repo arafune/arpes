@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from matplotlib.collections import QuadMesh
+    from numpy.typing import NDArray
 
     from arpes._typing import PColorMeshKwargs
 
@@ -94,7 +95,7 @@ def plot_movie(  # noqa: PLR0913
         plot.set_array(np.asarray([]))
         return (plot,)
 
-    animation_coords = data.coords[time_dim].values
+    animation_coords: NDArray[np.float64] = data.coords[time_dim].values
 
     def animate(i: int) -> tuple[QuadMesh]:
         coordinate = animation_coords[i]
