@@ -101,7 +101,7 @@ if TYPE_CHECKING:
     import lmfit
     from _typeshed import Incomplete
     from holoviews import AdjointLayout
-    from matplotlib import animation
+    from IPython.display import HTML
     from matplotlib.axes import Axes
     from matplotlib.figure import Figure
     from numpy.typing import DTypeLike, NDArray
@@ -2883,11 +2883,10 @@ class GenericDataArrayAccessor(GenericAccessorBase):
     def as_movie(
         self,
         time_dim: str = "delay",
-        pattern: str = "{}.png",
         *,
-        out: str | bool = "",
+        out: str = "",
         **kwargs: Unpack[PColorMeshKwargs],
-    ) -> Path | animation.FuncAnimation:
+    ) -> Path | HTML:
         """Create an animation or save images showing the DataArray's evolution over time.
 
             This method creates a time-based visualization of an `xarray.DataArray`, either as an
@@ -2897,15 +2896,9 @@ class GenericDataArrayAccessor(GenericAccessorBase):
         Args:
             time_dim (str, optional): The name of the dimension representing time or progression
                 in the DataArray. Defaults to "delay".
-            pattern (str, optional): A format string to name output image files. The string should
-                include a placeholder (`{}`) for dynamic naming. Defaults to "{}.png".
-            out (str | bool, optional): Determines the output format:
+            out (str , optional): Determines the output format:
                 - If a string is provided, it is used as the base name for the output file or
-                    directory.
-                - If `True`, the file name is automatically generated using the DataArray's label
-                and the provided `pattern`.
-                - If `False` or an empty string, the animation is returned without saving.
-                    Defaults to "".
+                    directory. otherwise, the animation is returned without saving.
             kwargs (optional): Additional keyword arguments passed to the `plot_movie` function.
                     These can customize the appearance of the generated images or animation.
 
@@ -2942,9 +2935,6 @@ class GenericDataArrayAccessor(GenericAccessorBase):
         """
         assert isinstance(self._obj, xr.DataArray)
 
-        if isinstance(out, bool) and out is True:
-            out = pattern.format(f"{self._obj.S.label}_animation")
-        assert isinstance(out, str)
         return plot_movie(self._obj, time_dim, out=out, **kwargs)
 
     def map_axes(

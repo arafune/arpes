@@ -10,7 +10,7 @@ from matplotlib import animation
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-
+from IPython.display import HTML
 import arpes.config
 from arpes.constants import TWO_DIMENSION
 from arpes.provenance import save_plot_provenance
@@ -37,7 +37,7 @@ def plot_movie(  # noqa: PLR0913
     out: str | Path = "",
     figsize: tuple[float, float] | None = None,
     **kwargs: Unpack[PColorMeshKwargs],
-) -> Path | animation.FuncAnimation:
+) -> Path | HTML:
     """Create an animated moview of a 3D dataset using one dimension as "time".
 
     Args:
@@ -105,4 +105,4 @@ def plot_movie(  # noqa: PLR0913
         anim.save(str(path_for_plot(out)), writer=writer)
         return path_for_plot(out)
 
-    return anim
+    return HTML(anim.to_html5_video())
