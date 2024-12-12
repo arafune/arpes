@@ -1,9 +1,11 @@
 """Unit test for tarpes.py."""
 
+import xarray as xr
+
 from arpes.analysis import tarpes
 
 
-def test_find_t_for_max_intensity():
+def test_find_t_for_max_intensity(mock_tarpes: list[xr.DataArray]) -> None:
     """Test for find_t_for_max_intensity."""
     tarpes_dataarray = tarpes.build_crosscorrelation(
         mock_tarpes,
