@@ -6,11 +6,12 @@ from typing import TYPE_CHECKING, Unpack
 
 import numpy as np
 import xarray as xr
+from IPython.display import HTML
 from matplotlib import animation
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-from IPython.display import HTML
+
 import arpes.config
 from arpes.constants import TWO_DIMENSION
 from arpes.provenance import save_plot_provenance
