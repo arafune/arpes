@@ -45,15 +45,24 @@ def build_crosscorrelation(
     *,
     convert_position_to_time: bool = True,
 ) -> xr.DataArray:
-    """Build the ('original dimnsion' + 1)D data from the series of cross-correlation measurements.
+    """Constructs a multidimensional data array from cross-correlation measurements.
+
+    This function processes a series of cross-correlation data arrays by assigning delay
+    times based on the specified delay line dimension. It supports conversion from
+    position units (e.g., mm) to time units if requested.
 
     Args:
-        datalist (Sequence[xr.DataArray]): Data series from the cross-correlation experiments.
-        delayline_dim: the dimension name for "delay line", which must be in key of data.attrs
+        datalist (Sequence[xr.DataArray]):
+            Data series from the cross-correlation experiments.
+        delayline_dim(str, optional):
+            The dimension name for "delay line", which must be in key of data.attrs
             When this is the "position" dimension, the unit is assumed to be "mm". If the value has
             already been converted to "time" dimension, set convert_position_to_time=True
-        delayline_origin (float): The value corresponding to the delay zero.
-        convert_position_to_time: (bool) If true, no conversion into "delay" is processed.
+        delayline_origin (float, optional):
+            The value corresponding to the delay zero position.  Defaults to 0.
+        convert_position_to_time (bool):
+            Whether to convert the delay line values from position to time units. If set
+            to False, the delay line values are used as-is. Defaults to True.
 
     Returns: xr.DataArray
     """
