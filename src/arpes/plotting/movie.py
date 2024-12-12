@@ -20,9 +20,10 @@ from arpes.utilities import normalize_to_spectrum
 from .utils import path_for_plot
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
     from pathlib import Path
 
-    from matplotlib.collections import QuadMesh
+    from matplotlib.artist import Artist
 
     from arpes._typing import PColorMeshKwargs
 
@@ -84,7 +85,7 @@ def plot_movie(  # noqa: PLR0913
         kwargs["vmax"] = np.max([np.abs(kwargs["vmin"]), np.abs(kwargs["vmax"])])
         kwargs["vmin"] = -kwargs["vmax"]
 
-    def update(frame: int) -> QuadMesh:
+    def update(frame: int) -> Iterable[Artist]:
         ax.clear()
         return ax.pcolormesh(data.isel({time_dim: frame}).values, **kwargs)
 
