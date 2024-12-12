@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from typing import TYPE_CHECKING, Unpack
 
 import numpy as np
@@ -26,6 +27,19 @@ if TYPE_CHECKING:
     from matplotlib.artist import Artist
 
     from arpes._typing import PColorMeshKwargs
+
+LOGLEVELS = (DEBUG, INFO)
+LOGLEVEL = LOGLEVELS[1]
+logger = getLogger(__name__)
+fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
+formatter = Formatter(fmt)
+handler = StreamHandler()
+handler.setLevel(LOGLEVEL)
+logger.setLevel(LOGLEVEL)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.propagate = False
+
 
 __all__ = ("plot_movie",)
 
@@ -90,21 +104,15 @@ def plot_movie(  # noqa: PLR0913
         return ax.pcolormesh(data.isel({time_dim: frame}).values, **kwargs)
 
     anim: animation.FuncAnimation = animation.FuncAnimation(
-        fig,
-        update,
-        frame=data.sizes[time_dim],
+        fig=fig,
+        func=update,
+        frames=data.sizes[time_dim],
         interval=interval_ms,
     )
 
-    animation_writer = animation.writers["ffmpeg"]
-    writer = animation_writer(
-        fps=int(1000 / interval_ms),
-        metadata={"artist": "Me"},
-        bitrate=1800,
-    )
-
     if out:
-        anim.save(str(path_for_plot(out)), writer=writer)
+        logger.debug(msg=f"path_for_plot is {path_for_plot(out)}")
+        anim.save(str(path_for_plot(out)), writer="ffmpeg")
         return path_for_plot(out)
 
-    return HTML(anim.to_html5_video())
+    return HTML(anim.to_html5_video())  # HTML(anim.to_jshtml())
