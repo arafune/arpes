@@ -10,7 +10,6 @@ import pytest
 
 import arpes.config
 import arpes.endstations
-from arpes.example_data.mock import build_mock_tarpes
 from arpes.io import example_data
 from tests.utils import cache_loader
 

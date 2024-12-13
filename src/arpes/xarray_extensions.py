@@ -62,8 +62,6 @@ from skimage import feature
 from xarray.core.coordinates import DataArrayCoordinates, DatasetCoordinates
 
 import arpes
-import arpes.constants
-import arpes.utilities.math
 from arpes.constants import TWO_DIMENSION
 
 from ._typing import HighSymmetryPoints, MPLPlotKwargs
