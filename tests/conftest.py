@@ -10,6 +10,7 @@ import pytest
 
 import arpes.config
 import arpes.endstations
+from arpes.example_data.mock import build_mock_tarpes
 from arpes.io import example_data
 from tests.utils import cache_loader
 
@@ -85,6 +86,12 @@ def dataarray_cut2() -> xr.DataArray:
 def dataset_temperature_dependence() -> xr.Dataset:
     """A fixture for loading Dataset (temperature_dependence)."""
     return example_data.temperature_dependence
+
+
+@pytest.fixture
+def mock_tarpes() -> list[xr.DataArray]:
+    """A fixture for making a mock mimicking the tarpes measurements."""
+    return example_data.t_arpes
 
 
 @dataclass

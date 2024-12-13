@@ -25,6 +25,7 @@ import pandas as pd
 import xarray as xr
 
 from .endstations import ScanDesc, load_scan
+from .example_data.mock import build_mock_tarpes
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete
@@ -168,6 +169,10 @@ class ExampleData:
     @property
     def map2(self) -> xr.Dataset:
         return load_example_data("map2")
+
+    @property
+    def t_arpes(self) -> list[xr.DataArray]:
+        return build_mock_tarpes()
 
 
 example_data = ExampleData()

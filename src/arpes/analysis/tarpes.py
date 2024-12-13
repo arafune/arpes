@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING
 
 import numpy as np
 import xarray as xr
-from numpy.typing import NDArray
 
 from arpes.preparation import normalize_dim
 from arpes.provenance import update_provenance
@@ -39,9 +38,6 @@ logger.addHandler(handler)
 logger.propagate = False
 
 
-A = TypeVar("A", NDArray[np.float64], float)
-
-
 def build_crosscorrelation(
     datalist: Sequence[xr.DataArray],
     delayline_dim: str = "position",
@@ -49,15 +45,24 @@ def build_crosscorrelation(
     *,
     convert_position_to_time: bool = True,
 ) -> xr.DataArray:
-    """Build the ('original dimnsion' + 1)D data from the series of cross-correlation measurements.
+    """Constructs a multidimensional data array from cross-correlation measurements.
+
+    This function processes a series of cross-correlation data arrays by assigning delay
+    times based on the specified delay line dimension. It supports conversion from
+    position units (e.g., mm) to time units if requested.
 
     Args:
-        datalist (Sequence[xr.DataArray]): Data series from the cross-correlation experiments.
-        delayline_dim: the dimension name for "delay line", which must be in key of data.attrs
+        datalist (Sequence[xr.DataArray]):
+            Data series from the cross-correlation experiments.
+        delayline_dim(str, optional):
+            The dimension name for "delay line", which must be in key of data.attrs
             When this is the "position" dimension, the unit is assumed to be "mm". If the value has
             already been converted to "time" dimension, set convert_position_to_time=True
-        delayline_origin (float): The value corresponding to the delay zero.
-        convert_position_to_time: (bool) If true, no conversion into "delay" is processed.
+        delayline_origin (float, optional):
+            The value corresponding to the delay zero position.  Defaults to 0.
+        convert_position_to_time (bool):
+            Whether to convert the delay line values from position to time units. If set
+            to False, the delay line values are used as-is. Defaults to True.
 
     Returns: xr.DataArray
     """
@@ -68,26 +73,28 @@ def build_crosscorrelation(
             spectrum if isinstance(spectrum, xr.DataArray) else normalize_to_spectrum(spectrum)
         )
         if convert_position_to_time:
-            delay_time = spectrum_arr.attrs[delayline_dim] - delayline_origin
-        else:
             delay_time = position_to_delaytime(
-                float(spectrum_arr[delayline_dim]),
+                float(spectrum_arr.attrs[delayline_dim]),
                 delayline_origin,
             )
+        else:
+            delay_time = spectrum_arr.attrs[delayline_dim] - delayline_origin
         cross_correlations.append(
             spectrum_arr.assign_coords({"delay": delay_time}).expand_dims("delay"),
         )
-    return xr.concat(cross_correlations, dim="delay")
+    cross_correlation: xr.DataArray = xr.concat(cross_correlations, dim="delay")
+    del cross_correlation.attrs[delayline_dim]
+    return cross_correlation
 
 
-def delaytime_fs(mirror_movement_um: A) -> A:
+def delaytime_fs(mirror_movement_um: float) -> float:
     """Return delaytime from the mirror movement (not position).
 
     Args:
         mirror_movement_um (float): mirror movement in micron unit.
 
     >>> delaytime_fs(10)
-    3.3.35640951981521
+    33.35640951981521
 
     Returns: float
         delay time in fs.
@@ -96,7 +103,7 @@ def delaytime_fs(mirror_movement_um: A) -> A:
     return 3.335640951981521 * mirror_movement_um
 
 
-def position_to_delaytime(position_mm: A, delayline_offset_mm: float) -> A:
+def position_to_delaytime(position_mm: float, delayline_offset_mm: float) -> float:
     """Return delay time from the mirror position.
 
     Args:
@@ -106,9 +113,6 @@ def position_to_delaytime(position_mm: A, delayline_offset_mm: float) -> A:
     Returns: np.ndarray | float
         delay time in fs unit.
 
-
-
-
     """
     return delaytime_fs(2 * (position_mm - delayline_offset_mm) * 1000)
 
@@ -117,7 +121,7 @@ def position_to_delaytime(position_mm: A, delayline_offset_mm: float) -> A:
 def normalized_relative_change(
     data: xr.DataArray,
     t0: float | None = None,
-    buffer: float = 0.3,
+    buffer_fs: float = 300,
     *,
     normalize_delay: bool = True,
 ) -> xr.DataArray:
@@ -129,8 +133,8 @@ def normalized_relative_change(
     Args:
         data: The input spectrum to be normalized. Should have a "delay" dimension.
         t0: The t0 for the input array.
-        buffer: How far before t0 to select equilibrium data. Should be at least
-          the temporal resolution in ps.
+        buffer_fs: How far before t0 to select equilibrium data. Should be at least
+          the temporal resolution in fs.
         normalize_delay: If true, normalizes data along the "delay" dimension.
 
     Returns:
@@ -140,11 +144,12 @@ def normalized_relative_change(
     assert isinstance(spectrum, xr.DataArray)
     if normalize_delay:
         spectrum = normalize_dim(spectrum, "delay")
-    subtracted = relative_change(spectrum, t0, buffer, normalize_delay=False)
+    subtracted = relative_change(spectrum, t0, buffer_fs, normalize_delay=False)
     assert isinstance(subtracted, xr.DataArray)
     normalized: xr.DataArray = subtracted / spectrum
     normalized.values[np.isinf(normalized.values)] = 0
     normalized.values[np.isnan(normalized.values)] = 0
+    normalized.attrs["subtracted"] = True
     return normalized
 
 
@@ -152,7 +157,7 @@ def normalized_relative_change(
 def relative_change(
     data: xr.DataArray,
     t0: float | None = None,
-    buffer: float = 0.3,
+    buffer_fs: float = 300,
     *,
     normalize_delay: bool = True,
 ) -> xr.DataArray:
@@ -161,8 +166,8 @@ def relative_change(
     Args:
         data: The input spectrum to be normalized. Should have a "delay" dimension.
         t0: The t0 for the input array.
-        buffer: How far before t0 to select equilibrium data. Should be at least
-          the temporal resolution in ps.
+        buffer_fs: How far before t0 to select equilibrium data. Should be at least
+          the temporal resolution in fs.
         normalize_delay: If true, normalizes data along the "delay" dimension.
 
     Returns:
@@ -179,13 +184,18 @@ def relative_change(
     if t0 is None:
         t0 = find_t_for_max_intensity(data)
     assert t0 is not None
-    assert t0 - buffer > delay_start
+    assert t0 - buffer_fs > delay_start
 
-    before_t0 = data.sel(delay=slice(None, t0 - buffer))
-    return data - before_t0.mean("delay")
+    before_t0 = data.sel(delay=slice(None, t0 - buffer_fs))
+    relative = data - before_t0.mean("delay")
+    relative.attrs["subtracted"] = True
+    return relative
 
 
-def find_t_for_max_intensity(data: xr.DataArray, e_bound: float = 0.02) -> float:
+def find_t_for_max_intensity(
+    data: xr.DataArray,
+    e_bounds: tuple[float | None, float | None] = (None, None),
+) -> float:
     """Finds the time corresponding to the maximum (integrated) intensity.
 
     While the time returned can be used to "t=0" in pump probe exepriments, especially for
@@ -193,7 +203,7 @@ def find_t_for_max_intensity(data: xr.DataArray, e_bound: float = 0.02) -> float
 
     Args:
         data: A spectrum with "eV" and "delay" dimensions.
-        e_bound: Lower bound on the energy to use for the fitting
+        e_bounds: Lower and Higher bound on the energy to use for the fitting
 
     Returns:
         The  value at the estimated t0.
@@ -203,11 +213,9 @@ def find_t_for_max_intensity(data: xr.DataArray, e_bound: float = 0.02) -> float
     assert isinstance(data, xr.DataArray)
     assert "delay" in data.dims
     assert "eV" in data.dims
-
     sum_dims = set(data.dims)
     sum_dims.remove("delay")
     sum_dims.remove("eV")
 
-    summed = data.sum(list(sum_dims)).sel(eV=slice(e_bound, None)).mean("eV")
-    coord_max = np.argmax(summed)
-    return summed.coords["delay"].values[coord_max]
+    summed = data.sum(list(sum_dims)).sel(eV=slice(e_bounds[0], e_bounds[1])).mean("eV")
+    return summed.idxmax().item()

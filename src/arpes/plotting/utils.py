@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import contextlib
 import datetime
-import errno
 import itertools
 import json
 import pickle
@@ -1081,35 +1080,27 @@ def path_for_plot(desired_path: str | Path) -> Path:
         attempt_determine_workspace()
 
     workspace = CONFIG["WORKSPACE"]
+    logger.debug(f"CONFIG['WORKSPACE']: {workspace}")
 
     if not workspace:
         warnings.warn("Saving locally, no workspace found.", stacklevel=2)
         return Path.cwd() / desired_path
 
     try:
-        figure_path = FIGURE_PATH
-        if figure_path is None:
-            figure_path = Path(workspace["path"]) / "figures"
-
+        figure_path = FIGURE_PATH or Path(workspace["path"]) / "figures"
         filename = (
             Path(figure_path)
             / workspace["name"]
             / datetime.datetime.now(tz=datetime.UTC).date().isoformat()
             / desired_path
-        )
-        filename = Path(filename).absolute()
+        ).resolve()
         parent_directory = Path(filename).parent
-        if not Path(parent_directory).exists():
-            try:
-                Path(parent_directory).mkdir(parents=True)
-            except OSError as exc:
-                if exc.errno != errno.EEXIST:
-                    raise
-            else:
-                return filename
+        parent_directory.mkdir(parents=True, exist_ok=True)
     except Exception:
         logger.exception("Misconfigured FIGURE_PATH saving locally")
         return Path.cwd() / desired_path
+    else:
+        return filename
 
 
 def path_for_holoviews(desired_path: str) -> str:

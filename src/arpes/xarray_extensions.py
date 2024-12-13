@@ -101,7 +101,7 @@ if TYPE_CHECKING:
     import lmfit
     from _typeshed import Incomplete
     from holoviews import AdjointLayout
-    from matplotlib import animation
+    from IPython.display import HTML
     from matplotlib.axes import Axes
     from matplotlib.figure import Figure
     from numpy.typing import DTypeLike, NDArray
@@ -746,7 +746,7 @@ class ARPESInfoProperty(ARPESPhysicalProperty):
             ("eV", "kx", "ky"): "map",
             ("eV", "kp", "kz"): "hv_map",
         }
-        dims: tuple = tuple(sorted(str(dim) for dim in self._obj.dims))
+        dims: tuple[str, ...] = tuple(sorted(str(dim) for dim in self._obj.dims))
         if dims in dim_types:
             dim_type = dim_types.get(dims)
         else:
@@ -2883,11 +2883,10 @@ class GenericDataArrayAccessor(GenericAccessorBase):
     def as_movie(
         self,
         time_dim: str = "delay",
-        pattern: str = "{}.png",
         *,
-        out: str | bool = "",
+        out: str = "",
         **kwargs: Unpack[PColorMeshKwargs],
-    ) -> Path | animation.FuncAnimation:
+    ) -> Path | HTML:
         """Create an animation or save images showing the DataArray's evolution over time.
 
             This method creates a time-based visualization of an `xarray.DataArray`, either as an
@@ -2897,15 +2896,9 @@ class GenericDataArrayAccessor(GenericAccessorBase):
         Args:
             time_dim (str, optional): The name of the dimension representing time or progression
                 in the DataArray. Defaults to "delay".
-            pattern (str, optional): A format string to name output image files. The string should
-                include a placeholder (`{}`) for dynamic naming. Defaults to "{}.png".
-            out (str | bool, optional): Determines the output format:
+            out (str , optional): Determines the output format:
                 - If a string is provided, it is used as the base name for the output file or
-                    directory.
-                - If `True`, the file name is automatically generated using the DataArray's label
-                and the provided `pattern`.
-                - If `False` or an empty string, the animation is returned without saving.
-                    Defaults to "".
+                    directory. otherwise, the animation is returned without saving.
             kwargs (optional): Additional keyword arguments passed to the `plot_movie` function.
                     These can customize the appearance of the generated images or animation.
 
@@ -2926,25 +2919,20 @@ class GenericDataArrayAccessor(GenericAccessorBase):
             # Create a sample DataArray with a time dimension
             data = xr.DataArray(
                 [[[i + j for j in range(10)] for i in range(10)] for _ in range(5)],
-                dims=("time", "x", "y"),
-                coords={"time": range(5), "x": range(10), "y": range(10)},
+                dims=("delay", "x", "y"),
+                coords={"delay": range(5), "x": range(10), "y": range(10)},
             )
 
             # Generate an animation
-            animation = data.as_movie(time_dim="time")
+            animation = data.as_movie(time_dim="delay")
 
-            # Save as images or a movie file
-            data.as_movie(time_dim="time", out=True, pattern="frame_{}.png")
-            ```
+           ```
         Todo:
             - Add unit tests to verify functionality with various data configurations.
             - Enhance compatibility with additional plot types.
         """
         assert isinstance(self._obj, xr.DataArray)
 
-        if isinstance(out, bool) and out is True:
-            out = pattern.format(f"{self._obj.S.label}_animation")
-        assert isinstance(out, str)
         return plot_movie(self._obj, time_dim, out=out, **kwargs)
 
     def map_axes(
