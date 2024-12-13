@@ -91,7 +91,7 @@ def dataset_temperature_dependence() -> xr.Dataset:
 @pytest.fixture
 def mock_tarpes() -> list[xr.DataArray]:
     """A fixture for making a mock mimicking the tarpes measurements."""
-    return build_mock_tarpes()
+    return example_data.t_arpes
 
 
 @dataclass
