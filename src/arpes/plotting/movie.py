@@ -75,7 +75,7 @@ def plot_movie(  # noqa: PLR0913
     """
     figsize = figsize or (7.0, 7.0)
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-    fig, ax = fig_ax if fig_ax else plt.subplots(figsize=figsize)
+    fig, ax = fig_ax or plt.subplots(figsize=figsize)
 
     assert isinstance(ax, Axes)
     assert isinstance(fig, Figure)
