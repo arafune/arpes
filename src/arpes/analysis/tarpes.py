@@ -121,7 +121,7 @@ def position_to_delaytime(position_mm: float, delayline_offset_mm: float) -> flo
 def normalized_relative_change(
     data: xr.DataArray,
     t0: float | None = None,
-    buffer: float = 0.3,
+    buffer_fs: float = 300,
     *,
     normalize_delay: bool = True,
 ) -> xr.DataArray:
@@ -133,8 +133,8 @@ def normalized_relative_change(
     Args:
         data: The input spectrum to be normalized. Should have a "delay" dimension.
         t0: The t0 for the input array.
-        buffer: How far before t0 to select equilibrium data. Should be at least
-          the temporal resolution in ps.
+        buffer_fs: How far before t0 to select equilibrium data. Should be at least
+          the temporal resolution in fs.
         normalize_delay: If true, normalizes data along the "delay" dimension.
 
     Returns:
@@ -144,7 +144,7 @@ def normalized_relative_change(
     assert isinstance(spectrum, xr.DataArray)
     if normalize_delay:
         spectrum = normalize_dim(spectrum, "delay")
-    subtracted = relative_change(spectrum, t0, buffer, normalize_delay=False)
+    subtracted = relative_change(spectrum, t0, buffer_fs, normalize_delay=False)
     assert isinstance(subtracted, xr.DataArray)
     normalized: xr.DataArray = subtracted / spectrum
     normalized.values[np.isinf(normalized.values)] = 0
@@ -157,7 +157,7 @@ def normalized_relative_change(
 def relative_change(
     data: xr.DataArray,
     t0: float | None = None,
-    buffer: float = 0.3,
+    buffer_fs: float = 300,
     *,
     normalize_delay: bool = True,
 ) -> xr.DataArray:
@@ -166,8 +166,8 @@ def relative_change(
     Args:
         data: The input spectrum to be normalized. Should have a "delay" dimension.
         t0: The t0 for the input array.
-        buffer: How far before t0 to select equilibrium data. Should be at least
-          the temporal resolution in ps.
+        buffer_fs: How far before t0 to select equilibrium data. Should be at least
+          the temporal resolution in fs.
         normalize_delay: If true, normalizes data along the "delay" dimension.
 
     Returns:
@@ -184,9 +184,9 @@ def relative_change(
     if t0 is None:
         t0 = find_t_for_max_intensity(data)
     assert t0 is not None
-    assert t0 - buffer > delay_start
+    assert t0 - buffer_fs > delay_start
 
-    before_t0 = data.sel(delay=slice(None, t0 - buffer))
+    before_t0 = data.sel(delay=slice(None, t0 - buffer_fs))
     relative = data - before_t0.mean("delay")
     relative.attrs["subtracted"] = True
     return relative
