@@ -2919,16 +2919,14 @@ class GenericDataArrayAccessor(GenericAccessorBase):
             # Create a sample DataArray with a time dimension
             data = xr.DataArray(
                 [[[i + j for j in range(10)] for i in range(10)] for _ in range(5)],
-                dims=("time", "x", "y"),
-                coords={"time": range(5), "x": range(10), "y": range(10)},
+                dims=("delay", "x", "y"),
+                coords={"delay": range(5), "x": range(10), "y": range(10)},
             )
 
             # Generate an animation
-            animation = data.as_movie(time_dim="time")
+            animation = data.as_movie(time_dim="delay")
 
-            # Save as images or a movie file
-            data.as_movie(time_dim="time", out=True, pattern="frame_{}.png")
-            ```
+           ```
         Todo:
             - Add unit tests to verify functionality with various data configurations.
             - Enhance compatibility with additional plot types.
