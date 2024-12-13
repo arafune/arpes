@@ -149,6 +149,7 @@ def normalized_relative_change(
     normalized: xr.DataArray = subtracted / spectrum
     normalized.values[np.isinf(normalized.values)] = 0
     normalized.values[np.isnan(normalized.values)] = 0
+    normalized.attrs["subtracted"] = True
     return normalized
 
 
@@ -186,7 +187,9 @@ def relative_change(
     assert t0 - buffer > delay_start
 
     before_t0 = data.sel(delay=slice(None, t0 - buffer))
-    return data - before_t0.mean("delay")
+    relative = data - before_t0.mean("delay")
+    relative.attrs["subtracted"] = True
+    return relative
 
 
 def find_t_for_max_intensity(
