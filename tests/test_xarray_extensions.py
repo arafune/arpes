@@ -409,7 +409,7 @@ class TestGeneralforDataArray:
         )
 
     def test_G_meshgrid(self, dataarray_cut: xr.DataArray) -> None:
-        """Test for G.meshgrid."""
+        """Test for G.meshgrid, G.scale_meshgrid, G.shift_meshgrid."""
         small_region = dataarray_cut.sel({"eV": slice(-0.01, 0.0), "phi": slice(0.40, 0.42)})
         meshgrid_results = small_region.G.meshgrid()
         np.testing.assert_allclose(
@@ -464,6 +464,54 @@ class TestGeneralforDataArray:
             np.array([-7.7e-08, -7.7e-08, -7.7e-08, -7.7e-08, -7.7e-08]),
         )
         np.testing.assert_allclose(ravel_["data"], np.array([467, 472, 464, 458, 438]))
+
+
+class TestGeneralforDataset:
+    """Test class for GenericDatasetAccessor."""
+
+    def test_G_meshgrid_operation(self, dataarray_cut: xr.DataArray):
+        """Test G.scale_meshgrid and G.shift_meshgrid, and transform_meshgrid."""
+        small_region = dataarray_cut.sel({"eV": slice(-0.01, 0.0), "phi": slice(0.40, 0.42)})
+        meshgrid_set = small_region.G.meshgrid(as_dataset=True)
+        shifted_meshgrid = meshgrid_set.G.shift_meshgrid(("phi",), -0.2)
+        np.testing.assert_allclose(
+            shifted_meshgrid["phi"][1].values,
+            np.array(
+                [
+                    0.20142573,
+                    0.20317106,
+                    0.20491639,
+                    0.20666172,
+                    0.20840704,
+                    0.21015237,
+                    0.2118977,
+                    0.21364303,
+                    0.21538836,
+                    0.21713369,
+                    0.21887902,
+                ],
+            ),
+        )
+
+        scaled_meshgrid = meshgrid_set.G.scale_meshgrid(("eV",), 1.5)
+        np.testing.assert_allclose(
+            scaled_meshgrid["eV"][-1].values,
+            np.array(
+                [
+                    -1.155e-07,
+                    -1.155e-07,
+                    -1.155e-07,
+                    -1.155e-07,
+                    -1.155e-07,
+                    -1.155e-07,
+                    -1.155e-07,
+                    -1.155e-07,
+                    -1.155e-07,
+                    -1.155e-07,
+                    -1.155e-07,
+                ],
+            ),
+        )
 
 
 class TestAngleUnitforDataArray:
