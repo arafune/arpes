@@ -2681,7 +2681,7 @@ class GenericDatasetAccessor(GenericAccessorBase):
             - Add tests.
         """
         if not isinstance(shift, np.ndarray):
-            shift = np.ones((len(dims),)) * shift
+            shift: NDArray[np.float64] = np.ones((len(dims),)) * shift
 
         def transform(data: NDArray[np.float64]) -> NDArray[np.float64]:
             new_shift: NDArray[np.float64] = shift
@@ -2724,6 +2724,9 @@ class GenericDatasetAccessor(GenericAccessorBase):
         transform: NDArray[np.float64] | Callable,
     ) -> xr.Dataset:
         """Transforms the given coordinate values according to an arbitrary function.
+
+        This method is applicable to a specific Dataset (assuming the return value of G.meshgrid)
+        and is not very versatile.
 
         The transformation should either be a function from a len(dims) x size of raveled coordinate
         array to len(dims) x size of raveled_coordinate array or a linear transformation as a matrix
