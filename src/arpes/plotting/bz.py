@@ -262,13 +262,13 @@ def plot_data_to_bz2d(  # noqa: PLR0913
         c, s = np.cos(rotate), np.sin(rotate)
         rotation = np.array([(c, -s), (s, c)])
 
-        raveled = raveled.G.transform_coords(dims, rotation)
+        raveled = raveled.G.transform_meshgrid(dims, rotation)
 
     if scale is not None:
-        raveled = raveled.G.scale_coords(dims, scale)
+        raveled = raveled.G.scale_meshgrid(dims, scale)
 
     if shift is not None:
-        raveled = raveled.G.shift_coords(dims, shift)
+        raveled = raveled.G.shift_meshgrid(dims, shift)
 
     copied = data_array.values.copy()
 

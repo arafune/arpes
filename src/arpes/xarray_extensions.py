@@ -2659,7 +2659,7 @@ class GenericDatasetAccessor(GenericAccessorBase):
             attrs=self._obj.attrs,
         )
 
-    def shift_coords(
+    def shift_meshgrid(
         self,
         dims: tuple[str, ...],
         shift: NDArray[np.float64] | float,
@@ -2690,14 +2690,14 @@ class GenericDatasetAccessor(GenericAccessorBase):
 
             return data + new_shift
 
-        return self.transform_coords(dims, transform)
+        return self.transform_meshgrid(dims, transform)
 
-    def scale_coords(
+    def scale_meshgrid(
         self,
         dims: tuple[str, ...],
         scale: float | NDArray[np.float64],
     ) -> xr.Dataset:
-        """Scales the coordinates and returns a new dataset with the scaled coordinates.
+        """Scales the meshgrid and returns a new dataset with the scaled meshgrid.
 
         Args:
             dims (tuple[str, ...]): The list of dimensions whose coordinates will be scaled.
@@ -2716,14 +2716,14 @@ class GenericDatasetAccessor(GenericAccessorBase):
         elif len(scale.shape) == 1:
             scale = np.diag(scale)
 
-        return self.transform_coords(dims, scale)
+        return self.transform_meshgrid(dims, scale)
 
-    def transform_coords(
+    def transform_meshgrid(
         self,
         dims: Collection[str],
         transform: NDArray[np.float64] | Callable,
     ) -> xr.Dataset:
-        """Transforms the given coordinate values according to an arbitrary function.
+        """Transforms the given coordinate values in meshgrid by an arbitrary function.
 
         This method is applicable to a specific Dataset (assuming the return value of G.meshgrid)
         and is not very versatile.
@@ -2739,8 +2739,6 @@ class GenericDatasetAccessor(GenericAccessorBase):
         Returns:
             An identical valued array over new coordinates.
 
-        Todo:
-            Test
         """
         assert isinstance(self._obj, xr.Dataset)
         as_ndarray = np.stack([self._obj.data_vars[d].values for d in dims], axis=-1)
