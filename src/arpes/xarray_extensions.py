@@ -2664,7 +2664,7 @@ class GenericDatasetAccessor(GenericAccessorBase):
         dims: tuple[str, ...],
         shift: NDArray[np.float64] | float,
     ) -> xr.Dataset:
-        """Shifts the coordinates and returns a new dataset with the shifted coordinates.
+        """Shifts the meshgrid and returns a new dataset with the shifted meshgrid.
 
         Args:
             dims (tuple[str, ...]): The list of dimensions whose coordinates will be shifted.
@@ -2723,7 +2723,7 @@ class GenericDatasetAccessor(GenericAccessorBase):
         dims: Collection[str],
         transform: NDArray[np.float64] | Callable,
     ) -> xr.Dataset:
-        """Transforms the given coordinate values in meshgrid by an arbitrary function.
+        """Transforms the given coordinate values in **meshgrid** by an arbitrary function.
 
         This method is applicable to a specific Dataset (assuming the return value of G.meshgrid)
         and is not very versatile.
