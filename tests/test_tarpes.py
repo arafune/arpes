@@ -23,7 +23,7 @@ def test_find_t_for_max_intensity(mock_tarpes: list[xr.DataArray]) -> None:
         mock_tarpes,
         delayline_dim="position",
         delayline_origin=100.31,
-        convert_position_to_time=False,
+        convert_position_to_time=None,
     )
     assert tarpes.find_t_for_max_intensity(tarpes_dataarray) == 0.15308724832215148
 
@@ -31,7 +31,7 @@ def test_find_t_for_max_intensity(mock_tarpes: list[xr.DataArray]) -> None:
         mock_tarpes,
         delayline_dim="position",
         delayline_origin=0.0,
-        convert_position_to_time=False,
+        convert_position_to_time=None,
     )
     assert tarpes.find_t_for_max_intensity(tarpes_dataarray) == 100.46308724832215
 
