@@ -1,5 +1,6 @@
 """Unit test for tarpes.py."""
 
+import numpy as np
 import xarray as xr
 from IPython.display import HTML
 
@@ -13,7 +14,11 @@ def test_find_t_for_max_intensity(mock_tarpes: list[xr.DataArray]) -> None:
         delayline_dim="position",
         delayline_origin=100.31,
     )
-    assert tarpes.find_t_for_max_intensity(tarpes_dataarray) == 1021.2881894590657
+    np.testing.assert_allclose(
+        tarpes.find_t_for_max_intensity(tarpes_dataarray),
+        1021.2881894590657,
+        rtol=1e-5,
+    )
     tarpes_dataarray = tarpes.build_crosscorrelation(
         mock_tarpes,
         delayline_dim="position",
@@ -21,6 +26,14 @@ def test_find_t_for_max_intensity(mock_tarpes: list[xr.DataArray]) -> None:
         convert_position_to_time=False,
     )
     assert tarpes.find_t_for_max_intensity(tarpes_dataarray) == 0.15308724832215148
+
+    tarpes_dataarray = tarpes.build_crosscorrelation(
+        mock_tarpes,
+        delayline_dim="position",
+        delayline_origin=0.0,
+        convert_position_to_time=False,
+    )
+    assert tarpes.find_t_for_max_intensity(tarpes_dataarray) == 100.46308724832215
 
 
 def test_as_movie(mock_tarpes: list[xr.DataArray]) -> None:

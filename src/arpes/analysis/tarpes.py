@@ -13,14 +13,14 @@ from arpes.provenance import update_provenance
 from arpes.utilities import normalize_to_spectrum
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Callable, Sequence
 
 __all__ = (
     "build_crosscorrelation",
     "delaytime_fs",
     "find_t_for_max_intensity",
     "normalized_relative_change",
-    "position_to_delaytime",
+    "position_mm_to_delaytime_fs",
     "relative_change",
 )
 
@@ -36,55 +36,6 @@ logger.setLevel(LOGLEVEL)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.propagate = False
-
-
-def build_crosscorrelation(
-    datalist: Sequence[xr.DataArray],
-    delayline_dim: str = "position",
-    delayline_origin: float = 0,
-    *,
-    convert_position_to_time: bool = True,
-) -> xr.DataArray:
-    """Constructs a multidimensional data array from cross-correlation measurements.
-
-    This function processes a series of cross-correlation data arrays by assigning delay
-    times based on the specified delay line dimension. It supports conversion from
-    position units (e.g., mm) to time units if requested.
-
-    Args:
-        datalist (Sequence[xr.DataArray]):
-            Data series from the cross-correlation experiments.
-        delayline_dim(str, optional):
-            The dimension name for "delay line", which must be in key of data.attrs
-            When this is the "position" dimension, the unit is assumed to be "mm". If the value has
-            already been converted to "time" dimension, set convert_position_to_time=True
-        delayline_origin (float, optional):
-            The value corresponding to the delay zero position.  Defaults to 0.
-        convert_position_to_time (bool):
-            Whether to convert the delay line values from position to time units. If set
-            to False, the delay line values are used as-is. Defaults to True.
-
-    Returns: xr.DataArray
-    """
-    cross_correlations = []
-
-    for spectrum in datalist:
-        spectrum_arr = (
-            spectrum if isinstance(spectrum, xr.DataArray) else normalize_to_spectrum(spectrum)
-        )
-        if convert_position_to_time:
-            delay_time = position_to_delaytime(
-                float(spectrum_arr.attrs[delayline_dim]),
-                delayline_origin,
-            )
-        else:
-            delay_time = spectrum_arr.attrs[delayline_dim] - delayline_origin
-        cross_correlations.append(
-            spectrum_arr.assign_coords({"delay": delay_time}).expand_dims("delay"),
-        )
-    cross_correlation: xr.DataArray = xr.concat(cross_correlations, dim="delay")
-    del cross_correlation.attrs[delayline_dim]
-    return cross_correlation
 
 
 def delaytime_fs(mirror_movement_um: float) -> float:
@@ -103,7 +54,7 @@ def delaytime_fs(mirror_movement_um: float) -> float:
     return 3.335640951981521 * mirror_movement_um
 
 
-def position_to_delaytime(position_mm: float, delayline_offset_mm: float) -> float:
+def position_mm_to_delaytime_fs(position_mm: float, delayline_offset_mm: float = 0) -> float:
     """Return delay time from the mirror position.
 
     Args:
@@ -115,6 +66,62 @@ def position_to_delaytime(position_mm: float, delayline_offset_mm: float) -> flo
 
     """
     return delaytime_fs(2 * (position_mm - delayline_offset_mm) * 1000)
+
+
+def build_crosscorrelation(
+    datalist: Sequence[xr.DataArray],
+    delayline_dim: str = "position",
+    delayline_origin: float = 0,
+    *,
+    convert_position_to_time: Callable[[float], float] | None = position_mm_to_delaytime_fs,
+) -> xr.DataArray:
+    """Constructs a multidimensional data array from cross-correlation measurements.
+
+    This function processes a series of cross-correlation data arrays by assigning delay
+    times based on the specified delay line dimension. It supports conversion from
+    position units (e.g., mm) to time units if requested.
+
+    Args:
+        datalist (Sequence[xr.DataArray]):
+            Data series from the cross-correlation experiments. Each data should contain the
+            position or time-delay value in attrs, and not in coords.
+        delayline_dim(str, optional):
+            The dimension name for "delay line", which must be in key of data.attrs
+            When this is the "position" dimension, the unit is assumed to be "mm". If the value has
+            already been converted to "time" dimension, set convert_position_to_time=True
+        delayline_origin (float, optional):
+            The value corresponding to the delay zero position.  Defaults to 0.
+        convert_position_to_time (Callable[[float], float] | None):
+            Function to convert the delay line values from position to time units. Default to
+            position_mm_to_delaytime_fs, which convert to the delayline position in mm to delay time
+            in fs.  For example, when you need convert to delay time in ps,  another conversion
+            function is required. If None, the delay line values are used as-is.
+
+    Returns: xr.DataArray
+    """
+    cross_correlations = []
+
+    for spectrum in datalist:
+        spectrum_arr = (
+            spectrum if isinstance(spectrum, xr.DataArray) else normalize_to_spectrum(spectrum)
+        )
+        if convert_position_to_time:
+            delay_time = convert_position_to_time(
+                float(
+                    spectrum_arr.attrs[delayline_dim],
+                ),
+            ) - convert_position_to_time(
+                delayline_origin,
+            )
+        else:
+            delay_time = spectrum_arr.attrs[delayline_dim] - delayline_origin
+        cross_correlations.append(
+            spectrum_arr.assign_coords({"delay": delay_time}).expand_dims("delay"),
+        )
+    cross_correlations.sort(key=lambda x: x.coords["delay"].values.item())
+    cross_correlation: xr.DataArray = xr.concat(cross_correlations, dim="delay")
+    del cross_correlation.attrs[delayline_dim]
+    return cross_correlation
 
 
 @update_provenance("Normalized subtraction map")
