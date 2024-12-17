@@ -99,13 +99,19 @@ def plot_movie(  # noqa: PLR0913
         kwargs["vmax"] = np.max([np.abs(kwargs["vmin"]), np.abs(kwargs["vmax"])])
         kwargs["vmin"] = -kwargs["vmax"]
 
+    def init() -> Iterable[Artist]:
+        data.isel({time_dim: 0}).plot.pcolormesh(ax=ax, add_colorbar=True, **kwargs)
+        return ax
+
     def update(frame: int) -> Iterable[Artist]:
         ax.clear()
-        return ax.pcolormesh(data.isel({time_dim: frame}).values, **kwargs)
+        data.isel({time_dim: frame}).plot.pcolormesh(ax=ax, add_colorbar=False, **kwargs)
+        return ax
 
     anim: animation.FuncAnimation = animation.FuncAnimation(
         fig=fig,
         func=update,
+        init_func=init,
         frames=data.sizes[time_dim],
         interval=interval_ms,
     )
