@@ -100,12 +100,19 @@ def plot_movie(  # noqa: PLR0913
         kwargs["vmin"] = -kwargs["vmax"]
 
     def init() -> Iterable[Artist]:
-        data.isel({time_dim: 0}).plot.pcolormesh(ax=ax, add_colorbar=True, **kwargs)
+        data.isel({time_dim: 0}).plot.pcolormesh(ax=ax, add_colorbar=True, animated=True, **kwargs)
+        ax.set_title(f"pump probe delay={data.coords[time_dim].values[0]: >9.3f}")
         return ax
 
     def update(frame: int) -> Iterable[Artist]:
         ax.clear()
-        data.isel({time_dim: frame}).plot.pcolormesh(ax=ax, add_colorbar=False, **kwargs)
+        data.isel({time_dim: frame}).plot.pcolormesh(
+            ax=ax,
+            add_colorbar=False,
+            animated=True,
+            **kwargs,
+        )
+        ax.set_title(f"pump probe delay={data.coords[time_dim].values[frame]: >9.3f}")
         return ax
 
     anim: animation.FuncAnimation = animation.FuncAnimation(
