@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from matplotlib.artist import Artist
+    from matplotlib.collections import QuadMesh
 
     from arpes._typing import PColorMeshKwargs
 
@@ -99,10 +100,16 @@ def plot_movie(  # noqa: PLR0913
         kwargs["vmax"] = np.max([np.abs(kwargs["vmin"]), np.abs(kwargs["vmax"])])
         kwargs["vmin"] = -kwargs["vmax"]
 
+    quadmesh: QuadMesh = data.isel({time_dim: 0}).plot.pcolormesh(
+        ax=ax,
+        add_colorbar=True,
+        animated=True,
+        **kwargs,
+    )
+
     def init() -> Iterable[Artist]:
-        data.isel({time_dim: 0}).plot.pcolormesh(ax=ax, add_colorbar=True, animated=True, **kwargs)
         ax.set_title(f"pump probe delay={data.coords[time_dim].values[0]: >9.3f}")
-        return ax
+        return (quadmesh,)
 
     def update(frame: int) -> Iterable[Artist]:
         ax.clear()
@@ -113,7 +120,7 @@ def plot_movie(  # noqa: PLR0913
             **kwargs,
         )
         ax.set_title(f"pump probe delay={data.coords[time_dim].values[frame]: >9.3f}")
-        return ax
+        return (quadmesh,)
 
     anim: animation.FuncAnimation = animation.FuncAnimation(
         fig=fig,
