@@ -11,6 +11,7 @@ import xarray as xr
 from arpes.preparation import normalize_dim
 from arpes.provenance import update_provenance
 from arpes.utilities import normalize_to_spectrum
+from arpes.preparation.axis_preparation import vstack_data
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
@@ -185,8 +186,7 @@ def relative_change(
     if normalize_delay:
         data = normalize_dim(data, "delay")
 
-    delay_coords = data.coords["delay"]
-    delay_start = np.min(delay_coords)
+    delay_start: float = np.min(data.coords["delay"]).values.item()
 
     if t0 is None:
         t0 = find_t_for_max_intensity(data)
@@ -194,7 +194,7 @@ def relative_change(
     assert t0 - buffer_fs > delay_start
 
     before_t0 = data.sel(delay=slice(None, t0 - buffer_fs))
-    relative = data - before_t0.mean("delay")
+    relative = data - before_t0.mean("delay", keep_attrs=True)
     relative.attrs["subtracted"] = True
     return relative
 
