@@ -95,7 +95,7 @@ def plot_movie(  # noqa: PLR0913
     assert "vmax" in kwargs
     assert "vmin" in kwargs
     if data.S.is_subtracted:
-        kwargs["cmap"] = "RdBu"
+        kwargs["cmap"] = "RdBu_r"
         kwargs["vmax"] = np.max([np.abs(kwargs["vmin"]), np.abs(kwargs["vmax"])])
         kwargs["vmin"] = -kwargs["vmax"]
 
