@@ -125,19 +125,20 @@ def plot_movie_and_evolution(  # noqa: PLR0913
         evolution_data: xr.DataArray = data.sel(
             {evolution_at[0]: evolution_at[1]},
             method="nearest",
-        ).S.transpose_to_front(y_axis_evolution_mesh)
+        ).transpose(y_axis_evolution_mesh, ...)
     else:
+        start, width = evolution_at[1]
         evolution_data = (
             data.sel(
                 {
                     evolution_at[0]: slice(
-                        evolution_at[1][0] - evolution_at[1][1],
-                        evolution_at[1][0] + evolution_at[1][1],
+                        start - width,
+                        start + width,
                     ),
                 },
             )
             .mean(dim=evolution_at[0], keep_attrs=True)
-            .S.transpose_to_front(y_axis_evolution_mesh)
+            .transpose(y_axis_evolution_mesh, ...)
         )
 
     if data.S.is_subtracted:
