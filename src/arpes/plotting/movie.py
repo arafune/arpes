@@ -58,9 +58,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913
     evolution_at: tuple[str, float] = ("phi", 0),
     **kwargs: Unpack[PColorMeshKwargs],
 ) -> Path | HTML:
-    """[TODO:summary]
-
-    [TODO:description]
+    """Create an animatied plot of ARPES data with time evolution at certain position.
 
     Args:
         data (xr.DataArray): ARPES data containing time-series data to animate.
@@ -92,7 +90,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913
             nrows=1,
             ncols=2,
             figsize=figsize,
-            width_ratioos=width_ratio,
+            width_ratios=width_ratio,
             sharey="row",
         )
     else:
