@@ -108,6 +108,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913
     assert isinstance(data, xr.DataArray)
     assert isinstance(arpes.config.SETTINGS, dict)
     assert data.ndim == TWO_DIMENSION + 1
+
     kwargs.setdefault(
         "cmap",
         arpes.config.SETTINGS.get("interactive", {}).get(
@@ -119,6 +120,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913
     kwargs.setdefault("vmin", data.min().item())
     assert "vmax" in kwargs
     assert "vmin" in kwargs
+
     if isinstance(evolution_at[1], float):
         evolution_data = data.sel({evolution_at[0]: evolution_at[1]}, method="nearest")
     else:
@@ -248,14 +250,9 @@ def plot_movie(  # noqa: PLR0913
         return (quadmesh,)
 
     def update(frame: int) -> Iterable[Artist]:
-        ax.clear()
-        data.isel({time_dim: frame}).plot.pcolormesh(
-            ax=ax,
-            add_colorbar=False,
-            animated=True,
-            **kwargs,
-        )
         ax.set_title(f"pump probe delay={data.coords[time_dim].values[frame]: >9.3f}")
+        quadmesh.set_array(data.isel({time_dim: frame}).values.ravel())
+        quadmesh.set_animated(True)
         return (quadmesh,)
 
     anim: animation.FuncAnimation = animation.FuncAnimation(
