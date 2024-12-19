@@ -153,16 +153,9 @@ def plot_movie_and_evolution(  # noqa: PLR0913
         return (arpes_mesh, evolution_mesh)
 
     def update(frame: int) -> Iterable[Artist]:
-        ax[0].clear()
-        ax[1].clear()
-        data.isel({time_dim: frame}).plot.pcolormesh(
-            ax=ax[0],
-            add_colorbar=False,
-            animated=True,
-            **kwargs,
-        )
         ax[0].set_title("")
         ax[1].set_title(f"pump probe delay={data.coords[time_dim].values[frame]: >9.3f}")
+        arpes_mesh.set_array(data.isel({time_dim: frame}).values.ravel())
 
         return (arpes_mesh, evolution_mesh)
 
@@ -260,6 +253,7 @@ def plot_movie(  # noqa: PLR0913
         func=update,
         init_func=init,
         frames=data.sizes[time_dim],
+        blit=True,
         interval=interval_ms,
     )
 
@@ -269,3 +263,17 @@ def plot_movie(  # noqa: PLR0913
         return path_for_plot(out)
 
     return HTML(anim.to_html5_video())  # HTML(anim.to_jshtml())
+
+
+def _replace_after_col(array: NDArray[np.float64], col_num: int) -> NDArray[np.float64]:
+    """Replace elements iin the array with NaN af ter a specified column.
+
+
+    Args:
+        array (NDArray[np.float64): The input array.
+        col_num (int): The column number after which elements will be replaced with NaN.
+
+    Returns:
+        NDArray[np.float64]: The modified array with NaN values after the specified column.
+    """
+    return np.where(np.arange(array.shape[1])[:, None] >= col_num, np.nan, array.T).T

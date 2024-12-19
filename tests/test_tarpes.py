@@ -5,6 +5,7 @@ import xarray as xr
 from IPython.display import HTML
 
 from arpes.analysis import tarpes
+from src.arpes.plotting.movie import _replace_after_col
 
 
 def test_find_t_for_max_intensity(mock_tarpes: list[xr.DataArray]) -> None:
@@ -47,3 +48,27 @@ def test_as_movie(mock_tarpes: list[xr.DataArray]) -> None:
     assert type(anim) is HTML
     anim_out = tarpes_dataarray.G.as_movie(out="test.mp4")
     assert "test.mp4" in str(anim_out)
+
+
+def test_replace_after_col():
+    array = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float64)
+    col_num = 2
+    expected_output = np.array([[1, 2, np.nan], [4, 5, np.nan], [7, 8, np.nan]], dtype=np.float64)
+    output = _replace_after_col(array, col_num)
+    np.testing.assert_array_equal(output, expected_output)
+
+
+def test_replace_after_col_no_replacement():
+    array = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float64)
+    col_num = 3
+    expected_output = array
+    output = _replace_after_col(array, col_num)
+    np.testing.assert_array_equal(output, expected_output)
+
+
+def test_replace_after_col_all_replacement():
+    array = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float64)
+    col_num = 0
+    expected_output = np.full(array.shape, np.nan)
+    output = _replace_after_col(array, col_num)
+    np.testing.assert_array_equal(output, expected_output)
