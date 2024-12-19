@@ -55,7 +55,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913
     out: str | Path = "",
     figsize: tuple[float, float] | None = None,
     width_ratio: tuple[float, float] | None = None,
-    evolution_at: tuple[str, float] = ("phi", 0),
+    evolution_at: tuple[str, float] | tuple[str, tuple[float, float]] = ("phi", 0.0),
     **kwargs: Unpack[PColorMeshKwargs],
 ) -> Path | HTML:
     """Create an animatied plot of ARPES data with time evolution at certain position.
@@ -68,7 +68,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913
         out (str | Path): Output path for saving the animation, optional.
         figsize (tuple[float, float]): Size of the movie figure, optional
         width_ratio (tuple[float, float]): Width ratio of ARPES data and Time evolution data.
-        evolution_at: [TODO:description]
+        evolution_at (tuple[str, float] | tuple[str, tuple[float, float]): [TODO:description]
         kwargs: Additional keyword arguments for `pcolormesh`
 
     Returns:
@@ -119,6 +119,19 @@ def plot_movie_and_evolution(  # noqa: PLR0913
     kwargs.setdefault("vmin", data.min().item())
     assert "vmax" in kwargs
     assert "vmin" in kwargs
+    if isinstance(evolution_at[1], float):
+        evolution_data = data.sel({evolution_at[0]: evolution_at[1]}, method="nearest")
+    else:
+        evolution_data = (
+            data.sel(
+                {
+                    evolution_at[0]: slice(
+                        evolution_at[1][0] - evolution_at[1][1],
+                        evolution_at[1][0] + evolution_at[1][1],
+                    ),
+                },
+            ).mean(dim=evolution_at[0], keep_attrs=True),
+        )
 
     if data.S.is_subtracted:
         kwargs["cmap"] = "RdBu"
