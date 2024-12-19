@@ -122,7 +122,10 @@ def plot_movie_and_evolution(  # noqa: PLR0913
     assert "vmin" in kwargs
 
     if isinstance(evolution_at[1], float):
-        evolution_data = data.sel({evolution_at[0]: evolution_at[1]}, method="nearest")
+        evolution_data: xr.DataArray = data.sel(
+            {evolution_at[0]: evolution_at[1]},
+            method="nearest",
+        ).S.transpose_to_front(y_axis_evolution_mesh)
     else:
         evolution_data = (
             data.sel(
@@ -132,7 +135,9 @@ def plot_movie_and_evolution(  # noqa: PLR0913
                         evolution_at[1][0] + evolution_at[1][1],
                     ),
                 },
-            ).mean(dim=evolution_at[0], keep_attrs=True),
+            )
+            .mean(dim=evolution_at[0], keep_attrs=True)
+            .S.transpose_to_front(y_axis_evolution_mesh)
         )
 
     if data.S.is_subtracted:
@@ -142,12 +147,17 @@ def plot_movie_and_evolution(  # noqa: PLR0913
 
     arpes_mesh: QuadMesh = data.isel({time_dim: 0}).plot.pcolormesh(
         ax=ax[0],
-        add_colorbar=True,
+        add_colorbar=False,
         animated=True,
         **kwargs,
     )
 
-    evolution_mesh: QuadMesh = ax.pcolormesh()
+    evolution_mesh: QuadMesh = evolution_data.plot.pcolormesh(
+        ax=ax[1],
+        add_colorbar=True,
+        animated=True,
+        **kwargs,
+    )
 
     def init() -> Iterable[Artist]:
         return (arpes_mesh, evolution_mesh)
@@ -156,7 +166,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913
         ax[0].set_title("")
         ax[1].set_title(f"pump probe delay={data.coords[time_dim].values[frame]: >9.3f}")
         arpes_mesh.set_array(data.isel({time_dim: frame}).values.ravel())
-
+        evolution_mesh.set_array(_replace_after_col(evolution_data.values, col_num=frame).ravel())
         return (arpes_mesh, evolution_mesh)
 
     anim: animation.FuncAnimation = animation.FuncAnimation(
@@ -266,8 +276,7 @@ def plot_movie(  # noqa: PLR0913
 
 
 def _replace_after_col(array: NDArray[np.float64], col_num: int) -> NDArray[np.float64]:
-    """Replace elements iin the array with NaN af ter a specified column.
-
+    """Replace elements in the array with NaN af ter a specified column.
 
     Args:
         array (NDArray[np.float64): The input array.
