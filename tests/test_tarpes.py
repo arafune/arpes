@@ -5,7 +5,7 @@ import xarray as xr
 from IPython.display import HTML
 
 from arpes.analysis import tarpes
-from src.arpes.plotting.movie import _replace_after_col
+from src.arpes.plotting.movie import _replace_after_col, _replace_after_row
 
 
 def test_find_t_for_max_intensity(mock_tarpes: list[xr.DataArray]) -> None:
@@ -72,3 +72,42 @@ def test_replace_after_col_all_replacement():
     expected_output = np.full(array.shape, np.nan)
     output = _replace_after_col(array, col_num)
     np.testing.assert_array_equal(output, expected_output)
+
+
+# Assuming _replace_after_row is defined somewhere above or imported
+# from your_module import _replace_after_row
+
+
+def test_replace_after_row() -> None:
+    # Test case 1: Normal case
+    array = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float64)
+    expected = np.array([[1, 2, 3], [4, 5, 6], [np.nan, np.nan, np.nan]], dtype=np.float64)
+    result = _replace_after_row(array, 2)
+    np.testing.assert_array_equal(result, expected)
+
+    # Test case 2: Edge case where row_num is 0
+    array = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float64)
+    expected = np.array(
+        [[np.nan, np.nan, np.nan], [np.nan, np.nan, np.nan], [np.nan, np.nan, np.nan]],
+        dtype=np.float64,
+    )
+    result = _replace_after_row(array, 0)
+    np.testing.assert_array_equal(result, expected)
+
+    # Test case 3: Edge case where row_num is the last row
+    array = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float64)
+    expected = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float64)
+    result = _replace_after_row(array, 3)
+    np.testing.assert_array_equal(result, expected)
+
+    # Test case 4: Single row array
+    array = np.array([[1, 2, 3]], dtype=np.float64)
+    expected = np.array([[1, 2, 3]], dtype=np.float64)
+    result = _replace_after_row(array, 1)
+    np.testing.assert_array_equal(result, expected)
+
+    # Test case 5: Single column array
+    array = np.array([[1], [2], [3]], dtype=np.float64)
+    expected = np.array([[1], [2], [np.nan]], dtype=np.float64)
+    result = _replace_after_row(array, 2)
+    np.testing.assert_array_equal(result, expected)

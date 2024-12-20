@@ -57,6 +57,8 @@ def plot_movie_and_evolution(  # noqa: PLR0913
     figsize: tuple[float, float] | None = None,
     width_ratio: tuple[float, float] | None = None,
     evolution_at: tuple[str, float] | tuple[str, tuple[float, float]] = ("phi", 0.0),
+    *,
+    dark_bg: bool = False,
     **kwargs: Unpack[PColorMeshKwargs],
 ) -> Path | HTML:
     """Create an animatied plot of ARPES data with time evolution at certain position.
@@ -70,14 +72,15 @@ def plot_movie_and_evolution(  # noqa: PLR0913
         figsize (tuple[float, float]): Size of the movie figure, optional
         width_ratio (tuple[float, float]): Width ratio of ARPES data and Time evolution data.
         evolution_at (tuple[str, float] | tuple[str, tuple[float, float]): [TODO:description]
+        dark_bg (bool): If true, the frame and font color changes to white, default False.
         kwargs: Additional keyword arguments for `pcolormesh`
 
     Returns:
         Path | animation.FuncAnimation: The path to the saved animation or the animation object
             itself
     """
-    figsize = figsize or (9.0, 6.0)
-    width_ratio = width_ratio or (1.0, 3.0)
+    figsize = figsize or (9.0, 5.0)
+    width_ratio = width_ratio or (1.0, 4.4)
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     axes_list = list(data.dims)
     axes_list.remove("delay")
@@ -131,19 +134,30 @@ def plot_movie_and_evolution(  # noqa: PLR0913
         kwargs["vmax"] = np.max([np.abs(kwargs["vmin"]), np.abs(kwargs["vmax"])])
         kwargs["vmin"] = -kwargs["vmax"]
 
-    arpes_mesh: QuadMesh = data.isel({time_dim: 0}).plot.pcolormesh(
-        ax=ax[0],
-        add_colorbar=False,
-        animated=True,
+    arpes_data = data.isel({time_dim: 0})
+    arpes_mesh: QuadMesh = ax[0].pcolormesh(
+        arpes_data.coords[arpes_data.dims[1]].values,
+        arpes_data.coords[arpes_data.dims[0]].values,
+        arpes_data.values,
         **kwargs,
     )
+    ax[0].set_xlabel(str(arpes_data.dims[1]))
+    ax[0].set_ylabel(str(arpes_data.dims[0]))
+    arpes_mesh.set_animated(True)
 
-    evolution_mesh: QuadMesh = evolution_data.plot.pcolormesh(
-        ax=ax[1],
-        add_colorbar=True,
-        animated=True,
+    evolution_mesh: QuadMesh = ax[1].pcolormesh(
+        evolution_data.coords[evolution_data.dims[1]].values,
+        evolution_data.coords[evolution_data.dims[0]].values,
+        evolution_data.values,
         **kwargs,
     )
+    evolution_mesh.set_animated(True)
+    cbar: Colorbar = fig.colorbar(evolution_mesh, ax=ax[1])
+
+    if dark_bg:
+        color_for_darkbackground(obj=cbar)
+        color_for_darkbackground(obj=ax[0])
+        color_for_darkbackground(obj=ax[1])
 
     def init() -> Iterable[Artist]:
         ax[1].set_ylabel("")
@@ -307,3 +321,16 @@ def _replace_after_col(array: NDArray[np.float64], col_num: int) -> NDArray[np.f
         NDArray[np.float64]: The modified array with NaN values after the specified column.
     """
     return np.where(np.arange(array.shape[1])[:, None] >= col_num, np.nan, array.T).T
+
+
+def _replace_after_row(array: NDArray[np.float64], row_num: int) -> NDArray[np.float64]:
+    """Replace elements in the array with NaN after a specified row.
+
+    Args:
+        array (NDArray[np.float64]): The input array.
+        row_num (int): The row number after which elements will be replaced with NaN.
+
+    Returns:
+        NDArray[np.float64]: The modified array with NaN values after the specified row.
+    """
+    return np.where(np.arange(array.shape[0])[:, None] >= row_num, np.nan, array)
