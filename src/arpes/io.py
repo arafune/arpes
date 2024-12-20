@@ -107,7 +107,8 @@ DATA_EXAMPLES: dict[str, tuple[str, str]] = {
     "nano_xps": ("example_data", "nano_xps.nc"),
     "temperature_dependence": ("example_data", "temperature_dependence.nc"),
     "cut2": ("SPD", "example_itx_data.itx"),
-    "map2": ("IF_UMCS", "BLGr_GK_example_xy_data.xy"),
+    "cut3": ("IF_UMCS", "BLGr_K_cut.xy"),
+    "map2": ("IF_UMCS", "BLGr_GK_map.xy"),
 }
 
 
@@ -115,7 +116,7 @@ def load_example_data(example_name: str = "cut") -> xr.Dataset:
     """Provides sample data for executable documentation.
 
     Args:
-        example_name: (cut, cut2, map, map2, photon_energy, nano_xps, temperature_dependence)
+        example_name: (cut, cut2, cut3, map, map2, photon_energy, nano_xps, temperature_dependence)
 
     Returns:
         example DataSet
@@ -159,6 +160,10 @@ class ExampleData:
     @property
     def cut2(self) -> xr.Dataset:
         return load_example_data("cut2")
+
+    @property
+    def cut3(self) -> xr.Dataset:
+        return load_example_data("cut3")
 
     @property
     def map2(self) -> xr.Dataset:
