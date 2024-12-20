@@ -19,6 +19,7 @@ from arpes.provenance import Provenance, provenance_from_file
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
     from arpes._typing import Spectrometer
     from arpes.endstations import ScanDesc
 
@@ -57,7 +58,7 @@ class IF_UMCSEndstation(  # noqa: N801
         "polar": "theta",
         "region": "id",
     }
-    
+
     ATTR_TRANSFORMS: ClassVar[dict[str, Callable[..., dict[str, float | list[str] | str]]]] = {
         "aquisition_date_utc": lambda _: {
             "date": _.split()[0],
@@ -85,7 +86,6 @@ class IF_UMCSEndstation(  # noqa: N801
         **kwargs: str | float,
     ) -> xr.Dataset:
         """Load single file."""
-
         provenance_context: Provenance = {
             "what": "Loaded xy dataset",
             "by": "load_single_frame",
@@ -103,9 +103,9 @@ class IF_UMCSEndstation(  # noqa: N801
                     file=str(frame_path),
                     record=provenance_context,
                 )
-                dataset.attrs['location'] = self.PRINCIPAL_NAME
+                dataset.attrs["location"] = self.PRINCIPAL_NAME
                 return dataset
-            elif file.suffix == ".itx":
+            if file.suffix == ".itx":
                 msg = "Not supported yet..."
                 raise RuntimeError(msg)
 
@@ -169,9 +169,9 @@ class IF_UMCSEndstation(  # noqa: N801
         data = data.rename({k: v for k, v in self.RENAME_KEYS.items() if k in data.coords})
         if "theta" in data.coords:
             data = data.assign_coords(theta=np.deg2rad(data.theta))
-        
+
         data = super().postprocess_final(data, scan_desc)
-        data.S.spectrum.attrs['location'] = self.PRINCIPAL_NAME
+        data.S.spectrum.attrs["location"] = self.PRINCIPAL_NAME
         return data
 
 
