@@ -11,6 +11,7 @@ from IPython.display import HTML
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib.axes import Axes
+from matplotlib.colorbar import Colorbar
 from matplotlib.figure import Figure
 
 import arpes.config
@@ -72,9 +73,8 @@ def plot_movie_and_evolution(  # noqa: PLR0913
         kwargs: Additional keyword arguments for `pcolormesh`
 
     Returns:
-         Path | animation.FuncAnimation: The path to the saved animation or the animation object
+        Path | animation.FuncAnimation: The path to the saved animation or the animation object
             itself
-
     """
     figsize = figsize or (9.0, 6.0)
     width_ratio = width_ratio or (1.0, 3.0)
@@ -114,21 +114,17 @@ def plot_movie_and_evolution(  # noqa: PLR0913
         evolution_data: xr.DataArray = data.sel(
             {evolution_at[0]: evolution_at[1]},
             method="nearest",
-        ).transpose(y_axis_evolution_mesh, ...)
+        )
     else:
         start, width = evolution_at[1]
-        evolution_data = (
-            data.sel(
-                {
-                    evolution_at[0]: slice(
-                        start - width,
-                        start + width,
-                    ),
-                },
-            )
-            .mean(dim=evolution_at[0], keep_attrs=True)
-            .transpose(y_axis_evolution_mesh, ...)
-        )
+        evolution_data = data.sel(
+            {
+                evolution_at[0]: slice(
+                    start - width,
+                    start + width,
+                ),
+            },
+        ).mean(dim=evolution_at[0], keep_attrs=True)
 
     if data.S.is_subtracted:
         kwargs["cmap"] = "RdBu"
@@ -186,6 +182,8 @@ def plot_movie(  # noqa: PLR0913
     fig_ax: tuple[Figure | None, Axes | None] | None = None,
     out: str | Path = "",
     figsize: tuple[float, float] | None = None,
+    *,
+    dark_bg: bool = False,
     **kwargs: Unpack[PColorMeshKwargs],
 ) -> Path | HTML:
     """Create an animated movie of a 3D dataset using one dimension as "time".
@@ -197,6 +195,7 @@ def plot_movie(  # noqa: PLR0913
         fig_ax (tuple[Figure, Axes]): matplotlib Figure and Axes objects, optional
         out (str | Path): Output path for saving the animation, optional.
         figsize (tuple[float, float]): Size of the movie figure, optional
+        dark_bg (bool): If true, the frame and font color changes to white, default False.
         kwargs: Additional keyword arguments for `pcolormesh`
 
     Returns:
@@ -207,7 +206,7 @@ def plot_movie(  # noqa: PLR0913
         TypeError: If the argument types are incorrect.
         RuntimeError: If saving the movie file fails.
     """
-    figsize = figsize or (7.0, 7.0)
+    figsize = figsize or (9.0, 5.0)
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     fig, ax = fig_ax or plt.subplots(figsize=figsize)
 
@@ -234,22 +233,32 @@ def plot_movie(  # noqa: PLR0913
         kwargs["vmax"] = np.max([np.abs(kwargs["vmin"]), np.abs(kwargs["vmax"])])
         kwargs["vmin"] = -kwargs["vmax"]
 
-    quadmesh: QuadMesh = data.isel({time_dim: 0}).plot.pcolormesh(
-        ax=ax,
-        add_colorbar=True,
-        animated=True,
+    arpes_data = data.isel({time_dim: 0})
+    arpes_mesh: QuadMesh = ax.pcolormesh(
+        arpes_data.coords[arpes_data.dims[1]].values,
+        arpes_data.coords[arpes_data.dims[0]].values,
+        arpes_data.values,
         **kwargs,
     )
+    ax.set_xlabel(str(arpes_data.dims[1]))
+    ax.set_ylabel(str(arpes_data.dims[0]))
+    arpes_mesh.set_animated(True)
+    cbar = fig.colorbar(arpes_mesh, ax=ax)
+    if dark_bg:
+        color_for_darkbackground(obj=cbar)
+        color_for_darkbackground(obj=ax)
 
     def init() -> Iterable[Artist]:
         ax.set_title(f"pump probe delay={data.coords[time_dim].values[0]: >9.3f}")
-        return (quadmesh,)
+        return (arpes_mesh,)
 
     def update(frame: int) -> Iterable[Artist]:
-        ax.set_title(f"pump probe delay={data.coords[time_dim].values[frame]: >9.3f}")
-        quadmesh.set_array(data.isel({time_dim: frame}).values.ravel())
-        quadmesh.set_animated(True)
-        return (quadmesh,)
+        ax.set_title(
+            f"pump probe delay={data.coords[time_dim].values[frame]: >9.3f}",
+        )
+        arpes_mesh.set_array(data.isel({time_dim: frame}).values.ravel())
+        arpes_mesh.set_animated(True)
+        return (arpes_mesh,)
 
     anim: FuncAnimation = FuncAnimation(
         fig=fig,
@@ -266,6 +275,25 @@ def plot_movie(  # noqa: PLR0913
         return path_for_plot(out)
 
     return HTML(anim.to_html5_video())  # HTML(anim.to_jshtml())
+
+
+def color_for_darkbackground(obj: Colorbar | Axes) -> None:
+    """Change color to fit the dark background."""
+    if isinstance(obj, Colorbar):
+        obj.ax.yaxis.set_tick_params(color="white")
+        obj.ax.yaxis.label.set_color("white")
+        obj.outline.set_edgecolor("white")
+        for label in obj.ax.get_yticklabels():
+            label.set_color("white")
+    if isinstance(obj, Axes):
+        obj.spines["bottom"].set_color("white")
+        obj.spines["top"].set_color("white")
+        obj.spines["right"].set_color("white")
+        obj.spines["left"].set_color("white")
+        obj.tick_params(axis="both", colors="white")
+        obj.xaxis.label.set_color("white")
+        obj.yaxis.label.set_color("white")
+        obj.title.set_color("white")
 
 
 def _replace_after_col(array: NDArray[np.float64], col_num: int) -> NDArray[np.float64]:
