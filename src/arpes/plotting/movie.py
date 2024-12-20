@@ -117,17 +117,21 @@ def plot_movie_and_evolution(  # noqa: PLR0913
         evolution_data: xr.DataArray = data.sel(
             {evolution_at[0]: evolution_at[1]},
             method="nearest",
-        )
+        ).transpose(..., time_dim)
     else:
         start, width = evolution_at[1]
-        evolution_data = data.sel(
-            {
-                evolution_at[0]: slice(
-                    start - width,
-                    start + width,
-                ),
-            },
-        ).mean(dim=evolution_at[0], keep_attrs=True)
+        evolution_data = (
+            data.sel(
+                {
+                    evolution_at[0]: slice(
+                        start - width,
+                        start + width,
+                    ),
+                },
+            )
+            .mean(dim=evolution_at[0], keep_attrs=True)
+            .transpose(..., time_dim)
+        )
 
     if data.S.is_subtracted:
         kwargs["cmap"] = "RdBu"
@@ -152,7 +156,11 @@ def plot_movie_and_evolution(  # noqa: PLR0913
         **kwargs,
     )
     evolution_mesh.set_animated(True)
+    ax[1].set_xlabel(str(evolution_data.dims[1]))
+    if evolution_data.dims[0] == arpes_data.dims[0]:
+        ax[1].yaxis.set_ticks([])
     cbar: Colorbar = fig.colorbar(evolution_mesh, ax=ax[1])
+    fig.tight_layout()
 
     if dark_bg:
         color_for_darkbackground(obj=cbar)
@@ -164,8 +172,6 @@ def plot_movie_and_evolution(  # noqa: PLR0913
         return (arpes_mesh, evolution_mesh)
 
     def update(frame: int) -> Iterable[Artist]:
-        ax[0].set_title("")
-        ax[1].set_title(f"pump probe delay={data.coords[time_dim].values[frame]: >9.3f}")
         arpes_mesh.set_array(data.isel({time_dim: frame}).values.ravel())
         evolution_mesh.set_array(
             _replace_after_col(evolution_data.values, col_num=frame + 1).ravel(),
