@@ -17,6 +17,7 @@ from arpes.endstations import (
 from arpes.endstations.prodigy_xy import load_xy
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from arpes._typing import Spectrometer
     from arpes.endstations import ScanDesc
 
@@ -48,6 +49,7 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
 
     RENAME_KEYS: ClassVar[dict[str, str]] = {
         "eff_workfunction": "workfunction",
+        "acquisition_date": "aquisition_date_utc",
         "analyzer_slit": "slit",
         "analyzer_lens": "lens_mode",
         "detector_voltage": "mcp_voltage",
@@ -55,6 +57,17 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         "region": "id",
         "shiftx": "psi",
         "anr1": "theta",
+    }
+
+    ATTR_TRANSFORMS: ClassVar[dict[str, Callable[..., dict[str, float | list[str] | str]]]] = {
+        "aquisition_date_utc": lambda _: {
+            "date": _.split()[0],
+            "time": _.split()[1],
+        },
+        "slit": lambda _: {
+            "slit_number": int(_.split(":")[0]),
+            "slit_width": float(_.split(":")[1].split("x")[0]),
+        },
     }
 
 
