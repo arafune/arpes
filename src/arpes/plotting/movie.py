@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from numbers import Number
+from pathlib import Path
 from typing import TYPE_CHECKING, Unpack
 
 import numpy as np
@@ -23,7 +25,6 @@ from .utils import path_for_plot
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
-    from pathlib import Path
 
     from matplotlib.artist import Artist
     from matplotlib.collections import QuadMesh
@@ -32,7 +33,7 @@ if TYPE_CHECKING:
     from arpes._typing import PColorMeshKwargs
 
 LOGLEVELS = (DEBUG, INFO)
-LOGLEVEL = LOGLEVELS[1]
+LOGLEVEL = LOGLEVELS[0]
 logger = getLogger(__name__)
 fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
 formatter = Formatter(fmt)
@@ -48,19 +49,19 @@ __all__ = ("plot_movie", "plot_movie_and_evolution")
 
 
 @save_plot_provenance
-def plot_movie_and_evolution(  # noqa: PLR0913
+def plot_movie_and_evolution(  # noqa: PLR0913, PLR0915
     data: xr.DataArray,
     time_dim: str = "delay",
     interval_ms: float = 100,
     fig_ax: tuple[Figure | None, NDArray[np.object_] | None] | None = None,
-    out: str | Path = "",
+    out: str | Path | Number | None = None,
     figsize: tuple[float, float] | None = None,
     width_ratio: tuple[float, float] | None = None,
     evolution_at: tuple[str, float] | tuple[str, tuple[float, float]] = ("phi", 0.0),
     *,
     dark_bg: bool = False,
     **kwargs: Unpack[PColorMeshKwargs],
-) -> Path | HTML:
+) -> Path | HTML | Figure:
     """Create an animatied plot of ARPES data with time evolution at certain position.
 
     This function uses matplotlib's pcolormesh to create the plots.
@@ -70,7 +71,8 @@ def plot_movie_and_evolution(  # noqa: PLR0913
         time_dim (str): Dimension name for time, default is "delay"
         interval_ms (float): Delay between frames in milliseconds,  default 100.
         fig_ax (tuple[Figure, Axes]): matplotlib Figure and Axes objects, optional.
-        out (str | Path): Output path for saving the animation, optional.
+        out (str | Path | Number): Output path for saving the animation. If numerical value is set,
+            the snap shot image (Figure object) corresponding to the specified time is retutrned.
         figsize (tuple[float, float]): Size of the movie figure, optional.
         width_ratio (tuple[float, float]): Width ratio of ARPES data and Time evolution data.
         evolution_at (tuple[str, float] | tuple[str, tuple[float, float]): Position for time
@@ -80,7 +82,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913
         kwargs: Additional keyword arguments for `pcolormesh`
 
     Returns:
-        Path | HTML: The path to the saved animation or the animation object itself
+        Path | HTML: The path to the saved animation or the animation object itself.
     """
     figsize = figsize or (9.0, 5.0)
     width_ratio = width_ratio or (1.0, 4.4)
@@ -92,6 +94,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913
         figsize=figsize,
         width_ratios=width_ratio,
     )
+
     assert ax is not None
     assert isinstance(ax[0], Axes)
     assert isinstance(ax[1], Axes)
@@ -106,17 +109,19 @@ def plot_movie_and_evolution(  # noqa: PLR0913
             "viridis",
         ),
     )
+
     kwargs.setdefault("vmax", data.max().item())
     kwargs.setdefault("vmin", data.min().item())
     assert "vmax" in kwargs
     assert "vmin" in kwargs
 
-    if isinstance(evolution_at[1], float):
+    if isinstance(evolution_at[1], Number):
         evolution_data: xr.DataArray = data.sel(
             {evolution_at[0]: evolution_at[1]},
             method="nearest",
         ).transpose(..., time_dim)
     else:
+        assert isinstance(evolution_at[1], tuple)
         start, width = evolution_at[1]
         evolution_data = (
             data.sel(
@@ -176,6 +181,11 @@ def plot_movie_and_evolution(  # noqa: PLR0913
         )
         return (arpes_mesh, evolution_mesh)
 
+    def update_only_arpes_mesh(frame: int) -> Iterable[Artist]:
+        arpes_mesh.set_array(data.isel({time_dim: frame}).values.ravel())
+        evolution_mesh.set_array(evolution_data.values.ravel())
+        return (arpes_mesh, evolution_mesh)
+
     anim: FuncAnimation = FuncAnimation(
         fig=fig,
         func=update,
@@ -184,10 +194,15 @@ def plot_movie_and_evolution(  # noqa: PLR0913
         interval=interval_ms,
     )
 
-    if out:
+    if isinstance(out, str | Path):
         logger.debug(msg=f"path_for_plot is {path_for_plot(out)}")
         anim.save(str(path_for_plot(out)), writer="ffmpeg")
         return path_for_plot(out)
+    if isinstance(out, Number):
+        index: int = data.indexes[time_dim].get_indexer([out], method="nearest")[0]
+        update_only_arpes_mesh(index)
+        fig.canvas.draw()
+        return fig
 
     return HTML(anim.to_html5_video())  # HTML(anim.to_jshtml())
 
@@ -198,12 +213,12 @@ def plot_movie(  # noqa: PLR0913
     time_dim: str = "delay",
     interval_ms: float = 100,
     fig_ax: tuple[Figure | None, Axes | None] | None = None,
-    out: str | Path = "",
+    out: str | Path | Number | None = None,
     figsize: tuple[float, float] | None = None,
     *,
     dark_bg: bool = False,
     **kwargs: Unpack[PColorMeshKwargs],
-) -> Path | HTML:
+) -> Path | HTML | Figure:
     """Create an animated movie of a 3D dataset using one dimension as "time".
 
     This function uses matplotlib's pcolormesh to create the plots.
@@ -213,7 +228,8 @@ def plot_movie(  # noqa: PLR0913
         time_dim (str): Dimension name for time, default is "delay".
         interval_ms (float): Delay between frames in milliseconds,  default 100.
         fig_ax (tuple[Figure, Axes]): matplotlib Figure and Axes objects, optional.
-        out (str | Path): Output path for saving the animation, optional.
+        out (str | Path | Number): Output path for saving the animation. If the numerical value
+            is set, the snapshot image (Figure object) is returned.
         figsize (tuple[float, float]): Size of the movie figure, optional.
         dark_bg (bool): If true, the frame and font color changes to white, default False.
         kwargs: Additional keyword arguments for `pcolormesh`.
@@ -287,10 +303,16 @@ def plot_movie(  # noqa: PLR0913
         interval=interval_ms,
     )
 
-    if out:
+    if isinstance(out, str | Path):
         logger.debug(msg=f"path_for_plot is {path_for_plot(out)}")
         anim.save(str(path_for_plot(out)), writer="ffmpeg")
         return path_for_plot(out)
+
+    if isinstance(out, Number):
+        index: int = data.indexes[time_dim].get_indexer([out], method="nearest")[0]
+        update(index)
+        fig.canvas.draw()
+        return fig
 
     return HTML(anim.to_html5_video())  # HTML(anim.to_jshtml())
 
@@ -310,6 +332,7 @@ def color_for_darkbackground(obj: Colorbar | Axes) -> None:
         obj.outline.set_edgecolor("white")
         for label in obj.ax.get_yticklabels():
             label.set_color("white")
+
     if isinstance(obj, Axes):
         obj.spines["bottom"].set_color("white")
         obj.spines["top"].set_color("white")

@@ -2890,9 +2890,9 @@ class GenericDataArrayAccessor(GenericAccessorBase):
         self,
         time_dim: str = "delay",
         *,
-        out: str = "",
+        out: str | None = None,
         **kwargs: Unpack[PColorMeshKwargs],
-    ) -> Path | HTML:
+    ) -> Path | HTML | Figure:
         """Create an animation or save images showing the DataArray's evolution over time.
 
             This method creates a time-based visualization of an `xarray.DataArray`, either as an
