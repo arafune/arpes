@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING, Unpack
 import numpy as np
 import xarray as xr
 from IPython.display import HTML
-from matplotlib.animation import FuncAnimation
 from matplotlib import pyplot as plt
+from matplotlib.animation import FuncAnimation
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
@@ -83,7 +83,6 @@ def plot_movie_and_evolution(  # noqa: PLR0913
     axes_list.remove("delay")
     axes_list.remove(evolution_at[0])
 
-    y_axis_arpes_mesh = data.isel(indexers={time_dim: 0}).dims[0]
     y_axis_evolution_mesh = axes_list[0]
     fig, ax = fig_ax or plt.subplots(
         nrows=1,
