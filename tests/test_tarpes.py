@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 import xarray as xr
 from IPython.display import HTML
+from matplotlib.figure import Figure
 
 from arpes.analysis import tarpes
 from src.arpes.plotting.movie import (
@@ -130,7 +131,7 @@ def sample_data(mock_tarpes: list[xr.DataArray]):
 
 
 def test_plot_movie_and_evolution_html_output(sample_data: xr.DataArray):
-    result = plot_movie_and_evolution(sample_data, out="")
+    result = plot_movie_and_evolution(sample_data, out=None)
     assert isinstance(result, HTML)
 
 
@@ -142,15 +143,20 @@ def test_plot_movie_and_evolution_path_output(sample_data: xr.DataArray, tmp_pat
 
 
 def test_plot_movie_and_evolution_figsize(sample_data: xr.DataArray):
-    result = plot_movie_and_evolution(sample_data, figsize=(12, 8), out="")
+    result = plot_movie_and_evolution(sample_data, figsize=(12, 8), out=None)
     assert isinstance(result, HTML)
 
 
 def test_plot_movie_and_evolution_dark_bg(sample_data: xr.DataArray):
-    result = plot_movie_and_evolution(sample_data, dark_bg=True, out="")
+    result = plot_movie_and_evolution(sample_data, dark_bg=True, out=None)
     assert isinstance(result, HTML)
 
 
 def test_plot_movie_and_evolution_evolution_at(sample_data: xr.DataArray):
-    result = plot_movie_and_evolution(sample_data, evolution_at=("phi", 0.0), out="")
+    result = plot_movie_and_evolution(sample_data, evolution_at=("phi", 0.0), out=None)
     assert isinstance(result, HTML)
+
+
+def test_plot_movie_and_evolution_snapshot(sample_data: xr.DataArray):
+    result = plot_movie_and_evolution(sample_data, evolution_at=("phi", (0.0, 0.05)), out=0.1)
+    assert isinstance(result, Figure)
