@@ -1,11 +1,18 @@
 """Unit test for tarpes.py."""
 
+from pathlib import Path
+
 import numpy as np
+import pytest
 import xarray as xr
 from IPython.display import HTML
 
 from arpes.analysis import tarpes
-from src.arpes.plotting.movie import _replace_after_col, _replace_after_row
+from src.arpes.plotting.movie import (
+    _replace_after_col,
+    _replace_after_row,
+    plot_movie_and_evolution,
+)
 
 
 def test_find_t_for_max_intensity(mock_tarpes: list[xr.DataArray]) -> None:
@@ -111,3 +118,39 @@ def test_replace_after_row() -> None:
     expected = np.array([[1], [2], [np.nan]], dtype=np.float64)
     result = _replace_after_row(array, 2)
     np.testing.assert_array_equal(result, expected)
+
+
+@pytest.fixture
+def sample_data(mock_tarpes: list[xr.DataArray]):
+    return tarpes.build_crosscorrelation(
+        mock_tarpes,
+        delayline_dim="position",
+        delayline_origin=100.31,
+    )
+
+
+def test_plot_movie_and_evolution_html_output(sample_data: xr.DataArray):
+    result = plot_movie_and_evolution(sample_data, out="")
+    assert isinstance(result, HTML)
+
+
+def test_plot_movie_and_evolution_path_output(sample_data: xr.DataArray, tmp_path: Path):
+    output_path = tmp_path / "test_movie.mp4"
+    result = plot_movie_and_evolution(sample_data, out=output_path)
+    assert isinstance(result, Path)
+    assert result.exists()
+
+
+def test_plot_movie_and_evolution_figsize(sample_data: xr.DataArray):
+    result = plot_movie_and_evolution(sample_data, figsize=(12, 8), out="")
+    assert isinstance(result, HTML)
+
+
+def test_plot_movie_and_evolution_dark_bg(sample_data: xr.DataArray):
+    result = plot_movie_and_evolution(sample_data, dark_bg=True, out="")
+    assert isinstance(result, HTML)
+
+
+def test_plot_movie_and_evolution_evolution_at(sample_data: xr.DataArray):
+    result = plot_movie_and_evolution(sample_data, evolution_at=("phi", 0.0), out="")
+    assert isinstance(result, HTML)
