@@ -1330,10 +1330,13 @@ class ARPESAccessorBase(ARPESProperty):
 
         Returns: (XrTypes)
             Transposed ARPES data
-
-        Todo:
-            Test
         """
+        warnings.warn(
+            "This method will be deprecated. Use standard transpose(dim, ...). "
+            "Note Ellipsis is important",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
         dims = list(self._obj.dims)
         assert dim in dims
         dims.remove(dim)
@@ -1347,10 +1350,14 @@ class ARPESAccessorBase(ARPESProperty):
 
         Returns: (XrTypes)
             Transposed ARPES data.
-
-        Todo:
-            Test
         """
+        warnings.warn(
+            "This method will be deprecated. Use standard transpose(..., dim). "
+            "Note Ellipsis is important",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+
         dims = list(self._obj.dims)
         assert dim in dims
         dims.remove(dim)
