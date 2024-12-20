@@ -1260,7 +1260,7 @@ class ARPESProperty(ARPESPropertyBase):
 
                 for i, plot_var in enumerate(to_plot):
                     spectrum = self._obj[plot_var]
-                    spectrum.S.transpose_to_front("eV").plot(ax=ax[i])
+                    spectrum.transpose("eV", ...).plot(ax=ax[i])
                     fancy_labels(ax[i])
                     ax[i].set_title(plot_var.replace("_", " "))
 
@@ -1269,7 +1269,7 @@ class ARPESProperty(ARPESPropertyBase):
         elif 1 <= len(self._obj.dims) < 3:  # noqa: PLR2004
             _, ax = plt.subplots(1, 1, figsize=(4, 3))
             spectrum = self._obj
-            spectrum.S.transpose_to_front("eV").plot(ax=ax)
+            spectrum.transpose("eV", ...).plot(ax=ax)
             fancy_labels(ax, data=self._obj)
             ax.set_title("")
 
@@ -1322,7 +1322,7 @@ class ARPESAccessorBase(ARPESProperty):
         """
         return [n for n in dir(self) if name in n]
 
-    def transpose_to_front(self, dim: str) -> XrTypes:
+    def transpose_to_front(self, dim: str) -> XrTypes:  # pragma: no cover
         """Transpose the dimensions (to front).
 
         Args:
@@ -1342,7 +1342,7 @@ class ARPESAccessorBase(ARPESProperty):
         dims.remove(dim)
         return self._obj.transpose(*([dim, *dims]))
 
-    def transpose_to_back(self, dim: str) -> XrTypes:
+    def transpose_to_back(self, dim: str) -> XrTypes:  # pragma: no cover
         """Transpose the dimensions (to back).
 
         Args:

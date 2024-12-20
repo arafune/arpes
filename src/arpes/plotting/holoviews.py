@@ -233,13 +233,13 @@ def fit_inspection(
 
     assert "data" in dataset.data_vars
     arpes_measured: xr.DataArray = _fix_xarray_to_fit_with_holoview(
-        dataset.data.S.transpose_to_back("eV"),
+        dataset.data.transpose(..., "eV"),
     )
     fit = arpes_measured + _fix_xarray_to_fit_with_holoview(
-        dataset.residual.S.transpose_to_back("eV"),
+        dataset.residual.transpose(..., "eV"),
     )
     residual = _fix_xarray_to_fit_with_holoview(
-        dataset.residual.S.transpose_to_back("eV"),
+        dataset.residual.transpose(..., "eV"),
     )
     max_coords = arpes_measured.G.argmax_coords()
     posx = hv.streams.PointerX(x=max_coords[arpes_measured.dims[0]])

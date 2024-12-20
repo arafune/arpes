@@ -79,16 +79,6 @@ class TestforProperties:
             ),
         )
 
-    def test_transpose_front_back(self, dataarray_cut: xr.DataArray) -> None:
-        """Test for transpose_to_front/back."""
-        original_ndarray = dataarray_cut.values
-        transpose_to_front_ndarray = dataarray_cut.S.transpose_to_front("eV").values
-        transpose_to_back_ndarray = (
-            dataarray_cut.S.transpose_to_front("eV").S.transpose_to_back("eV").values
-        )
-        np.testing.assert_allclose(original_ndarray, transpose_to_front_ndarray.T)
-        np.testing.assert_allclose(original_ndarray, transpose_to_back_ndarray)
-
     def test_property_for_degrees_of_freedom(
         self,
         dataset_cut: xr.Dataset,

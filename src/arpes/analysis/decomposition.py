@@ -136,7 +136,7 @@ def decomposition_along(
         flattened_data: xr.DataArray = data.stack(fit_axis=axes)
         stacked = True
     else:
-        flattened_data = data.S.transpose_to_back(axes[0])
+        flattened_data = data.transpose(..., axes[0])
         stacked = False
 
     if len(flattened_data.dims) != TWO_DIMENSION:

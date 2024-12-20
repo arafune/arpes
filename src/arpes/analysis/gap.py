@@ -193,7 +193,7 @@ def _shift_energy_interpolate(
     shift: xr.DataArray | None = None,
 ) -> xr.DataArray:
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-    data_arr = data.S.transpose_to_front("eV")
+    data_arr = data.transpose("eV", ...)
 
     new_data = data_arr.copy(deep=True)
     new_axis = new_data.coords["eV"]
@@ -253,7 +253,7 @@ def symmetrize(
         The symmetrized data.
     """
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-    data = data.S.transpose_to_front("eV")
+    data = data.transpose("eV", ...)
 
     if subpixel or full_spectrum:
         data = _shift_energy_interpolate(data)
