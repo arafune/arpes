@@ -82,11 +82,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913
     figsize = figsize or (9.0, 5.0)
     width_ratio = width_ratio or (1.0, 4.4)
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-    axes_list = list(data.dims)
-    axes_list.remove("delay")
-    axes_list.remove(evolution_at[0])
 
-    y_axis_evolution_mesh = axes_list[0]
     fig, ax = fig_ax or plt.subplots(
         nrows=1,
         ncols=2,
@@ -98,7 +94,6 @@ def plot_movie_and_evolution(  # noqa: PLR0913
     assert isinstance(ax[1], Axes)
     assert isinstance(fig, Figure)
     assert isinstance(data, xr.DataArray)
-    assert isinstance(arpes.config.SETTINGS, dict)
     assert data.ndim == TWO_DIMENSION + 1
 
     kwargs.setdefault(
