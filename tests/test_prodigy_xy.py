@@ -41,5 +41,5 @@ class TestXY:
         """Test for convert to xr.DataArray."""
         sample_data_array = sample_xy.to_data_array()
         assert sample_data_array.dims == ("eV", "nonenergy", "polar")
-        assert sample_data_array.shape == (105, 100, 201)
+        assert sample_data_array.shape == (137, 82, 116)
         np.testing.assert_allclose(sample_data_array.coords["polar"][0], -68.0)
