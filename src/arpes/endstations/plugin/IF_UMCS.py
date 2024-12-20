@@ -18,6 +18,7 @@ from arpes.endstations.prodigy_xy import load_xy
 from arpes.provenance import Provenance, provenance_from_file
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from arpes._typing import Spectrometer
     from arpes.endstations import ScanDesc
 
@@ -48,12 +49,24 @@ class IF_UMCSEndstation(  # noqa: N801
 
     RENAME_KEYS: ClassVar[dict[str, str]] = {
         "eff_workfunction": "workfunction",
+        "acquisition_date": "aquisition_date_utc",
         "analyzer_slit": "slit",
         "analyzer_lens": "lens_mode",
         "detector_voltage": "mcp_voltage",
         "excitation_energy": "hv",
         "polar": "theta",
         "region": "id",
+    }
+    
+    ATTR_TRANSFORMS: ClassVar[dict[str, Callable[..., dict[str, float | list[str] | str]]]] = {
+        "aquisition_date_utc": lambda _: {
+            "date": _.split()[0],
+            "time": _.split()[1],
+        },
+        "slit": lambda _: {
+            "slit_number": int(_.split(":")[0]),
+            "slit_width": float(_.split(":")[1].split("x")[0]),
+        },
     }
 
     MERGE_ATTRS: ClassVar[Spectrometer] = {
@@ -90,6 +103,7 @@ class IF_UMCSEndstation(  # noqa: N801
                     file=str(frame_path),
                     record=provenance_context,
                 )
+                dataset.attrs['location'] = self.PRINCIPAL_NAME
                 return dataset
             elif file.suffix == ".itx":
                 msg = "Not supported yet..."
@@ -155,8 +169,10 @@ class IF_UMCSEndstation(  # noqa: N801
         data = data.rename({k: v for k, v in self.RENAME_KEYS.items() if k in data.coords})
         if "theta" in data.coords:
             data = data.assign_coords(theta=np.deg2rad(data.theta))
-
-        return super().postprocess_final(data, scan_desc)
+        
+        data = super().postprocess_final(data, scan_desc)
+        data.S.spectrum.attrs['location'] = self.PRINCIPAL_NAME
+        return data
 
 
 add_endstation(IF_UMCSEndstation)

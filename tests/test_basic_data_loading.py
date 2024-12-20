@@ -404,6 +404,89 @@ class TestMetadata:
                 },
             },
         ),
+        (
+            "if_umcs_load_cut",
+            {
+                "file": "basic/IF_UMCS_cut.xy",
+                "expected": {
+                    "scan_info": {
+                        'time': '13:08:08',
+                        'date': '11/28/24',
+                        'type': None,
+                        'spectrum_type': 'cut',
+                        'experimenter': None,
+                        'sample': None
+                    },
+                    "experiment_info": {
+                        'temperature': np.nan,
+                        'temperature_cryotip': np.nan,
+                        'pressure': np.nan,
+                        'polarization': (np.nan, np.nan),
+                        'photon_flux': np.nan,
+                        'photocurrent': np.nan,
+                        'probe': None,
+                        'probe_detail': None,
+                        'analyzer_detail': {
+                            'analyzer_name': 'Specs PHOIBOS 150',
+                            'parallel_deflectors': False,
+                            'perpendicular_deflectors': False,
+                            'analyzer_type': 'hemispherical',
+                            'analyzer_radius': 150
+                        }
+                    },
+                    "analyzer_info": {
+                        'lens_mode': 'LowAngularDispersion:400V',
+                        'lens_mode_name': None,
+                        'acquisition_mode': None,
+                        'pass_energy': 15.0,
+                        'slit_shape': None,
+                        'slit_width': 0.5,
+                        'slit_number': 2,
+                        'lens_table': None,
+                        'analyzer_type': 'hemispherical',
+                        'mcp_voltage': 1450.0,
+                        'work_function': 4.32
+                    },
+                    "beamline_info": {
+                       'hv': 21.2182,
+                        'linewidth': np.nan,
+                        'photon_polarization': (np.nan, np.nan),
+                        'undulator_info': {'gap': None,
+                        'z': None,
+                        'harmonic': None,
+                        'polarization': None,
+                        'type': None},
+                        'repetition_rate': np.nan,
+                        'beam_current': np.nan,
+                        'entrance_slit': None,
+                        'exit_slit': None,
+                        'monochromator_info': {'grating_lines_per_mm': np.nan}
+                    },
+                    "daq_info": {
+                        'daq_type': None,
+                        'region': None,
+                        'region_name': None,
+                        'center_energy': np.nan,
+                        'prebinning': {},
+                        'trapezoidal_correction_strategy': None,
+                        'dither_settings': None,
+                        'sweep_settings': {
+                            'high_energy': None,
+                            'low_energy': None,
+                            'n_sweeps': None,
+                        'step': None},
+                        'frames_per_slice': np.nan,
+                        'frame_duration': np.nan
+                    },
+                    "sample_info": {
+                       'id': None, 
+                       'sample_name': None, 
+                       'source': None, 
+                       'reflectivity': np.nan
+                    },
+                },
+            },
+        ),
     ]
 
     def test_load_file_and_basic_attributes(
@@ -726,6 +809,28 @@ class TestBasicDataLoading:
                         "psi": 0.0,
                         "eV": [-3.619399, 0.1806009, 0.003999],
                         "phi": [-0.28633, 0.26867, 0.0008409],
+                    },
+                    "offset_coords": {},
+                },
+            },
+        ),
+        # IF_UMCS, cut data
+        (
+            "if_umcs_load_cut",
+            {
+                "file": "basic/IF_UMCS_cut.xy",
+                "expected": {
+                    "dims": ["eV", "phi"],
+                    "coords": {
+                        "x": 78.0,
+                        "y": 0.5,
+                        "z": 2.5,
+                        "beta": 0.0,
+                        "theta": 0.0,
+                        "alpha": np.deg2rad(90),
+                        "psi": 0.0,
+                        "eV": [-1.5, 0.134188, 0.012016],
+                        "phi": [-0.120683, 0.120683, 0.00298],
                     },
                     "offset_coords": {},
                 },
