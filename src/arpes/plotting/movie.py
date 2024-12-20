@@ -63,21 +63,24 @@ def plot_movie_and_evolution(  # noqa: PLR0913
 ) -> Path | HTML:
     """Create an animatied plot of ARPES data with time evolution at certain position.
 
+    This function uses matplotlib's pcolormesh to create the plots.
+
     Args:
         data (xr.DataArray): ARPES data containing time-series data to animate.
         time_dim (str): Dimension name for time, default is "delay"
-        interval_ms (float): Delay between frames in milliseconds,  default 100
-        fig_ax (tuple[Figure, Axes]): matplotlib Figure and Axes objects, optional
+        interval_ms (float): Delay between frames in milliseconds,  default 100.
+        fig_ax (tuple[Figure, Axes]): matplotlib Figure and Axes objects, optional.
         out (str | Path): Output path for saving the animation, optional.
-        figsize (tuple[float, float]): Size of the movie figure, optional
+        figsize (tuple[float, float]): Size of the movie figure, optional.
         width_ratio (tuple[float, float]): Width ratio of ARPES data and Time evolution data.
-        evolution_at (tuple[str, float] | tuple[str, tuple[float, float]): [TODO:description]
+        evolution_at (tuple[str, float] | tuple[str, tuple[float, float]): Position for time
+            evolution data, and the value.  if when the latter is tuple of two floats, the first
+            value is the center value and the second value is the radius of the range.
         dark_bg (bool): If true, the frame and font color changes to white, default False.
         kwargs: Additional keyword arguments for `pcolormesh`
 
     Returns:
-        Path | animation.FuncAnimation: The path to the saved animation or the animation object
-            itself
+        Path | HTML: The path to the saved animation or the animation object itself
     """
     figsize = figsize or (9.0, 5.0)
     width_ratio = width_ratio or (1.0, 4.4)
@@ -203,23 +206,23 @@ def plot_movie(  # noqa: PLR0913
 ) -> Path | HTML:
     """Create an animated movie of a 3D dataset using one dimension as "time".
 
+    This function uses matplotlib's pcolormesh to create the plots.
+
     Args:
         data (xr.DataArray): ARPES data containing time-series data to animate.
-        time_dim (str): Dimension name for time, default is "delay"
-        interval_ms (float): Delay between frames in milliseconds,  default 100
-        fig_ax (tuple[Figure, Axes]): matplotlib Figure and Axes objects, optional
+        time_dim (str): Dimension name for time, default is "delay".
+        interval_ms (float): Delay between frames in milliseconds,  default 100.
+        fig_ax (tuple[Figure, Axes]): matplotlib Figure and Axes objects, optional.
         out (str | Path): Output path for saving the animation, optional.
-        figsize (tuple[float, float]): Size of the movie figure, optional
+        figsize (tuple[float, float]): Size of the movie figure, optional.
         dark_bg (bool): If true, the frame and font color changes to white, default False.
-        kwargs: Additional keyword arguments for `pcolormesh`
+        kwargs: Additional keyword arguments for `pcolormesh`.
 
     Returns:
-        Path | animation.FuncAnimation: The path to the saved animation or the animation object
-            itself
+        Path | HTML: The path to the saved animation or the animation object itself
 
     Raises:
         TypeError: If the argument types are incorrect.
-        RuntimeError: If saving the movie file fails.
     """
     figsize = figsize or (9.0, 5.0)
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
@@ -293,7 +296,14 @@ def plot_movie(  # noqa: PLR0913
 
 
 def color_for_darkbackground(obj: Colorbar | Axes) -> None:
-    """Change color to fit the dark background."""
+    """Change color to fit the dark background.
+
+    This function adjusts the colors of the given Matplotlib Colorbar or Axes
+    object to make them suitable for a dark background.
+
+    Args:
+        obj (Colorbar | Axes): The Matplotlib Colorbar or Axes object to adjust.
+    """
     if isinstance(obj, Colorbar):
         obj.ax.yaxis.set_tick_params(color="white")
         obj.ax.yaxis.label.set_color("white")
