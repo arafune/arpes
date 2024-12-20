@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Unpack
 import numpy as np
 import xarray as xr
 from IPython.display import HTML
-from matplotlib import animation
+from matplotlib.animation import FuncAnimation
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
@@ -77,7 +77,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913
 
     """
     figsize = figsize or (9.0, 6.0)
-    width_ratio = width_ratio or (3.0, 1.0)
+    width_ratio = width_ratio or (1.0, 3.0)
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     axes_list = list(data.dims)
     axes_list.remove("delay")
@@ -85,22 +85,12 @@ def plot_movie_and_evolution(  # noqa: PLR0913
 
     y_axis_arpes_mesh = data.isel(indexers={time_dim: 0}).dims[0]
     y_axis_evolution_mesh = axes_list[0]
-    if y_axis_arpes_mesh == y_axis_evolution_mesh:
-        fig, ax = fig_ax or plt.subplots(
-            nrows=1,
-            ncols=2,
-            figsize=figsize,
-            width_ratios=width_ratio,
-            sharey="row",
-        )
-    else:
-        fig, ax = fig_ax or plt.subplots(
-            nrows=1,
-            ncols=2,
-            width_ratios=width_ratio,
-            figsize=figsize,
-        )
-
+    fig, ax = fig_ax or plt.subplots(
+        nrows=1,
+        ncols=2,
+        figsize=figsize,
+        width_ratios=width_ratio,
+    )
     assert ax is not None
     assert isinstance(ax[0], Axes)
     assert isinstance(ax[1], Axes)
@@ -161,16 +151,19 @@ def plot_movie_and_evolution(  # noqa: PLR0913
     )
 
     def init() -> Iterable[Artist]:
+        ax[1].set_ylabel("")
         return (arpes_mesh, evolution_mesh)
 
     def update(frame: int) -> Iterable[Artist]:
         ax[0].set_title("")
         ax[1].set_title(f"pump probe delay={data.coords[time_dim].values[frame]: >9.3f}")
         arpes_mesh.set_array(data.isel({time_dim: frame}).values.ravel())
-        evolution_mesh.set_array(_replace_after_col(evolution_data.values, col_num=frame).ravel())
+        evolution_mesh.set_array(
+            _replace_after_col(evolution_data.values, col_num=frame + 1).ravel(),
+        )
         return (arpes_mesh, evolution_mesh)
 
-    anim: animation.FuncAnimation = animation.FuncAnimation(
+    anim: FuncAnimation = FuncAnimation(
         fig=fig,
         func=update,
         init_func=init,
@@ -259,7 +252,7 @@ def plot_movie(  # noqa: PLR0913
         quadmesh.set_animated(True)
         return (quadmesh,)
 
-    anim: animation.FuncAnimation = animation.FuncAnimation(
+    anim: FuncAnimation = FuncAnimation(
         fig=fig,
         func=update,
         init_func=init,
