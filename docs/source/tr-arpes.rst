@@ -14,4 +14,5 @@ of freedom, the excitation delay—referred to through PyARPES as
 Analysis tools for Tr-ARPES exist in ``arpes.analysis.tarpes``. Plotting
 utilities are to be found in ``arpes.plotting.tarpes``.
 
-More details and analysis examples to come in the future.
+More details and analysis examples can be found in
+:doc:`TARPES examples notebook/example_tarpes_analysis`.
