@@ -7,6 +7,7 @@ from numbers import Number
 from pathlib import Path
 from typing import TYPE_CHECKING, Unpack
 
+import matplotlib as mpl
 import numpy as np
 import xarray as xr
 from IPython.display import HTML
@@ -24,11 +25,12 @@ from arpes.utilities import normalize_to_spectrum
 from .utils import path_for_plot
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Callable, Iterable
     from types import EllipsisType
 
     from matplotlib.artist import Artist
     from matplotlib.collections import QuadMesh
+    from matplotlib.text import Text
     from numpy.typing import NDArray
 
     from arpes._typing import PColorMeshKwargs
@@ -47,6 +49,77 @@ logger.propagate = False
 
 
 __all__ = ("plot_movie", "plot_movie_and_evolution")
+
+
+def output_animation(  # noqa: PLR0913
+    anim: FuncAnimation,
+    data: xr.DataArray,
+    update_func: Callable[[int], Iterable[Artist]],
+    fig: Figure,
+    time_dim: str = "delay",
+    out: str | Path | float | EllipsisType | None = None,
+) -> Path | HTML | Figure | FuncAnimation:
+    """Generates and outputs an animation based on the provided data and update function.
+
+    Args:
+        anim (FuncAnimation): The animation object to be saved or displayed.
+        data (xr.DataArray): The data array containing the frames for the animation.
+        update_func (Callable[[int], Iterable[Artist]]): The function to update the animation for
+            each frame.
+        fig (Figure): The figure object for the animation.
+        time_dim (str, optional): The name of the time dimension in the data array.
+            Defaults to "delay".
+        out (str | Path | float | EllipsisType | None, optional): The output format or path. Can be
+            a string or Path for file output, a float for a specific frame, Ellipsis for returning
+            the animation object, or None for returning the HTML representation. Defaults to None.
+
+    Returns:
+        Path | HTML | Figure | FuncAnimation: The output path if saved to a file, the HTML
+            representation if out is None, the figure object if a specific frame is requested, or
+            the animation object if out is Ellipsis.
+    """
+    if isinstance(out, str | Path):
+        logger.debug(msg=f"path_for_plot is {path_for_plot(out)}")
+        anim.save(str(path_for_plot(out)), writer="ffmpeg")
+        return path_for_plot(out)
+
+    if isinstance(out, Number):
+        index: int = data.indexes[time_dim].get_indexer([out], method="nearest")[0]
+        update_func(index)
+        fig.canvas.draw()
+        return fig
+
+    if out is Ellipsis:
+        return anim
+
+    return HTML(anim.to_html5_video())  # HTML(anim.to_jshtml())
+
+
+def color_for_darkbackground(obj: Colorbar | Axes) -> None:
+    """Change color to fit the dark background.
+
+    This function adjusts the colors of the given Matplotlib Colorbar or Axes
+    object to make them suitable for a dark background.
+
+    Args:
+        obj (Colorbar | Axes): The Matplotlib Colorbar or Axes object to adjust.
+    """
+    if isinstance(obj, Colorbar):
+        obj.ax.yaxis.set_tick_params(color="white")
+        obj.ax.yaxis.label.set_color("white")
+        obj.outline.set_edgecolor("white")
+        for label in obj.ax.get_yticklabels():
+            label.set_color("white")
+
+    if isinstance(obj, Axes):
+        obj.spines["bottom"].set_color("white")
+        obj.spines["top"].set_color("white")
+        obj.spines["right"].set_color("white")
+        obj.spines["left"].set_color("white")
+        obj.tick_params(axis="both", colors="white")
+        obj.xaxis.label.set_color("white")
+        obj.yaxis.label.set_color("white")
+        obj.title.set_color("white")
 
 
 @save_plot_provenance
@@ -88,6 +161,8 @@ def plot_movie_and_evolution(  # noqa: PLR0913, PLR0915
     Returns:
         Path | HTML: The path to the saved animation or the animation object itself.
     """
+    backend = mpl.get_backend()
+    mpl.use("Agg")
     figsize = figsize or (9.0, 5.0)
     width_ratio = width_ratio or (1.0, 4.4)
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
@@ -141,7 +216,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913, PLR0915
         )
 
     if data.S.is_subtracted:
-        kwargs["cmap"] = "RdBu"
+        kwargs["cmap"] = "RdBu_r"
         kwargs["vmax"] = np.max([np.abs(kwargs["vmin"]), np.abs(kwargs["vmax"])])
         kwargs["vmin"] = -kwargs["vmax"]
 
@@ -150,23 +225,28 @@ def plot_movie_and_evolution(  # noqa: PLR0913, PLR0915
         arpes_data.coords[arpes_data.dims[1]].values,
         arpes_data.coords[arpes_data.dims[0]].values,
         arpes_data.values,
+        animated=True,
         **kwargs,
     )
-    ax[0].set_xlabel(str(arpes_data.dims[1]))
-    ax[0].set_ylabel(str(arpes_data.dims[0]))
-    arpes_mesh.set_animated(True)
 
     evolution_mesh: QuadMesh = ax[1].pcolormesh(
         evolution_data.coords[evolution_data.dims[1]].values,
         evolution_data.coords[evolution_data.dims[0]].values,
         evolution_data.values,
+        animated=True,
         **kwargs,
     )
-    evolution_mesh.set_animated(True)
+
+    ax[0].set_xlabel(str(arpes_data.dims[1]))
+    ax[0].set_ylabel(str(arpes_data.dims[0]))
+
     ax[1].set_xlabel(str(evolution_data.dims[1]))
     if evolution_data.dims[0] == arpes_data.dims[0]:
         ax[1].yaxis.set_ticks([])
+    ax[1].set_ylabel("")
+
     cbar: Colorbar = fig.colorbar(evolution_mesh, ax=ax[1])
+
     fig.tight_layout()
 
     if dark_bg:
@@ -175,7 +255,6 @@ def plot_movie_and_evolution(  # noqa: PLR0913, PLR0915
         color_for_darkbackground(obj=ax[1])
 
     def init() -> Iterable[Artist]:
-        ax[1].set_ylabel("")
         return (arpes_mesh, evolution_mesh)
 
     def update(frame: int) -> Iterable[Artist]:
@@ -198,21 +277,16 @@ def plot_movie_and_evolution(  # noqa: PLR0913, PLR0915
         interval=interval_ms,
     )
 
-    if isinstance(out, str | Path):
-        logger.debug(msg=f"path_for_plot is {path_for_plot(out)}")
-        anim.save(str(path_for_plot(out)), writer="ffmpeg")
-        return path_for_plot(out)
+    mpl.use(backend)
 
-    if isinstance(out, Number):
-        index: int = data.indexes[time_dim].get_indexer([out], method="nearest")[0]
-        update_only_arpes_mesh(index)
-        fig.canvas.draw()
-        return fig
-
-    if out is Ellipsis:
-        return anim
-
-    return HTML(anim.to_html5_video())  # HTML(anim.to_jshtml())
+    return output_animation(
+        anim=anim,
+        data=data,
+        update_func=update_only_arpes_mesh,
+        fig=fig,
+        time_dim=time_dim,
+        out=out,
+    )
 
 
 @save_plot_provenance
@@ -251,10 +325,12 @@ def plot_movie(  # noqa: PLR0913
     Raises:
         TypeError: If the argument types are incorrect.
     """
+    backend = mpl.get_backend()
+    mpl.use("Agg")
+
     figsize = figsize or (9.0, 5.0)
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     fig, ax = fig_ax or plt.subplots(figsize=figsize)
-
     assert isinstance(ax, Axes)
     assert isinstance(fig, Figure)
     assert isinstance(data, xr.DataArray)
@@ -285,22 +361,24 @@ def plot_movie(  # noqa: PLR0913
         arpes_data.values,
         **kwargs,
     )
+
     ax.set_xlabel(str(arpes_data.dims[1]))
     ax.set_ylabel(str(arpes_data.dims[0]))
     arpes_mesh.set_animated(True)
+
     cbar = fig.colorbar(arpes_mesh, ax=ax)
+
+    title: Text = ax.set_title(f"pump probe delay={data.coords[time_dim].values[0]: >9.3f}")
+
     if dark_bg:
         color_for_darkbackground(obj=cbar)
         color_for_darkbackground(obj=ax)
 
     def init() -> Iterable[Artist]:
-        ax.set_title(f"pump probe delay={data.coords[time_dim].values[0]: >9.3f}")
         return (arpes_mesh,)
 
     def update(frame: int) -> Iterable[Artist]:
-        ax.set_title(
-            f"pump probe delay={data.coords[time_dim].values[frame]: >9.3f}",
-        )
+        title.set_text(f"pump probe delay={data.coords[time_dim].values[frame]: >9.3f}")
         arpes_mesh.set_array(data.isel({time_dim: frame}).values.ravel())
         arpes_mesh.set_animated(True)
         return (arpes_mesh,)
@@ -314,48 +392,16 @@ def plot_movie(  # noqa: PLR0913
         interval=interval_ms,
     )
 
-    if isinstance(out, str | Path):
-        logger.debug(msg=f"path_for_plot is {path_for_plot(out)}")
-        anim.save(str(path_for_plot(out)), writer="ffmpeg")
-        return path_for_plot(out)
+    mpl.use(backend)
 
-    if isinstance(out, Number):
-        index: int = data.indexes[time_dim].get_indexer([out], method="nearest")[0]
-        update(index)
-        fig.canvas.draw()
-        return fig
-
-    if out is Ellipsis:
-        return anim
-
-    return HTML(anim.to_html5_video())  # HTML(anim.to_jshtml())
-
-
-def color_for_darkbackground(obj: Colorbar | Axes) -> None:
-    """Change color to fit the dark background.
-
-    This function adjusts the colors of the given Matplotlib Colorbar or Axes
-    object to make them suitable for a dark background.
-
-    Args:
-        obj (Colorbar | Axes): The Matplotlib Colorbar or Axes object to adjust.
-    """
-    if isinstance(obj, Colorbar):
-        obj.ax.yaxis.set_tick_params(color="white")
-        obj.ax.yaxis.label.set_color("white")
-        obj.outline.set_edgecolor("white")
-        for label in obj.ax.get_yticklabels():
-            label.set_color("white")
-
-    if isinstance(obj, Axes):
-        obj.spines["bottom"].set_color("white")
-        obj.spines["top"].set_color("white")
-        obj.spines["right"].set_color("white")
-        obj.spines["left"].set_color("white")
-        obj.tick_params(axis="both", colors="white")
-        obj.xaxis.label.set_color("white")
-        obj.yaxis.label.set_color("white")
-        obj.title.set_color("white")
+    return output_animation(
+        anim=anim,
+        data=data,
+        update_func=update,
+        fig=fig,
+        time_dim=time_dim,
+        out=out,
+    )
 
 
 def _replace_after_col(array: NDArray[np.float64], col_num: int) -> NDArray[np.float64]:
