@@ -6,8 +6,8 @@ import numpy as np
 import pytest
 import xarray as xr
 from IPython.display import HTML
-from matplotlib.figure import Figure
 from matplotlib.animation import FuncAnimation
+from matplotlib.figure import Figure
 
 from arpes.analysis import tarpes
 from src.arpes.plotting.movie import (
