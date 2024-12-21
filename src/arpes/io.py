@@ -64,10 +64,8 @@ def load_data(
 
     Args:
         file (str | Path | int): An identifier for the file which should be loaded.
-            If this is a number or can be coerced to one, data will be loaded from the workspace
-            data folder if a matching unique file can be found for the number. If the value is a
-            relative path, locations relative to the cwd and the workspace data folder will be
-            checked. Absolute paths can also be used in a pinch.
+            If the value is a relative path, locations relative to the cwd and the workspace data
+            folder will be checked. Absolute paths can also be used in a pinch.
         location (str | type[EndstationBase]): The name of the endstation/plugin to use.
             You should try to provide one. If None is provided, the loader
             will try to find an appropriate one based on the file extension and brute force.
@@ -83,6 +81,11 @@ def load_data(
     """
     try:
         file = int(str(file))
+        warnings.warn(
+            "This functionality, the data specified by number,  will be removed.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
     except ValueError:
         assert isinstance(file, (str | Path))
         file = str(Path(file).absolute())

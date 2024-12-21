@@ -81,24 +81,21 @@ ANGLE = Literal["alpha", "beta", "chi", "theta"] | EMISSION_ANGLE
 HIGH_SYMMETRY_POINTS = Literal["G", "X", "Y", "M", "K", "S", "A1", "H", "C", "H1"]
 HighSymmetryPoints: Final = ("G", "X", "Y", "M", "K", "S", "A1", "H", "C", "H1")
 
-LEGENDLOCATION = (
-    Literal[
-        # While the "string" location can be given as the numeric value from 0 to 10,
-        # the numeric value is just prepared for the backward compatibility.
-        "best",
-        "upper right",
-        "upper left",
-        "lower left",
-        "lower right",
-        "right",
-        "center left",
-        "center right",
-        "lower center",
-        "upper center",
-        "center",
-    ]
-    | tuple[float, float]
-)
+LEGENDLOCATION = Literal[
+    # While the "string" location can be given as the numeric value from 0 to 10,
+    # the numeric value is just prepared for the backward compatibility.
+    "best",
+    "upper right",
+    "upper left",
+    "lower left",
+    "lower right",
+    "right",
+    "center left",
+    "center right",
+    "lower center",
+    "upper center",
+    "center",
+]
 
 
 class KspaceCoords(TypedDict, total=False):

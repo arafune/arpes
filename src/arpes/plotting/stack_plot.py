@@ -1,7 +1,4 @@
-"""Plotting routines for making the classic stacked line plots.
-
-Think the album art for "Unknown Pleasures".
-"""
+"""Plotting routines for making the classic stacked line plots."""
 
 from __future__ import annotations
 
@@ -79,23 +76,22 @@ def offset_scatter_plot(  # noqa: PLR0913
     """Makes a stack plot (scatters version).
 
     Args:
-        data(xr.Dataset): _description_
-        name_to_plot(str): name of the spectrum (in many case 'spectrum' is set), by default ""
-        stack_axis(str): _description_, by default ""
-        ax(Axes | None):  _description_, by default None
-        out(str | Path):  _description
-        scale_coordinate(float):  _description_, by default 0.5
-        ylim(tuple[float, float]):  _description_, by default ()
-        fermi_level(float | None): Value corresponds the Fermi level to draw the line,
-            by default None (not drawn)
-        figsize (tuple[float, float]) : figure size. Used in plt.subplots
-        loc: Legend Location
-        color: Colormap
-        aux_errorbars(bool):  _description_, by default True
+        data(xr.Dataset): The dataset containing the data to plot.
+        name_to_plot(str): Name of the spectrum (in many case 'spectrum') to plot, by default "".
+        stack_axis(str): The axis along which to stack the plot, by default "".
+        ax(Axes | None): The axes on which to plot, by default None.
+        out(str | Path): The output path for the plot, by default "".
+        scale_coordinate(float): The scale coordinate, by default 0.5
+        ylim(tuple[float, float]): The y-axis limits, by default ()
+        fermi_level(float | None): The Fermi level to draw the line, by default None (not drawn).
+        figsize (tuple[float, float]) : The figure size, by default (11, 5)
+        loc(LEGENDLOCATION): The locatio of the legend, by default "upper left".
+        color: The color of the plot. Colormap can be set. Default to "black".
+        aux_errorbars(bool):  Whether to include auxiliary error bars, by default True
         kwargs: kwargs passing to args of Colorbar
 
     Returns:
-        Path | tuple[Figure | None, Axes]: _description_
+        Path | tuple[Figure | None, Axes]: The path to the saved plot or the figure and axes.
 
     Raises:
         ValueError
@@ -154,7 +150,7 @@ def offset_scatter_plot(  # noqa: PLR0913
             data_for = data_for.copy(deep=True)
             flattened = data_for.data_vars[name_to_plot].copy(deep=True)
             flattened.values = ylim[0] * np.ones(flattened.values.shape)
-            data_for = data_for.assign(**{name_to_plot: flattened})
+            data_for = data_for.assign({name_to_plot: flattened})
             scatter_with_std(
                 data_for,
                 name_to_plot,
@@ -225,25 +221,22 @@ def flat_stack_plot(  # noqa: PLR0913
     Args:
         data(DataType): ARPES data (xr.DataArray is prepfered)
         stack_axis(str): axis for stacking, by default ""
-        ax (Axes | None): matplotlib Axes, by default None
-        mode(Literal["line", "scatter"]): plot style (line/scatter), by default "line"
+        ax (Axes | None): matplotlib Axes, by default None.j
+        mode(Literal["line", "scatter"]): plot style (line/sckatter), by default "line".
         fermi_level(float|None): Value of the Fermi level to Draw the line, by default None.
-                                 (Not drawn)
-        figsize (tuple[float, float]): figure size
+        figsize (tuple[float, float]): Figure size, by default (7, 5).
         title(str): Title string, by default ""
-        max_stacks(int): maximum number of the staking spectra
-        out(str | Path): Path to the figure.
-        loc: Legend location
-        **kwargs: pass to ax.plot
+        max_stacks(int): Maximum number of the staking spectra, by default 200.
+        out(str | Path): Path to the figure, by default "".
+        loc(LEGENDLOCATION): Legend location, by default "upper left".
+        **kwargs: Additional keyword to pass to ax.plot
 
     Returns:
-        Path | tuple[Figure | None, Axes]
+        Path | tuple[Figure | None, Axes]: The figure and axes of the path to the saved plot.
 
     Raises:
-        ValueError
-            _description_
-        NotImplementedError
-            _description_
+        ValueError: If there is an issue with the input data.
+        NotImplementedError: If a feature is not implemented.
     """
     data = _rebinning(
         data,
