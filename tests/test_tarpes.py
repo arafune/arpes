@@ -7,6 +7,7 @@ import pytest
 import xarray as xr
 from IPython.display import HTML
 from matplotlib.figure import Figure
+from matplotlib.animation import FuncAnimation
 
 from arpes.analysis import tarpes
 from src.arpes.plotting.movie import (
@@ -14,6 +15,15 @@ from src.arpes.plotting.movie import (
     _replace_after_row,
     plot_movie_and_evolution,
 )
+
+
+@pytest.fixture
+def sample_data(mock_tarpes: list[xr.DataArray]):
+    return tarpes.build_crosscorrelation(
+        mock_tarpes,
+        delayline_dim="position",
+        delayline_origin=100.31,
+    )
 
 
 def test_find_t_for_max_intensity(mock_tarpes: list[xr.DataArray]) -> None:
@@ -45,16 +55,11 @@ def test_find_t_for_max_intensity(mock_tarpes: list[xr.DataArray]) -> None:
     assert tarpes.find_t_for_max_intensity(tarpes_dataarray) == 100.46308724832215
 
 
-def test_as_movie(mock_tarpes: list[xr.DataArray]) -> None:
+def test_as_movie(sample_data: xr.DataArray) -> None:
     """Test xarray.G.as_movie."""
-    tarpes_dataarray = tarpes.build_crosscorrelation(
-        mock_tarpes,
-        delayline_dim="position",
-        delayline_origin=100.31,
-    )
-    anim = tarpes_dataarray.G.as_movie()
+    anim = sample_data.G.as_movie()
     assert type(anim) is HTML
-    anim_out = tarpes_dataarray.G.as_movie(out="test.mp4")
+    anim_out = sample_data.G.as_movie(out="test.mp4")
     assert "test.mp4" in str(anim_out)
 
 
@@ -121,15 +126,6 @@ def test_replace_after_row() -> None:
     np.testing.assert_array_equal(result, expected)
 
 
-@pytest.fixture
-def sample_data(mock_tarpes: list[xr.DataArray]):
-    return tarpes.build_crosscorrelation(
-        mock_tarpes,
-        delayline_dim="position",
-        delayline_origin=100.31,
-    )
-
-
 def test_plot_movie_and_evolution_html_output(sample_data: xr.DataArray):
     result = plot_movie_and_evolution(sample_data, out=None)
     assert isinstance(result, HTML)
@@ -160,3 +156,8 @@ def test_plot_movie_and_evolution_evolution_at(sample_data: xr.DataArray):
 def test_plot_movie_and_evolution_snapshot(sample_data: xr.DataArray):
     result = plot_movie_and_evolution(sample_data, evolution_at=("phi", (0.0, 0.05)), out=0.1)
     assert isinstance(result, Figure)
+
+
+def test_plot_movie_and_evolution_FuncAnimation(sample_data: xr.DataArray):
+    result = plot_movie_and_evolution(sample_data, evolution_at=("phi", 0.0), out=...)
+    assert isinstance(result, FuncAnimation)

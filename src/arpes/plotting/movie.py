@@ -25,6 +25,7 @@ from .utils import path_for_plot
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
+    from types import EllipsisType
 
     from matplotlib.artist import Artist
     from matplotlib.collections import QuadMesh
@@ -54,14 +55,14 @@ def plot_movie_and_evolution(  # noqa: PLR0913, PLR0915
     time_dim: str = "delay",
     interval_ms: float = 100,
     fig_ax: tuple[Figure | None, NDArray[np.object_] | None] | None = None,
-    out: str | Path | float | None = None,
+    out: str | Path | float | EllipsisType | None = None,
     figsize: tuple[float, float] | None = None,
     width_ratio: tuple[float, float] | None = None,
     evolution_at: tuple[str, float] | tuple[str, tuple[float, float]] = ("phi", 0.0),
     *,
     dark_bg: bool = False,
     **kwargs: Unpack[PColorMeshKwargs],
-) -> Path | HTML | Figure:
+) -> Path | HTML | Figure | FuncAnimation:
     """Create an animatied plot of ARPES data with time evolution at certain position.
 
     This function uses matplotlib's pcolormesh to create the plots.
@@ -71,8 +72,11 @@ def plot_movie_and_evolution(  # noqa: PLR0913, PLR0915
         time_dim (str): Dimension name for time, default is "delay"
         interval_ms (float): Delay between frames in milliseconds,  default 100.
         fig_ax (tuple[Figure, Axes]): matplotlib Figure and Axes objects, optional.
-        out (str | Path | Number): Output path for saving the animation. If numerical value is set,
-            the snap shot image (Figure object) corresponding to the specified time is retutrned.
+        out (str | Path | Number | EllipsisType): Change output style.  If str or Path is set,
+            saving the animation. If the numerical value is set, the snapshot image (Figure object)
+            is returned (but not saved, use fig.save) and if nothing is set (or set None), return
+            the HTML object to display the animation.  and if ... is set, return the
+            FuncAnimation object itself.  Default is None.
         figsize (tuple[float, float]): Size of the movie figure, optional.
         width_ratio (tuple[float, float]): Width ratio of ARPES data and Time evolution data.
         evolution_at (tuple[str, float] | tuple[str, tuple[float, float]): Position for time
@@ -198,11 +202,15 @@ def plot_movie_and_evolution(  # noqa: PLR0913, PLR0915
         logger.debug(msg=f"path_for_plot is {path_for_plot(out)}")
         anim.save(str(path_for_plot(out)), writer="ffmpeg")
         return path_for_plot(out)
+
     if isinstance(out, Number):
         index: int = data.indexes[time_dim].get_indexer([out], method="nearest")[0]
         update_only_arpes_mesh(index)
         fig.canvas.draw()
         return fig
+
+    if out is Ellipsis:
+        return anim
 
     return HTML(anim.to_html5_video())  # HTML(anim.to_jshtml())
 
@@ -213,12 +221,12 @@ def plot_movie(  # noqa: PLR0913
     time_dim: str = "delay",
     interval_ms: float = 100,
     fig_ax: tuple[Figure | None, Axes | None] | None = None,
-    out: str | Path | float | None = None,
+    out: str | Path | float | EllipsisType | None = None,
     figsize: tuple[float, float] | None = None,
     *,
     dark_bg: bool = False,
     **kwargs: Unpack[PColorMeshKwargs],
-) -> Path | HTML | Figure:
+) -> Path | HTML | Figure | FuncAnimation:
     """Create an animated movie of a 3D dataset using one dimension as "time".
 
     This function uses matplotlib's pcolormesh to create the plots.
@@ -228,8 +236,11 @@ def plot_movie(  # noqa: PLR0913
         time_dim (str): Dimension name for time, default is "delay".
         interval_ms (float): Delay between frames in milliseconds,  default 100.
         fig_ax (tuple[Figure, Axes]): matplotlib Figure and Axes objects, optional.
-        out (str | Path | Number): Output path for saving the animation. If the numerical value
-            is set, the snapshot image (Figure object) is returned.
+        out (str | Path | Number | EllipsisType): Change output style.  If str or Path is set,
+            saving the animation. If the numerical value is set, the snapshot image (Figure object)
+            is returned (but not saved, use fig.save) and if nothing is set (or set None), return
+            the HTML object to display the animation.  and if ... is set, return the
+            FuncAnimation object itself.  Default is None.
         figsize (tuple[float, float]): Size of the movie figure, optional.
         dark_bg (bool): If true, the frame and font color changes to white, default False.
         kwargs: Additional keyword arguments for `pcolormesh`.
@@ -313,6 +324,9 @@ def plot_movie(  # noqa: PLR0913
         update(index)
         fig.canvas.draw()
         return fig
+
+    if out is Ellipsis:
+        return anim
 
     return HTML(anim.to_html5_video())  # HTML(anim.to_jshtml())
 
