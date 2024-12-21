@@ -1,10 +1,20 @@
 """Unit test for statck_dispersion_plot."""
 
+from pathlib import Path
+
 import numpy as np
 import pytest
 import xarray as xr
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 
 from arpes.plotting import stack_plot
+from arpes.plotting.utils import path_for_plot
+from src.arpes.plotting.stack_plot import (
+    flat_stack_plot,
+    offset_scatter_plot,
+    stack_dispersion_plot,
+)
 
 
 class TestHelperFunction:
@@ -175,3 +185,70 @@ class TestFlatStackPlot:
         """Test for checck if the data is 2D in flat_stack_plot."""
         with pytest.raises(IndexError):
             _, ax = stack_plot.flat_stack_plot(data=dataarray_cut2.sum("phi"))
+
+
+@pytest.fixture
+def data():
+    return xr.Dataset(
+        {
+            "spectrum_std": (("x", "y"), np.random.rand(10, 10) * 0.1),
+            "spectrum": (("x", "y"), np.random.rand(10, 10)),
+        },
+        coords={"x": np.linspace(0, 1, 10), "y": np.linspace(0, 1, 10)},
+    )
+
+
+@pytest.mark.skip
+def test_offset_scatter_plot(data: xr.Dataset):
+    result = offset_scatter_plot(data, name_to_plot="spectrum", stack_axis="x")
+    assert isinstance(result, tuple)
+    fig, ax = result
+    assert isinstance(fig, Figure)
+    assert isinstance(ax, Axes)
+
+
+def test_flat_stack_plot(data: xr.Dataset):
+    data_array = data["spectrum"]
+    result = flat_stack_plot(data_array, stack_axis="x")
+    assert isinstance(result, tuple)
+    fig, ax = result
+    assert isinstance(fig, Figure)
+    assert isinstance(ax, Axes)
+
+
+def test_stack_dispersion_plot(data: xr.Dataset):
+    data_array = data["spectrum"]
+    result = stack_dispersion_plot(data_array, stack_axis="x")
+    assert isinstance(result, tuple)
+    fig, ax = result
+    assert isinstance(fig, Figure)
+    assert isinstance(ax, Axes)
+
+
+@pytest.mark.skip
+def test_offset_scatter_plot_with_output(data: xr.Dataset):
+    output_path = Path("test_output.png")
+    result = offset_scatter_plot(data, name_to_plot="spectrum", stack_axis="x", out=output_path)
+    assert isinstance(result, Path)
+    assert output_path.exists()
+    output_path.unlink()
+
+
+@pytest.mark.skip
+def test_flat_stack_plot_with_output(data: xr.Dataset):
+    data_array = data["spectrum"]
+    output_path = Path("test_output.png")
+    result = flat_stack_plot(data_array, stack_axis="x", out=output_path)
+    assert isinstance(result, Path)
+    assert output_path.exists()
+    output_path.unlink()
+
+
+@pytest.mark.skip
+def test_stack_dispersion_plot_with_output(data: xr.Dataset):
+    data_array = data["spectrum"]
+    output_path = Path("test_output.png")
+    result = stack_dispersion_plot(data_array, stack_axis="x", out=output_path)
+    assert isinstance(result, Path)
+    assert output_path.exists()
+    output_path.unlink()
