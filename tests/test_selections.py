@@ -2,12 +2,12 @@
 
 import numpy as np
 import xarray as xr
-import pytest
-from src.arpes.utilities.selections import (
+
+from arpes.utilities.selections import (
     ravel_from_mask,
-    unravel_from_mask,
-    select_disk_mask,
     select_disk,
+    select_disk_mask,
+    unravel_from_mask,
 )
 
 rng = np.random.default_rng()
