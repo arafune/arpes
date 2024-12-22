@@ -655,7 +655,7 @@ class QuadmeshParam(TypedDict, total=False):
     agg_filter: Callable[..., tuple[NDArray[np.int_], float, float]]
     alpha: float
     animated: bool
-    antialiased: bool | list[bool]
+    antialiased: bool
     aa: bool | list[bool]
     antialiaseds: bool | list[bool]
     array: ArrayLike

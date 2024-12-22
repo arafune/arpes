@@ -319,6 +319,7 @@ def easy_pickle(data_or_str: str | object, name: str = "") -> object:
     """
     # we are loading data
     if isinstance(data_or_str, str) or not name:
+        assert isinstance(data_or_str, str)
         return load_pickle(data_or_str)
     # we are saving data
     assert isinstance(name, str)

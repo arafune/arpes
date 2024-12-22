@@ -1,7 +1,8 @@
-import pytest
-from unittest.mock import patch, MagicMock
 from pathlib import Path
-import logging
+from unittest.mock import patch
+
+import pytest
+
 import arpes.config
 
 
@@ -45,7 +46,7 @@ def test_attempt_determine_workspace_not_found(mock_cwd, mock_workspace_matches)
 
 
 def test_attempt_determine_workspace_exception(
-    mock_cwd, mock_workspace_matches, mock_logging_exception
+    mock_cwd, mock_workspace_matches, mock_logging_exception,
 ):
     mock_cwd.side_effect = Exception("Test Exception")
 

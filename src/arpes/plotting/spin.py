@@ -1,4 +1,4 @@
-"""Some general plotting routines for presentation of spin-ARPES data."""
+"""This module contains functions for plotting spin-resolved ARPES data."""
 
 from __future__ import annotations
 
@@ -23,11 +23,12 @@ from .tof import scatter_with_std
 from .utils import label_for_dim, path_for_plot, savefig
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from pathlib import Path
 
     import xarray as xr
     from _typeshed import Incomplete
-    from numpy.typing import NDArray
+    from numpy.typing import ArrayLike, NDArray
 
 __all__ = (
     "spin_colored_spectrum",
@@ -69,7 +70,7 @@ def spin_colored_spectrum(
             pol_colors = mpl.colormaps.get_cmap("RdBu")(pol.values)
             ax.scatter(coord.values, intensity.values, c=pol_colors, s=1.5)
         else:
-            segments = np.concatenate([points[:-1], points[1:]], axis=1)
+            segments: Sequence[ArrayLike] = np.concatenate([points[:-1], points[1:]], axis=1)
             lc = LineCollection(segments, colors=pol_colors)
 
             ax.add_collection(lc)
@@ -135,7 +136,7 @@ def spin_difference_spectrum(
             pol_colors = mpl.colormaps.get_cmap("RdBu")(pol.values)
             ax.scatter(coord.values, intensity.values, c=pol_colors, s=1.5)
         else:
-            segments = np.concatenate([points[:-1], points[1:]], axis=1)
+            segments: Sequence[ArrayLike] = np.concatenate([points[:-1], points[1:]], axis=1)
             lc = LineCollection(segments, colors=pol_colors)
 
             ax.add_collection(lc)
@@ -169,7 +170,8 @@ def spin_polarized_spectrum(  # noqa: PLR0913
     """Plots a simple spin polarized spectrum using curves for the up and down components."""
     if ax is None:
         _, ax = plt.subplots(2, 1, sharex=True)
-    assert isinstance(ax, np.ndarray)
+    assert ax is not None
+
     if stats:
         spin_dr = bootstrap(lambda x: x)(spin_dr, N=100)
         pol = mean_and_deviation(to_intensity_polarization(spin_dr))

@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-import arpes
+
 from arpes.plotting.utils import path_for_plot
 
 
