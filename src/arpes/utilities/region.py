@@ -3,11 +3,35 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Literal
+from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
+import xarray as xr
+from scipy import ndimage as ndi
+from skimage import feature
+
+from arpes.analysis import rebin
+from arpes.constants import TWO_DIMENSION
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Sequence
+
+    from numpy.typing import NDArray
 
 __all__ = ["REGIONS", "DesignatedRegions", "normalize_region"]
+
+LOGLEVELS = (DEBUG, INFO)
+LOGLEVEL = LOGLEVELS[1]
+logger = getLogger(__name__)
+fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
+formatter = Formatter(fmt)
+handler = StreamHandler()
+handler.setLevel(LOGLEVEL)
+logger.setLevel(LOGLEVEL)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.propagate = False
 
 
 class DesignatedRegions(Enum):
@@ -64,7 +88,7 @@ def normalize_region(
 
 
 def find_spectrum_energy_edges(
-    self,
+    data: xr.DataArray,
     *,
     indices: bool = False,
 ) -> NDArray[np.float64] | NDArray[np.int_]:
@@ -76,6 +100,7 @@ def find_spectrum_energy_edges(
     algorithm after applying Gaussian smoothing.
 
     Args:
+        data (xr.DataArray): ARPES data, "pixel" coordinates can be used.
         indices (bool, optional):
             If `True`, returns the edge positions as indices. If `False`, returns the
             edge positions as physical coordinates. Defaults to `False`.
@@ -114,11 +139,8 @@ def find_spectrum_energy_edges(
         - Investigate optimal parameters for edge detection.
             (e.g., Gaussian filter size, thresholds).
     """
-    assert isinstance(
-        self._obj,
-        xr.DataArray,
-    )  # if self._obj is xr.Dataset, values is  function
-    energy_marginal = self._obj.sum([d for d in self._obj.dims if d != "eV"])
+    assert isinstance(data, xr.DataArray)
+    energy_marginal = data.sum([d for d in data.dims if d != "eV"])
 
     embed_size = 20
     embedded: NDArray[np.float64] = np.ndarray(shape=[embed_size, energy_marginal.sizes["eV"]])
@@ -135,12 +157,12 @@ def find_spectrum_energy_edges(
     if indices:
         return edges
 
-    delta = self._obj.G.stride(generic_dim_names=False)
-    return edges * delta["eV"] + self._obj.coords["eV"].values[0]
+    delta = data.G.stride(generic_dim_names=False)
+    return edges * delta["eV"] + data.coords["eV"].values[0]
 
 
 def find_spectrum_angular_edges(
-    self,
+    data: xr.DataArray,
     *,
     angle_name: str = "phi",
     indices: bool = False,
@@ -148,16 +170,17 @@ def find_spectrum_angular_edges(
     """Return angle position corresponding to the (1D) spectrum edge.
 
     Args:
-        angle_name (str): angle name to find the edge
-        indices (bool):  if True, return the index not the angle value.
+        data (xr.DataArray): ARPES data, "pixel" coordinates can be used.
+        angle_name (str): Angle name to find the edge
+        indices (bool):  If True, return the index not the angle value.
 
-    Returns: NDArray[np.float64] | NDArray[np.int64]
+    Returns: NDArray[np.float64] | NDArray[np.int_]
         Angle position
     """
-    angular_dim: str = "pixel" if "pixel" in self._obj.dims else angle_name
-    assert isinstance(self._obj, xr.DataArray)
-    phi_marginal = self._obj.sum(
-        [d for d in self._obj.dims if d != angular_dim],
+    angular_dim: str = "pixel" if "pixel" in data.dims else angle_name
+    assert isinstance(data, xr.DataArray)
+    phi_marginal = data.sum(
+        [d for d in data.dims if d != angular_dim],
     )
 
     embed_size = 20
@@ -179,12 +202,12 @@ def find_spectrum_angular_edges(
     if indices:
         return edges
 
-    delta = self._obj.G.stride(generic_dim_names=False)
-    return edges * delta[angular_dim] + self._obj.coords[angular_dim].values[0]
+    delta = data.G.stride(generic_dim_names=False)
+    return edges * delta[angular_dim] + data.coords[angular_dim].values[0]
 
 
 def find_spectrum_angular_edges_full(
-    self,
+    data: xr.DataArray,
     *,
     indices: bool = False,
     energy_division: float = 0.05,
@@ -194,6 +217,7 @@ def find_spectrum_angular_edges_full(
     This method uses edge detection techniques to identify boundaries in the angular dimension.
 
     Args:
+        data (xr.DataArray): ARPES data, "pixel" coordinates can be used.
         indices (bool, optional): If True, returns edge indices; if False, returns physical
             angular coordinates. Defaults to False.
         energy_division (float, optional): Specifies the energy division step for rebinning.
@@ -214,17 +238,17 @@ def find_spectrum_angular_edges_full(
     # to select the active region and then to rebin into course steps in energy from 0
     # down to this region
     # we will then find the appropriate edge for each slice, and do a fit to the edge locations
-    energy_edge = self.find_spectrum_energy_edges()
+    energy_edge = find_spectrum_energy_edges(data)
     low_edge: np.float64 = np.min(energy_edge) + energy_division
     high_edge: np.float64 = np.max(energy_edge) - energy_division
 
     if high_edge - low_edge < 3 * energy_division:
         # Doesn't look like the automatic inference of the energy edge was valid
-        high_edge = self._obj.coords["eV"].max().item()
-        low_edge = self._obj.coords["eV"].min().item()
+        high_edge = data.coords["eV"].max().item()
+        low_edge = data.coords["eV"].min().item()
 
-    angular_dim = "pixel" if "pixel" in self._obj.dims else "phi"
-    energy_cut = self._obj.sel(eV=slice(low_edge, high_edge)).S.sum_other(["eV", angular_dim])
+    angular_dim = "pixel" if "pixel" in data.dims else "phi"
+    energy_cut = data.sel(eV=slice(low_edge, high_edge)).S.sum_other(["eV", angular_dim])
 
     n_cuts = int(np.ceil((high_edge - low_edge) / energy_division))
     new_shape = {"eV": n_cuts}
@@ -257,7 +281,7 @@ def find_spectrum_angular_edges_full(
     if indices:
         return np.array(low_edges), np.array(high_edges), rebinned.coords["eV"]
 
-    delta = self._obj.G.stride(generic_dim_names=False)
+    delta = data.G.stride(generic_dim_names=False)
 
     return (
         np.array(low_edges) * delta[angular_dim] + rebinned.coords[angular_dim].values[0],
@@ -267,7 +291,7 @@ def find_spectrum_angular_edges_full(
 
 
 def zero_spectrometer_edges(
-    self,
+    data: xr.DataArray,
     cut_margin: int = 0,
     interp_range: float | None = None,
     low: Sequence[float] | NDArray[np.float64] | None = None,
@@ -279,6 +303,7 @@ def zero_spectrometer_edges(
     interpolating over a given range.
 
     Args:
+        data (xr.DataArray): The spectrum data to process.
         cut_margin (int or float, optional): Margin to apply when invalidating data near edges.
             Use `int` for pixel-based margins or `float` for angular physical units.
             Defaults to 50 pixels or 0.08 in angular units, depending on the data type.
@@ -298,7 +323,7 @@ def zero_spectrometer_edges(
         - Add tests.
 
     """
-    assert isinstance(self._obj, xr.DataArray)
+    assert isinstance(data, xr.DataArray)
     if low is not None:
         assert high is not None
         assert len(low) == len(high) == TWO_DIMENSION
@@ -310,18 +335,18 @@ def zero_spectrometer_edges(
         low_edges,
         high_edges,
         rebinned_eV_coord,
-    ) = self.find_spectrum_angular_edges_full(indices=True)
+    ) = find_spectrum_angular_edges_full(data, indices=True)
 
-    angular_dim = "pixel" if "pixel" in self._obj.dims else "phi"
+    angular_dim = "pixel" if "pixel" in data.dims else "phi"
     if not cut_margin:
-        if "pixel" in self._obj.dims:
+        if "pixel" in data.dims:
             cut_margin = 50
         else:
-            cut_margin = int(0.08 / self._obj.G.stride(generic_dim_names=False)[angular_dim])
+            cut_margin = int(0.08 / data.G.stride(generic_dim_names=False)[angular_dim])
     elif isinstance(cut_margin, float):
         assert angular_dim == "phi"
         cut_margin = int(
-            cut_margin / self._obj.G.stride(generic_dim_names=False)[angular_dim],
+            cut_margin / data.G.stride(generic_dim_names=False)[angular_dim],
         )
 
     if interp_range is not None:
@@ -329,10 +354,10 @@ def zero_spectrometer_edges(
         high_edge = xr.DataArray(high_edges, coords={"eV": rebinned_eV_coord}, dims=["eV"])
         low_edge = low_edge.sel(eV=interp_range, method="nearest")
         high_edge = high_edge.sel(eV=interp_range, method="nearest")
-    other_dims = list(self._obj.dims)
+    other_dims = list(data.dims)
     other_dims.remove("eV")
     other_dims.remove(angular_dim)
-    copied = self._obj.copy(deep=True).transpose("eV", angular_dim, ...)
+    copied = data.copy(deep=True).transpose("eV", angular_dim, ...)
 
     low_edges += cut_margin
     high_edges -= cut_margin
@@ -352,12 +377,17 @@ def zero_spectrometer_edges(
     return copied
 
 
-def wide_angle_selector(self, *, include_margin: bool = True) -> slice:
+def wide_angle_selector(
+    data: xr.DataArray,
+    *,
+    include_margin: bool = True,
+) -> slice:
     """Generates a slice for selecting the wide angular range of the spectrum.
 
     Optionally includes a margin to slightly reduce the range.
 
     Args:
+        data (xr.DataArray): The spectrum data.
         include_margin (bool, optional): If True, includes a margin to shrink the range.
             Defaults to True.
 
@@ -369,12 +399,12 @@ def wide_angle_selector(self, *, include_margin: bool = True) -> slice:
         - Consider removing the function.
 
     """
-    edges = self.find_spectrum_angular_edges()
+    edges = find_spectrum_angular_edges(data)
     low_edge, high_edge = np.min(edges), np.max(edges)
 
     # go and build in a small margin
     if include_margin:
-        if "pixels" in self._obj.dims:
+        if "pixels" in data.dims:
             low_edge += 50
             high_edge -= 50
         else:
@@ -384,11 +414,14 @@ def wide_angle_selector(self, *, include_margin: bool = True) -> slice:
     return slice(low_edge, high_edge)
 
 
-def meso_effective_selector(self) -> slice:
+def meso_effective_selector(data: xr.DataArray) -> slice:
     """Creates a slice to select the "meso-effective" range of the spectrum.
 
     The range is defined as the upper energy range from `max(energy_edge) - 0.3` to
     `max(energy_edge) - 0.1`.
+
+    Args:
+        data (xr.DataArray): The spectrum data.
 
     Returns:
         slice: A slice object representing the meso-effective energy range.
@@ -398,12 +431,12 @@ def meso_effective_selector(self) -> slice:
         - Consider removing the function.
 
     """
-    energy_edge = self.find_spectrum_energy_edges()
+    energy_edge = find_spectrum_energy_edges(data)
     return slice(np.max(energy_edge) - 0.3, np.max(energy_edge) - 0.1)
 
 
 def region_sel(
-    self,
+    data: xr.DataArray,
     *regions: Literal["copper_prior", "wide_angular", "narrow_angular"]
     | dict[str, DesignatedRegions],
 ) -> xr.DataArray:
@@ -412,6 +445,7 @@ def region_sel(
     Regions can be provided as literal strings or as a dictionary of `DesignatedRegions`.
 
     Args:
+        data (xr.DataArray): The data to filter.
         regions (Literal or dict[str, DesignatedRegions]): The regions to select.
             Valid regions include:
             - "copper_prior": A specific region.
@@ -420,7 +454,7 @@ def region_sel(
             Alternatively, use the `DesignatedRegions` enumeration.
 
     Returns:
-        XrTypes: The data with the selected regions applied.
+        xr.DataArray: The data with the selected regions applied.
 
     Raises:
         NotImplementedError: If a specified region cannot be resolved.
@@ -463,10 +497,10 @@ def region_sel(
             DesignatedRegions.BELOW_EF: slice(None, 0),
             DesignatedRegions.EF_NARROW: slice(-0.1, 0.1),
             DesignatedRegions.MESO_EF: slice(-0.3, -0.1),
-            DesignatedRegions.MESO_EFFECTIVE_EF: self.meso_effective_selector,
+            DesignatedRegions.MESO_EFFECTIVE_EF: meso_effective_selector(data),
             # Implement me
             # DesignatedRegions.TRIM_EMPTY: ,
-            DesignatedRegions.WIDE_ANGLE: self.wide_angle_selector,
+            DesignatedRegions.WIDE_ANGLE: wide_angle_selector(data),
             # DesignatedRegions.NARROW_ANGLE: self.narrow_angle_selector,
         }
         resolution_method = resolution_methods[selector]
@@ -478,7 +512,7 @@ def region_sel(
         msg = "Unable to determine resolution method."
         raise NotImplementedError(msg)
 
-    obj = self._obj
+    obj = data
 
     def unpack_dim(dim_name: str) -> str:
         if dim_name == "angular":
@@ -498,15 +532,3 @@ def region_sel(
         )
 
     return obj
-
-
-def find_spectrum_edge(data: xr.DataArray, *, axis_is_energy: bool = True, indices: bool = False):
-    pass
-
-
-def angle_selector(data: xr.DataArray, *, include_margin: bool = True):
-    pass
-
-
-def region_sel(data: xr.DataArray, regions) -> xr.DataArray:
-    pass

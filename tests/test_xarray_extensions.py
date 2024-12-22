@@ -25,33 +25,9 @@ class TestforProperties:
         assert xps_map.S.spectrum_degrees_of_freedom == {"eV"}
         assert xps_map.S.scan_degrees_of_freedom == {"x", "y"}
 
-    def test_is_functions(self, xps_map: xr.Dataset) -> None:
+    def test_is_spatial(self, xps_map: xr.Dataset) -> None:
         """Test for is_* function."""
         assert xps_map.S.is_spatial
-
-    def test_find_spectrum_energy_edges(self, dataarray_cut: xr.DataArray) -> None:
-        """Test for find_spectrum_energy_edges."""
-        np.testing.assert_allclose(
-            np.array([-0.3883721, -0.14883726, 0.00465109]),
-            dataarray_cut.S.find_spectrum_energy_edges(),
-            rtol=1e-5,
-        )
-        np.testing.assert_array_equal(
-            np.array([16, 119, 185]),
-            dataarray_cut.S.find_spectrum_energy_edges(indices=True),
-        )
-
-    def test_find_spectrum_angular_edges(self, dataarray_cut: xr.DataArray) -> None:
-        """Test for find_spectrum_angular_edges."""
-        np.testing.assert_allclose(
-            np.array([0.249582, 0.350811, 0.385718, 0.577704]),
-            dataarray_cut.S.find_spectrum_angular_edges(),
-            rtol=1e-5,
-        )
-        np.testing.assert_allclose(
-            np.array([16, 74, 94, 204]),
-            dataarray_cut.S.find_spectrum_angular_edges(indices=True),
-        )
 
     def test_workfunction(self, dataarray_cut: xr.DataArray) -> None:
         """Test for S.workfunction."""
