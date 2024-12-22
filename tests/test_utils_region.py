@@ -5,6 +5,7 @@ import xarray as xr
 
 from arpes.utilities.region import (
     find_spectrum_angular_edges,
+    find_spectrum_angular_edges_full,
     find_spectrum_energy_edges,
     meso_effective_selector,
     wide_angle_selector,
@@ -53,3 +54,23 @@ def test_meso_effective_selector(dataarray_cut: xr.DataArray) -> None:
         np.float64(-0.09534891499999612),
         None,
     )
+
+
+def test_find_spectrum_angular_edges_full(dataarray_cut: xr.DataArray) -> None:
+    """Test for find_spectrum_angular_edges_full."""
+    desired = (
+        np.array([0.26964973, 0.26092309, 0.30281099, 0.28012171, 0.26441375, 0.25394177]),
+        np.array([0.59951696, 0.60824361, 0.60998894, 0.60824361, 0.54890241, 0.56810104]),
+    )
+    results = find_spectrum_angular_edges_full(dataarray_cut)
+    np.testing.assert_allclose(
+        results[0],
+        desired[0],
+        rtol=1e-5,
+    )
+    np.testing.assert_allclose(
+        results[1],
+        desired[1],
+        rtol=1e-5,
+    )
+    assert isinstance(results[2], xr.DataArray)
