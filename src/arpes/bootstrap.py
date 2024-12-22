@@ -1,14 +1,13 @@
-"""Utilities related to statistical bootstraps.
+"""Utilities for statistical bootstraps, particularly useful for ToF experiments.
+
+Bootstraps can be tricky to apply correctly. Ensure you understand their
+appropriateness for your data before using them. ToF-ARPES analyzers have
+limitations such as varying efficiency across the detector due to MCP burn-in,
+and electron aberration and focusing issues.
 
 It can sometimes be difficult to assess when bootstraps are appropriate,
 so make sure to consider this before you just stick a bootstrap around
 your code and stuff the resultant error bar into your papers.
-
-This is most useful on data coming from ToF experiments, where individual electron
-arrivals are counted, but even here you must be aware of tricky aspects of
-the experiment: ToF-ARPES analyzers are not perfect, their efficiency can vary dramatically
-across the detector due to MCP burn-in, and electron aberration and focusing
-must be considered.
 """
 
 from __future__ import annotations
@@ -254,7 +253,7 @@ class Normal(Distribution):
         )
 
     @classmethod
-    def from_param(cls: type, model_param: lf.Model.Parameter) -> Incomplete:
+    def from_param(cls: type, model_param: lf.Parameters) -> Incomplete:
         """Generates a Normal from an `lmfit.Parameter`."""
         return cls(center=model_param.value, stderr=model_param.stderr)
 
