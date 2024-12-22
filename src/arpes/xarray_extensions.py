@@ -162,7 +162,7 @@ T = TypeVar("T")
 
 
 class ARPESAngleProperty:
-    """Class for Angle relateed property.
+    """Class for Angle related property.
 
     This class should not be called directly.
 
@@ -763,7 +763,7 @@ class ARPESInfoProperty(ARPESPhysicalProperty):
 
 
 class ARPESOffsetProperty(ARPESAngleProperty):
-    """Class for offset value propertiy.
+    """Class for offset value property.
 
     This class should not be called directly.
 
@@ -783,7 +783,7 @@ class ARPESOffsetProperty(ARPESAngleProperty):
 
 
         Returns (dict[HIGH_SYMMETRY_POINTS, dict[str, float]]):
-            Dict object representing the symmpetry points in the ARPES data.
+            Dict object representing the symmetry points in the ARPES data.
 
         Raises:
             RuntimeError: When the label of high symmetry_points in arr.attrs[symmetry_points] is
@@ -818,7 +818,7 @@ class ARPESOffsetProperty(ARPESAngleProperty):
             dict object of long_[x, y, z] + physical_long_[x, y, z]
 
         Todo:
-            Tests
+            Test
         """
         assert isinstance(self._obj, xr.DataArray | xr.Dataset)
         if "long_x" not in self._obj.coords:
@@ -1013,7 +1013,7 @@ class ARPESPropertyBase(ARPESInfoProperty, ARPESOffsetProperty, ARPESProvenanceP
         """Infers whether a given scan has real-space dimensions (SPEM or u/nARPES).
 
         Returns:
-            True if the data is explicltly a "ucut" or "spem" or contains "X", "Y", or "Z"
+            True if the data is explicitly a "ucut" or "spem" or contains "X", "Y", or "Z"
             dimensions. False otherwise.
         """
         assert isinstance(self._obj, xr.DataArray | xr.Dataset)
@@ -3027,7 +3027,7 @@ class GenericDataArrayAccessor(GenericAccessorBase):
 
         Transform has similar semantics to matrix multiplication, the dimensions of the
         output can grow or shrink depending on whether the transformation is size preserving,
-        grows the data, shinks the data, or leaves in place.
+        grows the data, shrinks the data, or leaves in place.
 
         Examples:
             As an example, let us suppose we have a function which takes the mean and
