@@ -1707,6 +1707,49 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
         delta = self._obj.G.stride(generic_dim_names=False)
         return edges * delta["eV"] + self._obj.coords["eV"].values[0]
 
+    def find_spectrum_angular_edges(
+        self,
+        *,
+        angle_name: str = "phi",
+        indices: bool = False,
+    ) -> NDArray[np.float64] | NDArray[np.int_]:
+        """Return angle position corresponding to the (1D) spectrum edge.
+
+        Args:
+            angle_name (str): angle name to find the edge
+            indices (bool):  if True, return the index not the angle value.
+
+        Returns: NDArray[np.float64] | NDArray[np.int64]
+            Angle position
+        """
+        angular_dim: str = "pixel" if "pixel" in self._obj.dims else angle_name
+        assert isinstance(self._obj, xr.DataArray)
+        phi_marginal = self._obj.sum(
+            [d for d in self._obj.dims if d != angular_dim],
+        )
+
+        embed_size = 20
+        embedded: NDArray[np.float64] = np.ndarray(
+            shape=[embed_size, phi_marginal.sizes[angular_dim]],
+        )
+        embedded[:] = phi_marginal.values
+        embedded = ndi.gaussian_filter(embedded, embed_size / 3)
+
+        # try to avoid dependency conflict with numpy v0.16
+
+        edges = feature.canny(
+            image=embedded,
+            sigma=embed_size / 5,
+            use_quantiles=True,
+            low_threshold=0.2,
+        )
+        edges = np.where(edges[int(embed_size / 2)] == 1)[0]
+        if indices:
+            return edges
+
+        delta = self._obj.G.stride(generic_dim_names=False)
+        return edges * delta[angular_dim] + self._obj.coords[angular_dim].values[0]
+
     def find_spectrum_angular_edges_full(
         self,
         *,
@@ -1809,8 +1852,10 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
                 If provided, the edge values are interpolated within this range.
             low (Sequence[float], NDArray[np.float64], or None, optional): Low edge values.
                 Use this to manually specify the low edge. Defaults to None.
+                (automatically determined).
             high (Sequence[float], NDArray[np.float64], or None, optional): High edge values.
                 Use this to manually specify the high edge. Defaults to None.
+                (automatically determined).
 
         Returns:
             xr.DataArray: The spectrum data with values outside the edges set to zero.
@@ -1848,12 +1893,12 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
         if interp_range is not None:
             low_edge = xr.DataArray(low_edges, coords={"eV": rebinned_eV_coord}, dims=["eV"])
             high_edge = xr.DataArray(high_edges, coords={"eV": rebinned_eV_coord}, dims=["eV"])
-            low_edge = low_edge.sel(eV=interp_range)
-            high_edge = high_edge.sel(eV=interp_range)
+            low_edge = low_edge.sel(eV=interp_range, method="nearest")
+            high_edge = high_edge.sel(eV=interp_range, method="nearest")
         other_dims = list(self._obj.dims)
         other_dims.remove("eV")
         other_dims.remove(angular_dim)
-        copied = self._obj.copy(deep=True).transpose(*(["eV", angular_dim, *other_dims]))
+        copied = self._obj.copy(deep=True).transpose("eV", angular_dim, ...)
 
         low_edges += cut_margin
         high_edges -= cut_margin
@@ -1871,49 +1916,6 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
             copied.values[i, high_index:-1] = 0
 
         return copied
-
-    def find_spectrum_angular_edges(
-        self,
-        *,
-        angle_name: str = "phi",
-        indices: bool = False,
-    ) -> NDArray[np.float64] | NDArray[np.int_]:
-        """Return angle position corresponding to the (1D) spectrum edge.
-
-        Args:
-            angle_name (str): angle name to find the edge
-            indices (bool):  if True, return the index not the angle value.
-
-        Returns: NDArray[np.float64] | NDArray[np.int64]
-            Angle position
-        """
-        angular_dim: str = "pixel" if "pixel" in self._obj.dims else angle_name
-        assert isinstance(self._obj, xr.DataArray)
-        phi_marginal = self._obj.sum(
-            [d for d in self._obj.dims if d != angular_dim],
-        )
-
-        embed_size = 20
-        embedded: NDArray[np.float64] = np.ndarray(
-            shape=[embed_size, phi_marginal.sizes[angular_dim]],
-        )
-        embedded[:] = phi_marginal.values
-        embedded = ndi.gaussian_filter(embedded, embed_size / 3)
-
-        # try to avoid dependency conflict with numpy v0.16
-
-        edges = feature.canny(
-            image=embedded,
-            sigma=embed_size / 5,
-            use_quantiles=True,
-            low_threshold=0.2,
-        )
-        edges = np.where(edges[int(embed_size / 2)] == 1)[0]
-        if indices:
-            return edges
-
-        delta = self._obj.G.stride(generic_dim_names=False)
-        return edges * delta[angular_dim] + self._obj.coords[angular_dim].values[0]
 
     def wide_angle_selector(self, *, include_margin: bool = True) -> slice:
         """Generates a slice for selecting the wide angular range of the spectrum.
@@ -1967,7 +1969,7 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
         self,
         *regions: Literal["copper_prior", "wide_angular", "narrow_angular"]
         | dict[str, DesignatedRegions],
-    ) -> XrTypes:
+    ) -> xr.DataArray:
         """Filters the data by selecting specified regions and applying those regions to the object.
 
         Regions can be provided as literal strings or as a dictionary of `DesignatedRegions`.
