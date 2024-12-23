@@ -63,7 +63,13 @@ from xarray.core.coordinates import DataArrayCoordinates, DatasetCoordinates
 import arpes
 from arpes.constants import TWO_DIMENSION
 
-from ._typing import HighSymmetryPoints, MPLPlotKwargs
+from ._typing import (
+    ANGLE,
+    CoordsOffset,
+    HighSymmetryPoints,
+    MPLPlotKwargs,
+    flatten_literals,
+)
 from .analysis import param_getter, param_stderr_getter
 from .models.band import MultifitBand
 from .plotting.dispersion import (
@@ -103,7 +109,6 @@ if TYPE_CHECKING:
     from numpy.typing import DTypeLike, NDArray
 
     from ._typing import (
-        ANGLE,
         HIGH_SYMMETRY_POINTS,
         AnalyzerInfo,
         BeamLineSettings,
@@ -124,21 +129,7 @@ if TYPE_CHECKING:
 __all__ = ["ARPESDataArrayAccessor", "ARPESDatasetAccessor", "ARPESFitToolsAccessor"]
 
 EnergyNotation: TypeAlias = Literal["Binding", "Final"]
-CoordsOffset: TypeAlias = Literal[
-    "alpha_offset",
-    "beta_offset",
-    "chi_offset",
-    "phi_offset",
-    "psi_offset",
-    "theta_offset",
-    "delay_offset",
-    "eV_offset",
-    "beta",
-    "theta",
-]
 
-
-ANGLE_VARS = ("alpha", "beta", "chi", "psi", "phi", "theta")
 
 DEFAULT_RADII: dict[str, float] = {
     "kp": 0.02,
@@ -224,7 +215,7 @@ class ARPESAngleProperty:
     def radian_to_degree(self) -> None:
         """Swap angle unit in from Radians to Degrees."""
         self.angle_unit = "Degrees"
-        for angle in ANGLE_VARS:
+        for angle in flatten_literals(ANGLE):
             if angle in self._obj.attrs:
                 self._obj.attrs[angle] = np.rad2deg(self._obj.attrs.get(angle, np.nan))
             if angle + "_offset" in self._obj.attrs:
@@ -237,7 +228,7 @@ class ARPESAngleProperty:
     def degree_to_radian(self) -> None:
         """Swap angle unit in from Degrees and Radians."""
         self.angle_unit = "Radians"
-        for angle in ANGLE_VARS:
+        for angle in flatten_literals(ANGLE):
             if angle in self._obj.attrs:
                 self._obj.attrs[angle] = np.deg2rad(self._obj.attrs.get(angle, np.nan))
             if angle + "_offset" in self._obj.attrs:
