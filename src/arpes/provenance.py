@@ -5,7 +5,7 @@ Of course, Python is a dynamic language and nothing can be
 done to prevent the experimenter from circumventing the provenance scheme.
 
 All the same, between analysis notebooks and the data provenenace provided by PyARPES,
-we provide an environment with much higher standard for reproducible analysis than many
+we provide an environment with a much higher standard for reproducible analysis than many
 other current analysis environments.
 
 This provenenace record is automatically exported when using the built in
@@ -102,6 +102,7 @@ class Provenance(_Provenance, total=False):
     interpolation_points: list[Hashable | dict[Hashable, float]]
     axes: list[str]
     enhance_a: float
+    shift_coords: list[dict[Hashable, float]]
 
 
 def attach_id(data: XrTypes) -> None:
@@ -250,6 +251,7 @@ def save_plot_provenance(plot_fn: Callable[P, R]) -> Callable[P, R]:
             workspace: WorkSpaceType = CONFIG["WORKSPACE"]
 
             with contextlib.suppress(TypeError, KeyError):
+                assert "name" in workspace
                 workspace_name: str = workspace["name"]
 
             if not workspace_name or workspace_name not in path:
