@@ -333,6 +333,7 @@ Incoherent Backgrounds
    :toctree: generated/
    
    correction.background.remove_incoherent_background
+   correction.coords.shift_by
 
 
 Array Alignment
