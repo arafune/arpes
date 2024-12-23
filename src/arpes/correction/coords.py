@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from typing import TYPE_CHECKING
 
 import xarray as xr
 
-from arpes.provenance import Provenance, provenance, update_provenance
+if TYPE_CHECKING:
+    from arpes.provenance import Provenance
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
@@ -39,4 +41,9 @@ def shift_coord_by(
     assert isinstance(data, xr.DataArray)
     assert coord_name in data.dims
     shifted_coords = {coord_name: data.coords[coord_name] + shift_value}
-    return data.assign_coords(**shifted_coords)
+    shifted_data = data.assign_coords(**shifted_coords)
+    provenance_: Provenance = shifted_data.attrs.get("provenance", {})
+    provenance_shift_coords = provenance_.get("shift_coords", [])
+    provenance_shift_coords.append((coord_name, shift_value))
+    shifted_data.attrs["provenance"]["shifted_coords"] = provenance_shift_coords
+    return shifted_data
