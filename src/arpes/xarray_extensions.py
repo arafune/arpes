@@ -51,7 +51,6 @@ from typing import (
     TypeGuard,
     TypeVar,
     Unpack,
-    get_args,
 )
 
 import matplotlib.pyplot as plt
@@ -61,8 +60,6 @@ from more_itertools import always_reversible
 from xarray.core.coordinates import DataArrayCoordinates, DatasetCoordinates
 
 import arpes
-from .constants import TWO_DIMENSION
-from .correction import coords
 
 from ._typing import (
     ANGLE,
@@ -72,6 +69,8 @@ from ._typing import (
     flatten_literals,
 )
 from .analysis import param_getter, param_stderr_getter
+from .constants import TWO_DIMENSION
+from .correction import coords
 from .models.band import MultifitBand
 from .plotting.dispersion import (
     LabeledFermiSurfaceParam,
@@ -1664,11 +1663,6 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
         return self._obj.isel(slices)
 
     def corrected_coords(self, correction_types: str | tuple[str, ...]) -> xr.DataArray:
-        if isinstance(correction_types, str):
-            correction_types = (correction_types,)
-        assert isinstance(correction_types, tuple)
-        for correction_type in correction_types:
-            assert correction_type in get_args(CoordsOffset)
         return coords.corrected_coords(self._obj, correction_types)
 
     def correct_coords(self, correction_types: CoordsOffset | tuple[CoordsOffset, ...]) -> None:

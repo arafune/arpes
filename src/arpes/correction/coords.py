@@ -3,9 +3,13 @@
 from __future__ import annotations
 
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, get_args
 
 import xarray as xr
+
+from arpes._typing import (
+    CoordsOffset,
+)
 
 if TYPE_CHECKING:
     from arpes.provenance import Provenance
@@ -47,3 +51,13 @@ def shift_by(
     provenance_shift_coords.append((coord_name, shift_value))
     shifted_data.attrs["provenance"]["shift_coords"] = provenance_shift_coords
     return shifted_data
+
+
+def corrected_coords(
+    data: xr.DataArray, correction_types: CoordsOffset | tuple[CoordsOffset, ...]
+) -> xr.DataArray:
+    if isinstance(correction_types, str):
+        correction_types = (correction_types,)
+    assert isinstance(correction_types, tuple)
+    for correction_type in correction_types:
+        assert correction_type in get_args(CoordsOffset)
