@@ -62,7 +62,7 @@ from xarray.core.coordinates import DataArrayCoordinates, DatasetCoordinates
 
 import arpes
 from arpes.constants import TWO_DIMENSION
-
+from arpes.correction.coords import shift_by as shift_coord_by
 from ._typing import (
     ANGLE,
     CoordsOffset,
@@ -2787,13 +2787,10 @@ class GenericDataArrayAccessor(GenericAccessorBase):
         Returns:
             xr.DataArray: The DataArray with shifted coordinates.
         """
-        assert isinstance(self._obj, xr.DataArray)
-        for coord in shift_values:
-            assert coord in self._obj.dims
-        shifted_coords = {
-            coord: self._obj.coords[coord] + shift for coord, shift in shift_values.items()
-        }
-        return self._obj.assign_coords(**shifted_coords)
+        data_shifted = self._obj.copy(deep=True)
+        for coord, shift in shift_values.items():
+            data_shifted = shift_coord_by(data_shifted, coord, shift)
+        return data_shifted
 
     def drop_nan(self) -> xr.DataArray:
         """Drops the NaN values from the data.

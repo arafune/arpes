@@ -23,7 +23,7 @@ logger.addHandler(handler)
 logger.propagate = False
 
 
-def shift_coord_by(
+def shift_by(
     data: xr.DataArray,
     coord_name: str,
     shift_value: float,
