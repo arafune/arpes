@@ -181,7 +181,7 @@ class ConvertKpKz(CoordinateConverter):
         assert self.hv is not None
         if self.arr.S.energy_notation == "Binding":
             kinetic_energy = binding_energy + self.hv - self.arr.S.analyzer_work_function
-        elif self.arr.S.energy_notation == "Kinetic":
+        elif self.arr.S.energy_notation == "Final":
             kinetic_energy = binding_energy - self.arr.S.analyzer_work_function
         else:
             warnings.warn(

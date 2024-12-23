@@ -345,6 +345,7 @@ class ARPESAttrs(Spectrometer, LightSourceInfo, SampleInfo, total=False):
     angle_unit: Literal["Degrees", "Radians", "deg", "rad"]
     energy_notation: Literal[
         "Binding",
+        "Final",
         "Kinetic",
         "kinetic",
         "kinetic energy",

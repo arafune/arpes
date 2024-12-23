@@ -1286,7 +1286,7 @@ def label_for_dim(
             "spectrum": "Intensity ( arb. )",
         }
         if isinstance(data, xr.Dataset | xr.DataArray):
-            if data.S.energy_notation == "Kinetic":
+            if data.S.energy_notation == "Fianl":
                 raw_dim_names["eV"] = r"Final State Energy ( eV )"
             else:
                 raw_dim_names["eV"] = r"Binding Energy ( eV )"
@@ -1314,7 +1314,7 @@ def label_for_dim(
             "spectrum": "Intensity ( arb. )",
         }
         if isinstance(data, xr.DataArray | xr.Dataset):
-            if data.S.energy_notation == "Kinetic":
+            if data.S.energy_notation == "Final":
                 raw_dim_names["eV"] = "Final State Energy ( eV )"
             else:
                 raw_dim_names["eV"] = "Binding Energy ( eV )"

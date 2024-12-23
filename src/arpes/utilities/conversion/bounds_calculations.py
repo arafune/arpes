@@ -244,7 +244,7 @@ def calculate_kp_bounds(arr: xr.DataArray) -> tuple[float, float]:
             arr.coords["eV"].max().item(),
             arr.S.hv - arr.S.analyzer_work_function,
         )
-    elif arr.S.energy_notation == "Kinetic":
+    elif arr.S.energy_notation == "Final":
         max_kinetic_energy = arr.coords["eV"].max().item()
     else:
         warnings.warn(
@@ -316,7 +316,7 @@ def calculate_kx_ky_bounds(
             arr.coords["eV"].max().item(),
             arr.S.hv - arr.S.analyzer_work_function,
         )
-    elif arr.S.energy_notation == "Kinetic":
+    elif arr.S.energy_notation == "Final":
         kinetic_energy = arr.coords["eV"].max().item()
     else:
         warnings.warn(

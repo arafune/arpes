@@ -377,7 +377,7 @@ def convert_coordinates(
             + expand_to("hv", raw_coords["hv"])
             - arr.S.analyzer_work_function
         )
-    elif arr.S.energy_notation == "Kinetic":
+    elif arr.S.energy_notation == "Final":
         kinetic_energy = expand_to("eV", raw_coords["eV"]) - arr.S.analyzer_work_function
     else:
         warnings.warn(
@@ -512,7 +512,7 @@ def convert_coordinates_to_kspace_forward(arr: XrTypes) -> xr.Dataset:
     )
     if arr.S.energy_notation == "Binding":
         kinetic_energy = binding_energy + photon_energy
-    elif arr.S.energy_notation == "Kinetic":
+    elif arr.S.energy_notation == "Final":
         kinetic_energy = binding_energy
     else:
         warnings.warn(
