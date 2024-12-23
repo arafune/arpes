@@ -51,6 +51,7 @@ from typing import (
     TypeGuard,
     TypeVar,
     Unpack,
+    get_args,
 )
 
 import matplotlib.pyplot as plt
@@ -122,7 +123,20 @@ if TYPE_CHECKING:
 
 __all__ = ["ARPESDataArrayAccessor", "ARPESDatasetAccessor", "ARPESFitToolsAccessor"]
 
-EnergyNotation = Literal["Binding", "Final"]
+EnergyNotation: TypeAlias = Literal["Binding", "Final"]
+CoordsOffset: TypeAlias = Literal[
+    "alpha_offset",
+    "beta_offset",
+    "chi_offset",
+    "phi_offset",
+    "psi_offset",
+    "theta_offset",
+    "delay_offset",
+    "eV_offset",
+    "beta",
+    "theta",
+]
+
 
 ANGLE_VARS = ("alpha", "beta", "chi", "psi", "phi", "theta")
 
@@ -1657,13 +1671,18 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
                 pass
         return self._obj.isel(slices)
 
-    def correct_coords(self, correction_types: str | tuple[str, ...]) -> None:
-        pass
+    def corrected_coords(self, correction_types: str | tuple[str, ...]) -> xr.DataArray:
+        if isinstance(correction_types, str):
+            correction_types = (correction_types,)
+        assert isinstance(correction_types, tuple)
+        for correction_type in correction_types:
+            assert correction_type in get_args(CoordsOffset)
 
-    def corrected_coords(self, correction_types: str | tuple[str, ...]) -> None:
-        pass
+    def correct_coords(self, correction_types: CoordsOffset | tuple[CoordsOffset, ...]) -> None:
+        array = self._obj.S.corrected_coords(correction_types)
+        self._obj = array.copy(deep=True)
 
-    def corrected_angle_by(
+    def corrected_angle_by(  # pragma: no cover
         self,
         angle_for_correction: Literal[
             "alpha_offset",
@@ -1693,6 +1712,12 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
         Todo:
             Test
         """
+        warnings.warn(
+            "This method will be deprecated. "
+            "Use S.corrected_coords((dim1_offset, dim1_offset, ...)), instead.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
         assert angle_for_correction in {
             "alpha_offset",
             "beta_offset",
@@ -1709,7 +1734,7 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
         arr.S.correct_angle_by(angle_for_correction)
         return arr
 
-    def correct_angle_by(
+    def correct_angle_by(  # pragma: no cover
         self,
         angle_for_correction: Literal[
             "alpha_offset",
@@ -1736,6 +1761,12 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
         Todo:
             Test
         """
+        warnings.warn(
+            "This method will be deprecated. "
+            "Use S.correct_coords((dim1_offset, dim1_offset, ...)), instead.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
         assert angle_for_correction in {
             "alpha_offset",
             "beta_offset",
