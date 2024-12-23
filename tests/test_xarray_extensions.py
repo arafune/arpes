@@ -595,3 +595,46 @@ class TestAngleUnitForDataset:
         assert dataset_cut.S.is_slit_vertical is True
         dataset_cut.S.swap_angle_unit()
         assert dataset_cut.S.is_slit_vertical is True
+
+
+class TestShiftCoords:
+    """Test class for correction of coordinates of the XArray."""
+
+    def test_correct_angle_by_with_cut(self, dataarray_cut: xr.DataArray) -> None:
+        dataarray_cut.S.correct_angle_by("phi_offset")
+        assert dataarray_cut.attrs["phi_offset"] == 0
+        np.testing.assert_array_almost_equal(
+            dataarray_cut.coords["phi"].values[:5],
+            np.array([-0.18334318, -0.18159786, -0.17985253, -0.1781072, -0.17636187]),
+        )
+
+    def test_correct_angle_by_with_cut2(self, dataarray_cut2: xr.DataArray) -> None:
+        dataarray_cut2.S.correct_angle_by("phi_offset")
+        assert dataarray_cut2.attrs["phi_offset"] == 0
+        np.testing.assert_array_almost_equal(
+            dataarray_cut2.coords["phi"].values[:5],
+            np.array(
+                [
+                    -0.22325728,
+                    -0.22253006,
+                    -0.22180284,
+                    -0.22107561,
+                    -0.22034839,
+                ],
+            ),
+        )
+
+        dataarray_cut2.S.correct_angle_by("beta")
+        assert dataarray_cut2.attrs["beta"] == 0
+        np.testing.assert_array_almost_equal(
+            dataarray_cut2.coords["phi"].values[:5],
+            np.array(
+                [
+                    -0.27561716,
+                    -0.27488994,
+                    -0.27416271,
+                    -0.27343549,
+                    -0.27270827,
+                ],
+            ),
+        )
