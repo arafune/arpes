@@ -1659,6 +1659,12 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
                 pass
         return self._obj.isel(slices)
 
+    def correct_coords(self, correction_types: tuple[str, ...]) -> None:
+        pass
+
+    def corrected_coords(self, correction_types: tuple[str, ...]) -> None:
+        pass
+
     def corrected_angle_by(
         self,
         angle_for_correction: Literal[
@@ -2747,6 +2753,27 @@ class GenericDataArrayAccessor(GenericAccessorBase):
                 {shift_axis: data.coords[shift_axis] + mean_shift},
             )
         return built_data
+
+    def shift_coords_by(
+        self,
+        shift_values: dict[str, float],
+    ) -> xr.DataArray:
+        """Shifts the coordinates by the specified values.
+
+        Args:
+            shift_values (dict[str, float]): A dictionary where keys are coordinate names and values
+            are the amounts to shift.
+
+        Returns:
+            xr.DataArray: The DataArray with shifted coordinates.
+        """
+        assert isinstance(self._obj, xr.DataArray)
+        for coord in shift_values:
+            assert coord in self._obj.dims
+        shifted_coords = {
+            coord: self._obj.coords[coord] + shift for coord, shift in shift_values.items()
+        }
+        return self._obj.assign_coords(**shifted_coords)
 
     def drop_nan(self) -> xr.DataArray:
         """Drops the NaN values from the data.
