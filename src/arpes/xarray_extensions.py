@@ -1657,10 +1657,10 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
                 pass
         return self._obj.isel(slices)
 
-    def correct_coords(self, correction_types: tuple[str, ...]) -> None:
+    def correct_coords(self, correction_types: str | tuple[str, ...]) -> None:
         pass
 
-    def corrected_coords(self, correction_types: tuple[str, ...]) -> None:
+    def corrected_coords(self, correction_types: str | tuple[str, ...]) -> None:
         pass
 
     def corrected_angle_by(

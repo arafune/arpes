@@ -638,3 +638,12 @@ class TestShiftCoords:
                 ],
             ),
         )
+
+    def test_corrected_angle_by_with_cut2(self, dataarray_cut2: xr.DataArray) -> None:
+        corrected = dataarray_cut2.S.corrected_angle_by("phi_offset").S.corrected_angle_by("beta")
+        dataarray_cut2.S.correct_angle_by("beta")
+        dataarray_cut2.S.correct_angle_by("phi_offset")
+        np.testing.assert_array_almost_equal(
+            corrected.coords["phi"].values,
+            dataarray_cut2.coords["phi"].values,
+        )
