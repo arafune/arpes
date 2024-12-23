@@ -228,7 +228,7 @@ Time-Resolved ARPES Related
    analysis.tarpes.normalized_relative_change
    analysis.tarpes.build_crosscorrelation
    analysis.tarpes.delaytime_fs
-   analysis.tarpes.position_to_delaytime
+   analysis.tarpes.position_mm_to_delaytime_fs
 
 
 Spin-ARPES Related
