@@ -600,16 +600,16 @@ class TestAngleUnitForDataset:
 class TestShiftCoords:
     """Test class for correction of coordinates of the XArray."""
 
-    def test_correct_angle_by_with_cut(self, dataarray_cut: xr.DataArray) -> None:
-        dataarray_cut.S.correct_angle_by("phi_offset")
+    def test_correct_coords_by_with_cut(self, dataarray_cut: xr.DataArray) -> None:
+        dataarray_cut.S.correct_coords("phi_offset")
         assert dataarray_cut.attrs["phi_offset"] == 0
         np.testing.assert_array_almost_equal(
             dataarray_cut.coords["phi"].values[:5],
             np.array([-0.18334318, -0.18159786, -0.17985253, -0.1781072, -0.17636187]),
         )
 
-    def test_correct_angle_by_with_cut2(self, dataarray_cut2: xr.DataArray) -> None:
-        dataarray_cut2.S.correct_angle_by("phi_offset")
+    def test_correct_coords_by_with_cut2(self, dataarray_cut2: xr.DataArray) -> None:
+        dataarray_cut2.S.correct_coords("phi_offset")
         assert dataarray_cut2.attrs["phi_offset"] == 0
         np.testing.assert_array_almost_equal(
             dataarray_cut2.coords["phi"].values[:5],
@@ -624,7 +624,7 @@ class TestShiftCoords:
             ),
         )
 
-        dataarray_cut2.S.correct_angle_by("beta")
+        dataarray_cut2.S.correct_coords("beta")
         assert dataarray_cut2.attrs["beta"] == 0
         np.testing.assert_array_almost_equal(
             dataarray_cut2.coords["phi"].values[:5],
@@ -639,11 +639,19 @@ class TestShiftCoords:
             ),
         )
 
-    def test_corrected_angle_by_with_cut2(self, dataarray_cut2: xr.DataArray) -> None:
-        corrected = dataarray_cut2.S.corrected_angle_by("phi_offset").S.corrected_angle_by("beta")
-        dataarray_cut2.S.correct_angle_by("beta")
-        dataarray_cut2.S.correct_angle_by("phi_offset")
+    def test_corrected_coords_with_cut2(self, dataarray_cut2: xr.DataArray) -> None:
+        corrected = dataarray_cut2.S.corrected_coords("phi_offset").S.corrected_coords("beta")
+        dataarray_cut2.S.correct_coords("beta")
+        dataarray_cut2.S.correct_coords("phi_offset")
         np.testing.assert_array_almost_equal(
             corrected.coords["phi"].values,
             dataarray_cut2.coords["phi"].values,
+        )
+
+    def test_corrected_coords_with_cut2_using_tuple(self, dataarray_cut2: xr.DataArray) -> None:
+        corrected1 = dataarray_cut2.S.corrected_coords("phi_offset").S.corrected_coords("beta")
+        corrected2 = dataarray_cut2.S.corrected_coords(("phi_offset", "beta"))
+        np.testing.assert_array_almost_equal(
+            corrected1.coords["phi"].values,
+            corrected2.coords["phi"].values,
         )
