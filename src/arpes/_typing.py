@@ -1,12 +1,9 @@
 """Specialized type annotations for use in PyARPES.
 
-In particular, we frequently allow using the `DataType` annotation,
-which refers to either an xarray.DataArray|xarray.Dataset.
+In particular, `DataType` refers to either an xarray.DataArray or xarray.Dataset
 
-Additionally, we often use `NormalizableDataType` which
-means essentially anything that can be turned into a dataset,
-for instance by loading from the cache using an ID,|which is
-literally already data.
+`NormalizableDataType` referes to anything that can be tuned into datase,
+such as by loading from the cache using an ID.
 """
 
 from __future__ import annotations
@@ -22,6 +19,7 @@ from typing import (
     TypedDict,
     TypeGuard,
     TypeVar,
+    get_args,
 )
 
 import numpy as np
@@ -71,6 +69,7 @@ __all__ = [
     "Spectrometer",
     "WorkSpaceType",
     "XrTypes",
+    "flatten_literals",
 ]
 
 
@@ -82,8 +81,7 @@ HIGH_SYMMETRY_POINTS = Literal["G", "X", "Y", "M", "K", "S", "A1", "H", "C", "H1
 HighSymmetryPoints: Final = ("G", "X", "Y", "M", "K", "S", "A1", "H", "C", "H1")
 
 LEGENDLOCATION = Literal[
-    # While the "string" location can be given as the numeric value from 0 to 10,
-    # the numeric value is just prepared for the backward compatibility.
+    # Numeric values (0 to 10) are for the backward compatibility.
     "best",
     "upper right",
     "upper left",
@@ -97,6 +95,38 @@ LEGENDLOCATION = Literal[
     "center",
 ]
 
+CoordsOffset: TypeAlias = Literal[
+    "alpha_offset",
+    "beta_offset",
+    "chi_offset",
+    "phi_offset",
+    "psi_offset",
+    "theta_offset",
+    "delay_offset",
+    "eV_offset",
+    "beta",
+    "theta",
+]
+
+
+def flatten_literals(literal_type: type[Literal[str]] | Literal[str]) -> set[str]:
+    """Recursively flattens a Literal type to extract all string values.
+
+    Args:
+        literal_type (type[Literal] | Literal): The Literal type to flatten.
+
+    Returns:
+        set[str]: A set of all string values in the Literal type.
+    """
+    args = get_args(literal_type)
+    flattened = set()
+    for arg in args:
+        if hasattr(arg, "__args__"):
+            flattened.update(flatten_literals(arg))
+        else:
+            flattened.add(arg)
+    return flattened
+
 
 class KspaceCoords(TypedDict, total=False):
     eV: NDArray[np.float64]
@@ -109,6 +139,16 @@ class KspaceCoords(TypedDict, total=False):
 def is_dict_kspacecoords(
     a_dict: dict[Hashable, NDArray[np.float64]] | dict[str, NDArray[np.float64]],
 ) -> TypeGuard[KspaceCoords]:
+    """Checks if a dictionary contains k-space coordinates.
+
+    Args:
+        a_dict (dict[Hashable, NDArray[np.float64]] | dict[str, NDArray[np.float64]]):
+           The dictionary to check.
+
+    Returns:
+        TypeGuard[KspaceCoords]: True if the dictionary contains k-space coordinates,
+        False otherwise.
+    """
     if all(key in {"eV", "kp", "kx", "ky", "kz"} for key in a_dict):
         return all(isinstance(v, np.ndarray) for v in a_dict.values())
     return False
@@ -367,7 +407,7 @@ class Line2DProperty(TypedDict, total=False):
     clip_path: mpl_Path | Patch | Transform | None
     color: ColorType
     c: ColorType
-    dash_capstyple: CapStyleType
+    dash_capstyle: CapStyleType
     dash_joinstyle: JoinStyleType
     dashes: LineStyleType
     drawstyle: DrawStyleType
@@ -385,7 +425,7 @@ class Line2DProperty(TypedDict, total=False):
     mec: ColorType
     markeredgewidth: float
     mew: ColorType
-    markerfacecloralt: ColorType
+    markerfacecoloralt: ColorType
     mfcalt: ColorType
     markersize: float
     ms: float
@@ -415,7 +455,7 @@ class PolyCollectionProperty(Line2DProperty, total=False):
     hatch: Literal["/", "\\", "|", "-", "+", "x", "o", "O", ".", "*"]
     norm: Normalize | None
     offset_transform: Transform
-    # offsets: (N, 2) or (2, ) array-likel
+    # offsets: (N, 2) or (2, ) array-like
     sizes: NDArray[np.float64] | None
     transform: Transform
     urls: list[str] | None
