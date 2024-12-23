@@ -150,6 +150,7 @@ Tutorial
    Fermi Edge Corrections <notebooks/fermi-edge-correction>
    Momentum Conversion <notebooks/converting-to-kspace>
    Nano XPS Analysis <notebooks/full-analysis-xps>
+   TARPES analysis example <notebooks/example_tarpes_analysis>
 
 Detailed Guides
 ===============
