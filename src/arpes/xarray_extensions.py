@@ -122,7 +122,7 @@ if TYPE_CHECKING:
 
 __all__ = ["ARPESDataArrayAccessor", "ARPESDatasetAccessor", "ARPESFitToolsAccessor"]
 
-EnergyNotation = Literal["Binding", "Kinetic"]
+EnergyNotation = Literal["Binding", "Final"]
 
 ANGLE_VARS = ("alpha", "beta", "chi", "psi", "phi", "theta")
 
@@ -437,20 +437,18 @@ class ARPESPhysicalProperty:
 
     @property
     def energy_notation(self) -> EnergyNotation:
-        """The energy notation ("Binding" energy or "Kinetic" energy).
-
-        Note:
-            The "Kinetic" energy refers to the Fermi level, not the vacuum level.
-        """
+        """The energy notation ("Binding" energy or "Final" state energy)."""
         if "energy_notation" in self._obj.attrs:
             if self._obj.attrs["energy_notation"] in {
                 "Kinetic",
                 "kinetic",
                 "kinetic energy",
                 "Kinetic energy",
+                "Final",
+                "Final state energy",
             }:
-                self._obj.attrs["energy_notation"] = "Kinetic"
-                return "Kinetic"
+                self._obj.attrs["energy_notation"] = "Final"
+                return "Final"
             return "Binding"
         self._obj.attrs["energy_notation"] = self._obj.attrs.get("energy_notation", "Binding")
         return "Binding"
@@ -466,8 +464,8 @@ class ARPESPhysicalProperty:
                 self._obj.coords["eV"] = (
                     self._obj.coords["eV"] + nonlinear_order * self._obj.coords["hv"]
                 )
-                self._obj.attrs["energy_notation"] = "Kinetic"
-            elif self.energy_notation == "Kinetic":
+                self._obj.attrs["energy_notation"] = "Final"
+            elif self.energy_notation == "Final":
                 self._obj.coords["eV"] = (
                     self._obj.coords["eV"] - nonlinear_order * self._obj.coords["hv"]
                 )
@@ -3278,7 +3276,7 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
         super().switch_energy_notation(nonlinear_order=nonlinear_order)
         for data in self._obj.data_vars.values():
             if data.S.energy_notation == "Binding":
-                data.attrs["energy_notation"] = "Kinetic"
+                data.attrs["energy_notation"] = "Final"
             else:
                 data.attrs["energy_notation"] = "Binding"
 
