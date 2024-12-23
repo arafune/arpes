@@ -239,13 +239,13 @@ class TestEnergyNotation:
         """Test for switch energy notation."""
         # Test for DataArray
         dataarray_cut.S.switch_energy_notation()
-        assert dataarray_cut.S.energy_notation == "Kinetic"
+        assert dataarray_cut.S.energy_notation == "Final"
         dataarray_cut.S.switch_energy_notation()
         assert dataarray_cut.S.energy_notation == "Binding"
 
         # Test for Dataset
         dataset_cut.S.switch_energy_notation()
-        assert dataset_cut.S.energy_notation == "Kinetic"
+        assert dataset_cut.S.energy_notation == "Final"
         dataset_cut.S.switch_energy_notation()
         assert dataset_cut.S.energy_notation == "Binding"
 

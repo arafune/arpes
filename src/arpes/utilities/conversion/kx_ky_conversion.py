@@ -203,7 +203,7 @@ class ConvertKp(CoordinateConverter):
                 self.arr.S.analyzer_work_function,
                 binding_energy,
             )
-        elif self.arr.S.energy_notation == "Kinetic":
+        elif self.arr.S.energy_notation == "Final":
             self.k_tot = _safe_compute_k_tot(0, self.arr.S.analyzer_work_function, binding_energy)
         else:
             warning_msg = "Energy notation is not specified. Assume the Binding energy notation"
@@ -385,7 +385,7 @@ class ConvertKxKy(CoordinateConverter):
                 self.arr.S.analyzer_work_function,
                 binding_energy,
             )
-        elif self.arr.energy_notation == "Kinetic":
+        elif self.arr.energy_notation == "Final":
             self.k_tot = _safe_compute_k_tot(0, self.arr.S.analyzer_work_function, binding_energy)
         else:
             warning_msg = "Energy notation is not specified. Assume the Binding energy notation"
