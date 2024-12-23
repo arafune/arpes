@@ -1,6 +1,6 @@
-"""A lazy keep-alive `multiprocesssing.Pool`.
+"""A lazy keep-alive `multiprocessing.Pool`.
 
-We keep a pool alive after one is requested at the cost of memory overhead
+Keep a pool alive after one is requested at the cost of memory overhead
 because otherwise pools are too slow due to heavy analysis imports (scipy, etc.).
 """
 
@@ -21,9 +21,6 @@ class HotPool:
         This method lazily initializes a pool object and returns it. If the pool has
         already been created, it simply returns the existing one.
 
-        Args:
-            self: The instance of the class calling this method.
-
         Returns:
             pool.Pool: A pool object.
         """
@@ -36,11 +33,8 @@ class HotPool:
     def __del__(self) -> None:
         """Cleans up resources when the object is deleted.
 
-            This method ensures that the pool, if it exists, is closed before the object
-            is destroyed to release any allocated resources.
-
-        Returns:
-            None
+        This method ensures that the pool, if it exists, is closed before the object
+        is destroyed to release any allocated resources.
         """
         if self._pool is not None:
             self._pool.close()
