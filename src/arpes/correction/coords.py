@@ -45,5 +45,5 @@ def shift_coord_by(
     provenance_: Provenance = shifted_data.attrs.get("provenance", {})
     provenance_shift_coords = provenance_.get("shift_coords", [])
     provenance_shift_coords.append((coord_name, shift_value))
-    shifted_data.attrs["provenance"]["shifted_coords"] = provenance_shift_coords
+    shifted_data.attrs["provenance"]["shift_coords"] = provenance_shift_coords
     return shifted_data
