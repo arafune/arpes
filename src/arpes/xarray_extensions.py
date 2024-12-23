@@ -61,8 +61,9 @@ from more_itertools import always_reversible
 from xarray.core.coordinates import DataArrayCoordinates, DatasetCoordinates
 
 import arpes
-from arpes.constants import TWO_DIMENSION
-from arpes.correction.coords import shift_by as shift_coord_by
+from .constants import TWO_DIMENSION
+from .correction import coords
+
 from ._typing import (
     ANGLE,
     CoordsOffset,
@@ -1668,6 +1669,7 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
         assert isinstance(correction_types, tuple)
         for correction_type in correction_types:
             assert correction_type in get_args(CoordsOffset)
+        return coords.corrected_coords(self._obj, correction_types)
 
     def correct_coords(self, correction_types: CoordsOffset | tuple[CoordsOffset, ...]) -> None:
         array = self._obj.S.corrected_coords(correction_types)
@@ -2789,7 +2791,7 @@ class GenericDataArrayAccessor(GenericAccessorBase):
         """
         data_shifted = self._obj.copy(deep=True)
         for coord, shift in shift_values.items():
-            data_shifted = shift_coord_by(data_shifted, coord, shift)
+            data_shifted = coords.shift_by(data_shifted, coord, shift)
         return data_shifted
 
     def drop_nan(self) -> xr.DataArray:
