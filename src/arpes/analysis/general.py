@@ -20,7 +20,7 @@ from arpes.utilities.math import fermi_distribution
 from .filters import gaussian_filter_arr
 
 if TYPE_CHECKING:
-    from arpes._typing import DataType
+    from arpes._typing import DataType, ReduceMethod
 
 __all__ = (
     "condense",
@@ -188,7 +188,7 @@ def rebin(
     data: DataType,
     shape: dict[str, int] | None = None,
     bin_width: dict[str, int] | None = None,
-    method: Literal["sum", "mean"] = "sum",
+    method: ReduceMethod = "sum",
     **kwargs: int,
 ) -> DataType:
     """Rebins the data onto a different (smaller) shape.
@@ -234,7 +234,7 @@ def _bin(
     data: DataType,
     bin_axis: str,
     bins: int,
-    method: Literal["sum", "mean"],
+    method: ReduceMethod,
 ) -> DataType:
     original_left, original_right = (
         data.coords[bin_axis].min().item(),

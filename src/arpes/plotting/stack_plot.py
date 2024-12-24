@@ -35,7 +35,7 @@ if TYPE_CHECKING:
     from matplotlib.typing import ColorType
     from numpy.typing import NDArray
 
-    from arpes._typing import LEGENDLOCATION, ColorbarParam, MPLPlotKwargsBasic
+    from arpes._typing import LEGENDLOCATION, ColorbarParam, MPLPlotKwargsBasic, ReduceMethod
 __all__ = (
     "flat_stack_plot",
     "offset_scatter_plot",
@@ -54,6 +54,8 @@ logger.setLevel(LOGLEVEL)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.propagate = False
+
+Plot2DStyle = Literal["line", "scatter"]
 
 
 @save_plot_provenance
@@ -207,7 +209,7 @@ def flat_stack_plot(  # noqa: PLR0913
     *,
     stack_axis: str = "",
     ax: Axes | None = None,
-    mode: Literal["line", "scatter"] = "line",
+    mode: Plot2DStyle = "line",
     fermi_level: float | None = None,
     figsize: tuple[float, float] = (7, 5),
     title: str = "",
@@ -313,7 +315,7 @@ def stack_dispersion_plot(  # noqa: PLR0913
     out: str | Path = "",
     max_stacks: int = 100,
     scale_factor: float = 0,
-    mode: Literal["line", "fill_between", "hide_line", "scatter"] = "line",
+    mode: Plot2DStyle | Literal["fill_between", "hide_line"] = "line",
     offset_correction: Literal["zero", "constant", "constant_right"] | None = "zero",
     shift: float = 0,
     negate: bool = False,
@@ -512,7 +514,7 @@ def _rebinning(
     data: xr.DataArray,
     stack_axis: str,
     max_stacks: int,
-    method: Literal["sum", "mean"] = "sum",
+    method: ReduceMethod = "sum",
 ) -> tuple[xr.DataArray, str, str]:
     """Preparation for stack plot.
 

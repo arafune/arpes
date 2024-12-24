@@ -66,6 +66,7 @@ from ._typing import (
     CoordsOffset,
     HighSymmetryPoints,
     MPLPlotKwargs,
+    ReduceMethod,
     flatten_literals,
 )
 from .analysis import param_getter, param_stderr_getter
@@ -1505,7 +1506,7 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
         points: dict[Hashable, xr.DataArray] | xr.Dataset,
         radius: dict[Hashable, float] | float | None = None,  # radius={"phi": 0.005}
         *,
-        mode: Literal["sum", "mean"] = "sum",
+        mode: ReduceMethod = "sum",
         **kwargs: Incomplete,
     ) -> xr.DataArray:
         """Performs a binned selection around a point or points.
@@ -1586,7 +1587,7 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
         point: dict[Hashable, float],
         radius: dict[Hashable, float] | float,
         *,
-        mode: Literal["sum", "mean"] = "sum",
+        mode: ReduceMethod = "sum",
         **kwargs: float,
     ) -> xr.DataArray:
         """Selects and integrates a region around a one dimensional point.

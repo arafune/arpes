@@ -1286,6 +1286,7 @@ def label_for_dim(
             "spectrum": "Intensity ( arb. )",
         }
         if isinstance(data, xr.Dataset | xr.DataArray):
+            assert isinstance(data, xr.Dataset | xr.DataArray)
             if data.S.energy_notation == "Fianl":
                 raw_dim_names["eV"] = r"Final State Energy ( eV )"
             else:
