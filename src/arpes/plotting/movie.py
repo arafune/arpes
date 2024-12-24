@@ -80,7 +80,7 @@ def output_animation(  # noqa: PLR0913
     """
     if isinstance(out, str | Path):
         logger.debug(msg=f"path_for_plot is {path_for_plot(out)}")
-        anim.save(str(path_for_plot(out)), writer="ffmpeg")
+        anim.save(str(path_for_plot(out)))
         return path_for_plot(out)
 
     if isinstance(out, Number):
