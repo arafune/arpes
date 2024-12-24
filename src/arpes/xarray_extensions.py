@@ -68,6 +68,7 @@ from ._typing import (
     CoordsOffset,
     MPLPlotKwargs,
     ReduceMethod,
+    SpectrumType,
     flatten_literals,
 )
 from .analysis import param_getter, param_stderr_getter
@@ -728,7 +729,7 @@ class ARPESInfoProperty(ARPESPhysicalProperty):
         return None
 
     @property
-    def spectrum_type(self) -> Literal["cut", "map", "hv_map", "ucut", "spem", "xps"]:
+    def spectrum_type(self) -> SpectrumType:
         """Spectrum type (cut, map, hv_map, ucut, spem and xps)."""
         assert isinstance(self._obj, xr.DataArray | xr.Dataset)
         if self._obj.attrs.get("spectrum_type"):
@@ -754,8 +755,8 @@ class ARPESInfoProperty(ARPESPhysicalProperty):
 
         def _dim_type_check(
             dim_type: str | None,
-        ) -> TypeGuard[Literal["cut", "map", "hv_map", "ucut", "spem", "xps"]]:
-            return dim_type in {"cut", "map", "hv_map", "ucut", "spem", "xps"}
+        ) -> TypeGuard[SpectrumType]:
+            return dim_type in get_args(SpectrumType)
 
         if _dim_type_check(dim_type):
             return dim_type
@@ -3201,7 +3202,7 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
         return [dv for dv in self._obj.data_vars.values() if "eV" in dv.dims]
 
     @property
-    def spectrum_type(self) -> Literal["cut", "map", "hv_map", "ucut", "spem", "xps"]:
+    def spectrum_type(self) -> SpectrumType:
         """Gives a heuristic estimate of what kind of data is contained by the spectrum.
 
         Returns:

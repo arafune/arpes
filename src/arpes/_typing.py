@@ -64,6 +64,7 @@ __all__ = [
     "Orientation",
     "ReduceMethod",
     "Spectrometer",
+    "SpectrumType",
     "WorkSpaceType",
     "XrTypes",
     "flatten_literals",
@@ -83,6 +84,8 @@ ANGLE = Literal["alpha", "beta", "chi", "theta"] | EMISSION_ANGLE
 Orientation = Literal["horizontal", "vertical"]
 
 HIGH_SYMMETRY_POINTS = Literal["G", "X", "Y", "M", "K", "S", "A1", "H", "C", "H1"]
+
+SpectrumType = Literal["cut", "map", "hv_map", "ucut", "spem", "xps"]
 
 LEGENDLOCATION = Literal[
     # Numeric values (0 to 10) are for the backward compatibility.
@@ -338,7 +341,7 @@ class SampleInfo(TypedDict, total=False):
 class ScanInfo(TypedDict, total=False):
     time: str
     date: str
-    spectrum_type: Literal["cut", "map", "hv_map", "ucut", "spem", "xps"]
+    spectrum_type: SpectrumType
     type: str | None
     experimenter: str | None
     sample: str | None
