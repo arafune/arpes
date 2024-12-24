@@ -56,16 +56,14 @@ logger.propagate = False
 
 
 def load_data(
-    file: str | Path | int,
+    file: str | Path,
     location: str | None = None,
     **kwargs: Incomplete,
 ) -> xr.Dataset:
     """Loads a piece of data using available plugins. This the user facing API for data loading.
 
     Args:
-        file (str | Path | int): An identifier for the file which should be loaded.
-            If the value is a relative path, locations relative to the cwd and the workspace data
-            folder will be checked. Absolute paths can also be used in a pinch.
+        file (str | Path): An identifier for the file which should be loaded, i.e., the file path.
         location (str | type[EndstationBase]): The name of the endstation/plugin to use.
             You should try to provide one. If None is provided, the loader
             will try to find an appropriate one based on the file extension and brute force.

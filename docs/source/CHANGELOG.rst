@@ -16,12 +16,15 @@ Changed
 ~~~~~~~
 
 * S.correct_angle_by and S.corrected_angle_by are obsolute. Use S.corret_coords or S.corret_coords
+  * S.correct_angle_by, corrected_angle_by, transpose_to_front, transpose_to_back, to_arrays are Deprecated.
+    When use them, warning is raised. And they are actually removed after version 4.5.0.
+* Not recommend to use the number to identify the file in io.load_data.
+
 
 Minor
 ~~~~~
 
-
-
+* Many
 
 4.1.0 (2024-11-20)
 ^^^^^^^^^^^^^^^^^^
