@@ -64,6 +64,7 @@ import arpes
 
 from ._typing import (
     ANGLE,
+    HIGH_SYMMETRY_POINTS,
     CoordsOffset,
     MPLPlotKwargs,
     ReduceMethod,
@@ -110,7 +111,6 @@ if TYPE_CHECKING:
     from numpy.typing import DTypeLike, NDArray
 
     from ._typing import (
-        HIGH_SYMMETRY_POINTS,
         AnalyzerInfo,
         BeamLineSettings,
         DAQInfo,
