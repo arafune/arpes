@@ -1,4 +1,12 @@
-"""Plotting utilities related to density of states plots."""
+"""Plotting utilities related to density of states plots.
+
+This module provides functions and utilities for creating and saving
+density of states (DOS) plots using matplotlib and xarray.
+
+Functions:
+    - plot_core_levels: Plots an XPS curve and approximate core level locations.
+    - plot_dos: Plots the density of states.
+"""
 
 from __future__ import annotations
 
@@ -57,7 +65,21 @@ def plot_core_levels(  # noqa: PLR0913
     figsize: tuple[float, float] = (11, 5),
     **kwargs: Unpack[MPLPlotKwargs],
 ) -> Path | tuple[Figure | None, Axes]:
-    """Plots an XPS curve and approximate core level locations."""
+    """Plots an XPS curve and approximate core level locations.
+
+    Args:
+        data (xr.DataArray): The data array containing the XPS information.
+        ax (Axes, optional): The matplotlib axes object to plot on. Defaults to None.
+        out (str | Path, optional): The file path to save the plot. Defaults to "".
+        core_levels (list[float], optional): List of core level energies. Defaults to None.
+        binning (int, optional): Binning parameter for core level approximation. Defaults to 3.
+        promenance (int, optional): Prominence parameter for core level approximation. Defaults to 5.
+        figsize (tuple[float, float], optional): Figure size. Defaults to (11, 5).
+        **kwargs: Additional keyword arguments for customization.
+
+    Returns:
+        Path | tuple[Figure | None, Axes]: The file path if saved, otherwise the figure and axes.
+    """
     fig: Figure | None = None
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize)
