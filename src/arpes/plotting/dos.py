@@ -42,15 +42,80 @@ __all__ = (
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+
+
+def setup_logger(name: str, level: int) -> None:
+    """Set up a logger with the specified name and level.
+
+    Args:
+        name (str): The name of the logger.
+        level (int): The logging level.
+    """
+    logger = getLogger(name)
+    fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
+    formatter = Formatter(fmt)
+    handler = StreamHandler()
+    handler.setLevel(level)
+    logger.setLevel(level)
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.propagate = False
+
+
+setup_logger(__name__, LOGLEVEL)
+
+
+def create_figure_and_axes(
+    figsize: tuple[float, float], orientation: Literal["horizontal", "vertical"]
+) -> tuple[Figure, gridspec.GridSpec]:
+    """Create a figure and axes for plotting.
+
+    Args:
+        figsize (tuple[float, float]): The size of the figure.
+        orientation (Literal["horizontal", "vertical"]): The orientation of the figure.
+
+    Returns:
+        tuple[Figure, gridspec.GridSpec]: The figure and grid specification.
+    """
+    if orientation.startswith("h"):
+        fig = plt.figure(figsize=figsize) if figsize else plt.figure(figsize=(8, 6))
+        gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[5.5, 1.0])
+    else:
+        fig = plt.figure(figsize=figsize) if figsize else plt.figure(figsize=(6, 8))
+        gs = gridspec.GridSpec(nrows=1, ncols=2, width_ratios=[5.5, 1.0])
+    fig.subplots_adjust(hspace=0.00, wspace=0.00)
+    return fig, gs
+
+
+def add_colorbar(ax: Axes, orientation: str, norm: Normalize, cmap: str) -> None:
+    """Add a colorbar to the plot.
+
+    Args:
+        ax (Axes): The axes to add the colorbar to.
+        orientation (str): The orientation of the colorbar.
+        norm (Normalize): The normalization for the colorbar.
+        cmap (str): The colormap for the colorbar.
+    """
+    if orientation.startswith("h"):
+        axins = inset_axes(
+            ax,
+            width="2%",
+            height="90%",
+            loc="lower left",
+            bbox_to_anchor=(1.01, 0.05, 1, 1),
+            bbox_transform=ax.transAxes,
+        )
+        Colorbar(ax=axins, orientation="vertical", norm=norm, cmap=cmap)
+    else:
+        axins = inset_axes(
+            ax,
+            height="2%",
+            width="90%",
+            loc="lower left",
+            bbox_to_anchor=(0.01, 1.05, 1, 1),
+            bbox_transform=ax.transAxes,
+        )
+        Colorbar(ax=axins, orientation="horizontal", norm=norm, cmap=cmap)
 
 
 @save_plot_provenance
@@ -111,14 +176,14 @@ def plot_dos(
     cf: https://matplotlib.org/stable/gallery/axes_grid1/demo_colorbar_with_inset_locator.html
 
     Args:
-        data: ARPES data to plot.
+        data (xr.DataArray): ARPES data to plot.
         out (str | Path): Path to the figure.
         orientation (Literal["horizontal", "vertical"]): Orientation of the figures.
-        figsize: The figure size (arg of plt.figure())
-        kwargs: Pass to the original data.
+        figsize (tuple[float, float] | None): The figure size (arg of plt.figure()).
+        kwargs: Additional keyword arguments for customization.
 
-    Returns: fig, tuple[Axes, Axes]
-        Figure object and the Axes objects for the spectra and the line profile of the spectrum.
+    Returns:
+        Path | tuple[Figure, tuple[Axes, Axes]]: The file path if saved, otherwise the figure and axes.
     """
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     assert isinstance(data, xr.DataArray)
@@ -130,48 +195,18 @@ def plot_dos(
     )
     kwargs.setdefault("cmap", "viridis")
 
-    if orientation.startswith("h"):
-        fig = plt.figure(figsize=figsize) if figsize else plt.figure(figsize=(8, 6))
-        gs = gridspec.GridSpec(
-            nrows=2,
-            ncols=1,
-            height_ratios=[5.5, 1.0],
-        )
-    else:
-        fig = plt.figure(figsize=figsize) if figsize else plt.figure(figsize=(6, 8))
-        data = data.transpose()
-        gs = gridspec.GridSpec(
-            nrows=1,
-            ncols=2,
-            width_ratios=[5.5, 1.0],
-        )
-
-    fig.subplots_adjust(hspace=0.00, wspace=0.00)
+    fig, gs = create_figure_and_axes(figsize, orientation)
     ax0 = fig.add_subplot(gs[0])
     data.S.plot(ax=ax0, add_labels=False, add_colorbar=False, **kwargs)
+    add_colorbar(
+        ax0,
+        orientation,
+        kwargs.get("norm", Normalize(vmin=data.min().item(), vmax=data.max().item())),
+        kwargs.get("cmap", "viridis"),
+    )
 
     if orientation.startswith("h"):
         ax1: Axes = fig.add_subplot(gs[1], sharex=ax0)
-        axins = inset_axes(
-            ax0,
-            width="2%",
-            height="90%",
-            loc="lower left",
-            bbox_to_anchor=(1.01, 0.05, 1, 1),
-            bbox_transform=ax0.transAxes,
-        )
-        Colorbar(
-            ax=axins,
-            orientation="vertical",
-            norm=kwargs.get(
-                "norm",
-                Normalize(
-                    vmin=data.min().item(),
-                    vmax=data.max().item(),
-                ),
-            ),
-            cmap=kwargs.get("cmap", "viridis"),
-        )
         plt.setp(ax0.get_xticklabels(), visible=False)
         if "norm" in kwargs and isinstance(kwargs["norm"], LogNorm):
             dos.S.plot(ax=ax1, _labels=False, yscale="log")
@@ -180,26 +215,6 @@ def plot_dos(
         ax1.set_xlabel(str(data.dims[1]))
     else:  # Vertical orientation.
         ax1 = fig.add_subplot(gs[1], sharey=ax0)
-        axins = inset_axes(
-            ax0,
-            height="2%",
-            width="90%",
-            loc="lower left",
-            bbox_to_anchor=(0.01, 1.05, 1, 1),
-            bbox_transform=ax0.transAxes,
-        )
-        Colorbar(
-            ax=axins,
-            orientation="horizontal",
-            norm=kwargs.get(
-                "norm",
-                Normalize(
-                    vmin=data.min().item(),
-                    vmax=data.max().item(),
-                ),
-            ),
-            cmap=kwargs.get("cmap", "viridis"),
-        )
         plt.setp(ax1.get_yticklabels(), visible=False)
         if "norm" in kwargs and isinstance(kwargs["norm"], LogNorm):
             dos.S.plot(
