@@ -1331,6 +1331,9 @@ class ARPESAccessorBase(ARPESProperty):
 
         Returns: (XrTypes)
             Transposed ARPES data
+
+        Warning:
+            This method will be deprecated. Use standard transpose(dim, ...).
         """
         warnings.warn(
             "This method will be deprecated. Use standard transpose(dim, ...). "
@@ -1351,6 +1354,9 @@ class ARPESAccessorBase(ARPESProperty):
 
         Returns: (XrTypes)
             Transposed ARPES data.
+
+        Warning:
+            This method will be deprecated. Use standard transpose(dim, ...).
         """
         warnings.warn(
             "This method will be deprecated. Use standard transpose(..., dim). "
@@ -1719,8 +1725,9 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
         Returns:
             xr.DataArray
 
-        Todo:
-            Test
+        Warning:
+            This method will be deprecated.
+            Use S.corrected_coords((dim1_offset, dim1_offset, ...)), instead.
         """
         warnings.warn(
             "This method will be deprecated. "
@@ -1768,8 +1775,9 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
                                         "chi_offset", "phi_offset", "psi_offset", "theta_offset",
                                         "beta", "theta"
 
-        Todo:
-            Test
+        Warning:
+            This method will be deprecated.
+            Use S.corrected_coords((dim1_offset, dim1_offset, ...)), instead.
         """
         warnings.warn(
             "This method will be deprecated. "
@@ -2461,12 +2469,12 @@ class GenericDataArrayAccessor(GenericAccessorBase):
         Returns:
             A tuple of the coordinate array (first index) and the data array (second index)
 
-        Todo:
-            Test
+        Warning:
+            This method will be Deprecated.
         """
         assert isinstance(self._obj, xr.DataArray)
         assert len(self._obj.dims) == 1
-
+        warnings.warn("This method will be deprecated", DeprecationWarning, stacklevel=2)
         return (self._obj.coords[self._obj.dims[0]].values, self._obj.values)
 
     def clean_outliers(self, clip: float = 0.5) -> xr.DataArray:
