@@ -1662,10 +1662,31 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
                 pass
         return self._obj.isel(slices)
 
-    def corrected_coords(self, correction_types: str | tuple[str, ...]) -> xr.DataArray:
+    def corrected_coords(
+        self,
+        correction_types: CoordsOffset | Sequence[CoordsOffset],
+    ) -> xr.DataArray:
+        """Apply the specified coordinate corrections to the DataArray.
+
+        Args:
+            correction_types (CoordsOffset | Sequence[CoordsOffset]): The types of corrections to
+                apply.
+
+        Returns:
+            xr.DataArray: The corrected DataArray.
+        """
         return coords.corrected_coords(self._obj, correction_types)
 
-    def correct_coords(self, correction_types: CoordsOffset | tuple[CoordsOffset, ...]) -> None:
+    def correct_coords(
+        self,
+        correction_types: CoordsOffset | Sequence[CoordsOffset, ...],
+    ) -> None:
+        """Correct the coordinates of the DataArray in place.
+
+        Parameters:
+        correction_types (CoordsOffset | Sequence[CoordsOffset, ...]): The types of corrections to
+            apply.
+        """
         array = self._obj.S.corrected_coords(correction_types)
         self._obj = array.copy(deep=True)
 
@@ -1777,6 +1798,7 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
                 )
             self._obj.attrs[angle_for_correction] = 0
             return
+
         if angle_for_correction == "beta":
             if self._obj.S.is_slit_vertical:
                 self._obj.coords["phi"] = (
@@ -1786,6 +1808,7 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
                 self._obj.coords["psi"] = (
                     self._obj.coords["psi"] + self._obj.attrs[angle_for_correction]
                 )
+
         if angle_for_correction == "theta":
             if self._obj.S.is_slit_vertical:
                 self._obj.coords["psi"] = (
@@ -1795,6 +1818,7 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
                 self._obj.coords["phi"] = (
                     self._obj.coords["phi"] + self._obj.attrs[angle_for_correction]
                 )
+
         self._obj.coords[angle_for_correction] = 0
         self._obj.attrs[angle_for_correction] = 0
         return
