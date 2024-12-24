@@ -52,26 +52,30 @@ if TYPE_CHECKING:
     from matplotlib.widgets import AxesWidget, Button, TextBox
     from numpy.typing import ArrayLike, NDArray
 
-DataType = TypeVar("DataType", xr.DataArray, xr.Dataset)
-NormalizableDataType: TypeAlias = DataType | str | uuid.UUID
-
-XrTypes: TypeAlias = xr.DataArray | xr.Dataset
-
-
 __all__ = [
     "ANGLE",
     "EMISSION_ANGLE",
+    "LEGENDLOCATION",
     "MOMENTUM",
     "AnalyzerInfo",
     "ConfigType",
+    "CoordsOffset",
     "DataType",
     "NormalizableDataType",
+    "ReduceMethod",
     "Spectrometer",
     "WorkSpaceType",
     "XrTypes",
     "flatten_literals",
 ]
 
+
+DataType = TypeVar("DataType", xr.DataArray, xr.Dataset)
+NormalizableDataType: TypeAlias = DataType | str | uuid.UUID
+
+XrTypes: TypeAlias = xr.DataArray | xr.Dataset
+
+ReduceMethod = Literal["sum", "mean"]
 
 MOMENTUM = Literal["kp", "kx", "ky", "kz"]
 EMISSION_ANGLE = Literal["phi", "psi"]
