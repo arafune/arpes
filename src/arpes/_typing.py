@@ -62,6 +62,7 @@ __all__ = [
     "CoordsOffset",
     "DataType",
     "NormalizableDataType",
+    "Orientation",
     "ReduceMethod",
     "Spectrometer",
     "WorkSpaceType",
@@ -80,9 +81,9 @@ ReduceMethod = Literal["sum", "mean"]
 MOMENTUM = Literal["kp", "kx", "ky", "kz"]
 EMISSION_ANGLE = Literal["phi", "psi"]
 ANGLE = Literal["alpha", "beta", "chi", "theta"] | EMISSION_ANGLE
+Orientation = Literal["horizontal", "vertical"]
 
 HIGH_SYMMETRY_POINTS = Literal["G", "X", "Y", "M", "K", "S", "A1", "H", "C", "H1"]
-HighSymmetryPoints: Final = ("G", "X", "Y", "M", "K", "S", "A1", "H", "C", "H1")
 
 LEGENDLOCATION = Literal[
     # Numeric values (0 to 10) are for the backward compatibility.
@@ -531,7 +532,7 @@ class MPLPlotKwargs(MPLPlotKwargsBasic, total=False):
 
 class ColorbarParam(TypedDict, total=False):
     alpha: float
-    orientation: None | Literal["vertical", "horizontal"]
+    orientation: None | Orientation
     ticklocation: Literal["auto", "right", "top", "bottom"]
     extend: Literal["neither", "both", "min", "max"]
     extendfrac: None | Literal["auto"] | float | tuple[float, float] | list[float]
@@ -627,7 +628,7 @@ class MPLTextParam(TypedDict, total=False):
     picker: None | bool | float | Callable
     position: tuple[float, float]
     rasterized: bool
-    rotation: float | Literal["vertical", "horizontal"]
+    rotation: float | Orientation
     rotation_mode: Literal[None, "default", "anchor"]
     sketch_params: tuple[float, float, float]
     scale: float
