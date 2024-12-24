@@ -9,6 +9,19 @@ Primary (X.-.-) version numbers are used to denote backwards
 incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
+4.2.0 (XXXX-XX-XX)
+^^^^^^^^^^^^^^^^^^
+
+Changed
+~~~~~~~
+
+* S.correct_angle_by and S.corrected_angle_by are obsolute. Use S.corret_coords or S.corret_coords
+
+Minor
+~~~~~
+
+
+
 
 4.1.0 (2024-11-20)
 ^^^^^^^^^^^^^^^^^^
