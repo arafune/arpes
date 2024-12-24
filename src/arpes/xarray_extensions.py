@@ -1679,7 +1679,7 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
 
     def correct_coords(
         self,
-        correction_types: CoordsOffset | Sequence[CoordsOffset, ...],
+        correction_types: CoordsOffset | Sequence[CoordsOffset],
     ) -> None:
         """Correct the coordinates of the DataArray in place.
 
@@ -1687,8 +1687,9 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
         correction_types (CoordsOffset | Sequence[CoordsOffset, ...]): The types of corrections to
             apply.
         """
-        array = self._obj.S.corrected_coords(correction_types)
-        self._obj = array.copy(deep=True)
+        array = coords.corrected_coords(self._obj, correction_types)
+        self._obj.attrs = array.attrs
+        self._obj.coords.update(array.coords)
 
     def corrected_angle_by(  # pragma: no cover
         self,

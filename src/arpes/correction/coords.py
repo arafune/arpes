@@ -96,6 +96,8 @@ def corrected_coords(
                 coord_name,
                 -corrected_data.attrs[correction_type],
             )
+
+            # data.attrs[coords_name] should consistent with data.coords[coords_name]
             if coord_name in corrected_data.attrs:
                 corrected_data.attrs[coord_name] -= corrected_data.attrs[correction_type]
 
@@ -106,7 +108,6 @@ def corrected_coords(
             else:
                 corrected_data = shift_by(corrected_data, "psi", corrected_data.attrs["beta"])
             corrected_data.coords["beta"] = 0
-            corrected_data.attrs["beta"] = 0
 
         elif correction_type == "theta":
             if corrected_data.S.is_slit_vertical:
@@ -116,7 +117,8 @@ def corrected_coords(
                 # Shift the corrected_data by the value of "theta" attribute along the "phi" axis
                 corrected_data = shift_by(corrected_data, "phi", corrected_data.attrs["theta"])
             corrected_data.coords["theta"] = 0
-            corrected_data.attrs["theta"] = 0
+
+        corrected_data.attrs[correction_type] = 0
 
         # provenance
         provenance_: Provenance = corrected_data.attrs.get("provenance", {})
