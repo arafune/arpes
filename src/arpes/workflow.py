@@ -23,6 +23,11 @@ all yourself.
 
 Another (better?) usage pattern is to turn data dependencies into code-dependencies (re-run
 reproducible analyses) and share code between notebooks using a local module.
+
+
+This module provides utilities for managing scientific workflows, particularly in the context of
+Jupyter notebooks and workspaces. It includes functions for navigating directories, publishing
+and consuming data, and summarizing data dependencies.
 """
 
 from __future__ import annotations
@@ -78,6 +83,19 @@ R = TypeVar("R")
 
 
 def with_workspace(f: Callable[P, R]) -> Callable[P, R]:
+    """A decorator that wraps a function to ensure it operates within a workspace context.
+
+    This decorator manages the workspace settings before and after the execution
+    of the wrapped function, ensuring that any necessary setup and teardown are
+    handled appropriately.
+
+    Args:
+      f (Callable[P, R]): The function to be wrapped.
+
+    Returns:
+      Callable[P, R]: The wrapped function that operates within a workspace context.
+    """
+
     @wraps(f)
     def wrapped_with_workspace(
         *args: P.args,
@@ -129,6 +147,7 @@ def go_to_workspace(workspace: WorkSpaceType | None = None) -> None:
     workspace = workspace or CONFIG["WORKSPACE"]
 
     if workspace:
+        assert "path" in workspace
         path = Path(workspace["path"])
 
     _open_path(path)
@@ -231,11 +250,11 @@ class DataProvider:
 
     def consume(self, key: str, *, subscribe: bool = True) -> object:
         if subscribe:
-            context = get_running_context()
-            consumers = self.consumers
+            context: tuple[str, Path] = get_running_context()
+            consumers: dict = self.consumers
 
-            if not any(c == context for c in consumers[key]):
-                consumers[key].append(context)
+            if context not in consumers.get(key, []):
+                consumers.setdefault(key, []).append(context)
                 self.consumers = consumers
 
             self.summarize_clients(key if key != "*" else "")
@@ -248,6 +267,7 @@ class DataProvider:
         workspace: WorkSpaceType | None = None,
     ) -> DataProvider:
         if workspace is not None:
+            assert "path" in workspace
             return cls(
                 path=Path(workspace["path"]),
                 workspace_name=workspace.get("name", "no_name"),
