@@ -141,7 +141,7 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
 
         return {k: v.values for k, v in self.arr.indexes.items()}
 
-    def conversion_for(self, dim: str) -> Callable[..., NDArray[np.float64]]:
+    def conversion_for(self, dim: Hashable) -> Callable[..., NDArray[np.float64]]:
         def _with_identity(*args: NDArray[np.float64]) -> NDArray[np.float64]:
             return self.identity_transform(dim, *args)
 
