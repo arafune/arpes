@@ -34,7 +34,7 @@ from typing import TYPE_CHECKING, ParamSpec, TypedDict, TypeVar
 import xarray as xr
 
 from . import VERSION
-from ._typing import XrTypes
+from ._typing import CoordsOffset, XrTypes
 from .config import CONFIG
 
 if TYPE_CHECKING:
@@ -103,6 +103,7 @@ class Provenance(_Provenance, total=False):
     axes: list[str]
     enhance_a: float
     shift_coords: list[tuple[Hashable, float]]
+    coords_correction: list[CoordsOffset]
 
 
 def attach_id(data: XrTypes) -> None:
