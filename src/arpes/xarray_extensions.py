@@ -39,7 +39,7 @@ import copy
 import itertools
 import warnings
 from collections import OrderedDict
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
@@ -74,6 +74,7 @@ from ._typing import (
 from .analysis import param_getter, param_stderr_getter
 from .constants import TWO_DIMENSION
 from .correction import coords
+from .debug import setup_logger
 from .models.band import MultifitBand
 from .plotting.dispersion import (
     LabeledFermiSurfaceParam,
@@ -152,15 +153,7 @@ UNSPESIFIED = 0.1
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 T = TypeVar("T")
 

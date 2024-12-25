@@ -37,7 +37,7 @@ import sys
 import warnings
 from collections import defaultdict
 from functools import wraps
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from pathlib import Path
 from pprint import pprint
 from typing import TYPE_CHECKING, ParamSpec, TypeVar
@@ -47,6 +47,7 @@ import dill
 from .config import CONFIG, WorkspaceManager
 from .plotting.utils import path_for_plot
 from .utilities.jupyter import get_notebook_name
+from .debug import setup_logger
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -67,16 +68,8 @@ __all__ = (
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
 
+setup_logger(__name__, LOGLEVEL)
 
 P = ParamSpec("P")
 R = TypeVar("R")

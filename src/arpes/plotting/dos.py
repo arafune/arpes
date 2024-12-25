@@ -6,7 +6,7 @@ density of states (DOS) plots using matplotlib and xarray.
 
 from __future__ import annotations
 
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from typing import TYPE_CHECKING, Literal, Unpack
 
 import xarray as xr
@@ -19,6 +19,7 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 from arpes.analysis.xps import approximate_core_levels
 from arpes.constants import TWO_DIMENSION
+from arpes.debug import setup_logger
 from arpes.provenance import save_plot_provenance
 from arpes.utilities import normalize_to_spectrum
 
@@ -39,26 +40,7 @@ __all__ = (
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
 
-
-def setup_logger(name: str, level: int) -> None:
-    """Set up a logger with the specified name and level.
-
-    Args:
-        name (str): The name of the logger.
-        level (int): The logging level.
-    """
-    logger = getLogger(name)
-    fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-    formatter = Formatter(fmt)
-    handler = StreamHandler()
-    handler.setLevel(level)
-    logger.setLevel(level)
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    logger.propagate = False
-
-
-setup_logger(__name__, LOGLEVEL)
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 def create_figure_and_axes(

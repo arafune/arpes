@@ -204,11 +204,11 @@ norecursedirs = [
   "conda-dist",
   "legacy_files",
   "docs",
-  "src/arpes/deep_learning",
 ]
 
 [tool.coverage.run]
 source = ['arpes']
+omit = ["tests/*", "src/arpes/deep_learning/*"]
 
 [tool.coverage.report]
 exclude_also = [
