@@ -14,7 +14,7 @@ from matplotlib import gridspec
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.colorbar import Colorbar
-from matplotlib.colors import LogNorm, Normalize
+from matplotlib.colors import Colormap, LogNorm, Normalize
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 from arpes.analysis.xps import approximate_core_levels
@@ -66,14 +66,21 @@ def create_figure_and_axes(
     return fig, gs
 
 
-def add_colorbar(ax: Axes, orientation: str, norm: Normalize, cmap: str) -> None:
+def add_colorbar(
+    ax: Axes,
+    orientation: str,
+    norm: Normalize | None,
+    cmap: str | Colormap | None,
+) -> None:
     """Add a colorbar to the plot.
 
     Args:
         ax (Axes): The axes to add the colorbar to.
         orientation (str): The orientation of the colorbar.
-        norm (Normalize): The normalization for the colorbar.
-        cmap (str): The colormap for the colorbar.
+        norm (Normalize | None): The normalization for the colorbar. If None, the default
+            (full range) is used.
+        cmap (str | Colormap): The colormap for the colorbar. If None, the default (viridis) is
+            used.
     """
     if orientation.startswith("h"):
         axins = inset_axes(
@@ -175,6 +182,7 @@ def plot_dos(
         Normalize(vmin=data.min().item(), vmax=data.max().item()),
     )
     kwargs.setdefault("cmap", "viridis")
+    figsize = figsize if figsize else (7.0, 5.0)
 
     fig, gs = create_figure_and_axes(figsize, orientation)
     ax0 = fig.add_subplot(gs[0])

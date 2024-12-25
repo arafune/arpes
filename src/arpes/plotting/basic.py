@@ -50,10 +50,8 @@ def make_overview(
     ax: list[Axes] = []
     for i, spectrum in enumerate(data_all):
         ax.append(fig.add_subplot(nrows, ncols, i + 1))
-        spectrum.transpose("eV", ...).plot(
+        spectrum.transpose("eV", ...).plot.pcolormesh(
             ax=ax[i],
-            add_labels=False,
-            add_colorbar=False,
         )
         ax[i].text(
             0.01,

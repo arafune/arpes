@@ -16,6 +16,8 @@ from arpes.utilities.combine import concat_along_phi
 from arpes.utilities.normalize import normalize_to_spectrum
 
 if TYPE_CHECKING:
+    from holoviews.streams import PointerX, PointerY
+
     from arpes._typing import ProfileViewParam
 
 LOGLEVELS = (DEBUG, INFO)
@@ -131,8 +133,8 @@ def profile_view(
     assert dataarray.ndim == TWO_DIMENSION
     dataarray = _fix_xarray_to_fit_with_holoview(dataarray)
     max_coords = dataarray.G.argmax_coords()
-    posx = hv.streams.PointerX(x=max_coords[dataarray.dims[0]])
-    posy = hv.streams.PointerY(y=max_coords[dataarray.dims[1]])
+    posx: PointerX = hv.streams.PointerX(x=max_coords[dataarray.dims[0]])
+    posy: PointerY = hv.streams.PointerY(y=max_coords[dataarray.dims[1]])
 
     second_weakest_intensity = np.partition(np.unique(dataarray.values.flatten()), 1)[1]
     dataarray = (
