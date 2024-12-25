@@ -559,7 +559,7 @@ def quick_tex(
 def lineplot_arr(
     arr: XrTypes,
     ax: Axes | None = None,
-    method: Plot2DStyle = "plot",
+    method: Plot2DStyle = "line",
     mask: list[slice] | None = None,
     mask_kwargs: Incomplete | None = None,
     **kwargs: Incomplete,
