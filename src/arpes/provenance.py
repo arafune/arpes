@@ -327,7 +327,7 @@ def provenance(
 
 def provenance_multiple_parents(
     child_arr: XrTypes,
-    parents: list[XrTypes] | XrTypes,
+    parents: list[xr.DataArray] | list[xr.Dataset] | list[XrTypes] | XrTypes,
     record: Provenance,
 ) -> None:
     """Updates provenance in place when there are multiple array-like data inputs.

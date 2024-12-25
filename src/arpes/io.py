@@ -21,6 +21,7 @@ from logging import DEBUG, INFO
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import numpy as np
 import pandas as pd
 import xarray as xr
 
@@ -218,7 +219,7 @@ def stitch(
     )
 
     if sort:
-        loaded.sort(key=lambda x: x.coords[built_axis_name])
+        loaded.sort(key=lambda x: np.min(x.coords[built_axis_name].values))
     assert isinstance(loaded, Iterable)
     concatenated = xr.concat(loaded, dim=built_axis_name)
     if "id" in concatenated.attrs:
