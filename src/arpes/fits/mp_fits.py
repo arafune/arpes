@@ -6,11 +6,13 @@ Uses dill for IPC due to issues with pickling `lmfit` instances.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from typing import TYPE_CHECKING, Literal
 
 import dill
 import lmfit as lf
+
+from arpes.debug import setup_logger
 
 from .broadcast_common import apply_window, compile_model, unwrap_params
 
@@ -27,15 +29,7 @@ __all__ = ["MPWorker"]
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 @dataclass

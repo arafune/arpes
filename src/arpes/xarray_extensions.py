@@ -2449,7 +2449,7 @@ class GenericDataArrayAccessor(GenericAccessorBase):
 
         return meshed_coordinates
 
-    def to_arrays(self) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+    def to_arrays(self) -> tuple[NDArray[np.float64], NDArray[np.float64]]:  # pragma: no cover
         """Converts a (1D) `xr.DataArray` into two plain ``ndarray`` s of their coordinate and data.
 
         Useful for rapidly converting into a format than can be `plt.scatter` ed

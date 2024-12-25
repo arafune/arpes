@@ -6,7 +6,7 @@ import datetime
 import json
 import urllib.request
 from datetime import UTC
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from os import SEEK_END
 from pathlib import Path
 from typing import TYPE_CHECKING, Required, TypedDict, TypeVar
@@ -20,6 +20,7 @@ from tqdm.notebook import tqdm
 from traitlets.config import MultipleInstanceError
 
 from arpes.config import CONFIG
+from arpes.debug import setup_logger
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -36,15 +37,7 @@ __all__ = (
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 T = TypeVar("T")
 

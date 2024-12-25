@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from typing import TYPE_CHECKING, Literal, Unpack
 
 import matplotlib as mpl
@@ -18,6 +18,7 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 from arpes.analysis import rebin
 from arpes.constants import TWO_DIMENSION
+from arpes.debug import setup_logger
 from arpes.provenance import save_plot_provenance
 from arpes.utilities import normalize_to_spectrum
 
@@ -35,7 +36,13 @@ if TYPE_CHECKING:
     from matplotlib.typing import ColorType
     from numpy.typing import NDArray
 
-    from arpes._typing import LEGENDLOCATION, ColorbarParam, MPLPlotKwargsBasic, ReduceMethod
+    from arpes._typing import (
+        LEGENDLOCATION,
+        ColorbarParam,
+        MPLPlotKwargsBasic,
+        Plot2DStyle,
+        ReduceMethod,
+    )
 __all__ = (
     "flat_stack_plot",
     "offset_scatter_plot",
@@ -45,17 +52,7 @@ __all__ = (
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
-
-Plot2DStyle = Literal["line", "scatter"]
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 @save_plot_provenance

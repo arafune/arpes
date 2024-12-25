@@ -6,13 +6,14 @@ import functools
 import warnings
 from ast import literal_eval
 from collections.abc import Iterable
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from typing import TYPE_CHECKING, Any, TypeAlias
 
 import numpy as np
 from numpy import ndarray
 from numpy._typing import NDArray
 
+from arpes.debug import setup_logger
 from arpes.utilities.funcutils import collect_leaves, iter_leaves
 
 if TYPE_CHECKING:
@@ -25,15 +26,7 @@ __all__ = (
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 DEFAULT_DIMENSION_RENAMINGS: dict[str, str] = {

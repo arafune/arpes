@@ -62,6 +62,7 @@ __all__ = [
     "DataType",
     "NormalizableDataType",
     "Orientation",
+    "Plot2DStyle",
     "ReduceMethod",
     "Spectrometer",
     "SpectrumType",
@@ -86,6 +87,8 @@ Orientation = Literal["horizontal", "vertical"]
 HIGH_SYMMETRY_POINTS = Literal["G", "X", "Y", "M", "K", "S", "A1", "H", "C", "H1"]
 
 SpectrumType = Literal["cut", "map", "hv_map", "ucut", "spem", "xps"]
+
+Plot2DStyle = Literal["line", "scatter"]
 
 LEGENDLOCATION = Literal[
     # Numeric values (0 to 10) are for the backward compatibility.

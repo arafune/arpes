@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
@@ -12,6 +12,7 @@ import pandas as pd
 import xarray as xr
 
 from arpes import DATA_PATH
+from arpes.debug import setup_logger
 from arpes.constants import TWO_DIMENSION
 from arpes.endstations import HemisphericalEndstation, SESEndstation
 
@@ -22,15 +23,7 @@ __all__ = ("KaindlEndstation",)
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 def find_kaindl_files_associated(reference_path: Path) -> list[Path]:

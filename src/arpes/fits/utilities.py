@@ -14,7 +14,7 @@ but in the future we would like to provide:
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from os import cpu_count
 from typing import TYPE_CHECKING, Literal, TypeGuard, TypeVar
 
@@ -26,6 +26,7 @@ from tqdm.notebook import tqdm
 
 import arpes.fits.fit_models
 from arpes import VERSION
+from arpes.debug import setup_logger
 from arpes.utilities import normalize_to_spectrum
 
 from . import mp_fits
@@ -43,15 +44,7 @@ __all__ = ("broadcast_model", "result_to_hints")
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 T = TypeVar("T")
 

@@ -27,7 +27,7 @@ import json
 import uuid
 import warnings
 from datetime import UTC
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from pathlib import Path
 from typing import TYPE_CHECKING, ParamSpec, TypedDict, TypeVar
 
@@ -36,6 +36,7 @@ import xarray as xr
 from . import VERSION
 from ._typing import XrTypes
 from .config import CONFIG
+from .debug import setup_logger
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Hashable, Sequence
@@ -47,15 +48,7 @@ if TYPE_CHECKING:
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 _Provenance = TypedDict("_Provenance", {"with": str}, total=False)

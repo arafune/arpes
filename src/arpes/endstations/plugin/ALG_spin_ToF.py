@@ -5,7 +5,7 @@ from __future__ import annotations
 # pylint: disable=no-member
 import itertools
 import warnings
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from pathlib import Path
 from typing import ClassVar
 
@@ -14,6 +14,7 @@ import numpy as np
 import xarray as xr
 from astropy.io import fits
 
+from arpes.debug import setup_logger
 from arpes.endstations import EndstationBase, ScanDesc, find_clean_coords
 from arpes.provenance import Provenance, provenance_from_file
 from arpes.utilities import rename_keys
@@ -25,15 +26,7 @@ __all__ = ("SpinToFEndstation",)
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 class SpinToFEndstation(EndstationBase):

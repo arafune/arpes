@@ -35,6 +35,7 @@ import xarray as xr
 from scipy.interpolate import RegularGridInterpolator
 
 from arpes.constants import TWO_DIMENSION
+from arpes.debug import setup_logger
 from arpes.provenance import Provenance, provenance, update_provenance
 from arpes.utilities import normalize_to_spectrum
 
@@ -61,15 +62,7 @@ __all__ = ["convert_to_kspace", "slice_along_path"]
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = True
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 def grid_interpolator_from_dataarray(

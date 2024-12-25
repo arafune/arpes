@@ -12,7 +12,7 @@ import warnings
 from collections import Counter
 from collections.abc import Callable, Hashable, Iterable, Iterator, Sequence
 from datetime import UTC
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, Unpack
 
@@ -29,9 +29,10 @@ from matplotlib.offsetbox import AnchoredOffsetbox, AuxTransformBox, TextArea, V
 from titlecase import titlecase
 
 from arpes import VERSION
-from arpes._typing import IMshowParam, XrTypes
+from arpes._typing import IMshowParam, Plot2DStyle, XrTypes
 from arpes.config import CONFIG, FIGURE_PATH, SETTINGS, attempt_determine_workspace, is_using_tex
 from arpes.constants import TWO_DIMENSION
+from arpes.debug import setup_logger
 from arpes.utilities import normalize_to_spectrum
 from arpes.utilities.jupyter import get_notebook_name, get_recent_history
 
@@ -98,15 +99,7 @@ __all__ = (
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 @contextlib.contextmanager
@@ -566,7 +559,7 @@ def quick_tex(
 def lineplot_arr(
     arr: XrTypes,
     ax: Axes | None = None,
-    method: Literal["plot", "scatter"] = "plot",
+    method: Plot2DStyle = "plot",
     mask: list[slice] | None = None,
     mask_kwargs: Incomplete | None = None,
     **kwargs: Incomplete,

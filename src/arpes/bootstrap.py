@@ -17,7 +17,7 @@ import copy
 import functools
 import random
 from dataclasses import dataclass
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar
 
 import numpy as np
@@ -26,6 +26,7 @@ import xarray as xr
 from tqdm.notebook import tqdm
 
 from .analysis.sarpes import to_intensity_polarization
+from .debug import setup_logger
 from .provenance import update_provenance
 from .utilities import lift_dataarray_to_generic
 from .utilities.normalize import normalize_to_spectrum
@@ -52,15 +53,7 @@ __all__ = (
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 @update_provenance("Estimate prior")

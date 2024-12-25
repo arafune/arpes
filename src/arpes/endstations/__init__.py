@@ -6,7 +6,7 @@ import contextlib
 import copy
 import re
 import warnings
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, Literal, TypedDict
 
@@ -17,9 +17,9 @@ from astropy.io import fits
 
 from arpes import DATA_PATH
 from arpes.config import CONFIG, load_plugins
+from arpes.debug import setup_logger
 from arpes.load_pxt import find_ses_files_associated, read_single_pxt
 from arpes.provenance import Provenance, provenance_from_file
-from arpes.repair import negate_energy
 from arpes.utilities.dict import rename_dataarray_attrs
 
 from .fits_utils import find_clean_coords
@@ -48,15 +48,7 @@ __all__ = [
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 _ENDSTATION_ALIASES: dict[str, type[EndstationBase]] = {}
@@ -583,7 +575,10 @@ class SESEndstation(EndstationBase):
             return self.load_SES_nc(scan_desc=scan_desc, **kwargs)
 
         # it's given by SES PXT files
-        pxt_data = negate_energy(read_single_pxt(frame_path))
+
+        pxt_data = read_single_pxt(frame_path).assign_coords(
+            {"eV": -read_single_pxt(frame_path).eV.values},
+        )  # negate energy
         return xr.Dataset({"spectrum": pxt_data}, attrs=pxt_data.attrs)
 
     def postprocess(self, frame: xr.Dataset) -> xr.Dataset:

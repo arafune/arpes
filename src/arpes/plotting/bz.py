@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import warnings
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from typing import TYPE_CHECKING, TypeAlias
 
 import matplotlib.cm
@@ -17,6 +17,7 @@ from scipy.spatial.transform import Rotation
 
 from arpes.analysis.mask import apply_mask_to_coords
 from arpes.constants import TWO_DIMENSION
+from arpes.debug import setup_logger
 from arpes.utilities.bz import build_2dbz_poly, process_kpath
 from arpes.utilities.geometry import polyhedron_intersect_plane
 
@@ -42,15 +43,7 @@ __all__ = (
 )
 
 LOGLEVEL = (DEBUG, INFO)[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 class Translation:

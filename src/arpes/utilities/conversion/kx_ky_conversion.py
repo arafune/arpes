@@ -6,7 +6,7 @@ Broadly, this covers cases where we are not performing photon energy scans.
 from __future__ import annotations
 
 import warnings
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from typing import TYPE_CHECKING
 
 import numba
@@ -14,6 +14,7 @@ import numpy as np
 import xarray as xr
 
 from arpes.constants import K_INV_ANGSTROM
+from arpes.debug import setup_logger
 
 from .base import K_SPACE_BORDER, MOMENTUM_BREAKPOINTS, CoordinateConverter
 from .bounds_calculations import calculate_kp_bounds, calculate_kx_ky_bounds
@@ -31,15 +32,7 @@ __all__ = ["ConvertKp", "ConvertKxKy"]
 
 
 LOGLEVEL = (DEBUG, INFO)[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 @numba.njit(parallel=True)

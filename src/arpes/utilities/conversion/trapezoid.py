@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import operator
 import warnings
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from typing import TYPE_CHECKING
 
 import numba
 import numpy as np
 import xarray as xr
 
+from arpes.debug import setup_logger
 from arpes.utilities import normalize_to_spectrum
 
 from .base import CoordinateConverter
@@ -26,15 +27,7 @@ __all__ = ["apply_trapezoidal_correction"]
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 @numba.njit(parallel=True)

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -12,6 +12,7 @@ import xarray as xr
 from scipy.stats import multivariate_normal
 from skimage.restoration import richardson_lucy
 
+from arpes.debug import setup_logger
 from arpes.fits.fit_models.functional_forms import gaussian
 from arpes.provenance import update_provenance
 from arpes.utilities import normalize_to_spectrum
@@ -31,15 +32,7 @@ __all__ = (
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 @update_provenance("Approximate Iterative Deconvolution")

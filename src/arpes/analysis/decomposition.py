@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     import numpy as np
     import sklearn
     from numpy.typing import NDArray
+    from sklearn.base import BaseEstimator
 
 __all__ = (
     "factor_analysis_along",
@@ -89,7 +90,7 @@ def decomposition_along(
     data: xr.DataArray,
     axes: list[str],
     *,
-    decomposition_cls: type[sklearn.decomposition],
+    decomposition_cls: type[BaseEstimator],
     correlation: bool = False,
     **kwargs: Unpack[DecompositionParam],
 ) -> tuple[xr.DataArray, sklearn.base.BaseEstimator]:
@@ -103,13 +104,13 @@ def decomposition_along(
     (i.e. np.ndarray.ravel()) and unravelling a KD set of observations into a 1D set of
     observations. This is basically grouping axes. As an example, if you had a 4D dataset which
     consisted of 2D-scanning valence band ARPES, then the dimensions on our dataset would be
-    "[x,y,eV,phi]". We can group these into [spatial=(x, y), spectral=(eV, phi)] and perform PCA or
-    another analysis of the spectral features over different spatial observations.
+    "[x, y, eV, phi]". We can group these into [spatial=(x, y), spectral=(eV, phi)] and perform PCA
+    or another analysis of the spectral features over different spatial observations.
 
     If our data was called `f`, this can be accomplished with:
 
     ```
-    transformed, decomp = decomposition_analysis(f.stack(spectral=['eV', 'phi']), ['x', 'y'], PCA)
+    transformed, decomp = decomposition_along(f.stack(spectral=['eV', 'phi']), ['x', 'y'], PCA)
     transformed.dims # -> [X, Y, components]
     ```
 

@@ -6,7 +6,7 @@ import contextlib
 import functools
 import operator
 from itertools import pairwise, permutations, product
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from typing import TYPE_CHECKING, Any, Literal, Required, TypedDict
 
 import lmfit as lf
@@ -16,6 +16,7 @@ from scipy.spatial import distance
 
 import arpes.utilities.math
 from arpes.constants import HBAR_SQ_EV_PER_ELECTRON_MASS_ANGSTROM_SQ, TWO_DIMENSION
+from arpes.debug import setup_logger
 from arpes.fits import AffineBackgroundModel, LorentzianModel, QuadraticModel, broadcast_model
 from arpes.models.band import Band
 from arpes.provenance import update_provenance
@@ -41,15 +42,7 @@ __all__ = (
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 class BandDescription(TypedDict, total=False):

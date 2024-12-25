@@ -45,9 +45,9 @@ from typing import TYPE_CHECKING, ParamSpec, TypeVar
 import dill
 
 from .config import CONFIG, WorkspaceManager
+from .debug import setup_logger
 from .plotting.utils import path_for_plot
 from .utilities.jupyter import get_notebook_name
-from .debug import setup_logger
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -69,7 +69,7 @@ __all__ = (
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
 
-setup_logger(__name__, LOGLEVEL)
+logger = setup_logger(__name__, LOGLEVEL)
 
 P = ParamSpec("P")
 R = TypeVar("R")

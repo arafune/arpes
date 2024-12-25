@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 
 import xarray as xr
 
+from arpes.debug import setup_logger
 from arpes.provenance import update_provenance
 from arpes.utilities import lift_dataarray_to_generic
 
@@ -13,15 +14,7 @@ __all__ = ("mean_and_deviation",)
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 @update_provenance("Calculate mean and standard deviation for observation axis")
@@ -48,7 +41,7 @@ def mean_and_deviation(
         A dataset with variables corresponding to the mean and standard error of each
         relevant variable in the input DataArray.  (Dimension is reduced.)
     """
-    preferred_axes = ["bootstrap", "cycle", "idx"]
+    preferred_axes = ["bootstrap", "cycle", "idx", "ch1"]
     name = "" if not data.name else name
 
     if not axis:
