@@ -27,7 +27,7 @@ import contextlib
 import warnings
 from collections.abc import Hashable
 from itertools import pairwise
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from typing import TYPE_CHECKING, Literal, TypedDict, TypeGuard, Unpack
 
 import numpy as np

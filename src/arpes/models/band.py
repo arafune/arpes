@@ -9,9 +9,9 @@ import numpy as np
 import scipy.ndimage.filters
 import xarray as xr
 
-from arpes.debug import setup_logger
 import arpes.fits
 from arpes.analysis.band_analysis_utils import param_getter, param_stderr_getter
+from arpes.debug import setup_logger
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
