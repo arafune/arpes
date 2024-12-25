@@ -139,7 +139,7 @@ class GradientFillParam(
     IMshowParam,
     total=False,
 ):
-    step: Literal["pre", "mid", "post", None]
+    step: Literal["pre", "mid", "post"] | None
 
 
 def h_gradient_fill(

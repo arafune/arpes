@@ -163,9 +163,6 @@ def plot_plane_to_bz(
         ax: [TODO:description]
         special_points: [TODO:description]
         facecolor: [TODO:description]
-
-    Returns:
-        [TODO:description]
     """
     warnings.warn(
         "This method will be deprecated.",

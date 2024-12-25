@@ -2113,7 +2113,7 @@ class GenericAccessorBase:
         Aargs:
             dir_names (Sequence[Hashable]): Dimension names for iterateion.
 
-        Returns:
+        Yield:
             Iteratoring the data like:
             ((0, 0), {'phi': -0.2178031280148764, 'eV': 9.0})
             which shows the relationship between pixel position and physical (like "eV" and "phi").
@@ -2140,7 +2140,7 @@ class GenericAccessorBase:
             dim_names (Sequence[Hashable]): Dimensions for iteration.
             reverse: return the "reversivle" iterator.
 
-        Returns:
+        Yield:
             Iterator of the physical position like ("eV" and "phi")
             {'phi': -0.2178031280148764, 'eV': 9.002}
         """

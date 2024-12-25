@@ -634,7 +634,7 @@ class MPLTextParam(TypedDict, total=False):
     position: tuple[float, float]
     rasterized: bool
     rotation: float | Orientation
-    rotation_mode: Literal[None, "default", "anchor"]
+    rotation_mode: Literal["default", "anchor"] | None
     sketch_params: tuple[float, float, float]
     scale: float
     length: float

@@ -259,9 +259,6 @@ def export_itx(
         file_name(str | Path): file name for export
         arr(xr.DataArray): pyarpes DataArray
         add_notes(bool): if True, add some info to notes in wave (default: False)
-
-    Returns:
-        str: itx formatted ARPES data
     """
     with Path(file_name).open(mode="w", encoding="UTF-8") as itx_file:
         itx_file.write(convert_itx_format(arr, add_notes=add_notes))

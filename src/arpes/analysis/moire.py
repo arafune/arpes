@@ -195,9 +195,6 @@ def plot_simple_moire_unit_cell(
         ax: [TODO:description]
         offset: [TODO:description]
         swap_angle: [TODO:description]
-
-    Returns:
-        [TODO:description]
     """
     underlayer_a, overlayer_a = lattice_consts
 

@@ -45,11 +45,14 @@ def shift_by(
     """Shifts slices of `arr` perpendicular to `by_axis` by `value`.
 
     Args:
-        arr (NDArray[np.float64): [TODO:description]
-        value ([TODO:type]): [TODO:description]
-        axis (int): Axis number of np.ndarray for shift
-        by_axis (int): Axis number of np.ndarray for non-shift
-        **kwargs(ShiftParam): pass to scipy.ndimage.shift
+        arr (NDArray[np.float64): Input array to be shifted.
+        value (NDArray[np.float64): Array of shift values.
+        axis (int): Axis number of np.ndarray for shift.
+        by_axis (int): Axis number of np.ndarray for non-shift.
+        **kwargs(ShiftParam): Additional parameters to pass to scipy.ndimage.shift.
+
+    Returns:
+        NDArray[np.float64]: The shifted array.
     """
     assert axis != by_axis
     arr_copy = arr.copy()

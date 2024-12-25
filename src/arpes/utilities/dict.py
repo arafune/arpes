@@ -34,11 +34,11 @@ def rename_keys(
     """Renames all the keys of `d` according to the remapping in `keys_dict`.
 
     Args:
-        d (dict): dict object (Suppose the attrs)
+        d (dict): dict object.
         keys_dict(dict[str, str]):  {original_name_k: new_name_k}
 
     Returns:
-        [TODO:description]
+        dict[str, T]: A new dictionary with renamed keys.
     """
     d = d.copy()
     for k, nk in keys_dict.items():
@@ -54,7 +54,7 @@ def clean_keys(d: dict[str, T]) -> dict[str, T]:
         d (dict): dictionary to be cleaned.
 
     Returns:
-        dict object whose key is cleaned.
+        dict[str, T]: A new dictionary with cleaned key.
     """
 
     def clean_single_key(k: str) -> str:

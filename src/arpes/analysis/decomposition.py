@@ -53,7 +53,7 @@ class FastICAParam(TypedDict, total=False):
 
 class NMFParam(TypedDict, total=False):
     n_composition: int | Literal["auto"] | None
-    init: Literal["random", "nndsvd", "nndsvda", "nndsvdar", "custom", None]
+    init: Literal["random", "nndsvd", "nndsvda", "nndsvdar", "custom"] | None
     solver: Literal["cd", "mu"]
     beta_loss: float | Literal["frobenius", "kullback-leibler", "itakura-saito"]
     tol: float
@@ -74,7 +74,7 @@ class FactorAnalysisParam(TypedDict, total=False):
     noise_variance_init: NDArray[np.float64] | None
     svd_method: Literal["lapack", "randomized"]
     iterated_power: int
-    rotation: Literal["varimax", "quartimax", None]
+    rotation: Literal["varimax", "quartimax"] | None
     random_state: int | None
 
 
