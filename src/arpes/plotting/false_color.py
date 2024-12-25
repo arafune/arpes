@@ -36,7 +36,8 @@ def false_color_plot(  # noqa: PLR0913
 
     Args:
         data_rgb (tuple[xr.Dataset, xr.Dataset, xr.Dataset]): Tuple containing the R, G, B datasets.
-        ax (Axes | None, optional): Matplotlib Axes object. If None, a new figure and axes are created.
+        ax (Axes | None, optional): Matplotlib Axes object. If None, a new figure and axes are
+            created.
         out (str | Path, optional): Path to save the plot. If empty, the plot is not saved.
         invert (bool, optional): If True, inverts the colors in the HSV space.
         pmin_pmax (tuple[float, float], optional): Percentile range for normalization.
