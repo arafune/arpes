@@ -175,7 +175,7 @@ def quasiparticle_mean_free_path(
 
 def to_self_energy(
     dispersion: xr.DataArray,
-    bare_band: xr.DataArray | None = None,
+    bare_band: xr.DataArray,
     fermi_velocity: float = 0,
     *,
     k_independent: bool = True,
@@ -253,8 +253,8 @@ def to_self_energy(
 
 def fit_for_self_energy(
     data: xr.DataArray,
+    bare_band: xr.DataArray,
     method: Literal["mdc", "edc"] = "mdc",
-    bare_band: xr.DataArray | None = None,
     **kwargs: Incomplete,
 ) -> xr.Dataset:
     """Fits for the self energy of a dataset containing a single band.
