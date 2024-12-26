@@ -151,6 +151,7 @@ Tutorial
    Momentum Conversion <notebooks/converting-to-kspace>
    Nano XPS Analysis <notebooks/full-analysis-xps>
    TARPES analysis example <notebooks/example_tarpes_analysis>
+   Figure Gallelry <notebooks/figure-gallery>
 
 Detailed Guides
 ===============
