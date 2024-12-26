@@ -39,7 +39,8 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import DataType
+    from arpes._typing import AnalysisRegion, DataType
+    from arpes.utilities import DesignatedRegions
 
 __all__ = (
     "Normal",
@@ -59,7 +60,7 @@ logger = setup_logger(__name__, LOGLEVEL)
 @update_provenance("Estimate prior")
 def estimate_prior_adjustment(
     data: xr.DataArray,
-    region: dict[str, Any] | str | None = None,
+    region: AnalysisRegion | dict[str, DesignatedRegions] | None = None,
 ) -> np.float64:
     r"""Estimates distribution generating the intensity histogram of pixels in a spectrum.
 
