@@ -59,7 +59,7 @@ dev-dependencies = [
   "neovim",
   "mypy",
   "nbstripout",
-  "cmcrameri",
+  "cmap",
 ]
 
 [tool.hatch.metadata]
