@@ -1280,7 +1280,7 @@ def label_for_dim(
         }
         if isinstance(data, xr.Dataset | xr.DataArray):
             assert isinstance(data, xr.Dataset | xr.DataArray)
-            if data.S.energy_notation == "Fianl":
+            if data.S.energy_notation == "Final":
                 raw_dim_names["eV"] = r"Final State Energy ( eV )"
             else:
                 raw_dim_names["eV"] = r"Binding Energy ( eV )"
