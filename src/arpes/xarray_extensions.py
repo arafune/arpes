@@ -1381,6 +1381,9 @@ class ARPESAccessorBase(ARPESProperty):
 
         Returns: dict[Hashable, float]
             radius for selection.
+
+        Todo:
+            Handling for angle_unit= "Degrees"
         """
         if isinstance(radius, float):
             radius = {str(d): radius for d in points}
@@ -1434,6 +1437,10 @@ class ARPESAccessorBase(ARPESProperty):
         This can be used to produce temporary datasets that have reduced
         uncorrelated noise.
 
+
+        ``.S.fat_sel(eV=0)``, ``.S.fat_sel(eV=0, eV_width=0.05)``
+        or ``S.fat_sel(widths={eV: 0.05}, eV=0)``,
+
         Args:
             widths: Override the widths for the slices. Reasonable defaults are used otherwise.
                     Defaults to None.
@@ -1454,9 +1461,11 @@ class ARPESAccessorBase(ARPESProperty):
             default_widths["beta"] = 1.0
             default_widths["theta"] = 1.0
             default_widths["psi"] = 1.0
+
         extra_kwargs: dict[str, Incomplete] = {
             k: v for k, v in kwargs.items() if k not in self._obj.dims
         }
+
         slice_kwargs = {k: v for k, v in kwargs.items() if k in self._obj.dims}
         slice_widths: dict[str, float] = {
             k: widths.get(k, extra_kwargs.get(k + "_width", default_widths.get(k)))
