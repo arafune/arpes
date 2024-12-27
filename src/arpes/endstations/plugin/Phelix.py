@@ -18,6 +18,7 @@ from arpes.endstations.prodigy_xy import load_xy
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
     from arpes._typing import Spectrometer
     from arpes.endstations import ScanDesc
 
@@ -42,7 +43,7 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         "MediumMagnification": False,
         "HighMagnification": False,
     }
-    
+
     _NORMAL_EMISSION: ClassVar[dict[str, float]] = {
         "theta": 83.5,
     }
