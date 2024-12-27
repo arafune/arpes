@@ -152,7 +152,7 @@ DEFAULT_RADII: dict[str, float] = {
 UNSPESIFIED = 0.1
 
 LOGLEVELS = (DEBUG, INFO)
-LOGLEVEL = LOGLEVELS[0]
+LOGLEVEL = LOGLEVELS[1]
 logger = setup_logger(__name__, LOGLEVEL)
 
 T = TypeVar("T")
@@ -1424,6 +1424,7 @@ class ARPESAccessorBase(ARPESProperty):
     def fat_sel(
         self,
         widths: dict[str, Any] | None = None,
+        method: ReduceMethod = "mean",
         **kwargs: float,
     ) -> XrTypes:
         """Allows integrating a selection over a small region.
@@ -1437,6 +1438,7 @@ class ARPESAccessorBase(ARPESProperty):
         Args:
             widths: Override the widths for the slices. Reasonable defaults are used otherwise.
                     Defaults to None.
+            method: Method for ruducing the data. Defaults to "mean".
             kwargs: slice dict. The width can also be specified by like "eV_wdith=0.1".
 
         Returns:
@@ -1460,7 +1462,7 @@ class ARPESAccessorBase(ARPESProperty):
         }
         logger.debug(f"extra_kwargs: {extra_kwargs}")
         slice_center: dict[str, float] = {k: v for k, v in kwargs.items() if k in self._obj.dims}
-        logger.debug(f"slice_kwargs: {slice_center}")
+        logger.debug(f"slice_center: {slice_center}")
         slice_widths: dict[str, float] = {
             k: widths.get(k, extra_kwargs.get(k + "_width", default_widths.get(k)))
             for k in slice_center
@@ -1470,16 +1472,21 @@ class ARPESAccessorBase(ARPESProperty):
             k: slice(v - slice_widths[k] / 2, v + slice_widths[k] / 2)
             for k, v in slice_center.items()
         }
-        logger.debug(f"clices: {slices}")
-
         sliced = self._obj.sel(slices)
 
-        thickness = np.prod([len(sliced.coords[k]) for k in slice_center])
+        if not any(slice_center.keys()):
+            msg = "The slice center is not spcefied."
+            raise TypeError(msg)
+        if method == "mean":
+            normalized = sliced.mean(slices.keys(), keep_attrs=True)
+        elif method == "sum":
+            normalized = sliced.sum(slices.keys(), keep_attrs=True)
+        else:
+            msg = "Method should be either 'mean' or 'sum'."
+            raise RuntimeError(msg)
 
-        normalized = sliced.sum(slices.keys(), keep_attrs=True, min_count=1) / thickness
-        for k, v in slices.items():
-            normalized.coords[k] = (v.start + v.stop) / 2
-        normalized.attrs.update(self._obj.attrs.copy())
+        for k, v in slice_center.items():
+            normalized.coords[k] = v
         return normalized
 
 
