@@ -152,7 +152,7 @@ DEFAULT_RADII: dict[str, float] = {
 UNSPESIFIED = 0.1
 
 LOGLEVELS = (DEBUG, INFO)
-LOGLEVEL = LOGLEVELS[1]
+LOGLEVEL = LOGLEVELS[0]
 logger = setup_logger(__name__, LOGLEVEL)
 
 T = TypeVar("T")
@@ -1454,20 +1454,28 @@ class ARPESAccessorBase(ARPESProperty):
             default_widths["beta"] = 1.0
             default_widths["theta"] = 1.0
             default_widths["psi"] = 1.0
+
         extra_kwargs: dict[str, Incomplete] = {
             k: v for k, v in kwargs.items() if k not in self._obj.dims
         }
-        slice_kwargs = {k: v for k, v in kwargs.items() if k in self._obj.dims}
+        logger.debug(f"extra_kwargs: {extra_kwargs}")
+        slice_center: dict[str, float] = {k: v for k, v in kwargs.items() if k in self._obj.dims}
+        logger.debug(f"slice_kwargs: {slice_center}")
         slice_widths: dict[str, float] = {
             k: widths.get(k, extra_kwargs.get(k + "_width", default_widths.get(k)))
-            for k in slice_kwargs
+            for k in slice_center
         }
+        logger.debug(f"slice_widths: {slice_widths}")
         slices = {
             k: slice(v - slice_widths[k] / 2, v + slice_widths[k] / 2)
-            for k, v in slice_kwargs.items()
+            for k, v in slice_center.items()
         }
+        logger.debug(f"clices: {slices}")
+
         sliced = self._obj.sel(slices)
-        thickness = np.prod([len(sliced.coords[k]) for k in slice_kwargs])
+
+        thickness = np.prod([len(sliced.coords[k]) for k in slice_center])
+
         normalized = sliced.sum(slices.keys(), keep_attrs=True, min_count=1) / thickness
         for k, v in slices.items():
             normalized.coords[k] = (v.start + v.stop) / 2
