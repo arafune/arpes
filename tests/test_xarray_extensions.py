@@ -698,3 +698,16 @@ class TestShiftCoords:
             corrected1.coords["phi"].values,
             corrected2.coords["phi"].values,
         )
+
+
+class TestFatSel:
+    """Test class for S.fat_sel."""
+
+    def test_arg_handling(self, dataarray_map: xr.DataArray) -> None:
+        """Test handling arguments in fat_sel."""
+        fat1 = dataarray_map.S.fat_sel(eV=0)
+        fat2 = dataarray_map.S.fat_sel(widths={"eV": 0.05}, eV=0)
+        fat3 = dataarray_map.S.fat_sel(eV=0, eV_width=0.05)
+
+        np.testing.assert_array_almost_equal(fat2.values, fat3.values)
+        np.testing.assert_array_almost_equal(fat1.values, fat2.values)
