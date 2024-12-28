@@ -45,7 +45,7 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
     }
 
     _NORMAL_EMISSION: ClassVar[dict[str, float]] = {
-        "theta": 83.5,
+        "anr1": 83.5,
     }
 
     RENAME_KEYS: ClassVar[dict[str, str]] = {
@@ -94,6 +94,11 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         if file.suffix in self._TOLERATED_EXTENSIONS:
             data = load_xy(frame_path, **kwargs)
 
+            if "anr1" in data.coords:
+                data = data.assign_coords(
+                    anr1 = -data.anr1 - Phelix._NORMAL_EMISSION["anr1"])
+                data = data.isel(anr1=slice(None, None, -1))
+
             return xr.Dataset({"spectrum": data}, attrs=data.attrs)
 
         msg = "Data file must be ended with .xy"
@@ -127,7 +132,6 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
             dispersion_mode = self._LENS_MAPPING[lens_mode]
             if dispersion_mode:
                 data = data.rename({"nonenergy": "phi"})
-                data = data.assign_coords(phi=np.deg2rad(data.phi))
             else:
                 data = data.rename({"nonenergy": "x"})
         else:
@@ -155,15 +159,10 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
 
         data = data.rename({k: v for k, v in self.RENAME_KEYS.items() if k in data.coords})
 
-        if "psi" in data.coords:
-            data = data.assign_coords(psi=np.deg2rad(data.psi))
-        if "theta" in data.coords:
-            data = data.assign_coords(
-                theta=np.deg2rad(
-                    -data.theta - Phelix._NORMAL_EMISSION["theta"],
-                ),
-            )
-            data = data.isel(theta=slice(None, None, -1))
+        for coord in ["psi", "phi", "theta"]:
+            if coord in data.coords:
+                data = data.assign_coords({coord: np.deg2rad(data[coord])})
+
         return super().postprocess_final(data, scan_desc)
 
 
