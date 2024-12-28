@@ -90,6 +90,8 @@ SpectrumType = Literal["cut", "map", "hv_map", "ucut", "spem", "xps"]
 
 Plot2DStyle = Literal["line", "scatter"]
 
+AnalysisRegion = Literal["copper_prior", "wide_angular", "narrow_angular"]
+
 LEGENDLOCATION = Literal[
     # Numeric values (0 to 10) are for the backward compatibility.
     "best",

@@ -20,6 +20,8 @@ if TYPE_CHECKING:
 
     from numpy.typing import NDArray
 
+    from arpes._typing import AnalysisRegion
+
 __all__ = ["REGIONS", "DesignatedRegions", "normalize_region"]
 
 LOGLEVELS = (DEBUG, INFO)
@@ -430,8 +432,7 @@ def meso_effective_selector(data: xr.DataArray) -> slice:
 
 def region_sel(
     data: xr.DataArray,
-    *regions: Literal["copper_prior", "wide_angular", "narrow_angular"]
-    | dict[str, DesignatedRegions],
+    *regions: AnalysisRegion | dict[str, DesignatedRegions],
 ) -> xr.DataArray:
     """Filters the data by selecting specified regions and applying those regions to the object.
 
