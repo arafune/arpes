@@ -9,6 +9,19 @@ Primary (X.-.-) version numbers are used to denote backwards
 incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
+4.2.2 (XXXX-XX-XX)
+^^^^^^^^^^^^^^^^^^
+* Update S.fat_sel.
+* Add figure_gallery.ipynb
+
+4.2.1 (2024-12-26)
+^^^^^^^^^^^^^^^^^^
+
+Changed
+^^^^^^^
+
+* Changed internally.  repair.py is removed.  API does not change.
+
 4.2.0 (2024-12-25)
 ^^^^^^^^^^^^^^^^^^
 

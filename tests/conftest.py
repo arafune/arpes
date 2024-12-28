@@ -48,7 +48,7 @@ def dataarray_cut() -> xr.DataArray:
 @pytest.fixture
 def dataset_map() -> xr.Dataset:
     """A fixture for loading Dataset."""
-    return example_data.map.spectrum
+    return example_data.map
 
 
 @pytest.fixture

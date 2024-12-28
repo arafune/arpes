@@ -698,3 +698,36 @@ class TestShiftCoords:
             corrected1.coords["phi"].values,
             corrected2.coords["phi"].values,
         )
+
+
+class TestFatSel:
+    """Test class for S.fat_sel."""
+
+    def test_fat_sel_with_sum(self, dataarray_map: xr.DataArray) -> None:
+        fat1 = dataarray_map.S.fat_sel(eV=0, method="sum")
+        expected = dataarray_map.sel({"eV": slice(-0.025, 0.025)}).sum("eV")
+        np.testing.assert_array_almost_equal(fat1.values, expected.values)
+
+    def test_fat_sel_with_mean(self, dataarray_map: xr.DataArray) -> None:
+        fat1 = dataarray_map.S.fat_sel(widths={"eV": 0.05}, eV=-0.1)
+        expected = dataarray_map.sel({"eV": slice(-0.125, -0.075)}).mean("eV")
+        np.testing.assert_array_almost_equal(fat1.values, expected.values)
+
+    def test_arg_handling(self, dataarray_map: xr.DataArray) -> None:
+        """Test handling arguments in fat_sel."""
+        fat1 = dataarray_map.S.fat_sel(eV=0)
+        fat2 = dataarray_map.S.fat_sel(widths={"eV": 0.05}, eV=0)
+        fat3 = dataarray_map.S.fat_sel(eV=0, eV_width=0.05)
+
+        np.testing.assert_array_almost_equal(fat2.values, fat3.values)
+        np.testing.assert_array_almost_equal(fat1.values, fat2.values)
+
+    def test_fat_sel_raises_type_error(self, dataarray_map: xr.DataArray) -> None:
+        with pytest.raises(TypeError, match="The slice center is not spcefied."):
+            dataarray_map.S.fat_sel(widths={"eV": 0.05})
+        with pytest.raises(TypeError, match="The slice center is not spcefied."):
+            dataarray_map.S.fat_sel(eV_width=0.05)
+
+    def test_fat_sel_raise_runtime_error(self, dataarray_map: xr.DataArray) -> None:
+        with pytest.raises(RuntimeError, match="Method should be either 'mean' or 'sum'."):
+            dataarray_map.S.fat_sel(eV=0.05, method="suum")
