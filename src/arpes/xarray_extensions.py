@@ -2496,11 +2496,12 @@ class GenericDataArrayAccessor(GenericAccessorBase):
         Args:
             clip (float, optional): The percentile range to use for clipping. The lower and upper
                 bounds are determined by the `clip` value and its complement:
+
                 - Lower bound: `clip` percentile.
                 - Upper bound: `(100 - clip)` percentile.
-                For example, if `clip=0.5`, the lower 0.5% and upper 99.5% of
-                    the data will be clipped.
-                Default is 0.5.
+
+                For example, if `clip=0.5`, the lower 0.5% and upper 99.5% of the data will be
+                    clipped. Default is 0.5.
 
         Returns:
         xr.DataArray: A new DataArray with outliers clipped to the specified range.

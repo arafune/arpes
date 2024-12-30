@@ -44,8 +44,8 @@ available either from the main repository at
    python -m ipykernel install --user --display-name "My Name Here"
 
 Additional Suggested Steps
-
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 1. Install and configure standard tools like
    `Jupyter <https://jupyter.org/>`__ or `Jupyter Lab <https://jupyterlab.readthedocs.io/en/latest>`__. 
 2. Explore the documentation and example notebooks at 

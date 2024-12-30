@@ -14,7 +14,7 @@ committed to the repository and therefore shared. You can use this to as
 adjust settings on various interactive tools. Have a look at
 ``arpes.config`` for what settings are read by default
 
-::
+.. code-block python::
 
    SETTINGS = {
        # contents here
@@ -22,7 +22,7 @@ adjust settings on various interactive tools. Have a look at
 
    CONFIG  = {
        # contents here
-}
+   }
 
 
 
