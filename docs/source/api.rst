@@ -431,7 +431,7 @@ Data Loading Plugins
    endstations.plugin.merlin.BL403ARPESEndstation
    endstations.plugin.SToF_DLD.SToFDLDEndstation
    endstations.plugin.SPD_main.SPDEndstation
-   endstations.plugin.IF_UMCS.IF_UMCSEndstation
+   endstations.plugin.DSNP_UMCS.DSNP_UMCSEndstation
 
 
 Curve Fitting
