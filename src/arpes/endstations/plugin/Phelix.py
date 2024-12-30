@@ -1,4 +1,10 @@
-"""Implements data loading for the Phelix beamline @ Solaris."""
+"""Implements data loading for the Phelix beamline @ Solaris.
+
+The plugin supports flowing scenarios:
+- Loading single maps.
+- Loading 3D map measured with deflector.
+- Loading 3D map measured using manipulator rotation by polar angle.
+"""
 
 from __future__ import annotations
 
@@ -33,6 +39,7 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
 
     _TOLERATED_EXTENSIONS: ClassVar[set[str]] = {".xy"}
 
+    # Mapping of lens modes to dispersion or magnification modes
     _LENS_MAPPING: ClassVar[dict[str, bool]] = {
         "HighAngularDispersion": True,
         "MediumAngularDispersion": True,
@@ -44,6 +51,7 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         "HighMagnification": False,
     }
 
+    # Angle values of the manipulator that correspond to normal emission
     _NORMAL_EMISSION: ClassVar[dict[str, float]] = {
         "anr1": 83.5,
     }
@@ -95,6 +103,7 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
             data = load_xy(frame_path, **kwargs)
 
             if "anr1" in data.coords:
+                # Invert the anr1 manipulator axis and shift it to get theta angle
                 data = data.assign_coords(
                     anr1 = -data.anr1 - Phelix._NORMAL_EMISSION["anr1"])
                 data = data.isel(anr1=slice(None, None, -1))
@@ -123,10 +132,11 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         Returns:
             xr.Dataset: pyARPES compatible.
         """
-        # Convert to binding energy
+        # Convert to binding energy notation
         binding_energies = data.coords["eV"].values - data.attrs["hv"]
         data = data.assign_coords({"eV": binding_energies})
 
+        # Calculate phi or x values depending on the lens mode.
         lens_mode = data.attrs["lens_mode"].split(":")[0]
         if lens_mode in self._LENS_MAPPING:
             dispersion_mode = self._LENS_MAPPING[lens_mode]
@@ -138,7 +148,7 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
             msg = f"Unknown Analyzer Lens: {lens_mode}"
             raise ValueError(msg)
 
-        """Add missing parameters."""
+        # Add missing parameters
         if scan_desc is None:
             scan_desc = {}
         defaults = {

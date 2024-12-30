@@ -1,6 +1,11 @@
-"""Implements data loading for the URANOS beamline @ Solaris.
+"""Implements data loading for the URANOS beamline at Solaris.
 
-Plugin based on the SSRF_NSRL.
+This plugin supports the following scenarios:
+- Load a single map from a .pxt file.
+- Load a 3D map from a .zip file measured with a deflector.
+- Load a 3D map from a .zip file measured as a function of an additional parameter,
+    such as the position on the sample or manipulator rotation. In such cases,
+    this parameter is read as the "y" coordinate and needs to be adjusted manually.
 """
 
 from __future__ import annotations
@@ -41,11 +46,13 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
     _SEARCH_DIRECTORIES = ("zip", "pxt")
     _TOLERATED_EXTENSIONS: ClassVar[set[str]] = {".zip", ".pxt"}
 
+    # Angle values of the manipulator that correspond to normal emission
     _NORMAL_EMISSION: ClassVar[dict[str, float]] = {
         "r1": 178.0,
         "r3": -88.0,
     }
 
+    # Analyzer work function in eV (this value is not available in data files)
     _ANALYZER_WORK_FUNCTION = 4.38
 
     RENAME_KEYS: ClassVar[dict[str, str]] = {
@@ -97,6 +104,7 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
             data_var_name = next(iter(datas.data_vars.keys()))
             data = datas[data_var_name]
 
+            # Shift manipulator r1 and r3 to get theta and beta angles
             for coord in ["r1", "r3"]:
                 if coord in data.attrs:
                     data.attrs[coord] = np.deg2rad(
@@ -160,6 +168,7 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
                 attrs=attrs,
             )
 
+            # Shift manipulator r1 and r3 to get theta and beta angles
             for coord in ["r1", "r3"]:
                 if coord in data.attrs:
                     data.attrs[coord] = np.deg2rad(
@@ -170,7 +179,7 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
                 {"spectrum": data},
                 attrs=data.attrs,
             )
-        msg = "Not supported file extension"
+        msg = "Not supported file extension."
         raise RuntimeError(msg)
 
     def postprocess_final(
@@ -181,6 +190,9 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         """Perform final processing on the ARPES data.
 
         - Add missing parameters.
+        - Change notation to binding.
+        - Rename keys and dimensions.
+        - Convert degrees to radians.
 
         Args:
             data(xr.Dataset): ARPES data
@@ -189,7 +201,7 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         Returns:
             xr.Dataset: pyARPES compatible.
         """
-        """Add missing parameters."""
+        # Add missing parameters
         if scan_desc is None:
             scan_desc = {}
         defaults = {
@@ -208,6 +220,7 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
             for s in [dv for dv in data.data_vars.values() if "eV" in dv.dims]:
                 s.attrs[k] = s.attrs.get(k, v)
 
+        # Convert to binding energy notation
         binding_energies = (data.coords["eV"].values
                             - data.attrs["hv"]
                             + Uranos._ANALYZER_WORK_FUNCTION)
@@ -215,6 +228,7 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
 
         data = data.rename({k: v for k, v in self.RENAME_KEYS.items() if k in data.coords})
 
+        # Convert degrees to radians
         for coord in ["psi", "phi", "theta", "beta"]:
                 if coord in data.coords:
                     data = data.assign_coords({coord: np.deg2rad(data[coord])})

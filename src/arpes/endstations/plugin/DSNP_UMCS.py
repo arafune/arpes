@@ -42,6 +42,7 @@ class DSNP_UMCSEndstation(  # noqa: N801
 
     _TOLERATED_EXTENSIONS: ClassVar[set[str]] = {".xy", ".itx"}
 
+    # Mapping of lens modes to dispersion or magnification modes
     _LENS_MAPPING: ClassVar[dict[str, bool]] = {
         "HighAngularDispersion": True,
         "MediumAngularDispersion": True,
@@ -89,7 +90,16 @@ class DSNP_UMCSEndstation(  # noqa: N801
         scan_desc: ScanDesc | None = None,
         **kwargs: str | float,
     ) -> xr.Dataset:
-        """Load single file."""
+        """Load single frame from Specs Prodiy generated xy file.
+
+        Args:
+            frame_path(str | Path): _description_, by default ""
+            scan_desc(ScanDesc | None): _description_, by default None
+            kwargs(str | int | float): Pass to load_xy
+
+        Returns:
+            xr.Datast: pyARPES is not compatible at this stage.  (postprocess_final is needed.)
+        """
         provenance_context: Provenance = {
             "what": "Loaded xy dataset",
             "by": "load_single_frame",
@@ -140,6 +150,7 @@ class DSNP_UMCSEndstation(  # noqa: N801
         data = data.assign_coords({"eV": binding_energies})
         lens_mode = data.attrs["lens_mode"].split(":")[0]
 
+        # Calculate phi or x values depending on the lens mode
         if lens_mode in self._LENS_MAPPING:
             dispersion_mode = self._LENS_MAPPING[lens_mode]
             if dispersion_mode:
@@ -151,11 +162,11 @@ class DSNP_UMCSEndstation(  # noqa: N801
             msg = f"Unknown Analyzer Lens: {lens_mode}"
             raise ValueError(msg)
 
-        """Add missing parameters."""
+        # Add missing parameters
         if scan_desc is None:
             scan_desc = {}
         defaults = {
-            "x": 78,
+            "x": 78.0,
             "y": 0.5,
             "z": 2.5,
             "beta": 0.0,
@@ -171,6 +182,7 @@ class DSNP_UMCSEndstation(  # noqa: N801
                 s.attrs[k] = v
 
         data = data.rename({k: v for k, v in self.RENAME_KEYS.items() if k in data.coords})
+        # Convert theta (polar) angle to radians for 3D maps
         if "theta" in data.coords:
             data = data.assign_coords(theta=np.deg2rad(data.theta))
 
