@@ -2551,6 +2551,7 @@ class GenericDataArrayAccessor(GenericAccessorBase):
             AssertionError: If `out` is not a valid string when required.
 
         Example:
+
         .. code-block:: python
 
             import xarray as xr
@@ -2598,6 +2599,7 @@ class GenericDataArrayAccessor(GenericAccessorBase):
             TypeError: If the input arguments or operations result in a type mismatch.
 
         Example:
+
         .. code-block python
 
             import xarray as xr
