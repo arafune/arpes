@@ -10,7 +10,7 @@ from .Elettra_spectromicroscopy import SpectromicroscopyElettraEndstation
 from .example_data import ExampleDataEndstation
 from .fallback import FallbackEndstation
 from .HERS import HERSEndstation
-from .IF_UMCS import IF_UMCSEndstation
+from .DSNP_UMCS import DSNP_UMCSEndstation
 from .igor_export import IgorExportEndstation
 from .igor_plugin import IgorEndstation
 from .kaindl import KaindlEndstation

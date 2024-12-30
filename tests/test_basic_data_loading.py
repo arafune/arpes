@@ -405,9 +405,9 @@ class TestMetadata:
             },
         ),
         (
-            "if_umcs_load_cut",
+            "dsnp_umcs_load_cut",
             {
-                "file": "basic/IF_UMCS_cut.xy",
+                "file": "basic/DSNP_UMCS_cut.xy",
                 "expected": {
                     "scan_info": {
                         "time": "13:08:08",
@@ -814,11 +814,11 @@ class TestBasicDataLoading:
                 },
             },
         ),
-        # IF_UMCS, cut data
+        # DSNP_UMCS, cut data
         (
-            "if_umcs_load_cut",
+            "dsnp_umcs_load_cut",
             {
-                "file": "basic/IF_UMCS_cut.xy",
+                "file": "basic/DSNP_UMCS_cut.xy",
                 "expected": {
                     "dims": ["eV", "phi"],
                     "coords": {

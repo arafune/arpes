@@ -1,4 +1,8 @@
-"""Implements data loading for the IF UMCS Lublin ARPES group."""
+"""Implements data loading for the ARPES at DSNP UMCS.
+
+(Department of Surface and Nanostructures Physics)
+Institute of Physics, Maria Curie-Sklodowska University in Lublin.
+"""
 
 from __future__ import annotations
 
@@ -24,17 +28,17 @@ if TYPE_CHECKING:
     from arpes.endstations import ScanDesc
 
 
-__all__ = ["IF_UMCSEndstation"]
+__all__ = ["DSNP_UMCSEndstation"]
 
 
-class IF_UMCSEndstation(  # noqa: N801
+class DSNP_UMCSEndstation(  # noqa: N801
     HemisphericalEndstation,
     SingleFileEndstation,
 ):
     """Implements loading xy text files from the Specs Prodigy software."""
 
-    PRINCIPAL_NAME = "IF_UMCS"
-    ALIASES: ClassVar[list[str]] = ["IF_UMCS", "LubARPES", "LublinARPRES"]
+    PRINCIPAL_NAME = "DSNP_UMCS"
+    ALIASES: ClassVar[list[str]] = ["DSNP_UMCS", "IF_UMCS", "LubARPES", "LublinARPRES"]
 
     _TOLERATED_EXTENSIONS: ClassVar[set[str]] = {".xy", ".itx"}
 
@@ -175,4 +179,4 @@ class IF_UMCSEndstation(  # noqa: N801
         return data
 
 
-add_endstation(IF_UMCSEndstation)
+add_endstation(DSNP_UMCSEndstation)

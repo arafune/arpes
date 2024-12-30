@@ -107,8 +107,8 @@ DATA_EXAMPLES: dict[str, tuple[str, str]] = {
     "nano_xps": ("example_data", "nano_xps.nc"),
     "temperature_dependence": ("example_data", "temperature_dependence.nc"),
     "cut2": ("SPD", "example_itx_data.itx"),
-    "cut3": ("IF_UMCS", "BLGr_K_cut.xy"),
-    "map2": ("IF_UMCS", "BLGr_GK_map.xy"),
+    "cut3": ("DSNP_UMCS", "BLGr_K_cut.xy"),
+    "map2": ("DSNP_UMCS", "BLGr_GK_map.xy"),
 }
 
 
