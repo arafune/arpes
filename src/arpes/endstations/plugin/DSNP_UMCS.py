@@ -60,7 +60,6 @@ class DSNP_UMCSEndstation(  # noqa: N801
         "analyzer_lens": "lens_mode",
         "detector_voltage": "mcp_voltage",
         "excitation_energy": "hv",
-        "polar": "theta",
         "region": "id",
     }
 
@@ -111,6 +110,24 @@ class DSNP_UMCSEndstation(  # noqa: N801
         if file.suffix in self._TOLERATED_EXTENSIONS:
             if file.suffix == ".xy":
                 data = load_xy(frame_path, **kwargs)
+
+                # Calculate phi or x values depending on the lens mode
+                lens_mode = data.attrs["analyzer_lens"].split(":")[0]
+                if lens_mode in self._LENS_MAPPING:
+                    dispersion_mode = self._LENS_MAPPING[lens_mode]
+                    if dispersion_mode:
+                        data = data.rename({"nonenergy": "phi"})
+                        data = data.assign_coords(phi=np.deg2rad(data.phi))
+                    else:
+                        data = data.rename({"nonenergy": "x"})
+                else:
+                    msg = f"Unknown Analyzer Lens: {lens_mode}"
+                    raise ValueError(msg)
+
+                # Convert polar manipulator angle to theta in radians
+                if "polar" in data.coords:
+                    data = data.assign_coords(theta=np.deg2rad(data.theta))
+
                 dataset = xr.Dataset({"spectrum": data}, attrs=data.attrs)
                 provenance_from_file(
                     child_arr=dataset["spectrum"],
@@ -148,19 +165,6 @@ class DSNP_UMCSEndstation(  # noqa: N801
         # Convert to binding energy
         binding_energies = data.coords["eV"].values - data.attrs["hv"]
         data = data.assign_coords({"eV": binding_energies})
-        lens_mode = data.attrs["lens_mode"].split(":")[0]
-
-        # Calculate phi or x values depending on the lens mode
-        if lens_mode in self._LENS_MAPPING:
-            dispersion_mode = self._LENS_MAPPING[lens_mode]
-            if dispersion_mode:
-                data = data.rename({"nonenergy": "phi"})
-                data = data.assign_coords(phi=np.deg2rad(data.phi))
-            else:
-                data = data.rename({"nonenergy": "x"})
-        else:
-            msg = f"Unknown Analyzer Lens: {lens_mode}"
-            raise ValueError(msg)
 
         # Add missing parameters
         if scan_desc is None:
@@ -180,11 +184,6 @@ class DSNP_UMCSEndstation(  # noqa: N801
             data.attrs[k] = v
             for s in [dv for dv in data.data_vars.values() if "eV" in dv.dims]:
                 s.attrs[k] = v
-
-        data = data.rename({k: v for k, v in self.RENAME_KEYS.items() if k in data.coords})
-        # Convert theta (polar) angle to radians for 3D maps
-        if "theta" in data.coords:
-            data = data.assign_coords(theta=np.deg2rad(data.theta))
 
         data = super().postprocess_final(data, scan_desc)
         data.S.spectrum.attrs["location"] = self.PRINCIPAL_NAME
