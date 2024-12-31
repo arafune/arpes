@@ -9,16 +9,21 @@ Primary (X.-.-) version numbers are used to denote backwards
 incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
-4.2.2 (XXXX-XX-XX)
+4.2.2 (2024-12-31)
 ^^^^^^^^^^^^^^^^^^
+
+Changed
+~~~~~~~
+
 * Update S.fat_sel.
 * Add figure_gallery.ipynb
+* Rename IF_UMCS to DSN_UMCS
 
 4.2.1 (2024-12-26)
 ^^^^^^^^^^^^^^^^^^
 
 Changed
-^^^^^^^
+~~~~~~~
 
 * Changed internally.  repair.py is removed.  API does not change.
 
