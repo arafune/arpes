@@ -18,7 +18,7 @@ The `.S` accessor:
     which only make sense in this context should be placed here, while more generic
     tools should be placed elsewhere.
 
-The `.G.` accessor:
+The `.G` accessor:
     This a general purpose collection of tools which exists to provide conveniences over
     what already exists in the xarray data model. As an example, there are various tools
     for simultaneous iteration of data and coordinates here, as well as for vectorized
@@ -127,12 +127,9 @@ if TYPE_CHECKING:
     )
     from .provenance import Provenance
 
-    IncompleteMPL: TypeAlias = Incomplete
-
 __all__ = ["ARPESDataArrayAccessor", "ARPESDatasetAccessor", "ARPESFitToolsAccessor"]
 
 EnergyNotation: TypeAlias = Literal["Binding", "Final"]
-
 
 DEFAULT_RADII: dict[str, float] = {
     "kp": 0.02,
@@ -149,7 +146,7 @@ DEFAULT_RADII: dict[str, float] = {
     "temperature": 2,
 }
 
-UNSPESIFIED = 0.1
+UNSPECIFIED = 0.1
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
@@ -1388,12 +1385,12 @@ class ARPESAccessorBase(ARPESProperty):
             collectted_terms = {f"{k}_r" for k in points}.intersection(set(kwargs.keys()))
             if collectted_terms:
                 radius = {
-                    d: kwargs.get(f"{d}_r", DEFAULT_RADII.get(str(d), UNSPESIFIED)) for d in points
+                    d: kwargs.get(f"{d}_r", DEFAULT_RADII.get(str(d), UNSPECIFIED)) for d in points
                 }
             elif radius is None:
-                radius = {d: DEFAULT_RADII.get(str(d), UNSPESIFIED) for d in points}
+                radius = {d: DEFAULT_RADII.get(str(d), UNSPECIFIED) for d in points}
         assert isinstance(radius, dict)
-        return {d: radius.get(str(d), DEFAULT_RADII.get(str(d), UNSPESIFIED)) for d in points}
+        return {d: radius.get(str(d), DEFAULT_RADII.get(str(d), UNSPECIFIED)) for d in points}
 
     def sum_other(
         self,
@@ -2564,11 +2561,7 @@ class GenericDataArrayAccessor(GenericAccessorBase):
                 coords={"delay": range(5), "x": range(10), "y": range(10)},
                 )
             # Generate an animation
-            animation = data.as_movie(time_dim="delay")
-
-        Todo:
-            - Add unit tests to verify functionality with various data configurations.
-            - Enhance compatibility with additional plot types.
+            animation = data.G.as_movie(time_dim="delay")
         """
         assert isinstance(self._obj, xr.DataArray)
 
@@ -3251,7 +3244,7 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
         """
         return self.degrees_of_freedom.difference(self.spectrum_degrees_of_freedom)
 
-    def reference_plot(self: Self, **kwargs: IncompleteMPL) -> None:
+    def reference_plot(self: Self, **kwargs: Incomplete) -> None:
         """Creates reference plots for a dataset.
 
         A bit of a misnomer because this actually makes many plots. For full datasets,
