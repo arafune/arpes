@@ -62,27 +62,3 @@ def unarrange_by_indices(items: Sequence, indices: Sequence) -> list:  # pragma:
         stacklevel=2,
     )
     return [x for x, _ in sorted(zip(indices, items, strict=True), key=itemgetter(0))]
-
-
-ATTRS_MAP = {
-    "PuPol": "pump_pol",
-    "PrPol": "probe_pol",
-    "SFLNM0": "lens_mode",
-    "Lens Mode": "lens_mode",
-    "Excitation Energy": "hv",
-    "SFPE_0": "pass_energy",
-    "Pass Energy": "pass_energy",
-    "Slit Plate": "slit",
-    "Number of Sweeps": "n_sweeps",
-    "Acquisition Mode": "scan_mode",
-    "Region Name": "scan_region",
-    "Instrument": "instrument",
-    "Pressure": "pressure",
-    "User": "user",
-    "Polar": "theta",
-    "Theta": "theta",
-    "Sample": "sample",
-    "Beta": "beta",
-    "Azimuth": "chi",
-    "Location": "location",
-}
