@@ -8,6 +8,7 @@ from arpes.utilities import bz_spec
 def test_bz_points_for_hexagonal_lattice() -> None:
     """Test for bz_points_for_hexagonal_lattice."""
     bz_spec_unit = bz_spec.bz_points_for_hexagonal_lattice()
+    bz_spec_unit = np.round(bz_spec_unit, decimals=6)
     # Sort by x-axis values first, then by y-axis values
     bz_spec_unit = bz_spec_unit[np.lexsort((bz_spec_unit[:, 1], bz_spec_unit[:, 0]))]
     desired = np.array(
@@ -21,7 +22,7 @@ def test_bz_points_for_hexagonal_lattice() -> None:
         ],
     )
     np.testing.assert_array_almost_equal(
-        bz_spec_unit[:3],
-        desired[:3],
+        bz_spec_unit,
+        desired,
         decimal=5,
     )
