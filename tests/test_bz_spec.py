@@ -21,7 +21,7 @@ def test_bz_points_for_hexagonal_lattice() -> None:
         ],
     )
     np.testing.assert_array_almost_equal(
-        bz_spec_unit[3:],
-        desired[3:],
+        bz_spec_unit[:3],
+        desired[:3],
         decimal=5,
     )
