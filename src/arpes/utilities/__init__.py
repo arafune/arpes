@@ -1,9 +1,8 @@
 """Provides general utility methods that get used during the course of analysis."""
 
 from __future__ import annotations
-import warnings
 
-import itertools
+import warnings
 from operator import itemgetter
 from typing import TYPE_CHECKING, Any
 
