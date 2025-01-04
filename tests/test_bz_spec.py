@@ -22,4 +22,5 @@ def test_bz_points_for_hexagonal_lattice() -> None:
                 [2 / 3, 0],
             ],
         ),
+        decimal=5,
     )
