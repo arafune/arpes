@@ -9,6 +9,14 @@ Primary (X.-.-) version numbers are used to denote backwards
 incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
+4.2.3 (2025-1-5)
+^^^^^^^^^^^^^^^^^^
+
+Changed
+~~~~~~~
+
+* Deprecated: arrange_by_indices, unarrange_by_indice in utilities/__init__ 
+
 4.2.2 (2024-12-31)
 ^^^^^^^^^^^^^^^^^^
 
