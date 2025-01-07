@@ -114,11 +114,11 @@ def convert_coordinate_forward(
             )
         if not k_coords:
             k_coords = {
-                "kx": np.linspace(-4, 4, 300),
-                "ky": np.linspace(-4, 4, 300),
+                "kx": np.linspace(-4, 4, 300, dtype=np.float64),
+                "ky": np.linspace(-4, 4, 300, dtype=np.float64),
             }
     elif not k_coords:  # data.spectrum_type = map
-        k_coords = {"kp": np.linspace(-4, 4, 300)}
+        k_coords = {"kp": np.linspace(-4, 4, 300, dtype=np.float64)}
     # Copying after taking a constant energy plane is much much cheaper
     data = data.copy(deep=True)
 
@@ -128,7 +128,9 @@ def convert_coordinate_forward(
     near_target: dict[Hashable, float] = kdata.G.argmax_coords()
     if "eV" in near_target and data.spectrum_type == "cut":
         del near_target["eV"]
-    coords_around_target = {k: np.linspace(v - 0.08, v + 0.08, 100) for k, v in near_target.items()}
+    coords_around_target = {
+        k: np.linspace(v - 0.08, v + 0.08, 100, dtype=np.float64) for k, v in near_target.items()
+    }
     if is_dict_kspacecoords(coords_around_target):
         kdata_close = convert_to_kspace(
             data,
@@ -141,6 +143,7 @@ def convert_coordinate_forward(
     # inconsistently, the energy coordinate is sometimes returned here
     # so we remove it just in case
     coords = kdata_close.G.argmax_coords()
+
     if "eV" in coords:
         del coords["eV"]
     return coords

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from logging import DEBUG, INFO
 from typing import TYPE_CHECKING
 
@@ -76,6 +77,7 @@ class CoordinateConverter:
         self.phi: NDArray[np.float64] | None = None
 
     @staticmethod
+    @abstractmethod
     def prep(arr: xr.DataArray) -> None:
         """Perform preprocessing of the array to convert before we start.
 
@@ -110,6 +112,7 @@ class CoordinateConverter:
         )
 
     @staticmethod
+    @abstractmethod
     def kspace_to_BE(
         binding_energy: NDArray[np.float64],
         *args: NDArray[np.float64],
@@ -123,6 +126,7 @@ class CoordinateConverter:
             pass
         return binding_energy
 
+    @abstractmethod
     def conversion_for(
         self,
         dim: Hashable,
@@ -139,6 +143,7 @@ class CoordinateConverter:
         assert isinstance(self.dim_order, list)
         return args[self.dim_order.index(str(axis_name))]
 
+    @abstractmethod
     def get_coordinates(
         self,
         resolution: dict[MOMENTUM, float] | None = None,
