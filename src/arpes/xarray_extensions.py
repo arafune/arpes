@@ -108,6 +108,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from holoviews import AdjointLayout
     from IPython.display import HTML
+    from matplotlib.animation import FuncAnimation
     from matplotlib.axes import Axes
     from matplotlib.figure import Figure
     from numpy.typing import DTypeLike, NDArray
@@ -2522,7 +2523,7 @@ class GenericDataArrayAccessor(GenericAccessorBase):
         *,
         out: str | None = None,
         **kwargs: Unpack[PColorMeshKwargs],
-    ) -> Path | HTML | Figure:
+    ) -> Path | HTML | Figure | FuncAnimation:
         """Create an animation or save images showing the DataArray's evolution over time.
 
             This method creates a time-based visualization of an `xarray.DataArray`, either as an
