@@ -1,4 +1,5 @@
 """Plugins for data loading."""
+# pyright: reportUnusedImport=false
 
 from __future__ import annotations
 

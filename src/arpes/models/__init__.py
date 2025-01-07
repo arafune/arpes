@@ -1,4 +1,5 @@
 """Rudimentary band analysis code."""
+# pyright: reportUnusedImport=false
 
 from __future__ import annotations
 
