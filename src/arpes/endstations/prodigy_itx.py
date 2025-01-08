@@ -139,7 +139,7 @@ class ProdigyItx:
                 axis_info=self.axis_info["z"],
                 pixels=self.pixels[2],
             )
-            dims = ["ch1", *dims]
+            dims = ["cycle", *dims]
         if "w" in self.axis_info:
             coords["ch2"] = create_coords(
                 axis_info=self.axis_info["w"],
@@ -367,6 +367,7 @@ def load_sp2(
         dims=["phi", "eV"],
         attrs=params,
     )
+    data_array.coords["phi"].attrs["units"] = "Radians"
     for k, v in kwargs.items():
         data_array.attrs[k] = v
     return data_array

@@ -61,7 +61,6 @@ from more_itertools import always_reversible
 from xarray.core.coordinates import DataArrayCoordinates, DatasetCoordinates
 
 from . import utilities
-
 from ._typing import (
     ANGLE,
     HIGH_SYMMETRY_POINTS,
