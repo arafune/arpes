@@ -98,7 +98,10 @@ def load_data(
             stacklevel=2,
         )
     logger.debug(f"contents of desc: {desc}")
-    return load_scan(desc, **kwargs)
+    data = load_scan(desc, **kwargs)
+    if "location" not in data.attrs:
+        data.attrs["location"] = ""
+    return data
 
 
 DATA_EXAMPLES: dict[str, tuple[str, str]] = {
