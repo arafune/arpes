@@ -43,7 +43,7 @@ class TestItx:
 
     def test_convert_to_dataarray(self, sample_itx: ProdigyItx) -> None:
         """Test for convert to xr.DataArray."""
-        sample_dataarray = sample_itx.to_data_array()
+        sample_dataarray = sample_itx.to_dataarray()
         assert sample_dataarray.dims == ("phi", "eV")
 
     def test_convert_itx_fiile(self, sample_itx: ProdigyItx) -> None:

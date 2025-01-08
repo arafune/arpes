@@ -85,7 +85,7 @@ class ProdigyItx:
         self.intensity = np.array(intensity)
         logger.debug(f"shape of self.intensity: {self.intensity.shape}")
 
-    def to_data_array(self, **kwargs: str | float) -> xr.DataArray:
+    def to_dataarray(self, **kwargs: str | float) -> xr.DataArray:
         """Export to Xarray.
 
         Args:
@@ -152,7 +152,7 @@ class ProdigyItx:
             attrs["enegy_unit"] = self.axis_info["y"][3]
         if "d" in self.axis_info:
             attrs["count_unit"] = self.axis_info["d"][3]
-        attrs = _correct_angle_unit(attrs)
+        attrs = _angle_unit_to_rad(attrs)
         logger.debug(f"dims: {dims}")
         data_array = xr.DataArray(
             data=self.intensity.reshape(_pixel_to_shape(self.pixels)),
@@ -298,7 +298,7 @@ def load_itx(
         itx_data = list(map(str.rstrip, itx_data))
         if itx_data.count("BEGIN") == 1:
             prodigy_itx = ProdigyItx(itx_data)
-            data = prodigy_itx.to_data_array()
+            data = prodigy_itx.to_dataarray()
             for k, v in kwargs.items():
                 data.attrs[k] = v
             return data
@@ -311,7 +311,7 @@ def load_itx(
                 slice_list.append(slice(end_index_list[i - 1], end_index_list[i]))
         multi_itx_data = []
         for sl in slice_list:
-            a_itx_data = ProdigyItx(itx_data[sl]).to_data_array()
+            a_itx_data = ProdigyItx(itx_data[sl]).to_dataarray()
             for k, v in kwargs.items():
                 a_itx_data[k] = v
             multi_itx_data.append(a_itx_data)
@@ -360,7 +360,7 @@ def load_sp2(
                 np.linspace(corrected_angles[0], corrected_angles[1], pixels[0]),
             )
     params["spectrum_type"] = "cut"
-    params = _correct_angle_unit(params)
+    params = _angle_unit_to_rad(params)
     data_array: xr.DataArray = xr.DataArray(
         np.array(data).reshape(pixels),
         coords=coords,
@@ -373,7 +373,7 @@ def load_sp2(
     return data_array
 
 
-def _correct_angle_unit(params: dict[str, str | float]) -> dict[str, str | float]:
+def _angle_unit_to_rad(params: dict[str, str | float]) -> dict[str, str | float]:
     """Correct unit angle from degrees to radians in params object.
 
     Just a helper function.
