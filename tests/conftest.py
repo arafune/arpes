@@ -122,6 +122,7 @@ SCAN_FIXTURE_LOCATIONS = {
     "basic/MAESTRO_nARPES_focus_17.fits": "BL7-nano",
     "basic/Uranos_cut.pxt": "Uranos",
     "basic/DSNP_UMCS_cut.xy": "DSNP_UMCS",
+    "basic/DSNP_UMCS_map.xy": "DSNP_UMCS",
 }
 
 
