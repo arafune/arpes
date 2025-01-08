@@ -91,6 +91,10 @@ class DSNP_UMCSEndstation(  # noqa: N801
     ) -> xr.Dataset:
         """Load single frame from Specs Prodiy generated xy file.
 
+        - Calculate phi or x values depending on the lens mode.
+        - Rename the third dimension (polar) to theta angle.
+        - Convert degrees to radians.
+
         Args:
             frame_path(str | Path): _description_, by default ""
             scan_desc(ScanDesc | None): _description_, by default None
@@ -126,6 +130,7 @@ class DSNP_UMCSEndstation(  # noqa: N801
 
                 # Convert polar manipulator angle to theta in radians
                 if "polar" in data.coords:
+                    data = data.rename({"polar": "theta"})
                     data = data.assign_coords(theta=np.deg2rad(data.theta))
 
                 dataset = xr.Dataset({"spectrum": data}, attrs=data.attrs)
@@ -136,6 +141,7 @@ class DSNP_UMCSEndstation(  # noqa: N801
                 )
                 dataset.attrs["location"] = self.PRINCIPAL_NAME
                 return dataset
+
             if file.suffix == ".itx":
                 msg = "Not supported yet..."
                 raise RuntimeError(msg)
@@ -150,10 +156,7 @@ class DSNP_UMCSEndstation(  # noqa: N801
     ) -> xr.Dataset:
         """Perform final processing on the ARPES data.
 
-        - Calculate phi or x values depending on the lens mode.
         - Add missing parameters.
-        - Rename keys and dimensions in particular the third dimension that
-        is the theta angle in this ARPES apparatus.
 
         Args:
             data(xr.Dataset): ARPES data
