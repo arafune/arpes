@@ -157,6 +157,7 @@ class DSNP_UMCSEndstation(  # noqa: N801
         """Perform final processing on the ARPES data.
 
         - Add missing parameters.
+        - Convert notation to binding energy.
 
         Args:
             data(xr.Dataset): ARPES data
