@@ -836,6 +836,28 @@ class TestBasicDataLoading:
                 },
             },
         ),
+        # DSNP_UMCS, map data
+        (
+            "dsnp_umcs_load_map",
+            {
+                "file": "basic/DSNP_UMCS_map.xy",
+                "expected": {
+                    "dims": ["eV", "phi", "theta"],
+                    "coords": {
+                        "x": 78.0,
+                        "y": 0.5,
+                        "z": 2.5,
+                        "beta": 0.0,
+                        "alpha": np.deg2rad(90),
+                        "psi": 0.0,
+                        "eV": [-1.5, 0.24313, 0.012817],
+                        "phi": [-0.120683, 0.120683, 0.00298],
+                        "theta": [np.deg2rad(-68.0), np.deg2rad(-45.0), np.deg2rad(0.2)],
+                    },
+                    "offset_coords": {},
+                },
+            },
+        ),
     ]
 
     def test_load_file_and_basic_attributes(
