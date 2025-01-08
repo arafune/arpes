@@ -135,7 +135,7 @@ class ProdigyItx:
             )
             dims.append("eV")
         if "z" in self.axis_info:
-            coords["ch1"] = create_coords(
+            coords["cycle"] = create_coords(
                 axis_info=self.axis_info["z"],
                 pixels=self.pixels[2],
             )
