@@ -179,7 +179,9 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
             for s in [dv for dv in data.data_vars.values() if "eV" in dv.dims]:
                 s.attrs[k] = v
 
-        return super().postprocess_final(data, scan_desc)
+        data = super().postprocess_final(data, scan_desc)
+        data.S.spectrum.attrs["location"] = self.PRINCIPAL_NAME
+        return data
 
 
 add_endstation(Phelix)
