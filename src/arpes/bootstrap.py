@@ -238,7 +238,7 @@ class Normal(Distribution):
     def draw_samples(
         self,
         n_samples: int = Distribution.DEFAULT_N_SAMPLES,
-    ) -> NDArray[np.int_]:
+    ) -> NDArray[np.float64]:
         """Draws samples from this distribution."""
         return scipy.stats.norm.rvs(
             self.center,
