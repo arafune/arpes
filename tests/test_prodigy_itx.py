@@ -35,8 +35,6 @@ class TestItx:
         assert sample_itx.pixels == (600, 501)
         assert sample_itx.axis_info["x"] == ("I", -12.4792, 12.4792, "deg (theta_y)")
 
-        """Test for integrated_intensity property."""
-
     def test_integrated_intensity(self, sample_itx: ProdigyItx) -> None:
         """Test for integrated_intensity property."""
         np.testing.assert_allclose(sample_itx.integrated_intensity, 666371.3147352)

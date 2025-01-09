@@ -40,7 +40,7 @@ class SPDEndstation(HemisphericalEndstation, SingleFileEndstation):
 
     _SEARCH_PATTERNS: tuple[str, ...] = (
         r"\S+ \d\d\d\d-\d\d-\d\d_\d\dh\d\dm\d\ds_(\d+)_[^\.]+.itx",
-        r"PES_\d+_(\d+).itx",
+        r"PES[_-]\d+_(\d+).itx",
     )
 
     RENAME_KEYS: ClassVar[dict[str, str]] = {
