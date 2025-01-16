@@ -12,8 +12,7 @@ data_dir = Path(__file__).parent.parent / "src" / "arpes" / "example_data"
 
 @pytest.fixture
 def sample_xy() -> ProdigyXY:
-    """
-    Fixture that reads data from a .xy file and returns a ProdigyXY object.
+    """Fixture that reads data from a .xy file and returns a ProdigyXY object.
 
     Reads the contents of the "BLGr_GK_map.xy" file located in the data directory,
     and initializes a ProdigyXY object with the read data.
@@ -30,8 +29,7 @@ class TestXY:
     """test Class for prodigy_xy.py."""
 
     def test_parameters(self, sample_xy: ProdigyXY) -> None:
-        """
-        Test for reading xy file.
+        """Test for reading xy file.
 
         This test verifies the following properties of the `sample_xy` object:
         - The axis information for dimensions d1, d2, and d3.
@@ -50,15 +48,14 @@ class TestXY:
         assert isinstance(sample_xy.params["eff_workfunction"], float)
         assert isinstance(sample_xy.params["excitation_energy"], float)
         np.testing.assert_allclose(sample_xy.params["eff_workfunction"], 4.32)
-        np.testing.assert_allclose(sample_xy.params["excitation_energy"], 21.2182) # type: ignore
+        np.testing.assert_allclose(sample_xy.params["excitation_energy"], 21.2182)
         np.testing.assert_allclose(sample_xy.axis_info["d1"][0][5], 19.782284)
         np.testing.assert_allclose(sample_xy.axis_info["d3"][0][0], -68.0)
 
     def test_integrated_intensity(self, sample_xy: ProdigyXY) -> None:
-        """
-        Test the `integrated_intensity` property of the `ProdigyXY` class.
+        """Test the `integrated_intensity` property of the `ProdigyXY` class.
 
-        This test verifies that the `integrated_intensity` property of the 
+        This test verifies that the `integrated_intensity` property of the
         `sample_xy` instance of `ProdigyXY` returns the expected value.
 
         Parameters:
@@ -68,8 +65,7 @@ class TestXY:
         np.testing.assert_allclose(sample_xy.integrated_intensity, 1.01248214e+08)
 
     def test_convert_to_data_array(self, sample_xy: ProdigyXY) -> None:
-        """
-        Test the conversion of ProdigyXY object to an xarray.DataArray.
+        """Test the conversion of ProdigyXY object to an xarray.DataArray.
 
         This test verifies that the resulting DataArray has the correct dimensions,
         shape, and coordinate values.
