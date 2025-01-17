@@ -872,7 +872,7 @@ class TestBasicDataLoading:
                 },
             },
         ),
-        # Solaris, Uranos beamline
+        # Solaris, Uranos beamline, cut data
         (
             "uranos_load_cut",
             {
@@ -889,6 +889,28 @@ class TestBasicDataLoading:
                         "psi": 0.0,
                         "eV": [-3.619399, 0.1806009, 0.003999],
                         "phi": [-0.28633, 0.26867, 0.0008409],
+                    },
+                    "offset_coords": {},
+                },
+            },
+        ),
+        # Solaris, Uranos beamline, deflector map data
+        (
+            "uranos_load_map",
+            {
+                "file": "basic/Uranos_map.zip",
+                "expected": {
+                    "dims": ["psi", "phi", "eV"],
+                    "coords": {
+                        "x": 1.1,
+                        "y": -2.3,
+                        "z": 0.0,
+                        "beta": 0.0,
+                        "theta": 0.2793,
+                        "alpha": np.deg2rad(90),
+                        "psi": [-0.261799, 0.261799, 0.004363],
+                        "eV": [-0.674957, 0.031603, 0.000736],
+                        "phi": [-0.286333, 0.268672, 0.0008410],
                     },
                     "offset_coords": {},
                 },
