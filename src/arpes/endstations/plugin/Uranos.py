@@ -35,10 +35,10 @@ if TYPE_CHECKING:
     from arpes._typing import Spectrometer
     from arpes.endstations import ScanDesc
 
-__all__ = ["Uranos"]
+__all__ = ["UranosEndstation"]
 
 
-class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstation):
+class UranosEndstation(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstation):
     """Class for Uranos beamline at Solaris Krakow, PL."""
 
     PRINCIPAL_NAME = "Uranos"
@@ -148,7 +148,7 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         # Convert to binding energy notation
         binding_energies = (data.coords["eV"].values
                             - data.attrs["hv"]
-                            + Uranos._ANALYZER_WORK_FUNCTION)
+                            + UranosEndstation._ANALYZER_WORK_FUNCTION)
         data = data.assign_coords({"eV": binding_energies})
 
         return super().postprocess_final(data, scan_desc)
@@ -261,11 +261,13 @@ def _fix_angles(data: xr.DataArray) -> xr.DataArray:
     """
     # Shift manipulator r1 to get theta angle and convert to radians
     if "r1" in data.attrs:
-        data = data.assign_coords({"theta": np.deg2rad(data.r1 - Uranos.NORMAL_EMISSION["r1"])})
+        data = data.assign_coords({"theta":
+                                   np.deg2rad(data.r1 - UranosEndstation.NORMAL_EMISSION["r1"])})
 
     # Shift manipulator r3 to get beta angle and convert to radians
     if "r3" in data.attrs:
-        data = data.assign_coords({"beta": np.deg2rad(data.r3 - Uranos.NORMAL_EMISSION["r3"])})
+        data = data.assign_coords({"beta":
+                                   np.deg2rad(data.r3 - UranosEndstation.NORMAL_EMISSION["r3"])})
 
     # Convert phi to radians
     if "phi" in data.coords:
@@ -286,4 +288,4 @@ def _formatted_value(value: str) -> float | str:
         return value
 
 
-add_endstation(Uranos)
+add_endstation(UranosEndstation)

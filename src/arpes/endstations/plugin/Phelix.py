@@ -28,10 +28,12 @@ if TYPE_CHECKING:
     from arpes._typing import Spectrometer
     from arpes.endstations import ScanDesc
 
-__all__ = ["Phelix"]
+__all__ = ["PhelixEndstation"]
 
 
-class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstation):
+class PhelixEndstation(HemisphericalEndstation,
+            SingleFileEndstation,
+            SynchrotronEndstation):
     """Implements loading xy text files from the Specs Prodigy software."""
 
     PRINCIPAL_NAME = "Phelix"
@@ -116,7 +118,7 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
 
             if "anr1" in data.coords:
                 # Invert the anr1 manipulator axis and shift it to get theta angle
-                anr1 = -data.anr1 - Phelix.NORMAL_EMISSION["anr1"]
+                anr1 = -data.anr1 - PhelixEndstation.NORMAL_EMISSION["anr1"]
                 data = data.assign_coords(anr1=anr1)
                 # Rename anr1 coordinate to theta
                 data = data.rename({"anr1": "theta"})
@@ -184,4 +186,4 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         return data
 
 
-add_endstation(Phelix)
+add_endstation(PhelixEndstation)
