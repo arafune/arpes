@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from logging import DEBUG, INFO
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import xarray as xr
@@ -31,20 +31,27 @@ LOGLEVEL = LOGLEVELS[1]
 logger = setup_logger(__name__, LOGLEVEL)
 
 
-def delaytime_fs(mirror_movement_um: float) -> float:
+def delaytime_fs(
+    mirror_movement: float,
+    units: Literal["um", "mm", "nm", "μm", "AA", "Å"] = "um",
+) -> float:
     """Return delaytime from the mirror movement (not position).
 
     Args:
-        mirror_movement_um (float): mirror movement in micron unit.
+        mirror_movement (float): mirror movement in micron unit.
+        units: Units for mirror movement. default to um (μm).
 
     >>> delaytime_fs(10)
     33.35640951981521
 
     Returns: float
         delay time in fs.
-
     """
-    return 3.335640951981521 * mirror_movement_um
+    return (
+        3.335640951981521
+        * mirror_movement
+        * {"um": 1, "mm": 1e3, "nm": 1e-3, "AA": 1e-4, "μm": 1, "Å": 1e-4}[units]
+    )
 
 
 def position_mm_to_delaytime_fs(position_mm: float, delayline_offset_mm: float = 0) -> float:

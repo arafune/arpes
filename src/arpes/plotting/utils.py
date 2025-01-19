@@ -627,7 +627,10 @@ def imshow_mask(
     over: AxesImage | None = None,
     **kwargs: Unpack[IMshowParam],
 ) -> None:
-    """Plots a mask by using a fixed color and transparency."""
+    """Plots a mask by using a fixed color and transparency.
+
+    Todo: Consider using pcolormesh or removing this function.
+    """
     assert over is not None
 
     if ax is None:
@@ -677,6 +680,8 @@ def imshow_arr(
     Returns:
         tuple: A tuple containing the figure (or None if ax is provided) and the
                AxesImage instance resulting from imshow.
+
+    Todo: Consider using pcolormesh or removing this function.
     """
     fig: Figure | None = None
     if ax is None:

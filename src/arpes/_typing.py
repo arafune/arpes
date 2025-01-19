@@ -121,7 +121,7 @@ CoordsOffset: TypeAlias = Literal[
 ]
 
 
-def flatten_literals(literal_type: type[Literal[str]] | Literal[str]) -> set[str]:
+def flatten_literals(literal_type: Incomplete) -> set[str]:
     """Recursively flattens a Literal type to extract all string values.
 
     Args:
