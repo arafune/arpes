@@ -119,6 +119,7 @@ ignore = [
   "N999",   # invalid-module-name (N999)
   "S101",   # assert (S101)
   "TD002",  # missing-todo-author
+  "A005",   # stdlib-module-shadowing
   "TD003",  # missing-todo-link
   "FIX002", # line-contains-todo
   "G004",   # logging-f-string
