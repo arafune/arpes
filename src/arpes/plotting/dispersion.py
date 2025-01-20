@@ -467,7 +467,7 @@ def labeled_fermi_surface(  # noqa: PLR0913
     ax.set_ylabel(label_for_dim(data, ax.get_ylabel()))
     ax.set_title(title)
 
-    marker_color = "red" if data.S.is_differentiated else "red"
+    marker_color = "RdBu" if data.S.is_differentiated else "red"
 
     if include_bz:
         bz.bz_symmetry(data.S.iter_own_symmetry_points)
@@ -548,7 +548,7 @@ def fancy_dispersion(
     ax.set_title(title, fontsize=14)
 
     # This can probably be pulled out into a a helper
-    marker_color = "red" if data.S.is_differentiated else "red"
+    marker_color = "RdBu" if data.S.is_differentiated else "red"
     if include_symmetry_points:
         for point_name, point_locations in data.attrs.get("symmetry_points", {}).items():
             assert isinstance(point_locations, list | tuple)
