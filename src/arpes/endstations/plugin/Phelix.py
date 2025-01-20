@@ -21,6 +21,7 @@ from arpes.endstations import (
     add_endstation,
 )
 from arpes.endstations.prodigy_xy import load_xy
+from arpes.provenance import Provenance, provenance_from_file
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -28,10 +29,12 @@ if TYPE_CHECKING:
     from arpes._typing import Spectrometer
     from arpes.endstations import ScanDesc
 
-__all__ = ["Phelix"]
+__all__ = ["PhelixEndstation"]
 
 
-class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstation):
+class PhelixEndstation(HemisphericalEndstation,
+            SingleFileEndstation,
+            SynchrotronEndstation):
     """Implements loading xy text files from the Specs Prodigy software."""
 
     PRINCIPAL_NAME = "Phelix"
@@ -93,7 +96,25 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         scan_desc: ScanDesc | None = None,
         **kwargs: str | float,
     ) -> xr.Dataset:
-        """Load single xy file."""
+        """Load single frame from Specs Prodiy generated xy file.
+
+        - Calculate phi or x values depending on the lens mode.
+        - Rename the third dimension (anr1 - manipulator polar roration)
+          to theta angle.
+        - Convert degrees to radians.
+
+        Args:
+            frame_path(str | Path): _description_, by default ""
+            scan_desc(ScanDesc | None): _description_, by default None
+            kwargs(str | int | float): Pass to load_xy
+
+        Returns:
+            xr.Datast: pyARPES is not compatible at this stage.  (postprocess_final is needed.)
+        """
+        provenance_context: Provenance = {
+            "what": "Loaded xy dataset",
+            "by": "load_single_frame",
+        }
         if scan_desc is None:
             scan_desc = {}
         file = Path(frame_path)
@@ -106,6 +127,8 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
                 dispersion_mode = self._LENS_MAPPING[lens_mode]
                 if dispersion_mode:
                     data = data.rename({"nonenergy": "phi"})
+                    # Convert phi to radians
+                    data = data.assign_coords(phi=np.deg2rad(data.phi))
                 else:
                     data = data.rename({"nonenergy": "x"})
             else:
@@ -114,16 +137,33 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
 
             if "anr1" in data.coords:
                 # Invert the anr1 manipulator axis and shift it to get theta angle
-                data = data.assign_coords(
-                    theta = np.deg2rad(-data.anr1 - Phelix.NORMAL_EMISSION["anr1"]))
+                anr1 = -data.anr1 - PhelixEndstation.NORMAL_EMISSION["anr1"]
+                data = data.assign_coords(anr1=anr1)
+                # Rename anr1 coordinate to theta
+                data = data.rename({"anr1": "theta"})
+                # Invert the theta axis
                 data = data.isel(theta=slice(None, None, -1))
+                # Convert theta to radians
+                data = data.assign_coords(
+                    theta = np.deg2rad(data.theta))
+
 
             if "shiftx" in data.coords:
-                # Convert shiftx parameter to psi angle in rad
+                # Rename shiftx coordinate to psi
+                data = data.rename({"shiftx": "psi"})
+                # Convert psi to radians
                 data = data.assign_coords(
-                    psi = np.deg2rad(data.shiftx))
+                    psi = np.deg2rad(data.psi))
 
-            return xr.Dataset({"spectrum": data}, attrs=data.attrs)
+            dataset = xr.Dataset({"spectrum": data}, attrs=data.attrs)
+
+            provenance_from_file(
+                    child_arr=dataset["spectrum"],
+                    file=str(frame_path),
+                    record=provenance_context,
+                )
+            dataset.attrs["location"] = self.PRINCIPAL_NAME
+            return dataset
 
         msg = "Data file must be ended with .xy"
         raise RuntimeError(msg)
@@ -168,7 +208,9 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
             for s in [dv for dv in data.data_vars.values() if "eV" in dv.dims]:
                 s.attrs[k] = v
 
-        return super().postprocess_final(data, scan_desc)
+        data = super().postprocess_final(data, scan_desc)
+        data.S.spectrum.attrs["location"] = self.PRINCIPAL_NAME
+        return data
 
 
-add_endstation(Phelix)
+add_endstation(PhelixEndstation)
