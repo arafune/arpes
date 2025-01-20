@@ -178,6 +178,7 @@ exclude = [
   "merlin\\.py",
   # might be included in the future, though
   "widgets\\.py",
+  "^src/arpes/deep_learning/.*\\.py$",
 ]
 
 

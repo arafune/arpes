@@ -264,7 +264,7 @@ class EndstationBase:
         for f in frames:
             f.coords[scan_coord] = f.attrs[scan_coord]
 
-        frames.sort(key=lambda x: x.coords[scan_coord])
+        frames.sort(key=lambda x: x.coords[scan_coord].min().item())
         return xr.concat(frames, scan_coord)
 
     def resolve_frame_locations(self, scan_desc: ScanDesc | None = None) -> list[Path]:
@@ -648,7 +648,12 @@ class SESEndstation(EndstationBase):
         raw_data = f["/" + primary_dataset_name][:]
 
         scaling = [
-            np.linspace(scale[1], scale[1] + scale[0] * raw_data.shape[i], raw_data.shape[i])
+            np.linspace(
+                scale[1],
+                scale[1] + scale[0] * raw_data.shape[i],
+                raw_data.shape[i],
+                dtype=np.float64,
+            )
             for i, scale in enumerate(scaling)
         ]
 
