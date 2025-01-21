@@ -106,6 +106,8 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
                 dispersion_mode = self._LENS_MAPPING[lens_mode]
                 if dispersion_mode:
                     data = data.rename({"nonenergy": "phi"})
+                    # Convert phi to radians
+                    data = data.assign_coords(phi=np.deg2rad(data.phi))
                 else:
                     data = data.rename({"nonenergy": "x"})
             else:
@@ -114,14 +116,23 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
 
             if "anr1" in data.coords:
                 # Invert the anr1 manipulator axis and shift it to get theta angle
-                data = data.assign_coords(
-                    theta = np.deg2rad(-data.anr1 - Phelix.NORMAL_EMISSION["anr1"]))
+                anr1 = -data.anr1 - Phelix.NORMAL_EMISSION["anr1"]
+                data = data.assign_coords(anr1=anr1)
+                # Rename anr1 coordinate to theta
+                data = data.rename({"anr1": "theta"})
+                # Invert the theta axis
                 data = data.isel(theta=slice(None, None, -1))
+                # Convert theta to radians
+                data = data.assign_coords(
+                    theta = np.deg2rad(data.theta))
+
 
             if "shiftx" in data.coords:
-                # Convert shiftx parameter to psi angle in rad
+                # Rename shiftx coordinate to psi
+                data = data.rename({"shiftx": "psi"})
+                # Convert psi to radians
                 data = data.assign_coords(
-                    psi = np.deg2rad(data.shiftx))
+                    psi = np.deg2rad(data.psi))
 
             return xr.Dataset({"spectrum": data}, attrs=data.attrs)
 
