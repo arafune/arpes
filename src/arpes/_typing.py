@@ -14,7 +14,6 @@ from typing import (
     Any,
     Literal,
     Required,
-    TypeAlias,
     TypedDict,
     TypeGuard,
     TypeVar,
@@ -73,7 +72,7 @@ __all__ = [
 
 
 DataType = TypeVar("DataType", xr.DataArray, xr.Dataset)
-NormalizableDataType: TypeAlias = DataType | str | uuid.UUID
+NormalizableDataType = DataType | str | uuid.UUID
 
 type XrTypes = xr.DataArray | xr.Dataset
 
@@ -107,7 +106,7 @@ LEGENDLOCATION = Literal[
     "center",
 ]
 
-CoordsOffset: TypeAlias = Literal[
+CoordsOffset = Literal[
     "alpha_offset",
     "beta_offset",
     "chi_offset",
