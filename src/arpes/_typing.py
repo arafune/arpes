@@ -75,7 +75,7 @@ __all__ = [
 DataType = TypeVar("DataType", xr.DataArray, xr.Dataset)
 NormalizableDataType: TypeAlias = DataType | str | uuid.UUID
 
-XrTypes: TypeAlias = xr.DataArray | xr.Dataset
+type XrTypes = xr.DataArray | xr.Dataset
 
 ReduceMethod = Literal["sum", "mean"]
 
