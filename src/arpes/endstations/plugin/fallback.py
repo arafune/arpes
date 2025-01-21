@@ -51,6 +51,7 @@ class FallbackEndstation(EndstationBase):
         "Kaindl",
         "ALG-Main",
         "ALG-SToF",
+        "SPD",
     ]
 
     @classmethod

@@ -10,7 +10,7 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.figure import Figure
 
 from arpes.analysis import tarpes
-from src.arpes.plotting.movie import (
+from arpes.plotting.movie import (
     _replace_after_col,
     _replace_after_row,
     plot_movie_and_evolution,

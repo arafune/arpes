@@ -197,6 +197,14 @@ class EndstationBase:
         * `._TOLERATED_EXTENSIONS`: Controlling whether files should be rejected based on their
           extension.
         """
+        warnings.warn(
+            "Thisi is the EndstationBase's `first_find_file`. "
+            "While it would be the result of best effort for serching the `first file` in"
+            "the directrory, but the resultant file may not agree with what you really expected."
+            "Considering the explicit file name specification, or writing your own code to"
+            "return the file name from the arbitrary number in your own endstation plugin class.",
+            stacklevel=2,
+        )
         workspace = CONFIG["WORKSPACE"]
         assert "path" in workspace
         workspace_path = Path(workspace["path"]) / "data" if workspace else Path()
@@ -264,7 +272,7 @@ class EndstationBase:
         for f in frames:
             f.coords[scan_coord] = f.attrs[scan_coord]
 
-        frames.sort(key=lambda x: x.coords[scan_coord])
+        frames.sort(key=lambda x: x.coords[scan_coord].min().item())
         return xr.concat(frames, scan_coord)
 
     def resolve_frame_locations(self, scan_desc: ScanDesc | None = None) -> list[Path]:
@@ -648,7 +656,12 @@ class SESEndstation(EndstationBase):
         raw_data = f["/" + primary_dataset_name][:]
 
         scaling = [
-            np.linspace(scale[1], scale[1] + scale[0] * raw_data.shape[i], raw_data.shape[i])
+            np.linspace(
+                scale[1],
+                scale[1] + scale[0] * raw_data.shape[i],
+                raw_data.shape[i],
+                dtype=np.float64,
+            )
             for i, scale in enumerate(scaling)
         ]
 

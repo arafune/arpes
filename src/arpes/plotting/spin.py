@@ -269,9 +269,7 @@ def polarization_intensity_to_color(
     Returns:
         The rgb color data.
     """
-    if not vmax:
-        # use the 98th percentile data if not provided
-        vmax = np.percentile(data.intensity.values, 98)
+    vmax = vmax if vmax else np.percentile(data.intensity.values, 98)
 
     rgbas = mpl.colormaps["RdBu"]((data.polarization.values / pmax + 1) / 2)
     slices = [slice(None) for _ in data.polarization.dims] + [slice(0, 3)]

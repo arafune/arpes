@@ -9,6 +9,7 @@ earlier in a dataset which can be used to furnish equivalent references.
 
 """
 
+# pyright: reportUnusedImport=false
 from __future__ import annotations
 
 from .background import remove_incoherent_background

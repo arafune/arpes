@@ -1,6 +1,6 @@
 """Top level module for PyARPES."""
 
-# pylint: disable=unused-import
+# pyright: reportUnusedImport=false
 from __future__ import annotations
 
 from pathlib import Path

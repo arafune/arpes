@@ -231,11 +231,11 @@ def process_SToF(dataset: xr.Dataset) -> xr.Dataset:
     ke_axis = np.linspace(e_min, e_max, (e_max - e_min) / de)
 
     dataset = transform_dataarray_axis(
-        build_KE_coords_to_time_coords(dataset, ke_axis),
-        ("time", "eV"),
-        ke_axis,
-        dataset,
-        lambda x: x,
+        func=build_KE_coords_to_time_coords(dataset, ke_axis),
+        old_and_new_axis_names=("time", "eV"),
+        new_axis=ke_axis,
+        dataset=dataset,
+        prep_name=lambda x: x,
     )
 
     dataset = dataset.rename({"t_up": "up", "t_down": "down"})
@@ -261,9 +261,9 @@ def process_DLD(dataset: xr.Dataset) -> xr.Dataset:
         (dataset.attrs["E_max"] - e_min) / dataset.attrs["dE"],
     )
     return transform_dataarray_axis(
-        build_KE_coords_to_time_pixel_coords(dataset, ke_axis),
-        ("t_pixels", "kinetic"),
-        ke_axis,
-        dataset,
-        lambda: "kinetic_spectrum",
+        func=build_KE_coords_to_time_pixel_coords(dataset, ke_axis),
+        old_and_new_axis_names=("t_pixels", "kinetic"),
+        new_axis=ke_axis,
+        dataset=dataset,
+        prep_name=lambda: "kinetic_spectrum",
     )

@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from arpes.endstations.prodigy_itx import ProdigyItx, load_sp2
+from arpes.endstations.prodigy_itx import ProdigyItx, convert_itx_format, load_sp2
 
 data_dir = Path(__file__).parent.parent / "src" / "arpes" / "example_data"
 
@@ -35,28 +35,20 @@ class TestItx:
         assert sample_itx.pixels == (600, 501)
         assert sample_itx.axis_info["x"] == ("I", -12.4792, 12.4792, "deg (theta_y)")
 
-        """Test for integrated_intensity property."""
-
     def test_integrated_intensity(self, sample_itx: ProdigyItx) -> None:
         """Test for integrated_intensity property."""
         np.testing.assert_allclose(sample_itx.integrated_intensity, 666371.3147352)
 
     def test_convert_to_dataarray(self, sample_itx: ProdigyItx) -> None:
         """Test for convert to xr.DataArray."""
-        sample_dataarray = sample_itx.to_data_array()
+        sample_dataarray = sample_itx.to_dataarray()
         assert sample_dataarray.dims == ("phi", "eV")
 
-    def test_convert_itx_fiile(self, sample_itx: ProdigyItx) -> None:
-        """Test itx file.
-
-        [TODO:description]
-
-        Args:
-            sample_itx: [TODO:description]
-
-        Returns:
-            [TODO:description]
-        """
+    def test_convert_itx_format(self, dataarray_cut: xr.DataArray) -> None:
+        """Test convert_itx_format."""
+        list_style = convert_itx_format(dataarray_cut, add_notes=True).split("\n")
+        prodigy_itx = ProdigyItx(list_style)
+        assert prodigy_itx.pixels == (240, 240)
 
 
 class TestSp2:

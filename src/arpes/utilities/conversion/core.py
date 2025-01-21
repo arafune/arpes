@@ -720,8 +720,11 @@ def _element_distance(
     waypoint_a: Mapping[Hashable, float],
     waypoint_b: Mapping[Hashable, float],
 ) -> np.float64:
-    delta = np.array([waypoint_a[k] - waypoint_b[k] for k in waypoint_a])
-    return np.linalg.norm(delta)
+    delta: NDArray[np.float64] = np.array(
+        [waypoint_a[k] - waypoint_b[k] for k in waypoint_a],
+        dtype=np.float64,
+    )
+    return np.float64(np.linalg.norm(delta))
 
 
 def _required_sampling_density(

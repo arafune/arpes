@@ -1,4 +1,5 @@
 """Collect imports from categorized submodules."""
+# pyright: reportUnusedImport=false
 
 from __future__ import annotations
 

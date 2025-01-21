@@ -72,7 +72,7 @@ def load_data(
         compliant with the PyARPES data model and should work seamlessly with PyARPES analysis code.
     """
     try:
-        file = int(str(file))
+        file = int(str(file))  # type: ignore[assignment]  # pragma: no cover
         warnings.warn(
             "This functionality, the data specified by number,  will be removed.",
             DeprecationWarning,
@@ -125,10 +125,7 @@ def load_example_data(example_name: str = "cut") -> xr.Dataset:
     if example_name not in DATA_EXAMPLES:
         msg = f"Could not find requested example_name: {example_name}."
         msg += f"Please provide one of {list(DATA_EXAMPLES.keys())}"
-        warnings.warn(
-            msg,
-            stacklevel=2,
-        )
+        raise KeyError(msg)
 
     location, example = DATA_EXAMPLES[example_name]
     logger.debug(f"location:{location}")
