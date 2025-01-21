@@ -60,8 +60,7 @@ import xarray as xr
 from more_itertools import always_reversible
 from xarray.core.coordinates import DataArrayCoordinates, DatasetCoordinates
 
-import arpes
-
+from . import utilities
 from ._typing import (
     ANGLE,
     HIGH_SYMMETRY_POINTS,
@@ -108,6 +107,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from holoviews import AdjointLayout
     from IPython.display import HTML
+    from matplotlib.animation import FuncAnimation
     from matplotlib.axes import Axes
     from matplotlib.figure import Figure
     from numpy.typing import DTypeLike, NDArray
@@ -1252,7 +1252,7 @@ class ARPESProperty(ARPESPropertyBase):
 
                 for i, plot_var in enumerate(to_plot):
                     spectrum = self._obj[plot_var]
-                    spectrum.transpose("eV", ...).plot(ax=ax[i])
+                    spectrum.transpose("eV", ...).plot(ax=ax[i])  # type: ignore[reportCallIssue]
                     fancy_labels(ax[i])
                     ax[i].set_title(plot_var.replace("_", " "))
 
@@ -1261,7 +1261,7 @@ class ARPESProperty(ARPESPropertyBase):
         elif 1 <= len(self._obj.dims) < 3:  # noqa: PLR2004
             _, ax = plt.subplots(1, 1, figsize=(4, 3))
             spectrum = self._obj
-            spectrum.transpose("eV", ...).plot(ax=ax)
+            spectrum.transpose("eV", ...).plot(ax=ax)  # type: ignore[reportCallIssue]
             fancy_labels(ax, data=self._obj)
             ax.set_title("")
 
@@ -2316,11 +2316,11 @@ class GenericDatasetAccessor(GenericAccessorBase):
         Todo:
             - Add tests.
         """
-        if not isinstance(shift, np.ndarray):
-            shift: NDArray[np.float64] = np.ones((len(dims),)) * shift
+        shift_array = np.ones((len(dims),)) * shift if isinstance(shift, float) else shift
 
         def transform(data: NDArray[np.float64]) -> NDArray[np.float64]:
-            new_shift: NDArray[np.float64] = shift
+            assert isinstance(shift_array, np.ndarray)
+            new_shift: NDArray[np.float64] = shift_array
             for _ in range(len(dims)):
                 new_shift = np.expand_dims(new_shift, axis=0)
 
@@ -2522,7 +2522,7 @@ class GenericDataArrayAccessor(GenericAccessorBase):
         *,
         out: str | None = None,
         **kwargs: Unpack[PColorMeshKwargs],
-    ) -> Path | HTML | Figure:
+    ) -> Path | HTML | Figure | FuncAnimation:
         """Create an animation or save images showing the DataArray's evolution over time.
 
             This method creates a time-based visualization of an `xarray.DataArray`, either as an
@@ -2570,7 +2570,7 @@ class GenericDataArrayAccessor(GenericAccessorBase):
     def map_axes(
         self,
         axes: list[str] | str,
-        fn: Callable[[XrTypes, dict[str, float]], DataType],
+        fn: Callable[[XrTypes, dict[Hashable, float]], DataType],
         dtype: DTypeLike = None,
     ) -> xr.DataArray:
         """Apply a function along specified axes of the DataArray, creating a new DataArray.
@@ -2787,7 +2787,7 @@ class GenericDataArrayAccessor(GenericAccessorBase):
                 other -= mean_shift
             shift_amount = -other / data.G.stride(generic_dim_names=False)[shift_axis]
 
-        shifted_data: NDArray[np.float64] = arpes.utilities.math.shift_by(
+        shifted_data: NDArray[np.float64] = utilities.math.shift_by(
             arr=data.values,
             value=shift_amount,
             axis=data.dims.index(shift_axis),

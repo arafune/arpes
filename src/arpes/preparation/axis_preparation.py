@@ -182,7 +182,7 @@ def dim_normalizer(
 
 
 def transform_dataarray_axis(  # noqa: PLR0913
-    func: Callable[[Incomplete], Incomplete],
+    func: Callable[[xr.DataArray | xr.Dataset, str], Incomplete],
     old_and_new_axis_names: tuple[str, str],
     new_axis: NDArray[np.float64] | xr.DataArray,
     dataset: xr.Dataset,
@@ -208,9 +208,7 @@ def transform_dataarray_axis(  # noqa: PLR0913
     old_axis_name, new_axis_name = old_and_new_axis_names
 
     ds = dataset.copy()
-    transform_spectra: dict[str, xr.DataArray] = {
-        k: v for k, v in ds.data_vars.items() if old_axis_name in v.dims
-    }
+    transform_spectra = {k: v for k, v in ds.data_vars.items() if old_axis_name in v.dims}
     assert isinstance(transform_spectra, dict)
 
     ds.coords[new_axis_name] = new_axis

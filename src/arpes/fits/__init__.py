@@ -1,4 +1,5 @@
 """Utilities related to curve-fitting of ARPES data and xarray format data."""
+# pyright: reportUnusedImport=false
 
 from __future__ import annotations
 

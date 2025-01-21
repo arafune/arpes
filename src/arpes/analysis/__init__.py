@@ -1,5 +1,6 @@
 """Contains common ARPES analysis routines."""
 
+# pyright: reportUnusedImport=false
 from __future__ import annotations
 
 from .align import align

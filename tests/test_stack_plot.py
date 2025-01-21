@@ -9,7 +9,7 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
 from arpes.plotting import stack_plot
-from src.arpes.plotting.stack_plot import (
+from arpes.plotting.stack_plot import (
     flat_stack_plot,
     offset_scatter_plot,
     stack_dispersion_plot,

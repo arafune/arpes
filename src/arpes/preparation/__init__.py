@@ -1,4 +1,5 @@
 """Utility functions used during data preparation and loading."""
+# pyright: reportUnusedImport=false
 
 from __future__ import annotations
 

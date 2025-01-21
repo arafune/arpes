@@ -41,7 +41,7 @@ def mean_and_deviation(
         A dataset with variables corresponding to the mean and standard error of each
         relevant variable in the input DataArray.  (Dimension is reduced.)
     """
-    preferred_axes = ["bootstrap", "cycle", "idx", "ch1"]
+    preferred_axes = ["bootstrap", "cycle", "idx"]
     name = "" if not data.name else name
 
     if not axis:
