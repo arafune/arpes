@@ -21,6 +21,7 @@ from arpes.endstations import (
     add_endstation,
 )
 from arpes.endstations.prodigy_xy import load_xy
+from arpes.provenance import Provenance, provenance_from_file
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -95,7 +96,25 @@ class PhelixEndstation(HemisphericalEndstation,
         scan_desc: ScanDesc | None = None,
         **kwargs: str | float,
     ) -> xr.Dataset:
-        """Load single xy file."""
+        """Load single frame from Specs Prodiy generated xy file.
+
+        - Calculate phi or x values depending on the lens mode.
+        - Rename the third dimension (anr1 - manipulator polar roration)
+          to theta angle.
+        - Convert degrees to radians.
+
+        Args:
+            frame_path(str | Path): _description_, by default ""
+            scan_desc(ScanDesc | None): _description_, by default None
+            kwargs(str | int | float): Pass to load_xy
+
+        Returns:
+            xr.Datast: pyARPES is not compatible at this stage.  (postprocess_final is needed.)
+        """
+        provenance_context: Provenance = {
+            "what": "Loaded xy dataset",
+            "by": "load_single_frame",
+        }
         if scan_desc is None:
             scan_desc = {}
         file = Path(frame_path)
@@ -136,7 +155,15 @@ class PhelixEndstation(HemisphericalEndstation,
                 data = data.assign_coords(
                     psi = np.deg2rad(data.psi))
 
-            return xr.Dataset({"spectrum": data}, attrs=data.attrs)
+            dataset = xr.Dataset({"spectrum": data}, attrs=data.attrs)
+
+            provenance_from_file(
+                    child_arr=dataset["spectrum"],
+                    file=str(frame_path),
+                    record=provenance_context,
+                )
+            dataset.attrs["location"] = self.PRINCIPAL_NAME
+            return dataset
 
         msg = "Data file must be ended with .xy"
         raise RuntimeError(msg)
