@@ -28,6 +28,8 @@ class TestXY:
         assert sample_xy.axis_info["d3"][1] == "polar"
         assert isinstance(sample_xy.params["detector_voltage"], float)
         assert isinstance(sample_xy.params["values_curve"], int)
+        assert isinstance(sample_xy.params["eff_workfunction"], float)
+        assert isinstance(sample_xy.params["excitation_energy"], float)
         np.testing.assert_allclose(sample_xy.params["eff_workfunction"], 4.32)
         np.testing.assert_allclose(sample_xy.params["excitation_energy"], 21.2182)
         np.testing.assert_allclose(sample_xy.axis_info["d1"][0][5], 19.782284)
