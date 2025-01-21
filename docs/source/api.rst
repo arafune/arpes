@@ -228,7 +228,7 @@ Time-Resolved ARPES Related
    analysis.tarpes.normalized_relative_change
    analysis.tarpes.build_crosscorrelation
    analysis.tarpes.delaytime_fs
-   analysis.tarpes.position_to_delaytime
+   analysis.tarpes.position_mm_to_delaytime_fs
 
 
 Spin-ARPES Related
@@ -333,6 +333,7 @@ Incoherent Backgrounds
    :toctree: generated/
    
    correction.background.remove_incoherent_background
+   correction.coords.shift_by
 
 
 Array Alignment
@@ -430,7 +431,7 @@ Data Loading Plugins
    endstations.plugin.merlin.BL403ARPESEndstation
    endstations.plugin.SToF_DLD.SToFDLDEndstation
    endstations.plugin.SPD_main.SPDEndstation
-   endstations.plugin.IF_UMCS.IF_UMCSEndstation
+   endstations.plugin.DSNP_UMCS.DSNP_UMCSEndstation
 
 
 Curve Fitting

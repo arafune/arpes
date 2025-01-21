@@ -14,11 +14,17 @@ committed to the repository and therefore shared. You can use this to as
 adjust settings on various interactive tools. Have a look at
 ``arpes.config`` for what settings are read by default
 
-::
+.. code-block python::
 
    SETTINGS = {
        # contents here
    }
+
+   CONFIG  = {
+       # contents here
+   }
+
+
 
 If you want to override defaults, place a copy of a ``local_config.py``
 file in the repository root (i.e. above the ``arpes`` directory), or

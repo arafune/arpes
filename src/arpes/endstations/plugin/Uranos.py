@@ -1,6 +1,11 @@
-"""Implements data loading for the URANOS beamline @ Solaris.
+"""Implements data loading for the URANOS beamline at Solaris.
 
-Plugin based on the SSRF_NSRL.
+This plugin supports the following scenarios:
+- Load a single map from a .pxt file.
+- Load a 3D map from a .zip file measured with a deflector.
+- Load a 3D map from a .zip file measured as a function of an additional parameter,
+    such as the position on the sample or manipulator rotation. In such cases,
+    this parameter is read as the "Y" coordinate and needs to be adjusted manually.
 """
 
 from __future__ import annotations
@@ -35,11 +40,21 @@ __all__ = ["Uranos"]
 
 class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstation):
     """Class for Uranos beamline at Solaris Krakow, PL."""
+
     PRINCIPAL_NAME = "Uranos"
     ALIASES: ClassVar[list[str]] = ["Uranos", "Uranos_JU", "Uranos_Solaris"]
 
     _SEARCH_DIRECTORIES = ("zip", "pxt")
     _TOLERATED_EXTENSIONS: ClassVar[set[str]] = {".zip", ".pxt"}
+
+    # Angle values of the manipulator that correspond to normal emission
+    NORMAL_EMISSION: ClassVar[dict[str, float]] = {
+        "r1": 178.0,
+        "r3": -88.0,
+    }
+
+    # Analyzer work function in eV (this value is not available in data files)
+    _ANALYZER_WORK_FUNCTION = 4.38
 
     RENAME_KEYS: ClassVar[dict[str, str]] = {
         "sample": "sample_name",
@@ -55,23 +70,14 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         "X": "x",
         "Y": "y",
         "z": "z",
-        "r1": "theta",
-        "r3": "beta",
     }
-
-    NORMAL_EMISSION: ClassVar[dict[str, float]] = {
-        "theta": 178.0,
-        "beta": -88.0,
-    }
-
-    ANALYZER_WORK_FUNCTION = 4.38
 
     MERGE_ATTRS: ClassVar[Spectrometer] = {
         "analyzer_name": "DA30L",
         "analyzer_type": "hemispherical",
         "perpendicular_deflectors": True,
         "parallel_deflectors": True,
-        "work_function": ANALYZER_WORK_FUNCTION,
+        "work_function": _ANALYZER_WORK_FUNCTION,
         "alpha": np.deg2rad(90),
     }
 
@@ -89,74 +95,18 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
 
         file = Path(frame_path)
 
-        if file.suffix == ".pxt":
-            datas = read_single_pxt(frame_path,
-                                    byte_order="<",
-                                    allow_multiple=True,
-                                    ).rename(W="eV", X="phi")
-            data_var_name = next(iter(datas.data_vars.keys()))
-            data = datas[data_var_name]
-            return xr.Dataset({"spectrum": data}, attrs=data.attrs)
+        if file.suffix in self._TOLERATED_EXTENSIONS:
+            if file.suffix == ".pxt":
+                data = _load_pxt(file)
+                data = _fix_angles(data)
+                return xr.Dataset({"spectrum": data}, attrs=data.attrs)
 
-        if file.suffix == ".zip":
-            zf = ZipFile(frame_path)
-            viewer_ini_ziped = zf.open("viewer.ini", "r")
-            viewer_ini_io = io.TextIOWrapper(viewer_ini_ziped)
-            viewer_ini: ConfigParser = ConfigParser(strict=False)
-            viewer_ini.read_file(viewer_ini_io)
+            if file.suffix == ".zip":
+                data = _load_zip(file)
+                data = _fix_angles(data)
+                return xr.Dataset({"spectrum": data}, attrs=data.attrs)
 
-            # Usually, ['width', 'height', 'depth'] -> ['eV', 'phi', 'psi']
-            # For safety, get label name and sort them
-            raw_coords = {}
-            for label in ["width", "height", "depth"]:
-                num, coord, name = determine_dim(viewer_ini, label)
-                raw_coords[name] = [num, coord]
-            raw_coords_name = list(raw_coords.keys())
-            raw_coords_name.sort()
-
-            # After sorting, labels must be ['Energy [eV]', 'Thetax [deg]',
-            # 'Thetay [deg]'], which means ['eV', 'phi', 'psi'].
-            built_coords = {
-                "psi": raw_coords[raw_coords_name[2]][1],
-                "phi": raw_coords[raw_coords_name[1]][1],
-                "eV": raw_coords[raw_coords_name[0]][1],
-            }
-            (psi_num, phi_num, eV_num) = (
-                raw_coords[raw_coords_name[2]][0],
-                raw_coords[raw_coords_name[1]][0],
-                raw_coords[raw_coords_name[0]][0],
-            )
-
-            data_path = viewer_ini.get(viewer_ini.sections()[-1], "path")
-            raw_data = zf.read(data_path)
-            loaded_data = np.frombuffer(raw_data, dtype="float32")
-            loaded_data.shape = (psi_num, phi_num, eV_num)
-
-            attr_path = viewer_ini.get(viewer_ini.sections()[0], "ini_path")
-
-            attr_ziped = zf.open(attr_path, "r")
-            attr_io = io.TextIOWrapper(attr_ziped)
-            attr_conf = ConfigParser(strict=False)
-            attr_conf.read_file(attr_io)
-
-            attrs = {
-                v: _formatted_value(k)
-                for section in attr_conf.sections()
-                for v, k in attr_conf.items(section)
-            }
-            attrs = clean_keys(attrs)
-
-            data = xr.DataArray(
-                loaded_data,
-                dims=["psi", "phi", "eV"],
-                coords=built_coords,
-                attrs=attrs,
-            )
-            return xr.Dataset(
-                {"spectrum": data},
-                attrs=data.attrs,
-            )
-        msg = "Not supported file extension"
+        msg = "Not supported file extension."
         raise RuntimeError(msg)
 
     def postprocess_final(
@@ -167,6 +117,7 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         """Perform final processing on the ARPES data.
 
         - Add missing parameters.
+        - Change notation to binding.
 
         Args:
             data(xr.Dataset): ARPES data
@@ -175,14 +126,14 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         Returns:
             xr.Dataset: pyARPES compatible.
         """
-        """Add missing parameters."""
+        # Add missing parameters
         if scan_desc is None:
             scan_desc = {}
         defaults = {
-            "beta": Uranos.NORMAL_EMISSION["beta"],
+            "beta": 0.0,
             "chi": 0.0,
             "psi": 0.0,
-            "theta": Uranos.NORMAL_EMISSION["theta"],
+            "theta": 0.0,
             "x": 0.0,
             "y": 0.0,
             "z": 0.0,
@@ -194,25 +145,83 @@ class Uranos(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
             for s in [dv for dv in data.data_vars.values() if "eV" in dv.dims]:
                 s.attrs[k] = s.attrs.get(k, v)
 
+        # Convert to binding energy notation
         binding_energies = (data.coords["eV"].values
                             - data.attrs["hv"]
-                            + Uranos.ANALYZER_WORK_FUNCTION)
+                            + Uranos._ANALYZER_WORK_FUNCTION)
         data = data.assign_coords({"eV": binding_energies})
-
-        data = data.rename({k: v for k, v in self.RENAME_KEYS.items() if k in data.coords})
-
-        for coord in ["psi", "phi"]:
-            if coord in data.coords:
-                data = data.assign_coords({coord: np.deg2rad(data[coord])})
-
-        for coord in ["theta", "beta"]:
-            if coord in data.attrs:
-                data.attrs[coord] = np.deg2rad(data.attrs[coord] - Uranos.NORMAL_EMISSION[coord])
 
         return super().postprocess_final(data, scan_desc)
 
 
-def determine_dim(viewer_ini: ConfigParser, dim_name: str) -> tuple[int, NDArray[np.float64], str]:
+def _load_pxt(file: Path) -> xr.DataArray:
+    """Load a single pxt file."""
+    datas = read_single_pxt(file,
+                            byte_order="<",
+                            allow_multiple=True,
+                            ).rename(W="eV", X="phi")
+    data_var_name = next(iter(datas.data_vars.keys()))
+    return datas[data_var_name]
+
+
+def _load_zip(file: Path) -> xr.DataArray:
+    """Load a zip file."""
+    zf = ZipFile(file)
+    viewer_ini_ziped = zf.open("viewer.ini", "r")
+    viewer_ini_io = io.TextIOWrapper(viewer_ini_ziped)
+    viewer_ini: ConfigParser = ConfigParser(strict=False)
+    viewer_ini.read_file(viewer_ini_io)
+
+    # Usually, ['width', 'height', 'depth'] -> ['eV', 'phi', 'psi']
+    # For safety, get label name and sort them
+    raw_coords = {}
+    for label in ["width", "height", "depth"]:
+        num, coord, name = _determine_dim(viewer_ini, label)
+        raw_coords[name] = [num, coord]
+    raw_coords_name = list(raw_coords.keys())
+    raw_coords_name.sort()
+
+    # After sorting, labels must be ['Energy [eV]', 'Thetax [deg]',
+    # 'Thetay [deg]'], which means ['eV', 'phi', 'psi'].
+    built_coords = {
+        "psi": raw_coords[raw_coords_name[2]][1],
+        "phi": raw_coords[raw_coords_name[1]][1],
+        "eV": raw_coords[raw_coords_name[0]][1],
+    }
+    (psi_num, phi_num, eV_num) = (
+        raw_coords[raw_coords_name[2]][0],
+        raw_coords[raw_coords_name[1]][0],
+        raw_coords[raw_coords_name[0]][0],
+    )
+
+    data_path = viewer_ini.get(viewer_ini.sections()[-1], "path")
+    raw_data = zf.read(data_path)
+    loaded_data = np.frombuffer(raw_data, dtype="float32")
+    loaded_data.shape = (psi_num, phi_num, eV_num)
+
+    attr_path = viewer_ini.get(viewer_ini.sections()[0], "ini_path")
+
+    attr_ziped = zf.open(attr_path, "r")
+    attr_io = io.TextIOWrapper(attr_ziped)
+    attr_conf = ConfigParser(strict=False)
+    attr_conf.read_file(attr_io)
+
+    attrs = {
+        v: _formatted_value(k)
+        for section in attr_conf.sections()
+        for v, k in attr_conf.items(section)
+    }
+    attrs = clean_keys(attrs)
+
+    return xr.DataArray(
+        loaded_data,
+        dims=["psi", "phi", "eV"],
+        coords=built_coords,
+        attrs=attrs,
+    )
+
+
+def _determine_dim(viewer_ini: ConfigParser, dim_name: str) -> tuple[int, NDArray[np.float64], str]:
     """Determine dimension values from the ini file.
 
     Args:
@@ -234,6 +243,38 @@ def determine_dim(viewer_ini: ConfigParser, dim_name: str) -> tuple[int, NDArray
     name = viewer_ini.get(spectrum_info, dim_name + "_label")
 
     return num, coord, name
+
+def _fix_angles(data: xr.DataArray) -> xr.DataArray:
+    """Adjusts the coordinates of the manipulator in the given DataArray.
+
+    This function performs the following adjustments:
+    - Shifts the 'r1' coordinate to obtain the 'theta' angle and converts it to radians.
+    - Shifts the 'r3' coordinate to obtain the 'beta' angle and converts it to radians.
+    - Converts the 'phi' coordinate to radians.
+    - Converts the 'psi' coordinate to radians.
+
+    Parameters:
+    data (xr.DataArray): The input data array containing manipulator coordinates.
+
+    Returns:
+    xr.DataArray: The data array with adjusted coordinates.
+    """
+    # Shift manipulator r1 to get theta angle and convert to radians
+    if "r1" in data.attrs:
+        data = data.assign_coords({"theta": np.deg2rad(data.r1 - Uranos.NORMAL_EMISSION["r1"])})
+
+    # Shift manipulator r3 to get beta angle and convert to radians
+    if "r3" in data.attrs:
+        data = data.assign_coords({"beta": np.deg2rad(data.r3 - Uranos.NORMAL_EMISSION["r3"])})
+
+    # Convert phi to radians
+    if "phi" in data.coords:
+        data = data.assign_coords({"phi": np.deg2rad(data.phi)})
+
+    # Convert psi to radians
+    if "psi" in data.coords:
+        data = data.assign_coords({"psi": np.deg2rad(data.psi)})
+    return data
 
 
 def _formatted_value(value: str) -> float | str:

@@ -65,7 +65,7 @@ Laying Lineshapes for Curve Fitting
 -----------------------------------
 
 Use ``.S.show_band_tool()`` to get an interactive lineshape/band layer
-to set inital locations and model structure for complicated curve fits.
+to set initial locations and model structure for complicated curve fits.
 
 Examining Fits
 --------------

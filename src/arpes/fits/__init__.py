@@ -67,5 +67,5 @@ class ParametersArgs(TypedDict, total=False):
     vary: bool  # Whether the parameter is varied during the fit
     min: float  # Lower bound for value (default, -np.inf)
     max: float  # Upper bound for value (default np.inf)
-    expr: str  # Mathematical expression to contstrain the value.
+    expr: str  # Mathematical expression to constrain the value.
     brute_step: float  # step size for grid points in the brute method.

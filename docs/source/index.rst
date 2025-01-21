@@ -8,10 +8,10 @@ That is likely th main reason he has not maintained it.
 There is no motivation to maintain codes that is not being used.
 
 Since the previous version release, the  python ecosystem has been improved significantly.
-Conda is no longer necessarily the best system, especially for Macintosh users.
+Conda is no longer necessarily the best system, especially for the Macintosh users.
 In fact, I believe that it can sometimes cause confusion.
-Therefore,  I have decided to drop the Conda-related support. Instead,
-I strongly recommend to use "rye".
+Thus,  I have decided to drop the Conda-related support. Instead,
+I strongly recommend to use "uv".
 
 While I have added many type hints in the codes to improve usability and maintainability,
 I still feel that the current package is not very user-friencdly for less experienced Python users.
@@ -19,7 +19,7 @@ I recommend igor to analyze, especially for students.
 
 
 
-**December 2020, V3 Release**: The current relase focuses on improving
+**December 2020, V3 Release**: The current release focuses on improving
 usage and workflow for less experienced Python users, lifting version
 incompatibilities with dependencies, and ironing out edges in the user
 experience.
@@ -150,6 +150,8 @@ Tutorial
    Fermi Edge Corrections <notebooks/fermi-edge-correction>
    Momentum Conversion <notebooks/converting-to-kspace>
    Nano XPS Analysis <notebooks/full-analysis-xps>
+   TARPES analysis example <notebooks/example_tarpes_analysis>
+   Figure Gallelry <notebooks/figure_gallery>
 
 Detailed Guides
 ===============

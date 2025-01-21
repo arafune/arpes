@@ -1,11 +1,8 @@
-"""Plotting routines for making the classic stacked line plots.
-
-Think the album art for "Unknown Pleasures".
-"""
+"""Plotting routines for making the classic stacked line plots."""
 
 from __future__ import annotations
 
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from typing import TYPE_CHECKING, Literal, Unpack
 
 import matplotlib as mpl
@@ -21,6 +18,7 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 from arpes.analysis import rebin
 from arpes.constants import TWO_DIMENSION
+from arpes.debug import setup_logger
 from arpes.provenance import save_plot_provenance
 from arpes.utilities import normalize_to_spectrum
 
@@ -38,7 +36,13 @@ if TYPE_CHECKING:
     from matplotlib.typing import ColorType
     from numpy.typing import NDArray
 
-    from arpes._typing import LEGENDLOCATION, ColorbarParam, MPLPlotKwargsBasic
+    from arpes._typing import (
+        LEGENDLOCATION,
+        ColorbarParam,
+        MPLPlotKwargsBasic,
+        Plot2DStyle,
+        ReduceMethod,
+    )
 __all__ = (
     "flat_stack_plot",
     "offset_scatter_plot",
@@ -48,15 +52,7 @@ __all__ = (
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 @save_plot_provenance
@@ -79,23 +75,22 @@ def offset_scatter_plot(  # noqa: PLR0913
     """Makes a stack plot (scatters version).
 
     Args:
-        data(xr.Dataset): _description_
-        name_to_plot(str): name of the spectrum (in many case 'spectrum' is set), by default ""
-        stack_axis(str): _description_, by default ""
-        ax(Axes | None):  _description_, by default None
-        out(str | Path):  _description
-        scale_coordinate(float):  _description_, by default 0.5
-        ylim(tuple[float, float]):  _description_, by default ()
-        fermi_level(float | None): Value corresponds the Fermi level to draw the line,
-            by default None (not drawn)
-        figsize (tuple[float, float]) : figure size. Used in plt.subplots
-        loc: Legend Location
-        color: Colormap
-        aux_errorbars(bool):  _description_, by default True
+        data(xr.Dataset): The dataset containing the data to plot.
+        name_to_plot(str): Name of the spectrum (in many case 'spectrum') to plot, by default "".
+        stack_axis(str): The axis along which to stack the plot, by default "".
+        ax(Axes | None): The axes on which to plot, by default None.
+        out(str | Path): The output path for the plot, by default "".
+        scale_coordinate(float): The scale coordinate, by default 0.5
+        ylim(tuple[float, float]): The y-axis limits, by default ()
+        fermi_level(float | None): The Fermi level to draw the line, by default None (not drawn).
+        figsize (tuple[float, float]) : The figure size, by default (11, 5)
+        loc(LEGENDLOCATION): The locatio of the legend, by default "upper left".
+        color: The color of the plot. Colormap can be set. Default to "black".
+        aux_errorbars(bool):  Whether to include auxiliary error bars, by default True
         kwargs: kwargs passing to args of Colorbar
 
     Returns:
-        Path | tuple[Figure | None, Axes]: _description_
+        Path | tuple[Figure | None, Axes]: The path to the saved plot or the figure and axes.
 
     Raises:
         ValueError
@@ -154,7 +149,7 @@ def offset_scatter_plot(  # noqa: PLR0913
             data_for = data_for.copy(deep=True)
             flattened = data_for.data_vars[name_to_plot].copy(deep=True)
             flattened.values = ylim[0] * np.ones(flattened.values.shape)
-            data_for = data_for.assign(**{name_to_plot: flattened})
+            data_for = data_for.assign({name_to_plot: flattened})
             scatter_with_std(
                 data_for,
                 name_to_plot,
@@ -211,7 +206,7 @@ def flat_stack_plot(  # noqa: PLR0913
     *,
     stack_axis: str = "",
     ax: Axes | None = None,
-    mode: Literal["line", "scatter"] = "line",
+    mode: Plot2DStyle = "line",
     fermi_level: float | None = None,
     figsize: tuple[float, float] = (7, 5),
     title: str = "",
@@ -225,25 +220,22 @@ def flat_stack_plot(  # noqa: PLR0913
     Args:
         data(DataType): ARPES data (xr.DataArray is prepfered)
         stack_axis(str): axis for stacking, by default ""
-        ax (Axes | None): matplotlib Axes, by default None
-        mode(Literal["line", "scatter"]): plot style (line/scatter), by default "line"
+        ax (Axes | None): matplotlib Axes, by default None.j
+        mode(Literal["line", "scatter"]): plot style (line/sckatter), by default "line".
         fermi_level(float|None): Value of the Fermi level to Draw the line, by default None.
-                                 (Not drawn)
-        figsize (tuple[float, float]): figure size
+        figsize (tuple[float, float]): Figure size, by default (7, 5).
         title(str): Title string, by default ""
-        max_stacks(int): maximum number of the staking spectra
-        out(str | Path): Path to the figure.
-        loc: Legend location
-        **kwargs: pass to ax.plot
+        max_stacks(int): Maximum number of the staking spectra, by default 200.
+        out(str | Path): Path to the figure, by default "".
+        loc(LEGENDLOCATION): Legend location, by default "upper left".
+        **kwargs: Additional keyword to pass to ax.plot
 
     Returns:
-        Path | tuple[Figure | None, Axes]
+        Path | tuple[Figure | None, Axes]: The figure and axes of the path to the saved plot.
 
     Raises:
-        ValueError
-            _description_
-        NotImplementedError
-            _description_
+        ValueError: If there is an issue with the input data.
+        NotImplementedError: If a feature is not implemented.
     """
     data = _rebinning(
         data,
@@ -320,7 +312,7 @@ def stack_dispersion_plot(  # noqa: PLR0913
     out: str | Path = "",
     max_stacks: int = 100,
     scale_factor: float = 0,
-    mode: Literal["line", "fill_between", "hide_line", "scatter"] = "line",
+    mode: Plot2DStyle | Literal["fill_between", "hide_line"] = "line",
     offset_correction: Literal["zero", "constant", "constant_right"] | None = "zero",
     shift: float = 0,
     negate: bool = False,
@@ -519,7 +511,7 @@ def _rebinning(
     data: xr.DataArray,
     stack_axis: str,
     max_stacks: int,
-    method: Literal["sum", "mean"] = "sum",
+    method: ReduceMethod = "sum",
 ) -> tuple[xr.DataArray, str, str]:
     """Preparation for stack plot.
 

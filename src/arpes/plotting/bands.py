@@ -36,18 +36,20 @@ def plot_with_bands(
     """Makes a dispersion plot with bands overlaid.
 
     Args:
-        data (DataType): ARPES experimental data
-        bands: [TODO:description]
-        title (str): title of the plot
-        ax: [TODO:description]
-        out: [TODO:description]
-        kwargs: pass to data.S.plot()
+        data (xr.DataArray): ARPES experimental data.
+        bands (Sequence[Band]): Collection of bands to overlay on the plot.
+        title (str, optional): Title of the plot. Defaults to the label of `data.S`.
+        ax (Axes, optional): Matplotlib axis to plot on. If None, a new figure is created.
+        out (str or Path, optional): File path to save the plot. If empty, the plot is shown
+            interactively.
+        kwargs: Additional keyword arguments passed to `data.plot()`.
 
     Returns:
-        [TODO:description]
+        Union[Path, Axes]: File path if `out` is specified; otherwise, the Matplotlib axis object.
     """
     if ax is None:
         _, ax = plt.subplots(figsize=(8, 5))
+
     assert isinstance(ax, Axes)
 
     if not title:
@@ -68,5 +70,6 @@ def plot_with_bands(
         filename = path_for_plot(out)
         plt.savefig(filename)
         return filename
+
     plt.show()
     return ax

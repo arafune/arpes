@@ -125,7 +125,7 @@ class ComposeBoth:
         return y
 
     def __repr__(self) -> str:
-        """Show both of the constitutent parts of this transform."""
+        """Show both of the constituent parts of this transform."""
         return (
             self.__class__.__name__
             + "(\n\t"

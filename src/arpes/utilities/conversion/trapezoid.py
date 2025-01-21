@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import operator
 import warnings
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from typing import TYPE_CHECKING
 
 import numba
 import numpy as np
 import xarray as xr
 
+from arpes.debug import setup_logger
 from arpes.utilities import normalize_to_spectrum
 
 from .base import CoordinateConverter
@@ -26,15 +27,7 @@ __all__ = ["apply_trapezoidal_correction"]
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 @numba.njit(parallel=True)
@@ -141,7 +134,7 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
 
         return {k: v.values for k, v in self.arr.indexes.items()}
 
-    def conversion_for(self, dim: str) -> Callable[..., NDArray[np.float64]]:
+    def conversion_for(self, dim: Hashable) -> Callable[..., NDArray[np.float64]]:
         def _with_identity(*args: NDArray[np.float64]) -> NDArray[np.float64]:
             return self.identity_transform(dim, *args)
 
@@ -157,13 +150,21 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
         binding_energy: NDArray[np.float64],
         phi: NDArray[np.float64],
     ) -> NDArray[np.float64]:
-        """[TODO:summary].
+        """Converts the given phi values to a new phi representation based on binding energy.
+
+        This method computes the new phi values based on the provided binding energy and phi values,
+        and stores the result in `self.phi`. If `self.phi` is already set, it simply returns
+        the existing value.
 
         Args:
-            binding_energy: [TODO:description]
-            phi: [TODO:description]
-            args: [TODO:description]
-            kwargs: [TODO:description]
+            binding_energy (NDArray[np.float64]): The array of binding energy values.
+            phi (NDArray[np.float64]): The array of phi values to be converted.
+
+        Returns:
+            NDArray[np.float64]: The transformed phi values.
+
+        Raises:
+            ValueError: If any required attributes are missing or invalid.
         """
         if self.phi is not None:
             return self.phi
@@ -176,13 +177,17 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
         binding_energy: NDArray[np.float64],
         phi: NDArray[np.float64],
     ) -> NDArray[np.float64]:
-        """[TODO:summary].
+        """Transforms phi values based on binding energy using a forward method.
+
+        This method computes the new phi values based on the provided binding energy and phi values,
+        applying a forward transformation. The result is stored in the `phi_out` array.
 
         Args:
-            binding_energy: [TODO:description]
-            phi: [TODO:description]
-            args: [TODO:description]
-            kwargs: [TODO:description]
+            binding_energy (NDArray[np.float64]): The array of binding energy values.
+            phi (NDArray[np.float64]): The array of phi values to be converted.
+
+        Returns:
+            NDArray[np.float64]: The transformed phi values after the forward transformation.
         """
         phi_out = np.zeros_like(phi)
         _phi_to_phi_forward(binding_energy, phi, phi_out, self.corner_angles)

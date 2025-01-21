@@ -11,13 +11,14 @@ PyARPES, an xr.Dataset will hold the standard deviation data for a given variabl
 
 from __future__ import annotations
 
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from typing import TYPE_CHECKING, Unpack
 
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
 
+from arpes.debug import setup_logger
 from arpes.provenance import save_plot_provenance
 
 from .utils import path_for_plot
@@ -32,15 +33,7 @@ if TYPE_CHECKING:
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 __all__ = (

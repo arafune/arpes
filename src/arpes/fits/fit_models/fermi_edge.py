@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import DataType, XrTypes
+    from arpes._typing import XrTypes
     from arpes.fits import ModelArgs
 
 __all__ = (
@@ -155,15 +155,20 @@ class FermiLorentzianModel(XModelMixin):
         data: XrTypes,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
-        """Placeholder for making better heuristic guesses here.
+        """Makes heuristic guesses for parameters based on input data.
+
+        This function sets initial guesses for a set of parameters based on simple
+        heuristics, such as the minimum and mean of the input data. The function
+        is a placeholder for future improvements where better guesses can be made.
 
         Args:
-            data ([TODO:type]): [TODO:description]
-            x (NONE): in this guess function, x should be None.
-            kwargs: [TODO:description]
+            data (XrTypes): Input data for making parameter guesses. The data is used
+                            to estimate initial values like background levels and amplitude.
+            kwargs: Additional keyword arguments to update parameter values.
 
         Returns:
-            [TODO:description]
+            lf.Parameters: A set of parameters with initial guesses, potentially updated
+                        by the provided `kwargs`.
         """
         pars = self.make_params()
 
@@ -194,8 +199,22 @@ class FermiDiracModel(XModelMixin):
 
         self.set_param_hint("width", min=0)
 
-    def guess(self, data: DataType, **kwargs: Incomplete) -> lf.Parameters:
-        """Placeholder for making better heuristic guesses here."""
+    def guess(self, data: XrTypes, **kwargs: Incomplete) -> lf.Parameters:
+        """Makes heuristic guesses for parameters based on input data.
+
+        This function sets initial guesses for a set of parameters based on simple
+        heuristics, such as the minimum and mean of the input data. The function
+        is a placeholder for future improvements where better guesses can be made.
+
+        Args:
+            data (XrTypes): Input data for making parameter guesses. The data is used
+                            to estimate initial values like background levels and amplitude.
+            kwargs: Additional keyword arguments to update parameter values.
+
+        Returns:
+            lf.Parameters: A set of parameters with initial guesses, potentially updated
+                        by the provided `kwargs`.
+        """
         pars = self.make_params()
 
         pars[f"{self.prefix}center"].set(value=0)
@@ -229,15 +248,22 @@ class GStepBModel(XModelMixin):
         x: None = None,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
-        """Placeholder for making better heuristic guesses here.
+        """Makes heuristic guesses for parameters based on the input data.
+
+        This function initializes parameter values with simple heuristic estimates,
+        such as using the minimum and mean values of the data. The `x` parameter is
+        intentionally ignored, and it should always be `None`.
 
         Args:
-            data ([TODO:type]): [TODO:description]
-            x (NONE): in this guess function, x should be None.
-            kwargs: [TODO:description]
+            data (XrTypes): The input data used to make initial guesses for parameters.
+                            The data's minimum and mean values are used for background
+                            and amplitude estimates.
+            x (None): This parameter is ignored and should always be `None`.
+            kwargs: Additional keyword arguments used to update the guessed parameters.
 
         Returns:
-            [TODO:description]
+            lf.Parameters: A set of parameters initialized with heuristic guesses,
+                        which may be updated with the provided `kwargs`.
         """
         pars = self.make_params()
         assert x is None

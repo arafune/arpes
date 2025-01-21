@@ -4,7 +4,7 @@ X //Igor Text File Exporter Version: 0.3
 X //Created by: SpecsLab Prodigy, Version 4.86.2-r103043 
 X //Acquisition Parameters:
 X //Scan Mode         = Fixed Analyzer Transmission
-X //User Comment      = 
+X //User Comment      = phi_offset:.3125;beta:-3.00;The value of phi_offset and beta are just demonstration, not exact values.;
 X //Analysis Mode     = UPS
 X //Lens Mode         = WideAngleMode
 X //Lens Voltage      = 40V

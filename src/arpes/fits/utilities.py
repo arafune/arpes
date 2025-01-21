@@ -14,7 +14,7 @@ but in the future we would like to provide:
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from os import cpu_count
 from typing import TYPE_CHECKING, Literal, TypeGuard, TypeVar
 
@@ -26,6 +26,7 @@ from tqdm.notebook import tqdm
 
 import arpes.fits.fit_models
 from arpes import VERSION
+from arpes.debug import setup_logger
 from arpes.utilities import normalize_to_spectrum
 
 from . import mp_fits
@@ -43,15 +44,7 @@ __all__ = ("broadcast_model", "result_to_hints")
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 T = TypeVar("T")
 
@@ -67,7 +60,7 @@ def result_to_hints(
         defaults: Returned if `model_result` is None, useful for cell re-evaluation in Jupyter
 
     Returns:
-        A dict containing parameter specifications in key-value rathar than `lmfit.Parameter`
+        A dict containing parameter specifications in key-value rather than `lmfit.Parameter`
         format, as you might pass as `params=` to PyARPES fitting code.
     """
     if model_result is None:
@@ -170,7 +163,7 @@ def broadcast_model(  # noqa: PLR0913
         prefixes: Prefix for the parameter name.  Pass to MPWorker that pass to
           broadcast_common.compile_model.  When prefixes are specified, the number of prefixes must
           be same as the number of models for fitting. If not specified, the prefix automatically is
-          determined as "a\_", "b\_",....  (We recommend to specifiy them explicitly.)
+          determined as "a\_", "b\_",....  (We recommend to specify them explicitly.)
         window: A specification of cuts/windows to apply to each curve fit
         parallelize: Whether to parallelize curve fits, defaults to True if unspecified and more
           than 20 fits were requested.
@@ -293,14 +286,17 @@ def broadcast_model(  # noqa: PLR0913
 
 
 def _fake_wqdm(x: Iterable[T], **kwargs: str | float) -> Iterable[T]:
-    """Fake of tqdm.notebook.tqdm.
+    """A placeholder for tqdm.notebook.tqdm that returns the input iterable unchanged.
+
+    This function simulates the behavior of tqdm for cases where progress tracking
+    is not needed, effectively acting as a no-op that passes the iterable through.
 
     Args:
-        x (Iterable[int]): [TODO:description]
-        kwargs: its dummy parameters, not used.
+        x (Iterable[T]): An iterable to be processed.
+        kwargs: Dummy parameters that are not used in the function.
 
     Returns:
-        Same iterable.
+        Iterable[T]: The same iterable passed as the argument.
     """
     del kwargs  # kwargs is dummy parameter
     return x

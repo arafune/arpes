@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 import xarray as xr
+
 from arpes.fits.fit_models import (
     AffineBackgroundModel,
     AffineBroadenedFD,
@@ -24,33 +25,9 @@ class TestforProperties:
         assert xps_map.S.spectrum_degrees_of_freedom == {"eV"}
         assert xps_map.S.scan_degrees_of_freedom == {"x", "y"}
 
-    def test_is_functions(self, xps_map: xr.Dataset) -> None:
+    def test_is_spatial(self, xps_map: xr.Dataset) -> None:
         """Test for is_* function."""
         assert xps_map.S.is_spatial
-
-    def test_find_spectrum_energy_edges(self, dataarray_cut: xr.DataArray) -> None:
-        """Test for find_spectrum_energy_edges."""
-        np.testing.assert_allclose(
-            np.array([-0.3883721, -0.14883726, 0.00465109]),
-            dataarray_cut.S.find_spectrum_energy_edges(),
-            rtol=1e-5,
-        )
-        np.testing.assert_array_equal(
-            np.array([16, 119, 185]),
-            dataarray_cut.S.find_spectrum_energy_edges(indices=True),
-        )
-
-    def test_find_spectrum_angular_edges(self, dataarray_cut: xr.DataArray) -> None:
-        """Test for find_spectrum_angular_edges."""
-        np.testing.assert_allclose(
-            np.array([0.249582, 0.350811, 0.385718, 0.577704]),
-            dataarray_cut.S.find_spectrum_angular_edges(),
-            rtol=1e-5,
-        )
-        np.testing.assert_allclose(
-            np.array([16, 74, 94, 204]),
-            dataarray_cut.S.find_spectrum_angular_edges(indices=True),
-        )
 
     def test_workfunction(self, dataarray_cut: xr.DataArray) -> None:
         """Test for S.workfunction."""
@@ -77,16 +54,6 @@ class TestforProperties:
                 [467, 472, 464, 458, 438],
             ),
         )
-
-    def test_transpose_front_back(self, dataarray_cut: xr.DataArray) -> None:
-        """Test for transpose_to_front/back."""
-        original_ndarray = dataarray_cut.values
-        transpose_to_front_ndarray = dataarray_cut.S.transpose_to_front("eV").values
-        transpose_to_back_ndarray = (
-            dataarray_cut.S.transpose_to_front("eV").S.transpose_to_back("eV").values
-        )
-        np.testing.assert_allclose(original_ndarray, transpose_to_front_ndarray.T)
-        np.testing.assert_allclose(original_ndarray, transpose_to_back_ndarray)
 
     def test_property_for_degrees_of_freedom(
         self,
@@ -272,26 +239,26 @@ class TestEnergyNotation:
         """Test for switch energy notation."""
         # Test for DataArray
         dataarray_cut.S.switch_energy_notation()
-        assert dataarray_cut.S.energy_notation == "Kinetic"
+        assert dataarray_cut.S.energy_notation == "Final"
         dataarray_cut.S.switch_energy_notation()
         assert dataarray_cut.S.energy_notation == "Binding"
 
         # Test for Dataset
         dataset_cut.S.switch_energy_notation()
-        assert dataset_cut.S.energy_notation == "Kinetic"
+        assert dataset_cut.S.energy_notation == "Final"
         dataset_cut.S.switch_energy_notation()
         assert dataset_cut.S.energy_notation == "Binding"
 
         with pytest.raises(RuntimeError) as e:
             hv_map.S.switch_energy_notation()
-        assert str(e.value) == "Not impremented yet."
+        assert str(e.value) == "Not implemented yet."
 
         with pytest.raises(RuntimeError) as e:
             hv_map.S.switch_energy_notation()
-        assert str(e.value) == "Not impremented yet."
+        assert str(e.value) == "Not implemented yet."
         with pytest.raises(RuntimeError) as e:
             hv_map.spectrum.S.switch_energy_notation()
-        assert str(e.value) == "Not impremented yet."
+        assert str(e.value) == "Not implemented yet."
 
     def test_spectrum_type(self, dataarray_cut: xr.DataArray) -> None:
         """Test spectrum_type."""
@@ -408,7 +375,7 @@ class TestGeneralforDataArray:
         )
 
     def test_G_meshgrid(self, dataarray_cut: xr.DataArray) -> None:
-        """Test for G.meshgrid."""
+        """Test for G.meshgrid, G.scale_meshgrid, G.shift_meshgrid."""
         small_region = dataarray_cut.sel({"eV": slice(-0.01, 0.0), "phi": slice(0.40, 0.42)})
         meshgrid_results = small_region.G.meshgrid()
         np.testing.assert_allclose(
@@ -463,6 +430,54 @@ class TestGeneralforDataArray:
             np.array([-7.7e-08, -7.7e-08, -7.7e-08, -7.7e-08, -7.7e-08]),
         )
         np.testing.assert_allclose(ravel_["data"], np.array([467, 472, 464, 458, 438]))
+
+
+class TestGeneralforDataset:
+    """Test class for GenericDatasetAccessor."""
+
+    def test_G_meshgrid_operation(self, dataarray_cut: xr.DataArray):
+        """Test G.scale_meshgrid and G.shift_meshgrid, and transform_meshgrid."""
+        small_region = dataarray_cut.sel({"eV": slice(-0.01, 0.0), "phi": slice(0.40, 0.42)})
+        meshgrid_set = small_region.G.meshgrid(as_dataset=True)
+        shifted_meshgrid = meshgrid_set.G.shift_meshgrid(("phi",), -0.2)
+        np.testing.assert_allclose(
+            shifted_meshgrid["phi"][1].values,
+            np.array(
+                [
+                    0.20142573,
+                    0.20317106,
+                    0.20491639,
+                    0.20666172,
+                    0.20840704,
+                    0.21015237,
+                    0.2118977,
+                    0.21364303,
+                    0.21538836,
+                    0.21713369,
+                    0.21887902,
+                ],
+            ),
+        )
+
+        scaled_meshgrid = meshgrid_set.G.scale_meshgrid(("eV",), 1.5)
+        np.testing.assert_allclose(
+            scaled_meshgrid["eV"][-1].values,
+            np.array(
+                [
+                    -1.155e-07,
+                    -1.155e-07,
+                    -1.155e-07,
+                    -1.155e-07,
+                    -1.155e-07,
+                    -1.155e-07,
+                    -1.155e-07,
+                    -1.155e-07,
+                    -1.155e-07,
+                    -1.155e-07,
+                    -1.155e-07,
+                ],
+            ),
+        )
 
 
 class TestAngleUnitforDataArray:
@@ -580,3 +595,139 @@ class TestAngleUnitForDataset:
         assert dataset_cut.S.is_slit_vertical is True
         dataset_cut.S.swap_angle_unit()
         assert dataset_cut.S.is_slit_vertical is True
+
+
+class TestShiftCoords:
+    """Test class for correction of coordinates of the XArray."""
+
+    def test_corrected_coords_with_cut_by_phi_offset(self, dataarray_cut: xr.DataArray) -> None:
+        """Test the corrected_coords method with the cut DataArray.
+
+        Args:
+            dataarray_cut (xr.DataArray): The input DataArray.
+        """
+        corrected_cut = dataarray_cut.S.corrected_coords("phi_offset")
+        assert corrected_cut.attrs["phi_offset"] == 0
+        np.testing.assert_array_almost_equal(
+            corrected_cut.coords["phi"].values[:5],
+            np.array([-0.18334318, -0.18159786, -0.17985253, -0.1781072, -0.17636187]),
+        )
+
+    def test_correct_coords_with_cut_by_phi_offset(self, dataarray_cut: xr.DataArray) -> None:
+        """Test the correct_coords method with a cut DataArray.
+
+        Args:
+            dataarray_cut (xr.DataArray): The input DataArray.
+        """
+        correct_cut = dataarray_cut.S.correct_coords("phi_offset")
+        assert correct_cut is None
+        assert dataarray_cut.attrs["phi_offset"] == 0
+        np.testing.assert_array_almost_equal(
+            dataarray_cut.coords["phi"].values[:5],
+            np.array([-0.18334318, -0.18159786, -0.17985253, -0.1781072, -0.17636187]),
+        )
+
+    def test_correct_coords_with_cut2_by_phi_offset_and_beta(
+        self,
+        dataarray_cut2: xr.DataArray,
+    ) -> None:
+        """Test the correct_coords method with the cut2 DataArray.
+
+        Args:
+            dataarray_cut2 (xr.DataArray): The input DataArray.
+        """
+        dataarray_cut2.S.correct_coords("phi_offset")
+        assert dataarray_cut2.attrs["phi_offset"] == 0
+        np.testing.assert_array_almost_equal(
+            dataarray_cut2.coords["phi"].values[:5],
+            np.array(
+                [
+                    -0.22325728,
+                    -0.22253006,
+                    -0.22180284,
+                    -0.22107561,
+                    -0.22034839,
+                ],
+            ),
+        )
+
+        dataarray_cut2.S.correct_coords("beta")
+        assert dataarray_cut2.attrs["beta"] == 0
+        np.testing.assert_array_almost_equal(
+            dataarray_cut2.coords["phi"].values[:5],
+            np.array(
+                [
+                    -0.27561716,
+                    -0.27488994,
+                    -0.27416271,
+                    -0.27343549,
+                    -0.27270827,
+                ],
+            ),
+        )
+
+    def test_corrected_coords_with_cut2_mulitiple_corrections(
+        self,
+        dataarray_cut2: xr.DataArray,
+    ) -> None:
+        """Test the corrected_coords method with the cut2 DataArray and multiple corrections.
+
+        Args:
+            dataarray_cut2 (xr.DataArray): The input DataArray.
+        """
+        corrected = dataarray_cut2.S.corrected_coords("phi_offset").S.corrected_coords("beta")
+        dataarray_cut2.S.correct_coords("beta")
+        dataarray_cut2.S.correct_coords("phi_offset")
+        np.testing.assert_array_almost_equal(
+            corrected.coords["phi"].values,
+            dataarray_cut2.coords["phi"].values,
+        )
+
+    def test_corrected_coords_with_cut2_using_tuple_of_collections(
+        self,
+        dataarray_cut2: xr.DataArray,
+    ) -> None:
+        """Test the corrected_coords method with the cut2 DataArray using a tuple of corrections.
+
+        Args:
+            dataarray_cut2 (xr.DataArray): The input DataArray.
+        """
+        corrected1 = dataarray_cut2.S.corrected_coords("phi_offset").S.corrected_coords("beta")
+        corrected2 = dataarray_cut2.S.corrected_coords(("phi_offset", "beta"))
+        np.testing.assert_array_almost_equal(
+            corrected1.coords["phi"].values,
+            corrected2.coords["phi"].values,
+        )
+
+
+class TestFatSel:
+    """Test class for S.fat_sel."""
+
+    def test_fat_sel_with_sum(self, dataarray_map: xr.DataArray) -> None:
+        fat1 = dataarray_map.S.fat_sel(eV=0, method="sum")
+        expected = dataarray_map.sel({"eV": slice(-0.025, 0.025)}).sum("eV")
+        np.testing.assert_array_almost_equal(fat1.values, expected.values)
+
+    def test_fat_sel_with_mean(self, dataarray_map: xr.DataArray) -> None:
+        fat1 = dataarray_map.S.fat_sel(widths={"eV": 0.05}, eV=-0.1)
+        expected = dataarray_map.sel({"eV": slice(-0.125, -0.075)}).mean("eV")
+        np.testing.assert_array_almost_equal(fat1.values, expected.values)
+
+    def test_arg_handling(self, dataarray_map: xr.DataArray) -> None:
+        """Test handling arguments in fat_sel."""
+        fat1 = dataarray_map.S.fat_sel(eV=0)
+        fat2 = dataarray_map.S.fat_sel(widths={"eV": 0.05}, eV=0)
+        fat3 = dataarray_map.S.fat_sel(eV=0, eV_width=0.05)
+
+        np.testing.assert_array_almost_equal(fat2.values, fat3.values)
+        np.testing.assert_array_almost_equal(fat1.values, fat2.values)
+
+    def test_fat_sel_raises_type_error(self, dataarray_map: xr.DataArray) -> None:
+        with pytest.raises(TypeError, match="The slice center is not spcefied."):
+            dataarray_map.S.fat_sel(widths={"eV": 0.05})
+        with pytest.raises(TypeError, match="The slice center is not spcefied."):
+            dataarray_map.S.fat_sel(eV_width=0.05)
+
+    def test_fat_sel_raise_runtime_error(self, dataarray_map: xr.DataArray) -> None:
+        with pytest.raises(RuntimeError, match="Method should be either 'mean' or 'sum'."):
+            dataarray_map.S.fat_sel(eV=0.05, method="suum")

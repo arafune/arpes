@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import warnings
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
-from typing import TYPE_CHECKING
+from logging import DEBUG, INFO
+from typing import TYPE_CHECKING, TypeAlias
 
 import matplotlib.cm
 import matplotlib.pyplot as plt
@@ -17,6 +17,7 @@ from scipy.spatial.transform import Rotation
 
 from arpes.analysis.mask import apply_mask_to_coords
 from arpes.constants import TWO_DIMENSION
+from arpes.debug import setup_logger
 from arpes.utilities.bz import build_2dbz_poly, process_kpath
 from arpes.utilities.geometry import polyhedron_intersect_plane
 
@@ -42,15 +43,7 @@ __all__ = (
 )
 
 LOGLEVEL = (DEBUG, INFO)[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 class Translation:
@@ -89,7 +82,7 @@ class Translation:
         return vectors + self.translation_vector
 
 
-type Transformation = Rotation | Translation
+Transformation: TypeAlias = Rotation | Translation
 
 
 def segments_standard(
@@ -170,9 +163,6 @@ def plot_plane_to_bz(
         ax: [TODO:description]
         special_points: [TODO:description]
         facecolor: [TODO:description]
-
-    Returns:
-        [TODO:description]
     """
     warnings.warn(
         "This method will be deprecated.",
@@ -262,13 +252,13 @@ def plot_data_to_bz2d(  # noqa: PLR0913
         c, s = np.cos(rotate), np.sin(rotate)
         rotation = np.array([(c, -s), (s, c)])
 
-        raveled = raveled.G.transform_coords(dims, rotation)
+        raveled = raveled.G.transform_meshgrid(dims, rotation)
 
     if scale is not None:
-        raveled = raveled.G.scale_coords(dims, scale)
+        raveled = raveled.G.scale_meshgrid(dims, scale)
 
     if shift is not None:
-        raveled = raveled.G.shift_coords(dims, shift)
+        raveled = raveled.G.shift_meshgrid(dims, shift)
 
     copied = data_array.values.copy()
 

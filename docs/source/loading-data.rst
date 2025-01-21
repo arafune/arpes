@@ -4,40 +4,6 @@ Loading Data
 ============
 
 The only data loading interface you need to be familiar with is ``arpes.io.load_data``.
-This function has several usage patterns for loading data by associated workspace, 
-by "file number", or by absolute or relative paths.
-
-Additionally, you can opt to specify the ARPES setup used to collect the data, or it can be 
-inferred in certain circumstances.
-
-My files are numbered
-~~~~~~~~~~~~~~~~~~~~~
-
-You can just use the numeric fragment identifying your data. For
-instance if you wanted to load the data ``data/my_data_005.pxt``, you
-can use
-
-.. code:: python
-
-   from arpes.io import load_data
-
-   load_data(5, location="BL7")  # loads as MAESTRO microARPES
-
-My files are numbered, and I want to leave the location unspecified
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can leave the `location=` kwarg unspecified in the call to `load_data`.
-It's best to provide the `location` kwarg if you know it, because otherwise PyARPES
-will have to sequentially try loaders (filtered by filetype) to find one that works.
-
-.. code:: python
-
-   from arpes.io import load_data
-
-   load_data(5)  # we don't pass `location=` here, PyARPES will try to figure it out
-
-My files are not numbered
-~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Pass the path to the data, either as a string or a `Path` instance.
 

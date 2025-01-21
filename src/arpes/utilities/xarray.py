@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import warnings
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from typing import TYPE_CHECKING, Any, Concatenate, ParamSpec, TypeVar
 
 import xarray as xr
+
+from arpes.debug import setup_logger
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -28,15 +30,7 @@ __all__ = (
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 T = TypeVar("T")
 
@@ -54,7 +48,7 @@ def unwrap_xarray_item(item: xr.DataArray) -> xr.DataArray | float:
         The safely unwrapped item
     """
     warnings.warn(
-        "This method will be deprecated. (unwarap_xarray_item)",
+        "This method will be deprecated. (unwrap_xarray_item)",
         category=PendingDeprecationWarning,
         stacklevel=2,
     )
@@ -82,7 +76,7 @@ def unwrap_xarray_dict(
 
     """
     warnings.warn(
-        "This method will be deprecated. (unwarap_xarray_dict)",
+        "This method will be deprecated. (unwrap_xarray_dict)",
         category=PendingDeprecationWarning,
         stacklevel=2,
     )
@@ -100,12 +94,12 @@ def apply_dataarray(
 
     Args:
         arr (xr.DataArray): original DataArray.
-        f (Callable): Function to apple the DataArray.
-        args: argments for "f".
+        f (Callable): Function to apply the DataArray.
+        args: arguments for "f".
         kwargs: keyword arguments for "f"
 
     Returns:
-        xr.Dataarray replaced after the function.
+        xr.DataArray replaced after the function.
     """
     return arr.G.with_values(
         f(arr.values, *args, **kwargs),
@@ -153,15 +147,15 @@ def lift_dataarray_attrs(
         *args: P.args,
         **kwargs: P.kwargs,
     ) -> xr.DataArray:
-        """[TODO:summary].
+        """Applies the function to the attributes of the dataarray.
 
         Args:
-            arr (xr.DataArray): ARPES Data
-            *args: Pass to function f
-            **kwargs: Pass to function f
+            arr (xr.DataArray): ARPES data
+            *args: Additional arguments to pass to the function "f".
+            **kwargs: Additional keyword arguments to pass to the function "f".
 
         Returns:
-            xr.DataArray
+            xr.DataArray: New DataArray with modified attributes.
         """
         return xr.DataArray(
             arr.values,
@@ -193,7 +187,7 @@ def lift_datavar_attrs(
         *args: P.args,
         **kwargs: P.kwargs,
     ) -> DataType:
-        """[TODO:summary].
+        """Applies the function to the attributes of the data.
 
         Args:
             data (DataType): ARPES Data (Dataset or DataArray) with attributes to modify.
@@ -204,8 +198,7 @@ def lift_datavar_attrs(
         if isinstance(data, xr.DataArray):
             return arr_lifted(data, *args, **kwargs)
 
-        var_names = list(data.data_vars.keys())
-        new_vars = {k: arr_lifted(data[k], *args, **kwargs) for k in var_names}
+        new_vars = {k: arr_lifted(da, *args, **kwargs) for k, da in data.data_vars.items()}
         new_root_attrs = f(data.attrs, *args, **kwargs)
 
         return xr.Dataset(new_vars, data.coords, new_root_attrs)

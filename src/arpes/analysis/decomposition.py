@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     import numpy as np
     import sklearn
     from numpy.typing import NDArray
+    from sklearn.base import BaseEstimator
 
 __all__ = (
     "factor_analysis_along",
@@ -52,7 +53,7 @@ class FastICAParam(TypedDict, total=False):
 
 class NMFParam(TypedDict, total=False):
     n_composition: int | Literal["auto"] | None
-    init: Literal["random", "nndsvd", "nndsvda", "nndsvdar", "custom", None]
+    init: Literal["random", "nndsvd", "nndsvda", "nndsvdar", "custom"] | None
     solver: Literal["cd", "mu"]
     beta_loss: float | Literal["frobenius", "kullback-leibler", "itakura-saito"]
     tol: float
@@ -73,7 +74,7 @@ class FactorAnalysisParam(TypedDict, total=False):
     noise_variance_init: NDArray[np.float64] | None
     svd_method: Literal["lapack", "randomized"]
     iterated_power: int
-    rotation: Literal["varimax", "quartimax", None]
+    rotation: Literal["varimax", "quartimax"] | None
     random_state: int | None
 
 
@@ -89,7 +90,7 @@ def decomposition_along(
     data: xr.DataArray,
     axes: list[str],
     *,
-    decomposition_cls: type[sklearn.decomposition],
+    decomposition_cls: type[BaseEstimator],
     correlation: bool = False,
     **kwargs: Unpack[DecompositionParam],
 ) -> tuple[xr.DataArray, sklearn.base.BaseEstimator]:
@@ -103,13 +104,13 @@ def decomposition_along(
     (i.e. np.ndarray.ravel()) and unravelling a KD set of observations into a 1D set of
     observations. This is basically grouping axes. As an example, if you had a 4D dataset which
     consisted of 2D-scanning valence band ARPES, then the dimensions on our dataset would be
-    "[x,y,eV,phi]". We can group these into [spatial=(x, y), spectral=(eV, phi)] and perform PCA or
-    another analysis of the spectral features over different spatial observations.
+    "[x, y, eV, phi]". We can group these into [spatial=(x, y), spectral=(eV, phi)] and perform PCA
+    or another analysis of the spectral features over different spatial observations.
 
     If our data was called `f`, this can be accomplished with:
 
     ```
-    transformed, decomp = decomposition_analysis(f.stack(spectral=['eV', 'phi']), ['x', 'y'], PCA)
+    transformed, decomp = decomposition_along(f.stack(spectral=['eV', 'phi']), ['x', 'y'], PCA)
     transformed.dims # -> [X, Y, components]
     ```
 
@@ -136,7 +137,7 @@ def decomposition_along(
         flattened_data: xr.DataArray = data.stack(fit_axis=axes)
         stacked = True
     else:
-        flattened_data = data.S.transpose_to_back(axes[0])
+        flattened_data = data.transpose(..., axes[0])
         stacked = False
 
     if len(flattened_data.dims) != TWO_DIMENSION:

@@ -5,12 +5,13 @@ Primarily, curve fitting and peak-finding utilities for XPS.
 
 from __future__ import annotations
 
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from typing import TYPE_CHECKING
 
 import numpy as np
 import xarray as xr
 
+from arpes.debug import setup_logger
 from arpes.utilities import normalize_to_spectrum
 
 from .filters import savitzky_golay_filter
@@ -24,15 +25,7 @@ __all__ = ("approximate_core_levels",)
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 def local_minima(a: NDArray[np.float64], promenance: int = 3) -> NDArray[np.bool_]:

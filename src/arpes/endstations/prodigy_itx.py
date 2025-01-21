@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from datetime import UTC, datetime
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
@@ -12,6 +12,7 @@ import numpy as np
 import xarray as xr
 
 from arpes.constants import TWO_DIMENSION
+from arpes.debug import setup_logger
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
@@ -21,15 +22,7 @@ __all__ = ["export_itx", "load_itx", "load_sp2"]
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 DIGIT_ID = 3
 
@@ -266,9 +259,6 @@ def export_itx(
         file_name(str | Path): file name for export
         arr(xr.DataArray): pyarpes DataArray
         add_notes(bool): if True, add some info to notes in wave (default: False)
-
-    Returns:
-        str: itx formatted ARPES data
     """
     with Path(file_name).open(mode="w", encoding="UTF-8") as itx_file:
         itx_file.write(convert_itx_format(arr, add_notes=add_notes))

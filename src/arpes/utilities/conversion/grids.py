@@ -24,11 +24,11 @@ __all__ = [
 
 
 def is_dimension_convertible_to_momentum(dimension_name: str) -> bool:
-    """Determine whether a dimension can paticipate in the momentum conversion.
+    """Determine whether a dimension can participate in the momentum conversion.
 
     if dimension name is in  {"phi", "theta", "beta", "chi", "psi", "hv"}, return True.
     Originally, is_dimension_unconvertible(dimension_name: str) is defined.
-        {"phi", "theta", "beta", "chi", "psi", "hv"} can be converted to momemtum.
+        {"phi", "theta", "beta", "chi", "psi", "hv"} can be converted to momentum.
 
     Args:
         dimension_name (str): [description]

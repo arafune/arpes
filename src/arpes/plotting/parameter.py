@@ -33,22 +33,23 @@ def plot_parameter(  # noqa: PLR0913
     figsize: tuple[float, float] = (7, 5),
     **kwargs: Unpack[MPLPlotKwargs],
 ) -> Axes:
-    """Make a simple scatter plot of a parameter from an ``broadcast_fit` result.
+    """Creates a scatter plot of a parameter from a `broadcast_fit` result.
 
     Args:
-        fit_data: Fitting result. (broadcast_fit.results)
-        param_name: The parameter name of fitting.
-        ax: Axes on which to plot. By default, use the current axes.
-        shift: [TODO:description]
-        x_shift: [TODO:description]
-        two_sigma (bool):  [TODO:description]
-        figsize: [TODO:description]
-        kwargs: [TODO:description]
+        fit_data (xr.DataArray): The fitting result, typically from `broadcast_fit.results`.
+        param_name (str): The name of the parameter to plot.
+        ax (Axes, optional): The axes on which to plot. If not provided, a new set of axes will be
+            created.
+        shift (float, optional): A vertical shift for the plot. Default is 0.
+        x_shift (float, optional): A horizontal shift for the x-values. Default is 0.
+        two_sigma (bool, optional): If True, plots the error bars as two standard deviations.
+            Default is False.
+        figsize (tuple[float, float], optional): The size of the figure. Default is (7, 5).
+        kwargs: Additional keyword arguments for the plot (e.g., `color`, `markersize`, etc.).
 
     Returns:
-        [TODO:description]
+        Axes: The Axes object with the plot.
     """
-    """Makes a simple scatter plot of a parameter from an `broadcast_fit` result."""
     if ax is None:
         _, ax = plt.subplots(figsize=figsize)
     assert isinstance(ax, Axes)

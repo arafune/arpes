@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import re
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 import numpy as np
 import xarray as xr
 
+from arpes.debug import setup_logger
 from arpes.endstations import (
     HemisphericalEndstation,
     ScanDesc,
@@ -28,15 +29,7 @@ __all__ = ("BL403ARPESEndstation",)
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 class BL403ARPESEndstation(SynchrotronEndstation, HemisphericalEndstation, SESEndstation):
@@ -195,7 +188,6 @@ class BL403ARPESEndstation(SynchrotronEndstation, HemisphericalEndstation, SESEn
     ) -> xr.Dataset:
         """Loads all regions for a single .pxt frame, and perform per-frame normalization."""
         from arpes.load_pxt import find_ses_files_associated, read_single_pxt
-        from arpes.repair import negate_energy
 
         if scan_desc is None:
             scan_desc = {}
@@ -211,7 +203,9 @@ class BL403ARPESEndstation(SynchrotronEndstation, HemisphericalEndstation, SESEn
         regions = find_ses_files_associated(p, separator="R")
 
         if len(regions) == 1:
-            pxt_data = negate_energy(read_single_pxt(frame_path))
+            pxt_data = read_single_pxt(frame_path).assign_coords(
+                {"eV": -read_single_pxt(frame_path).eV.values},
+            )  # negate energy
             return xr.Dataset({"spectrum": pxt_data}, attrs=pxt_data.attrs)
         # need to merge several different detector 'regions' in the same scan
         region_files = [self.load_single_region(region_path) for region_path in regions]
@@ -247,12 +241,13 @@ class BL403ARPESEndstation(SynchrotronEndstation, HemisphericalEndstation, SESEn
             for k, v in kwargs.items():
                 logger.debug(f"BL403ARPESEndstation: key {k}: value{v} is not used in this class.")
         from arpes.load_pxt import read_single_pxt
-        from arpes.repair import negate_energy
 
         name = Path(region_path).stem
         num = name[-3:]
 
-        pxt_data = negate_energy(read_single_pxt(region_path))
+        pxt_data = read_single_pxt(region_path).assign_coords(
+            {"eV": -read_single_pxt(region_path).eV.values},
+        )  # negate energy
         pxt_data = pxt_data.rename({"eV": "eV" + num})
         pxt_data.attrs["Rnum"] = num
         pxt_data.attrs["alpha"] = np.pi / 2

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from typing import TYPE_CHECKING, Unpack
 
 import holoviews as hv
@@ -11,23 +11,18 @@ import xarray as xr
 from holoviews import AdjointLayout, DynamicMap, Image, QuadMesh
 
 from arpes.constants import TWO_DIMENSION
+from arpes.debug import setup_logger
 from arpes.utilities.combine import concat_along_phi
 from arpes.utilities.normalize import normalize_to_spectrum
 
 if TYPE_CHECKING:
+    from holoviews.streams import PointerX, PointerY
+
     from arpes._typing import ProfileViewParam
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 hv.extension("bokeh")
 
@@ -39,7 +34,7 @@ def _fix_xarray_to_fit_with_holoview(dataarray: xr.DataArray) -> xr.DataArray:
         dataarray (xr.DataArray): input Dataarray
 
     Returns:
-        xr.DataArray, whose coordinates is regularly orderd determined by dataarray.dims.
+        xr.DataArray, whose coordinates is regularly ordered determined by dataarray.dims.
     """
     for coord_name in dataarray.coords:
         if coord_name not in dataarray.dims:
@@ -54,18 +49,21 @@ def concat_along_phi_ui(
     dataarray_b: xr.DataArray,
     **kwargs: Unpack[ProfileViewParam],
 ) -> hv.util.Dynamic:
-    """UI for determination of appropriate parameters of concat_along_phi.
+    """UI for determining the appropriate parameters for the `concat_along_phi` function.
 
     Args:
-        dataarray_a: An AREPS data.
-        dataarray_b: Another ARPES data.
-        use_quadmesh (bool): If true, use hv.QuadMesh instead of hv.Image.
-            In most case, hv.Image is sufficient. However, if the coords is irregulaly spaced,
-            hv.QuadMesh would be more accurate mapping, but slow.
-        kwargs: Options for hv.Image/hv.QuadMesh (width, height, cmap, log)
+        dataarray_a (xr.DataArray): First ARPES data array.
+        dataarray_b (xr.DataArray): Second ARPES data array.
+        use_quadmesh (bool): If True, uses `hv.QuadMesh` instead of `hv.Image`.
+            `hv.Image` is generally sufficient, but if the coordinates are irregularly spaced,
+            `hv.QuadMesh` provides more accurate mapping, though at a slower performance.
+        kwargs: Additional options for `hv.Image` or `hv.QuadMesh`
+            (e.g., `width`, `height`, `cmap`, `log`).
 
     Returns:
-        [TODO:description]
+        hv.util.Dynamic: A dynamic map (UI) to adjust the parameters of `concat_along_phi`
+            interactively.
+
     """
     dataarray_a = _fix_xarray_to_fit_with_holoview(dataarray_a)
     dataarray_b = _fix_xarray_to_fit_with_holoview(dataarray_b)
@@ -135,8 +133,8 @@ def profile_view(
     assert dataarray.ndim == TWO_DIMENSION
     dataarray = _fix_xarray_to_fit_with_holoview(dataarray)
     max_coords = dataarray.G.argmax_coords()
-    posx = hv.streams.PointerX(x=max_coords[dataarray.dims[0]])
-    posy = hv.streams.PointerY(y=max_coords[dataarray.dims[1]])
+    posx: PointerX = hv.streams.PointerX(x=max_coords[dataarray.dims[0]])
+    posy: PointerY = hv.streams.PointerY(y=max_coords[dataarray.dims[1]])
 
     second_weakest_intensity = np.partition(np.unique(dataarray.values.flatten()), 1)[1]
     dataarray = (
@@ -207,15 +205,20 @@ def fit_inspection(
 ) -> AdjointLayout:
     """Fit results inspector.
 
+    This function generates a set of plots to inspect the fit results of ARPES data. The main plot
+    shows the measured ARPES data along with the fit and residuals. Additionally, a dynamic profile
+    view is provided to inspect specific cuts of the data along with the corresponding fit and
+    residual profiles. The plots are interactive and allow for zooming and panning.
+
     Args:
-        dataset: [TODO:description]
-        use_quadmesh (bool): If true, use hv.QuadMesh instead of hv.Image.
-            In most case, hv.Image is sufficient. However, if the coords is irregulaly spaced,
-            hv.QuadMesh would be more accurate mapping, but very slow.
-        kwargs: [TODO:description]
+        dataset (xr.Dataset): The input dataset containing ARPES data, fit, and residual variables.
+        use_quadmesh (bool): If True, uses `hv.QuadMesh` instead of `hv.Image` for plotting.
+            `hv.QuadMesh` is more accurate for irregularly spaced coordinates but may be slower.
+        kwargs: Additional arguments passed to the plot options, such as plot size, colormap, and
+            logarithmic scaling.
 
     Returns:
-        [TODO:description]
+        AdjointLayout: A holoviews AdjointLayout object containing the interactive plots.
     """
     kwargs.setdefault("width", 300)
     kwargs.setdefault("height", 300)
@@ -225,13 +228,13 @@ def fit_inspection(
 
     assert "data" in dataset.data_vars
     arpes_measured: xr.DataArray = _fix_xarray_to_fit_with_holoview(
-        dataset.data.S.transpose_to_back("eV"),
+        dataset.data.transpose(..., "eV"),
     )
     fit = arpes_measured + _fix_xarray_to_fit_with_holoview(
-        dataset.residual.S.transpose_to_back("eV"),
+        dataset.residual.transpose(..., "eV"),
     )
     residual = _fix_xarray_to_fit_with_holoview(
-        dataset.residual.S.transpose_to_back("eV"),
+        dataset.residual.transpose(..., "eV"),
     )
     max_coords = arpes_measured.G.argmax_coords()
     posx = hv.streams.PointerX(x=max_coords[arpes_measured.dims[0]])

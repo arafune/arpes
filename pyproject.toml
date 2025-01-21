@@ -7,7 +7,7 @@ authors = [
   { name = "Ryuichi Arafune", email = "ryuichi.arafune@gmail.com" },
 ]
 readme = "README.rst"
-requires-python = ">= 3.12"
+requires-python = ">= 3.11"
 
 dependencies = [
   "holoviews>=1.16.0",
@@ -39,11 +39,11 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 
-[tool.rye]
+[tool.uv]
 managed = true
 dev-dependencies = [
   "colorama>=0.4.6",
-  "ruff>=0.3.3",
+  "ruff>=0.8.0",
   "pytest>=7.3.2",
   "pytest-cov",
   "pytest-clarity",
@@ -59,6 +59,7 @@ dev-dependencies = [
   "neovim",
   "mypy",
   "nbstripout",
+  "cmap",
 ]
 
 [tool.hatch.metadata]
@@ -100,6 +101,7 @@ pythonVersion = "3.12"
 pythonPlatform = "All"
 
 reportMissingTypeStubs = false
+reportUnreachable = false
 
 [tool.ruff]
 target-version = "py312"
@@ -108,17 +110,16 @@ indent-width = 4
 
 exclude = ["scripts", "docs", "conda"]
 
-
 [tool.ruff.lint]
 ignore = [
   "PD",     # pandas-vet
   "PD011",  # pandas-use-of-dot-values
-  "ANN101", # missing-type-self (ANN101)
   "N802",   # invalid-function-name (N802)
   "N806",   # non-lowercase-variable-in-function
   "N999",   # invalid-module-name (N999)
   "S101",   # assert (S101)
   "TD002",  # missing-todo-author
+  "A005",   # stdlib-module-shadowing
   "TD003",  # missing-todo-link
   "FIX002", # line-contains-todo
   "G004",   # logging-f-string
@@ -205,11 +206,11 @@ norecursedirs = [
   "conda-dist",
   "legacy_files",
   "docs",
-  "src/arpes/deep_learning",
 ]
 
 [tool.coverage.run]
 source = ['arpes']
+omit = ["tests/*", "src/arpes/deep_learning/*"]
 
 [tool.coverage.report]
 exclude_also = [
@@ -221,7 +222,7 @@ exclude_also = [
   "raise NotImplementedError",
   "if 0:",
   "if __name__ == .__main__.:",
-  "if TYPE_CHECKING:",
+  "^if TYPE_CHECKING:",
   "class .*\\bProtocol\\):",
   "@(abc\\.)?abstractmethod",
 ]

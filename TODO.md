@@ -21,6 +21,3 @@ fixed by myself. Here is the guideline to maintain the code.
   - .band_analysis_utils import param_getter, param_stderr_getter
   - Check type of the argument set at lf.Mmodel: Is it really lf.Model?
     lf.ModelResult is better?
-
-- rye for packaging
-  - tidy up yaml files

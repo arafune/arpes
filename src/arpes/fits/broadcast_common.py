@@ -6,12 +6,14 @@ import functools
 import operator
 import warnings
 from collections.abc import Sequence
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from string import ascii_lowercase
 from typing import TYPE_CHECKING, Any, Literal, TypeGuard
 
 import lmfit as lf
 import xarray as xr
+
+from arpes.debug import setup_logger
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -22,15 +24,7 @@ if TYPE_CHECKING:
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 def unwrap_params(

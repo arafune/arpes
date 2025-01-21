@@ -126,7 +126,7 @@ appropriately.
 Additionally, because PyARPES includes recent Juypyter cell evaluations
 in the record, you shouldn’t find the need to be very defensive in your
 use of manual provenance tracking, although you should wrap code that
-forms part of your more permanent analysis repetoire.
+forms part of your more permanent analysis repertoire.
 
 .. figure:: _static/decorator-provenance.png
    :alt: Example data provenance in PyARPES

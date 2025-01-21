@@ -5,7 +5,7 @@ Of course, Python is a dynamic language and nothing can be
 done to prevent the experimenter from circumventing the provenance scheme.
 
 All the same, between analysis notebooks and the data provenenace provided by PyARPES,
-we provide an environment with much higher standard for reproducible analysis than many
+we provide an environment with a much higher standard for reproducible analysis than many
 other current analysis environments.
 
 This provenenace record is automatically exported when using the built in
@@ -27,14 +27,16 @@ import json
 import uuid
 import warnings
 from datetime import UTC
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from pathlib import Path
 from typing import TYPE_CHECKING, ParamSpec, TypedDict, TypeVar
 
 import xarray as xr
 
-from . import CONFIG, VERSION
+from . import VERSION
 from ._typing import XrTypes
+from .config import CONFIG
+from .debug import setup_logger
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Hashable, Sequence
@@ -42,19 +44,11 @@ if TYPE_CHECKING:
     import numpy as np
     from numpy.typing import NDArray
 
-    from ._typing import WorkSpaceType, XrTypes
+    from ._typing import CoordsOffset, WorkSpaceType, XrTypes
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 _Provenance = TypedDict("_Provenance", {"with": str}, total=False)
@@ -101,6 +95,8 @@ class Provenance(_Provenance, total=False):
     interpolation_points: list[Hashable | dict[Hashable, float]]
     axes: list[str]
     enhance_a: float
+    shift_coords: list[tuple[Hashable, float]]
+    coords_correction: list[CoordsOffset]
 
 
 def attach_id(data: XrTypes) -> None:
@@ -152,14 +148,11 @@ R = TypeVar("R")
 
 def update_provenance(
     what: str,
-    *,
-    keep_parent_ref: bool = False,
 ) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """A decorator that promotes a function to one that records data provenance.
 
     Args:
-        what: Description of what transpired, to put into the record.
-        keep_parent_ref: Whether to keep a pointer to the parents in the hierarchy or not.
+        what (str): Description of what transpired, to put into the record.
 
     Returns:
         A decorator which can be applied to a function.
@@ -168,10 +161,13 @@ def update_provenance(
     def update_provenance_decorator(
         fn: Callable[P, R],
     ) -> Callable[P, R]:
-        """[TODO:summary].
+        """A wrapper function that records data provenance for the execution of a function.
 
         Args:
-            fn: [TODO:description]
+            fn (Callable): The function for which provenance will be recorded.
+
+        Returns:
+            Callable: A function that has been extended to record data provenance.[TODO:summary].
         """
 
         @functools.wraps(fn)
@@ -207,7 +203,6 @@ def update_provenance(
                         child_arr=result,
                         parents=all_parents,
                         record=provenance_context,
-                        keep_parent_ref=keep_parent_ref,
                     )
             return result
 
@@ -236,20 +231,21 @@ def save_plot_provenance(plot_fn: Callable[P, R]) -> Callable[P, R]:
 
     @functools.wraps(plot_fn)
     def func_wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-        """[TODO:summary].
+        """A wrapper function that records provenance information after generating a plot.
 
         Args:
-            args: [TODO:description]
-            kwargs: [TODO:description]
+            args: Positional arguments passed to `plot_fn`
+            kwargs: Keyword arguments passed to `plot_fn`
 
         Returns:
-            [TODO:description]
+            str: The file path where the plot is saved[TODO:summary].
         """
         path = plot_fn(*args, **kwargs)
         if isinstance(path, str) and Path(path).exists():
             workspace: WorkSpaceType = CONFIG["WORKSPACE"]
 
             with contextlib.suppress(TypeError, KeyError):
+                assert "name" in workspace
                 workspace_name: str = workspace["name"]
 
             if not workspace_name or workspace_name not in path:
@@ -289,8 +285,6 @@ def provenance(
     child_arr: XrTypes,
     parents: list[XrTypes] | XrTypes,
     record: Provenance,
-    *,
-    keep_parent_ref: bool = False,
 ) -> None:
     """Updates the provenance in place for a piece of data with a single parent.
 
@@ -298,7 +292,6 @@ def provenance(
         child_arr: The array to update. This argument is modified.
         parents: The parent array.
         record: An annotation to add.
-        keep_parent_ref: Whether we should keep a reference to the parents.
     """
     from .utilities.jupyter import get_recent_history
 
@@ -331,16 +324,11 @@ def provenance(
         "version": VERSION,
     }
 
-    if keep_parent_ref:
-        child_arr.attrs["provenance"]["parent"] = parents
-
 
 def provenance_multiple_parents(
     child_arr: XrTypes,
-    parents: list[XrTypes] | XrTypes,
+    parents: list[xr.DataArray] | list[xr.Dataset] | list[XrTypes] | XrTypes,
     record: Provenance,
-    *,
-    keep_parent_ref: bool = False,
 ) -> None:
     """Updates provenance in place when there are multiple array-like data inputs.
 
@@ -352,7 +340,6 @@ def provenance_multiple_parents(
         child_arr: The array to update. This argument is modified.
         parents: The collection of parents.
         record: An annotation to add.
-        keep_parent_ref: Whether we should keep a reference to the parents.
     """
     from .utilities.jupyter import get_recent_history
 
@@ -375,6 +362,3 @@ def provenance_multiple_parents(
         "time": datetime.datetime.now(UTC).isoformat(),
         "version": VERSION,
     }
-
-    if keep_parent_ref:
-        child_arr.attrs["provenance"]["parent"] = parents

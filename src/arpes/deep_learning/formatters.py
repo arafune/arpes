@@ -18,9 +18,9 @@ class SpectrumFormatter:
     """Knows how to plot an ARPES spectrum onto an interpretation plot."""
 
     def show(self, data: Incomplete, ax: Axes) -> None:
-        """Just imshow the data for now with no other decoration."""
+        """Just pcolormesh the data for now with no other decoration."""
         spectrum, _ = data
-        ax.imshow(spectrum, origin="lower")
+        spectrum.plot.pcolormesh(ax=ax)
 
 
 class FloatTitleFormatter:

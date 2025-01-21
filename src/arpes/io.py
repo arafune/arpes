@@ -17,14 +17,17 @@ import pickle
 import warnings
 from collections.abc import Iterable
 from dataclasses import dataclass
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import numpy as np
 import pandas as pd
 import xarray as xr
 
+from .debug import setup_logger
 from .endstations import ScanDesc, load_scan
+from .example_data.mock import build_mock_tarpes
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete
@@ -43,30 +46,18 @@ __all__ = (
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 def load_data(
-    file: str | Path | int,
+    file: str | Path,
     location: str | None = None,
     **kwargs: Incomplete,
 ) -> xr.Dataset:
     """Loads a piece of data using available plugins. This the user facing API for data loading.
 
     Args:
-        file (str | Path | int): An identifier for the file which should be loaded.
-            If this is a number or can be coerced to one, data will be loaded from the workspace
-            data folder if a matching unique file can be found for the number. If the value is a
-            relative path, locations relative to the cwd and the workspace data folder will be
-            checked. Absolute paths can also be used in a pinch.
+        file (str | Path): An identifier for the file which should be loaded, i.e., the file path.
         location (str | type[EndstationBase]): The name of the endstation/plugin to use.
             You should try to provide one. If None is provided, the loader
             will try to find an appropriate one based on the file extension and brute force.
@@ -82,6 +73,11 @@ def load_data(
     """
     try:
         file = int(str(file))
+        warnings.warn(
+            "This functionality, the data specified by number,  will be removed.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
     except ValueError:
         assert isinstance(file, (str | Path))
         file = str(Path(file).absolute())
@@ -112,7 +108,8 @@ DATA_EXAMPLES: dict[str, tuple[str, str]] = {
     "nano_xps": ("example_data", "nano_xps.nc"),
     "temperature_dependence": ("example_data", "temperature_dependence.nc"),
     "cut2": ("SPD", "example_itx_data.itx"),
-    "map2": ("IF_UMCS", "BLGr_GK_example_xy_data.xy"),
+    "cut3": ("DSNP_UMCS", "BLGr_K_cut.xy"),
+    "map2": ("DSNP_UMCS", "BLGr_GK_map.xy"),
 }
 
 
@@ -120,7 +117,7 @@ def load_example_data(example_name: str = "cut") -> xr.Dataset:
     """Provides sample data for executable documentation.
 
     Args:
-        example_name: (cut, cut2, map, map2, photon_energy, nano_xps, temperature_dependence)
+        example_name: (cut, cut2, cut3, map, map2, photon_energy, nano_xps, temperature_dependence)
 
     Returns:
         example DataSet
@@ -166,8 +163,16 @@ class ExampleData:
         return load_example_data("cut2")
 
     @property
+    def cut3(self) -> xr.Dataset:
+        return load_example_data("cut3")
+
+    @property
     def map2(self) -> xr.Dataset:
         return load_example_data("map2")
+
+    @property
+    def t_arpes(self) -> list[xr.DataArray]:
+        return build_mock_tarpes()
 
 
 example_data = ExampleData()
@@ -219,7 +224,7 @@ def stitch(
     )
 
     if sort:
-        loaded.sort(key=lambda x: x.coords[built_axis_name])
+        loaded.sort(key=lambda x: np.min(x.coords[built_axis_name].values))
     assert isinstance(loaded, Iterable)
     concatenated = xr.concat(loaded, dim=built_axis_name)
     if "id" in concatenated.attrs:
@@ -254,7 +259,7 @@ def _df_or_list_to_files(
     assert not isinstance(
         df_or_list,
         list | tuple,
-    ), "Expected an interable for a list of the scans to stitch together"
+    ), "Expected an iterable for a list of the scans to stitch together"
     return list(df_or_list)
 
 
@@ -311,6 +316,7 @@ def easy_pickle(data_or_str: str | object, name: str = "") -> object:
     """
     # we are loading data
     if isinstance(data_or_str, str) or not name:
+        assert isinstance(data_or_str, str)
         return load_pickle(data_or_str)
     # we are saving data
     assert isinstance(name, str)

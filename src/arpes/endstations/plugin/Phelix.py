@@ -1,4 +1,10 @@
-"""Implements data loading for the Phelix beamline @ Solaris."""
+"""Implements data loading for the Phelix beamline @ Solaris.
+
+The plugin supports flowing scenarios:
+- Loading single maps.
+- Loading 3D map measured with deflector.
+- Loading 3D map measured using manipulator rotation by polar angle.
+"""
 
 from __future__ import annotations
 
@@ -17,6 +23,8 @@ from arpes.endstations import (
 from arpes.endstations.prodigy_xy import load_xy
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from arpes._typing import Spectrometer
     from arpes.endstations import ScanDesc
 
@@ -31,7 +39,8 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
 
     _TOLERATED_EXTENSIONS: ClassVar[set[str]] = {".xy"}
 
-    LENS_MAPPING: ClassVar[dict[str, bool]] = {
+    # Mapping of lens modes to dispersion or magnification modes
+    _LENS_MAPPING: ClassVar[dict[str, bool]] = {
         "HighAngularDispersion": True,
         "MediumAngularDispersion": True,
         "LowAngularDispersion": True,
@@ -42,20 +51,32 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         "HighMagnification": False,
     }
 
+    # Angle values of the manipulator that correspond to normal emission
+    NORMAL_EMISSION: ClassVar[dict[str, float]] = {
+        "anr1": 83.5,
+    }
+
     RENAME_KEYS: ClassVar[dict[str, str]] = {
         "eff_workfunction": "workfunction",
+        "acquisition_date": "aquisition_date_utc",
         "analyzer_slit": "slit",
         "analyzer_lens": "lens_mode",
         "detector_voltage": "mcp_voltage",
         "excitation_energy": "hv",
         "region": "id",
-        "shiftx": "psi",
-        "anr1": "theta",
     }
 
-    NORMAL_EMISSION: ClassVar[dict[str, float]] = {
-        "theta": 83.5,
+    ATTR_TRANSFORMS: ClassVar[dict[str, Callable[..., dict[str, float | list[str] | str]]]] = {
+        "aquisition_date_utc": lambda _: {
+            "date": _.split()[0],
+            "time": _.split()[1],
+        },
+        "slit": lambda _: {
+            "slit_number": int(_.split(":")[0]),
+            "slit_width": float(_.split(":")[1].split("x")[0]),
+        },
     }
+
 
     MERGE_ATTRS: ClassVar[Spectrometer] = {
         "analyzer": "Specs PHOIBOS 225",
@@ -79,6 +100,29 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         if file.suffix in self._TOLERATED_EXTENSIONS:
             data = load_xy(frame_path, **kwargs)
 
+            # Calculate phi or x values depending on the lens mode.
+            lens_mode = data.attrs["analyzer_lens"].split(":")[0]
+            if lens_mode in self._LENS_MAPPING:
+                dispersion_mode = self._LENS_MAPPING[lens_mode]
+                if dispersion_mode:
+                    data = data.rename({"nonenergy": "phi"})
+                else:
+                    data = data.rename({"nonenergy": "x"})
+            else:
+                msg = f"Unknown Analyzer Lens: {lens_mode}"
+                raise ValueError(msg)
+
+            if "anr1" in data.coords:
+                # Invert the anr1 manipulator axis and shift it to get theta angle
+                data = data.assign_coords(
+                    theta = np.deg2rad(-data.anr1 - Phelix.NORMAL_EMISSION["anr1"]))
+                data = data.isel(theta=slice(None, None, -1))
+
+            if "shiftx" in data.coords:
+                # Convert shiftx parameter to psi angle in rad
+                data = data.assign_coords(
+                    psi = np.deg2rad(data.shiftx))
+
             return xr.Dataset({"spectrum": data}, attrs=data.attrs)
 
         msg = "Data file must be ended with .xy"
@@ -91,10 +135,8 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
     ) -> xr.Dataset:
         """Perform final processing on the ARPES data.
 
-        - Calculate phi or x values depending on the lens mode.
+        - Change notation to binding energy.
         - Add missing parameters.
-        - Rename keys and dimensions in particular the third dimension that
-        could be psi andle or theta angle in this endstation.
 
         Args:
             data(xr.Dataset): ARPES data
@@ -103,23 +145,11 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
         Returns:
             xr.Dataset: pyARPES compatible.
         """
-        # Convert to binding energy
+        # Convert to binding energy notation
         binding_energies = data.coords["eV"].values - data.attrs["hv"]
         data = data.assign_coords({"eV": binding_energies})
 
-        lens_mode = data.attrs["lens_mode"].split(":")[0]
-        if lens_mode in self.LENS_MAPPING:
-            dispersion_mode = self.LENS_MAPPING[lens_mode]
-            if dispersion_mode:
-                data = data.rename({"nonenergy": "phi"})
-                data = data.assign_coords(phi=np.deg2rad(data.phi))
-            else:
-                data = data.rename({"nonenergy": "x"})
-        else:
-            msg = f"Unknown Analyzer Lens: {lens_mode}"
-            raise ValueError(msg)
-
-        """Add missing parameters."""
+        # Add missing parameters
         if scan_desc is None:
             scan_desc = {}
         defaults = {
@@ -138,15 +168,6 @@ class Phelix(HemisphericalEndstation, SingleFileEndstation, SynchrotronEndstatio
             for s in [dv for dv in data.data_vars.values() if "eV" in dv.dims]:
                 s.attrs[k] = v
 
-        data = data.rename({k: v for k, v in self.RENAME_KEYS.items() if k in data.coords})
-
-        if "psi" in data.coords:
-            data = data.assign_coords(psi=np.deg2rad(data.psi))
-        if "theta" in data.coords:
-            data = data.assign_coords(theta=np.deg2rad(
-                - data.theta - Phelix.NORMAL_EMISSION["theta"],
-            ))
-            data = data.isel(theta=slice(None,None,-1))
         return super().postprocess_final(data, scan_desc)
 
 

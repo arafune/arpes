@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
-from typing import TYPE_CHECKING, Literal
+from logging import DEBUG, INFO
+from typing import TYPE_CHECKING
 
 import numpy as np
 import xarray as xr
@@ -12,6 +12,7 @@ import arpes.constants
 import arpes.models.band
 import arpes.utilities
 import arpes.utilities.math
+from arpes.debug import setup_logger
 from arpes.fits import GStepBModel, broadcast_model
 from arpes.provenance import update_provenance
 from arpes.utilities import normalize_to_spectrum
@@ -20,7 +21,7 @@ from arpes.utilities.math import fermi_distribution
 from .filters import gaussian_filter_arr
 
 if TYPE_CHECKING:
-    from arpes._typing import DataType
+    from arpes._typing import DataType, ReduceMethod
 
 __all__ = (
     "condense",
@@ -32,15 +33,7 @@ __all__ = (
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 @update_provenance("Fit Fermi Edge")
@@ -188,7 +181,7 @@ def rebin(
     data: DataType,
     shape: dict[str, int] | None = None,
     bin_width: dict[str, int] | None = None,
-    method: Literal["sum", "mean"] = "sum",
+    method: ReduceMethod = "sum",
     **kwargs: int,
 ) -> DataType:
     """Rebins the data onto a different (smaller) shape.
@@ -201,7 +194,7 @@ def rebin(
     When both ``shape`` and ``bin_width`` are supplied, ``shape`` is used.
 
     Dimensions corresponding to missing entries in ``shape`` or ``reduction`` will not
-    be changed.
+    be changed
 
     Args:
         data: ARPES data
@@ -217,9 +210,9 @@ def rebin(
         The rebinned data.
     """
     bin_width = bin_width or {}
-    for k in kwargs:
+    for k, v in kwargs.items():
         if k in data.dims:
-            bin_width[k] = kwargs[k]
+            bin_width[k] = v
     if shape is None:
         shape = {}
         for k, v in bin_width.items():
@@ -234,7 +227,7 @@ def _bin(
     data: DataType,
     bin_axis: str,
     bins: int,
-    method: Literal["sum", "mean"],
+    method: ReduceMethod,
 ) -> DataType:
     original_left, original_right = (
         data.coords[bin_axis].min().item(),

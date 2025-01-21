@@ -6,8 +6,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-from arpes import CONFIG, DATA_PATH 
-from arpes.config import  DATASET_PATH
+from arpes import DATA_PATH 
+from arpes.config import CONFIG, DATASET_PATH
 sys.path.append("/Users/chstansbury/PyCharmProjects/python-arpes/")
 
 

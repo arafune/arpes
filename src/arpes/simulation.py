@@ -427,7 +427,7 @@ class SpectralFunctionMFL(SpectralFunction):  # pylint: disable=invalid-name
             k: The momentum axis.
             omega: The energy axis.
             temperature: The temperature to use for the calculation. Defaults to None.
-            mfl_parameter (tuple[float, float]): The MFL paramter ('a', and 'b').
+            mfl_parameter (tuple[float, float]): The MFL parameter ('a', and 'b').
               Defaults to (10.0, 1.0)
         """
         super().__init__(k, omega, temperature)
@@ -451,7 +451,7 @@ class SpectralFunctionBSSCO(SpectralFunction):
         k: NDArray[np.float64] | None = None,
         omega: NDArray[np.float64] | None = None,
         temperature: float = 20,
-        gap_paramters: tuple[float, float, float] = (50, 30, 0),
+        gap_parameters: tuple[float, float, float] = (50, 30, 0),
     ) -> None:
         """Initializes from parameters.
 
@@ -460,10 +460,10 @@ class SpectralFunctionBSSCO(SpectralFunction):
             omega: The energy axis.
             temperature: The temperature to use for the calculation. Defaults to None.
             delta: The gap size.
-            gap_paramters (tuple[float, float, float]): Gap paramter of the BSSCO,
+            gap_parameters (tuple[float, float, float]): Gap parameter of the BSSCO,
               Delta, and two Gamma pamaramters  (s- and p-wave)
         """
-        self.delta, self.gamma_s, self.gamma_p = gap_paramters
+        self.delta, self.gamma_s, self.gamma_p = gap_parameters
         super().__init__(k, omega, temperature)
 
     def digest_to_json(self) -> dict[str, Any]:

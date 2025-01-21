@@ -13,7 +13,7 @@ See `convert_coordinate_forward`.
 from __future__ import annotations
 
 import warnings
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from typing import TYPE_CHECKING, Literal, TypeGuard, TypeVar, Unpack
 
 import numpy as np
@@ -22,6 +22,7 @@ from numpy.typing import NDArray
 
 from arpes._typing import is_dict_kspacecoords
 from arpes.analysis.filters import gaussian_filter_arr
+from arpes.debug import setup_logger
 from arpes.provenance import update_provenance
 from arpes.utilities import normalize_to_spectrum
 
@@ -49,15 +50,7 @@ __all__ = (
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 A = TypeVar("A", NDArray[np.float64], float)
 
@@ -377,7 +370,7 @@ def convert_coordinates(
             + expand_to("hv", raw_coords["hv"])
             - arr.S.analyzer_work_function
         )
-    elif arr.S.energy_notation == "Kinetic":
+    elif arr.S.energy_notation == "Final":
         kinetic_energy = expand_to("eV", raw_coords["eV"]) - arr.S.analyzer_work_function
     else:
         warnings.warn(
@@ -512,7 +505,7 @@ def convert_coordinates_to_kspace_forward(arr: XrTypes) -> xr.Dataset:
     )
     if arr.S.energy_notation == "Binding":
         kinetic_energy = binding_energy + photon_energy
-    elif arr.S.energy_notation == "Kinetic":
+    elif arr.S.energy_notation == "Final":
         kinetic_energy = binding_energy
     else:
         warnings.warn(

@@ -12,6 +12,7 @@ of freedom, the excitation delay—referred to through PyARPES as
 ``delay``—and the pump wavelength.
 
 Analysis tools for Tr-ARPES exist in ``arpes.analysis.tarpes``. Plotting
-utilities are to be found in ``arpes.plotting.tarpes``.
+utilities are to be found in ``arpes.plotting.movie``.
 
-More details and analysis examples to come in the future.
+More details and analysis examples can be found in
+:doc:`TARPES examples <notebooks/example_tarpes_analysis>`.

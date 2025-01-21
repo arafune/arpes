@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from pathlib import Path
 from typing import ClassVar
 
@@ -11,24 +11,16 @@ import numpy as np
 import xarray as xr
 
 from arpes import DATA_PATH
+from arpes.debug import setup_logger
 from arpes.endstations import ScanDesc, SESEndstation
 from arpes.load_pxt import read_single_pxt
 from arpes.provenance import Provenance, provenance_from_file
-from arpes.repair import negate_energy
 
 __all__ = ("IgorExportEndstation",)
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 class IgorExportEndstation(SESEndstation):
@@ -68,7 +60,9 @@ class IgorExportEndstation(SESEndstation):
             return self.load_SES_h5(scan_desc=scan_desc, robust_dimension_labels=True, **kwargs)
 
         # it's given by SES PXT files
-        pxt_data = negate_energy(read_single_pxt(frame_path))
+        pxt_data = read_single_pxt(frame_path).assign_coords(
+            {"eV": -read_single_pxt(frame_path).eV.values},
+        )  # negate energy
         return xr.Dataset({"spectrum": pxt_data}, attrs=pxt_data.attrs)
 
     def load_SES_h5(

@@ -30,7 +30,7 @@ version = ".".join(arpes.__version__.split(".")[:2])
 # The full version, including alpha/beta/rc tags
 release = arpes.__version__
 
-# supress some output information for nbconvert, don't open tools
+# suppress some output information for nbconvert, don't open tools
 
 nbsphinx_allow_errors = True
 

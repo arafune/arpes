@@ -191,7 +191,7 @@ data (``xy``) and the transformed data (``f(xy)``). To do this we used
 the utility function ``generate_marginal_for`` that can be used to
 create browsable marginal plots for high dimensional data sets. Here we
 do not want to integrate out any dimensions so we passed an tuple as the
-first argument. With the rest of the invokation we specify to add the
+first argument. With the rest of the invocation we specify to add the
 plot to the layout ``self.content_layout`` in the locations (0,0) and
 (1,0). Because we are not linking plots we don’t need cursors.
 

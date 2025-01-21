@@ -9,14 +9,84 @@ Primary (X.-.-) version numbers are used to denote backwards
 incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
-4.0.2 (XXXX-YY-ZZ)
+4.2.3 (2025-1-5)
 ^^^^^^^^^^^^^^^^^^
 
 Changed
 ~~~~~~~
 
-* Required python version >= 3.11
+* Deprecated: arrange_by_indices, unarrange_by_indice in utilities/__init__ 
+
+4.2.2 (2024-12-31)
+^^^^^^^^^^^^^^^^^^
+
+Changed
+~~~~~~~
+
+* Update S.fat_sel.
+* Add figure_gallery.ipynb
+* Rename IF_UMCS to DSN_UMCS
+
+4.2.1 (2024-12-26)
+^^^^^^^^^^^^^^^^^^
+
+Changed
+~~~~~~~
+
+* Changed internally.  repair.py is removed.  API does not change.
+
+4.2.0 (2024-12-25)
+^^^^^^^^^^^^^^^^^^
+
+Changed
+~~~~~~~
+
+* Not recommend to use the number to identify the file in io.load_data.
+* Update plot_movie(), build_crosscorrelation and add a new function, plot_movie_with_appropriate_args() (#63, #67, #68)
+
+* Remove keep_parent_ref arg 
+
+* Method name change
+  * S.correct_angle_by -> S.correct_coords [DeprecatedWarning]
+  * S.corrected_angle_by -> S.corrected_coords [DeprecatedWarning]
+  * S.transpose_to_front -> S.transpose_to_front [DeprecatedWarning]
+
+* Deprecated method 
+  * transpose_to_front  (Use standard Xarray transform)  [DeprecatedWarning] (#65)
+  * transpose_to_back (Use standard Xarray transform)    [DeprecatedWarning] (#65)
+
+* Remove unused or not so deeply related to ARPES file
+  * optics.py, exceptions.py, and images.py
+
+  
+Minor
+~~~~~
+
+* Method name change
+  These methods are used internally, so most users don't need to care the change.
+
+  * S.shift_coords -> shift_meshgrid
+  * S.scale_coords -> scale_meshgrid
+  * S.transform_coords -> transform_meshgrid
+
+
+* Chenge the energy notation name (Kintic -> Final)
+  This is used internally, so most users don't need to care the change.
+
+4.1.0 (2024-11-20)
+^^^^^^^^^^^^^^^^^^
+
+Changed
+~~~~~~~
+
+* As this version, we can begin with `import arpes`.
 * Add new endstation
+* Logging and endstation plugin can be selected from local_config.py
+
+Minor
+~~~~~
+
+* Recommend to use uv, instead of rye.
 
 4.0.1 (2024-07-21)
 ^^^^^^^^^^^^^^^^^^
@@ -29,7 +99,7 @@ The name change
 * corrections -> correction
 
      This is somehow backwards incopatibilities.  However, the effect for most is really minor,
-     because this functionalites are not so frequently used. Thus the major version number has not been changed.
+     because this functionalities are not so frequently used. Thus the major version number has not been changed.
 
 * New UI
 
@@ -64,7 +134,7 @@ Changed
     * Remove G.extent
     * Remove overlapped_stack_dispersion_plot
         - use stack_dispersion_plot_with_appropriate_args
-    * Revise the k-conversion.  The origianl version is correct from the view of the coding, but incorrect from the physics!
+    * Revise the k-conversion.  The original version is correct from the view of the coding, but incorrect from the physics!
     * introduce new attrs, "energy_notation". if not specified, attrs["energy_notation"] = "Binding" is assumed to keep the consistency from the previous version.
 
     * see Changes.md for others
@@ -113,7 +183,7 @@ New
    and the content available greatly expanded.
 
    * Tutorials for common types of analysis are available as Jupyter notebooks.
-   * An organized API documentation page is availabe.
+   * An organized API documentation page is available.
    * Docstrings have been massively expanded to cover the public API
      and most of the internal API.
    * The documentation build process has been simplified.
@@ -439,7 +509,7 @@ New:
 ~~~~
 
 1. Improved API documentation.
-2. Most recent interative plot context is saved to
+2. Most recent interactive plot context is saved to
    ``arpes.config.CONFIG['CURRENT_CONTEXT']``. This allows simple and
    transparent recovery in case you forget to save the context and
    performed a lot of work in an interactive session. Additionally, this
@@ -452,7 +522,7 @@ New:
 Changed:
 ~~~~~~~~
 
-1. Metadata reworked to a common format accross all endstations. This is
+1. Metadata reworked to a common format across all endstations. This is
    now documented appropriately with the data model.
 
 .. _fixed-8:
@@ -487,7 +557,7 @@ New:
    ARPES experiments from inside PyARPES.
 
    1. As an example: After conducting nano-XPS, you can use PCA to
-      select your sample region and export a scan sequnce just over the
+      select your sample region and export a scan sequence just over the
       sample ROI or over the border between your sample and another
       area.
 

@@ -1,14 +1,13 @@
-"""Utilities related to statistical bootstraps.
+"""Utilities for statistical bootstraps, particularly useful for ToF experiments.
+
+Bootstraps can be tricky to apply correctly. Ensure you understand their
+appropriateness for your data before using them. ToF-ARPES analyzers have
+limitations such as varying efficiency across the detector due to MCP burn-in,
+and electron aberration and focusing issues.
 
 It can sometimes be difficult to assess when bootstraps are appropriate,
 so make sure to consider this before you just stick a bootstrap around
 your code and stuff the resultant error bar into your papers.
-
-This is most useful on data coming from ToF experiments, where individual electron
-arrivals are counted, but even here you must be aware of tricky aspects of
-the experiment: ToF-ARPES analyzers are not perfect, their efficiency can vary dramatically
-across the detector due to MCP burn-in, and electron aberration and focusing
-must be considered.
 """
 
 from __future__ import annotations
@@ -18,7 +17,7 @@ import copy
 import functools
 import random
 from dataclasses import dataclass
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar
 
 import numpy as np
@@ -27,6 +26,7 @@ import xarray as xr
 from tqdm.notebook import tqdm
 
 from .analysis.sarpes import to_intensity_polarization
+from .debug import setup_logger
 from .provenance import update_provenance
 from .utilities import lift_dataarray_to_generic
 from .utilities.normalize import normalize_to_spectrum
@@ -39,7 +39,8 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import DataType
+    from arpes._typing import AnalysisRegion, DataType
+    from arpes.utilities import DesignatedRegions
 
 __all__ = (
     "Normal",
@@ -53,21 +54,13 @@ __all__ = (
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 @update_provenance("Estimate prior")
 def estimate_prior_adjustment(
     data: xr.DataArray,
-    region: dict[str, Any] | str | None = None,
+    region: AnalysisRegion | dict[str, DesignatedRegions] | None = None,
 ) -> np.float64:
     r"""Estimates distribution generating the intensity histogram of pixels in a spectrum.
 
@@ -254,7 +247,7 @@ class Normal(Distribution):
         )
 
     @classmethod
-    def from_param(cls: type, model_param: lf.Model.Parameter) -> Incomplete:
+    def from_param(cls: type, model_param: lf.Parameters) -> Incomplete:
         """Generates a Normal from an `lmfit.Parameter`."""
         return cls(center=model_param.value, stderr=model_param.stderr)
 
@@ -276,7 +269,7 @@ def propagate_errors(f: Callable[P, R]) -> Callable[P, R]:
         f: The inner function to wrap
 
     Returns:
-        The wrapped function handling distributions tranparently.
+        The wrapped function handling distributions transparently.
     """
 
     @functools.wraps(f)

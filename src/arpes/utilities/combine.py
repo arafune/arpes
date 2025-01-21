@@ -2,25 +2,18 @@
 
 from __future__ import annotations
 
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 
 import xarray as xr
 
+from arpes.debug import setup_logger
 from arpes.provenance import Provenance, provenance_multiple_parents
 
 __all__ = ("concat_along_phi",)
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, level=LOGLEVEL)
 
 
 def concat_along_phi(
@@ -96,7 +89,6 @@ def concat_along_phi(
         concat_array,
         [arr_a, arr_b],
         record=provenance_contents,
-        keep_parent_ref=True,
     )
     return concat_array
 

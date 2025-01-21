@@ -56,11 +56,12 @@ def sort_axis(data: xr.DataArray, axis_name: str) -> xr.DataArray:
     """Sorts slices of `data` along `axis_name` so that they lie in order.
 
     Args:
-        data(xr.DataArray): [TODO:description]
-        axis_name(str): [TODO:description]
+        data (xr.DataArray): The xarray data to be sorted.
+        axis_name (str): The name of the axis along which to sort.
 
-    Returns(xr.DataArray):
-        [TODO:description]
+    Returns:
+        xr.DataArray: The sorted xarray data.orts slices of `data` along `axis_name` so that they
+            lie in order.
     """
     assert isinstance(data, xr.DataArray)
     copied = data.copy(deep=True)
@@ -74,20 +75,21 @@ def sort_axis(data: xr.DataArray, axis_name: str) -> xr.DataArray:
 
 @update_provenance("Flip data along axis")
 def flip_axis(
-    arr: xr.DataArray,  # valuse is used
+    arr: xr.DataArray,  # values is used
     axis_name: str,
     *,
     flip_data: bool = True,
 ) -> xr.DataArray:
-    """Flips the coordinate values along an axis w/o changing the data as well.
+    """Flips the coordinate values along an axis without changing the data.
 
     Args:
-        arr (xr.DataArray): [TODO:description]
-        axis_name(str): [TODO:description]
-        flip_data(bool): [TODO:description]
+        arr (xr.DataArray): The xarray data to be modified.
+        axis_name (str): The name of the axis to flip.
+        flip_data (bool): If True, the data will also be flipped along the axis.
 
-    Returns(xr.DataArray):
-        [TODO:description]
+    Returns:
+        xr.DataArray: The xarray data with flipped coordinates.Flips the coordinate values along an
+            axis w/o changing the data as well.
     """
     coords = copy.deepcopy(arr.coords)
     coords[axis_name] = coords[axis_name][::-1]
@@ -162,10 +164,13 @@ def normalize_total(data: XrTypes, *, total_intensity: float = 1000000) -> xr.Da
 def dim_normalizer(
     dim_name: str,
 ) -> Callable[[xr.DataArray], xr.DataArray]:
-    """Safe partial application of dimension normalization.
+    """Returns a function for safely applying dimension normalization.
 
     Args:
-        dim_name (str): [TODO:description]
+        dim_name (str): The name of the dimension to normalize.
+
+    Returns:
+        Callable: A function that normalizes the dimension of an xarray data.
     """
 
     def normalize(arr: xr.DataArray) -> xr.DataArray:
@@ -186,16 +191,20 @@ def transform_dataarray_axis(  # noqa: PLR0913
     *,
     remove_old: bool = True,
 ) -> xr.Dataset:
-    """Applies a function onto a DataArray axis.
+    """Applies a function to a DataArray axis.
 
     Args:
-        func ([TODO:type]): [TODO:description]
-        old_and_new_axis_names (tuple[str, str]) : old and new axis names as the tuple form
-        new_axis ([TODO:type]): [TODO:description]
-        dataset(xr.Dataset): [TODO:description]
-        prep_name ([TODO:type]): [TODO:description]
-        transform_spectra ([TODO:type]): [TODO:description]
-        remove_old ([TODO:type]): [TODO:description]
+        func (Callable): The function to apply to the axis of the DataArray
+        old_and_new_axis_names (tuple[str, str]): Tuple containing the old and new axis names
+        new_axis (NDArray[np.float64] | xr.DataArray): Values for the new axis
+        dataset (xr.Dataset): The dataset to transform
+        prep_name (Callable): Function to prepare the name for the transformed DataArrays
+        transform_spectra (dict[str, xr.DataArray] | None): Dictionary of spectra to transform
+            (default is None)
+        remove_old (bool): Whether to remove the old axis (default is True)
+
+    Returns:
+        xr.Dataset: A new dataset with the transformed axisApplies a function onto a DataArray axis.
     """
     old_axis_name, new_axis_name = old_and_new_axis_names
 

@@ -4,13 +4,15 @@ from __future__ import annotations
 
 import operator
 import warnings
-from logging import DEBUG, INFO, WARNING, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO, WARNING
 from typing import TYPE_CHECKING, ClassVar
 
 import lmfit as lf
 import numpy as np
 import xarray as xr
 from lmfit.models import GaussianModel
+
+from arpes.debug import setup_logger
 
 if TYPE_CHECKING:
     from collections.abc import Hashable, Sequence
@@ -26,15 +28,7 @@ __all__ = ("XModelMixin", "gaussian_convolve")
 
 
 LOGLEVEL = (DEBUG, INFO, WARNING)[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 def _prep_parameters(
@@ -48,7 +42,7 @@ def _prep_parameters(
 
     Returns:
         lf.Parameters
-        Note that lf.Paramters class not, lf.Parameter
+        Note that lf.Parameters class not, lf.Parameter
 
     Notes:
         Example of lf.Parameters()
@@ -105,20 +99,32 @@ class XModelMixin(lf.Model):
         transpose: bool = False,
         **kwargs: Incomplete,
     ) -> ModelResult:
-        """Performs a fit on xarray data after guessing parameters.
+        """Performs a fit on xarray or ndarray data after guessing parameters.
 
-        Params allows you to pass in hints as to what the values and bounds on parameters
-        should be. Look at the lmfit docs to get hints about structure
+        This method uses the `lmfit` library for fitting and allows for parameter guesses.
+        You can pass initial values and bounds for the parameters through the `params` argument.
+        The fitting can be done with optional weights, and additional keyword arguments can be
+        passed to the `lmfit.Model.fit` function.
 
         Args:
-            data (xr.DataArray): [TODO:description]
-            params (lf.Parameters|dict| None): Fitting parameters
-            weights ([TODO:type]): [TODO:description]
-            guess (bool): [TODO:description]
-            prefix_params: [TODO:description]
-            transpose: [TODO:description]
-            kwargs([TODO:type]): pass to lf.Model.fit
-                Additional keyword arguments, passed to model function.
+            data (xr.DataArray | NDArray[np.float64]): The data to fit.
+                It can be either an xarray DataArray or a NumPy ndarray.
+            params (lf.Parameters | dict[str, ParametersArgs] | None, optional): Initial fitting
+                parameters. This can be an `lf.Parameters` object or a dictionary of parameter
+                names and their initial values or bounds.
+            weights (xr.DataArray | NDArray[np.float64] | None, optional): Weights for the fitting
+                process, either as an xarray DataArray or a NumPy ndarray.
+            guess (bool, optional): If True, guess the initial parameters based on the data.
+                Default is True.
+            prefix_params (bool, optional): If True, prefix parameters with the object's prefix.
+                Default is True.
+            transpose (bool, optional): If True, transpose the data before fitting.
+                Default is False.
+            kwargs: Additional keyword arguments passed to the `lmfit.Model.fit` function.
+
+        Returns:
+            ModelResult: The result of the fitting process, including the fit parameters and other
+                information.
         """
         if isinstance(data, xr.DataArray):
             real_data, flat_data, coord_values, new_dim_order = self._real_data_etc_from_xarray(
@@ -229,15 +235,14 @@ class XModelMixin(lf.Model):
         xr_weights: xr.DataArray,
         new_dim_order: Sequence[Hashable] | None,
     ) -> NDArray[np.float64]:
-        """Return Weigths ndarray from xarray.
+        """Convert xarray weights to a flattened ndarray with an optional new dimension order.
 
         Args:
-            xr_weights (xr.DataArray): [TODO:description]
-            new_dim_order (Sequence[Hashable] | None): new dimension order
-
+            xr_weights (xr.DataArray): The weights data stored in an xarray DataArray.
+            new_dim_order (Sequence[Hashable] | None): The desired order for dimensions, or None.
 
         Returns:
-            [TODO:description]
+            NDArray[np.float64]: Flattened NumPy array of weights, reordered if specified.
         """
         if self.n_dims == 1:
             return xr_weights.values
@@ -254,13 +259,17 @@ class XModelMixin(lf.Model):
         dict[str, NDArray[np.float64]],
         Sequence[Hashable] | None,
     ]:
-        """Helper function: Return real_data, flat_data, coord_valuesn, new_dim_order from xarray.
+        """Helper function: Returns real data, flat data, coordinates, and new dimension order.
 
         Args:
-            data: (xr.DataArray) [TODO:description]
+            data (xr.DataArray): The data array containing the information to process.
 
         Returns:
-            real_data, flat_data, coord_values and new_dim_order from xarray
+            tuple: A tuple containing:
+                - real_data (NDArray[np.float64]): The raw data values from the array.
+                - flat_data (NDArray[np.float64]): The flattened data values.
+                - coord_values (dict[str, NDArray[np.float64]]): A dictionary of coordinate values.
+                - new_dim_order (Sequence[Hashable] | None): The new dimension order if changed.
         """
         real_data, flat_data = data.values, data.values
         assert len(real_data.shape) == self.n_dims

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import contextlib
 import datetime
-import errno
 import itertools
 import json
 import pickle
@@ -13,7 +12,7 @@ import warnings
 from collections import Counter
 from collections.abc import Callable, Hashable, Iterable, Iterator, Sequence
 from datetime import UTC
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, Unpack
 
@@ -29,10 +28,11 @@ from matplotlib.lines import Line2D
 from matplotlib.offsetbox import AnchoredOffsetbox, AuxTransformBox, TextArea, VPacker
 from titlecase import titlecase
 
-from arpes import CONFIG, SETTINGS, VERSION
-from arpes._typing import IMshowParam, XrTypes
-from arpes.config import FIGURE_PATH, attempt_determine_workspace, is_using_tex
+from arpes import VERSION
+from arpes._typing import IMshowParam, Plot2DStyle, XrTypes
+from arpes.config import CONFIG, FIGURE_PATH, SETTINGS, attempt_determine_workspace, is_using_tex
 from arpes.constants import TWO_DIMENSION
+from arpes.debug import setup_logger
 from arpes.utilities import normalize_to_spectrum
 from arpes.utilities.jupyter import get_notebook_name, get_recent_history
 
@@ -99,15 +99,7 @@ __all__ = (
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 @contextlib.contextmanager
@@ -147,7 +139,7 @@ class GradientFillParam(
     IMshowParam,
     total=False,
 ):
-    step: Literal["pre", "mid", "post", None]
+    step: Literal["pre", "mid", "post"] | None
 
 
 def h_gradient_fill(
@@ -567,7 +559,7 @@ def quick_tex(
 def lineplot_arr(
     arr: XrTypes,
     ax: Axes | None = None,
-    method: Literal["plot", "scatter"] = "plot",
+    method: Plot2DStyle = "line",
     mask: list[slice] | None = None,
     mask_kwargs: Incomplete | None = None,
     **kwargs: Incomplete,
@@ -674,16 +666,17 @@ def imshow_arr(
     over: AxesImage | None = None,
     **kwargs: Unpack[IMshowParam],
 ) -> tuple[Figure | None, AxesImage]:
-    """Similar to plt.imshow but users different default origin, and sets appropriate extents.
+    """Display ARPES data using imshow with default settings suited for xr.DataArray.
 
     Args:
-        arr (xr.DataArray): ARPES data
-        ax (Axes): [TODO:description]
-        over ([TODO:type]): [TODO:description]
-        kwargs: pass to ax.imshow
+        arr (xr.DataArray): ARPES data to be visualized.
+        ax (Axes | None): The Axes object to plot on; creates a new figure if None.
+        over (AxesImage | None): Optional, overlays an existing image if provided.
+        kwargs: Additional arguments to pass to ax.imshow, such as colormap, alpha, etc.
 
     Returns:
-        The axes and quadmesh instance.
+        tuple: A tuple containing the figure (or None if ax is provided) and the
+               AxesImage instance resulting from imshow.
     """
     fig: Figure | None = None
     if ax is None:
@@ -959,8 +952,7 @@ def load_data_for_figure(p: str | Path) -> None:
     """Tries to load the data associated with a given figure by unpickling the saved data."""
     path = str(p)
     stem = str(Path(path).parent / Path(path).stem)
-    if stem.endswith("-PAPER"):
-        stem = stem[:-6]
+    stem = stem.removesuffix("-PAPER")
 
     pickle_file = stem + ".pickle"
 
@@ -1081,35 +1073,27 @@ def path_for_plot(desired_path: str | Path) -> Path:
         attempt_determine_workspace()
 
     workspace = CONFIG["WORKSPACE"]
+    logger.debug(f"CONFIG['WORKSPACE']: {workspace}")
 
     if not workspace:
         warnings.warn("Saving locally, no workspace found.", stacklevel=2)
         return Path.cwd() / desired_path
 
     try:
-        figure_path = FIGURE_PATH
-        if figure_path is None:
-            figure_path = Path(workspace["path"]) / "figures"
-
+        figure_path = FIGURE_PATH or Path(workspace["path"]) / "figures"
         filename = (
             Path(figure_path)
             / workspace["name"]
             / datetime.datetime.now(tz=datetime.UTC).date().isoformat()
             / desired_path
-        )
-        filename = Path(filename).absolute()
+        ).resolve()
         parent_directory = Path(filename).parent
-        if not Path(parent_directory).exists():
-            try:
-                Path(parent_directory).mkdir(parents=True)
-            except OSError as exc:
-                if exc.errno != errno.EEXIST:
-                    raise
-            else:
-                return filename
+        parent_directory.mkdir(parents=True, exist_ok=True)
     except Exception:
         logger.exception("Misconfigured FIGURE_PATH saving locally")
         return Path.cwd() / desired_path
+    else:
+        return filename
 
 
 def path_for_holoviews(desired_path: str) -> str:
@@ -1295,7 +1279,8 @@ def label_for_dim(
             "spectrum": "Intensity ( arb. )",
         }
         if isinstance(data, xr.Dataset | xr.DataArray):
-            if data.S.energy_notation == "Kinetic":
+            assert isinstance(data, xr.Dataset | xr.DataArray)
+            if data.S.energy_notation == "Final":
                 raw_dim_names["eV"] = r"Final State Energy ( eV )"
             else:
                 raw_dim_names["eV"] = r"Binding Energy ( eV )"
@@ -1323,7 +1308,7 @@ def label_for_dim(
             "spectrum": "Intensity ( arb. )",
         }
         if isinstance(data, xr.DataArray | xr.Dataset):
-            if data.S.energy_notation == "Kinetic":
+            if data.S.energy_notation == "Final":
                 raw_dim_names["eV"] = "Final State Energy ( eV )"
             else:
                 raw_dim_names["eV"] = "Binding Energy ( eV )"

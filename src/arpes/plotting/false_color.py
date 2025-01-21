@@ -32,7 +32,21 @@ def false_color_plot(  # noqa: PLR0913
     pmin_pmax: tuple[float, float] = (0, 1),
     figsize: tuple[float, float] = (7, 5),
 ) -> Path | tuple[Figure | None, Axes]:
-    """Plots a spectrum in false color after conversion to R, G, B arrays."""
+    """Plots a spectrum in false color after conversion to R, G, B arrays.
+
+    Args:
+        data_rgb (tuple[xr.Dataset, xr.Dataset, xr.Dataset]): Tuple containing the R, G, B datasets.
+        ax (Axes | None, optional): Matplotlib Axes object. If None, a new figure and axes are
+            created.
+        out (str | Path, optional): Path to save the plot. If empty, the plot is not saved.
+        invert (bool, optional): If True, inverts the colors in the HSV space.
+        pmin_pmax (tuple[float, float], optional): Percentile range for normalization.
+        figsize (tuple[float, float], optional): Size of the figure if a new one is created.
+
+    Returns:
+        Path: If `out` is specified, returns the path where the plot is saved.
+        tuple[Figure | None, Axes]: If `out` is not specified, returns the figure and axes objects.
+    """
     data_r_arr, data_g_arr, data_b_arr = (normalize_to_spectrum(d) for d in data_rgb)
     pmin, pmax = pmin_pmax
 

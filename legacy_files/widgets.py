@@ -639,7 +639,7 @@ def pca_explorer(  # noqa: C901, PLR0915  # Might be removed in the future.
         """
         for_scatter = pca.isel(
             {component_dim: context["selected_components"]},
-        ).S.transpose_to_back(component_dim)
+        ).transpose(..., component_dim)
 
         size: NDArray[np.float64] = data.mean(other_dims).stack(pca_dims=pca_dims).values
         norm = np.expand_dims(np.linalg.norm(pca.values, axis=(0,)), axis=-1)
@@ -796,7 +796,7 @@ def kspace_tool(  # noqa: PLR0915, C901 # Might be removed in the future.
         data.coords["eV"] = 0
 
     if "eV" in data.dims:
-        data.S.transpose_to_front("eV")
+        data.transpose("eV", ...)
     data = data.copy(deep=True)
 
     ctx: CurrentContext = {"original_data": original_data, "data": data, "widgets": []}

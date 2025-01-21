@@ -1,20 +1,24 @@
 """Specialized type annotations for use in PyARPES.
 
-In particular, we frequently allow using the `DataType` annotation,
-which refers to either an xarray.DataArray|xarray.Dataset.
+In particular, `DataType` refers to either an xarray.DataArray or xarray.Dataset
+
+`NormalizableDataType` referes to anything that can be tuned into datase,
+such as by loading from the cache using an ID.
 """
 
 from __future__ import annotations
 
+import uuid
 from typing import (
     TYPE_CHECKING,
     Any,
-    Final,
     Literal,
     Required,
+    TypeAlias,
     TypedDict,
     TypeGuard,
     TypeVar,
+    get_args,
 )
 
 import numpy as np
@@ -47,49 +51,93 @@ if TYPE_CHECKING:
     from matplotlib.widgets import AxesWidget, Button, TextBox
     from numpy.typing import ArrayLike, NDArray
 
-DataType = TypeVar("DataType", xr.DataArray, xr.Dataset)
-
-type XrTypes = xr.DataArray | xr.Dataset
-
-
 __all__ = [
     "ANGLE",
     "EMISSION_ANGLE",
+    "LEGENDLOCATION",
     "MOMENTUM",
     "AnalyzerInfo",
     "ConfigType",
+    "CoordsOffset",
     "DataType",
+    "NormalizableDataType",
+    "Orientation",
+    "Plot2DStyle",
+    "ReduceMethod",
     "Spectrometer",
+    "SpectrumType",
     "WorkSpaceType",
     "XrTypes",
+    "flatten_literals",
 ]
 
+
+DataType = TypeVar("DataType", xr.DataArray, xr.Dataset)
+NormalizableDataType: TypeAlias = DataType | str | uuid.UUID
+
+XrTypes: TypeAlias = xr.DataArray | xr.Dataset
+
+ReduceMethod = Literal["sum", "mean"]
 
 MOMENTUM = Literal["kp", "kx", "ky", "kz"]
 EMISSION_ANGLE = Literal["phi", "psi"]
 ANGLE = Literal["alpha", "beta", "chi", "theta"] | EMISSION_ANGLE
+Orientation = Literal["horizontal", "vertical"]
 
 HIGH_SYMMETRY_POINTS = Literal["G", "X", "Y", "M", "K", "S", "A1", "H", "C", "H1"]
-HighSymmetryPoints: Final = ("G", "X", "Y", "M", "K", "S", "A1", "H", "C", "H1")
 
-LEGENDLOCATION = (
-    Literal[
-        # While the "string" location can be given as the numeric value from 0 to 10,
-        # the numeric value is just prepared for the backward compatibility.
-        "best",
-        "upper right",
-        "upper left",
-        "lower left",
-        "lower right",
-        "right",
-        "center left",
-        "center right",
-        "lower center",
-        "upper center",
-        "center",
-    ]
-    | tuple[float, float]
-)
+SpectrumType = Literal["cut", "map", "hv_map", "ucut", "spem", "xps"]
+
+Plot2DStyle = Literal["line", "scatter"]
+
+AnalysisRegion = Literal["copper_prior", "wide_angular", "narrow_angular"]
+
+LEGENDLOCATION = Literal[
+    # Numeric values (0 to 10) are for the backward compatibility.
+    "best",
+    "upper right",
+    "upper left",
+    "lower left",
+    "lower right",
+    "right",
+    "center left",
+    "center right",
+    "lower center",
+    "upper center",
+    "center",
+]
+
+CoordsOffset: TypeAlias = Literal[
+    "alpha_offset",
+    "beta_offset",
+    "chi_offset",
+    "phi_offset",
+    "psi_offset",
+    "theta_offset",
+    "delay_offset",
+    "eV_offset",
+    "beta",
+    "theta",
+]
+
+
+def flatten_literals(literal_type: type[Literal[str]] | Literal[str]) -> set[str]:
+    """Recursively flattens a Literal type to extract all string values.
+
+    Args:
+        literal_type (type[Literal] | Literal): The Literal type to flatten.
+
+    Returns:
+        set[str]: A set of all string values in the Literal type.
+    """
+    args = get_args(literal_type)
+    flattened = set()
+    for arg in args:
+        if hasattr(arg, "__args__"):
+            flattened.update(flatten_literals(arg))
+        else:
+            flattened.add(arg)
+    return flattened
 
 
 class KspaceCoords(TypedDict, total=False):
@@ -103,6 +151,16 @@ class KspaceCoords(TypedDict, total=False):
 def is_dict_kspacecoords(
     a_dict: dict[Hashable, NDArray[np.float64]] | dict[str, NDArray[np.float64]],
 ) -> TypeGuard[KspaceCoords]:
+    """Checks if a dictionary contains k-space coordinates.
+
+    Args:
+        a_dict (dict[Hashable, NDArray[np.float64]] | dict[str, NDArray[np.float64]]):
+           The dictionary to check.
+
+    Returns:
+        TypeGuard[KspaceCoords]: True if the dictionary contains k-space coordinates,
+        False otherwise.
+    """
     if all(key in {"eV", "kp", "kx", "ky", "kz"} for key in a_dict):
         return all(isinstance(v, np.ndarray) for v in a_dict.values())
     return False
@@ -288,7 +346,7 @@ class SampleInfo(TypedDict, total=False):
 class ScanInfo(TypedDict, total=False):
     time: str
     date: str
-    spectrum_type: Literal["cut", "map", "hv_map", "ucut", "spem", "xps"]
+    spectrum_type: SpectrumType
     type: str | None
     experimenter: str | None
     sample: str | None
@@ -339,6 +397,7 @@ class ARPESAttrs(Spectrometer, LightSourceInfo, SampleInfo, total=False):
     angle_unit: Literal["Degrees", "Radians", "deg", "rad"]
     energy_notation: Literal[
         "Binding",
+        "Final",
         "Kinetic",
         "kinetic",
         "kinetic energy",
@@ -360,7 +419,7 @@ class Line2DProperty(TypedDict, total=False):
     clip_path: mpl_Path | Patch | Transform | None
     color: ColorType
     c: ColorType
-    dash_capstyple: CapStyleType
+    dash_capstyle: CapStyleType
     dash_joinstyle: JoinStyleType
     dashes: LineStyleType
     drawstyle: DrawStyleType
@@ -378,7 +437,7 @@ class Line2DProperty(TypedDict, total=False):
     mec: ColorType
     markeredgewidth: float
     mew: ColorType
-    markerfacecloralt: ColorType
+    markerfacecoloralt: ColorType
     mfcalt: ColorType
     markersize: float
     ms: float
@@ -408,7 +467,7 @@ class PolyCollectionProperty(Line2DProperty, total=False):
     hatch: Literal["/", "\\", "|", "-", "+", "x", "o", "O", ".", "*"]
     norm: Normalize | None
     offset_transform: Transform
-    # offsets: (N, 2) or (2, ) array-likel
+    # offsets: (N, 2) or (2, ) array-like
     sizes: NDArray[np.float64] | None
     transform: Transform
     urls: list[str] | None
@@ -480,7 +539,7 @@ class MPLPlotKwargs(MPLPlotKwargsBasic, total=False):
 
 class ColorbarParam(TypedDict, total=False):
     alpha: float
-    orientation: None | Literal["vertical", "horizontal"]
+    orientation: None | Orientation
     ticklocation: Literal["auto", "right", "top", "bottom"]
     extend: Literal["neither", "both", "min", "max"]
     extendfrac: None | Literal["auto"] | float | tuple[float, float] | list[float]
@@ -576,8 +635,8 @@ class MPLTextParam(TypedDict, total=False):
     picker: None | bool | float | Callable
     position: tuple[float, float]
     rasterized: bool
-    rotation: float | Literal["vertical", "horizontal"]
-    rotation_mode: Literal[None, "default", "anchor"]
+    rotation: float | Orientation
+    rotation_mode: Literal["default", "anchor"] | None
     sketch_params: tuple[float, float, float]
     scale: float
     length: float
@@ -649,7 +708,7 @@ class QuadmeshParam(TypedDict, total=False):
     agg_filter: Callable[..., tuple[NDArray[np.int_], float, float]]
     alpha: float
     animated: bool
-    antialiased: bool | list[bool]
+    antialiased: bool
     aa: bool | list[bool]
     antialiaseds: bool | list[bool]
     array: ArrayLike

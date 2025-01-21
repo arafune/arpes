@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import itertools
+import warnings
 from operator import itemgetter
 from typing import TYPE_CHECKING, Any
 
-from .collections import deep_equals, deep_update
+from .collections import deep_update
 from .combine import concat_along_phi
 from .dict import (
     clean_keys,
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     import xarray as xr
 
 
-def arrange_by_indices(items: list[Any], indices: list[int]) -> list[Any]:
+def arrange_by_indices(items: list[Any], indices: list[int]) -> list[Any]:  # pragma: no cover
     """Arranges `items` according to the new `indices` that each item should occupy.
 
     This function is best illustrated by the example below.
@@ -41,38 +41,24 @@ def arrange_by_indices(items: list[Any], indices: list[int]) -> list[Any]:
         >>> arrange_by_indices(['a', 'b', 'c'], [1, 2, 0])
         ['b', 'c', 'a']
     """
+    warnings.warn(
+        "This method will be deprecated.",
+        category=DeprecationWarning,
+        stacklevel=2,
+    )
     return [items[i] for i in indices]
 
 
-def unarrange_by_indices(items: Sequence, indices: Sequence) -> list:
+def unarrange_by_indices(items: Sequence, indices: Sequence) -> list:  # pragma: no cover
     """The inverse function to 'arrange_by_indices'.
 
-    Ex:
+    Examples:
     unarrange_by_indices(['b', 'c', 'a'], [1, 2, 0])
      => ['a', 'b', 'c']
     """
+    warnings.warn(
+        "This method will be deprecated.",
+        category=DeprecationWarning,
+        stacklevel=2,
+    )
     return [x for x, _ in sorted(zip(indices, items, strict=True), key=itemgetter(0))]
-
-
-ATTRS_MAP = {
-    "PuPol": "pump_pol",
-    "PrPol": "probe_pol",
-    "SFLNM0": "lens_mode",
-    "Lens Mode": "lens_mode",
-    "Excitation Energy": "hv",
-    "SFPE_0": "pass_energy",
-    "Pass Energy": "pass_energy",
-    "Slit Plate": "slit",
-    "Number of Sweeps": "n_sweeps",
-    "Acquisition Mode": "scan_mode",
-    "Region Name": "scan_region",
-    "Instrument": "instrument",
-    "Pressure": "pressure",
-    "User": "user",
-    "Polar": "theta",
-    "Theta": "theta",
-    "Sample": "sample",
-    "Beta": "beta",
-    "Azimuth": "chi",
-    "Location": "location",
-}

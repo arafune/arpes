@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, INFO
 from typing import TYPE_CHECKING
 
 import holoviews as hv
@@ -13,6 +13,7 @@ import numpy as np
 import xarray as xr
 from matplotlib.axes import Axes
 
+from arpes.debug import setup_logger
 from arpes.provenance import save_plot_provenance
 from arpes.utilities import normalize_to_spectrum
 
@@ -34,15 +35,7 @@ __all__ = (
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
-logger = getLogger(__name__)
-fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
-formatter = Formatter(fmt)
-handler = StreamHandler()
-handler.setLevel(LOGLEVEL)
-logger.setLevel(LOGLEVEL)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.propagate = False
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 @save_plot_provenance
@@ -92,22 +85,25 @@ def magnify_circular_regions_plot(  # noqa: PLR0913
     ax: Axes | None = None,
     **kwargs: tuple[float, float],
 ) -> tuple[Figure | None, Axes] | Path:
-    """Plots a Fermi surface with inset points magnified in an inset.
+    """Plots a Fermi surface with magnified circular regions as insets.
+
+    This function highlights specified points on a Fermi surface plot by magnifying
+    their corresponding regions and displaying them as inset circular regions.
 
     Args:
-        data: [TODO:description]
-        magnified_points: [TODO:description]
-        mag: [TODO:description]
-        radius (float): [TODO:description]
-        cmap: [TODO:description]
-        color: [TODO:description]
-        edgecolor (ColorType): [TODO:description]
-        out: [TODO:description]
-        ax: [TODO:description]
-        kwargs: [TODO:description]
+        data (xr.DataArray): ARPES data to plot.
+        magnified_points: Points on the surface to magnify.
+        mag: Magnification factor for the inset regions.
+        radius: Radius for the circular regions.
+        cmap: Colormap for the plot.
+        color: Color of the magnified points.
+        edgecolor: Color of the borders around the magnified regions.
+        out: File path to save the plot.
+        ax: Matplotlib axes to plot on.
+        kwargs: Additional keyword arguments for customization.
 
     Returns:
-        [TODO:description]
+        A tuple of figure and axes, or the path to the saved plot.
     """
     data_arr = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     assert isinstance(data_arr, xr.DataArray)
