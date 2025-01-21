@@ -9,6 +9,14 @@ Primary (X.-.-) version numbers are used to denote backwards
 incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
+X.X.X (not relased)
+
+Changed
+~~~~~~~~
+
+* The lowest version of python is 3.12
+
+
 4.2.3 (2025-1-5)
 ^^^^^^^^^^^^^^^^^^
 
