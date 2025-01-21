@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import warnings
 from logging import DEBUG, INFO
-from typing import TYPE_CHECKING, TypeAlias
+from typing import TYPE_CHECKING
 
 import matplotlib.cm
 import matplotlib.pyplot as plt
@@ -82,7 +82,7 @@ class Translation:
         return vectors + self.translation_vector
 
 
-Transformation: TypeAlias = Rotation | Translation
+type Transformation = Rotation | Translation
 
 
 def segments_standard(

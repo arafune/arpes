@@ -46,7 +46,6 @@ from typing import (
     Any,
     Literal,
     Self,
-    TypeAlias,
     TypedDict,
     TypeGuard,
     TypeVar,
@@ -129,7 +128,7 @@ if TYPE_CHECKING:
 
 __all__ = ["ARPESDataArrayAccessor", "ARPESDatasetAccessor", "ARPESFitToolsAccessor"]
 
-EnergyNotation: TypeAlias = Literal["Binding", "Final"]
+type EnergyNotation = Literal["Binding", "Final"]
 
 DEFAULT_RADII: dict[str, float] = {
     "kp": 0.02,
