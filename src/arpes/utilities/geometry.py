@@ -79,7 +79,7 @@ def polyhedron_intersect_plane(
     plane_normal: NDArray[np.float64],
     plane_point: NDArray[np.float64],
     epsilon: float = 1e-6,
-) -> ConvexHull:
+) -> NDArray[np.float64]:
     """Determines the intersection of a convex polyhedron intersecting a plane.
 
     The polyhedron faces should be given by a list of np.arrays, where each np.array at

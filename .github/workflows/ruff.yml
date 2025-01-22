@@ -14,4 +14,3 @@ jobs:
       - uses: astral-sh/ruff-action@v1
         with:
           src: "./src"
-          python-version: "3.11"
