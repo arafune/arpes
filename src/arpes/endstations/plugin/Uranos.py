@@ -82,10 +82,10 @@ class UranosEndstation(HemisphericalEndstation, SingleFileEndstation, Synchrotro
     }
 
     def load_single_frame(
-            self,
-            frame_path: str | Path = "",
-            scan_desc: ScanDesc | None = None,
-            **kwargs: str | float,
+        self,
+        frame_path: str | Path = "",
+        scan_desc: ScanDesc | None = None,
+        **kwargs: str | float,
     ) -> xr.Dataset:
         """Load arpes data: cut / cuts (pxt file) or map (zip file)."""
         if kwargs:
@@ -110,9 +110,9 @@ class UranosEndstation(HemisphericalEndstation, SingleFileEndstation, Synchrotro
         raise RuntimeError(msg)
 
     def postprocess_final(
-            self,
-            data: xr.Dataset,
-            scan_desc: ScanDesc | None = None,
+        self,
+        data: xr.Dataset,
+        scan_desc: ScanDesc | None = None,
     ) -> xr.Dataset:
         """Perform final processing on the ARPES data.
 
@@ -146,9 +146,9 @@ class UranosEndstation(HemisphericalEndstation, SingleFileEndstation, Synchrotro
                 s.attrs[k] = s.attrs.get(k, v)
 
         # Convert to binding energy notation
-        binding_energies = (data.coords["eV"].values
-                            - data.attrs["hv"]
-                            + UranosEndstation._ANALYZER_WORK_FUNCTION)
+        binding_energies = (
+            data.coords["eV"].values - data.attrs["hv"] + UranosEndstation._ANALYZER_WORK_FUNCTION
+        )
         data = data.assign_coords({"eV": binding_energies})
 
         return super().postprocess_final(data, scan_desc)
@@ -156,10 +156,11 @@ class UranosEndstation(HemisphericalEndstation, SingleFileEndstation, Synchrotro
 
 def _load_pxt(file: Path) -> xr.DataArray:
     """Load a single pxt file."""
-    datas = read_single_pxt(file,
-                            byte_order="<",
-                            allow_multiple=True,
-                            ).rename(W="eV", X="phi")
+    datas = read_single_pxt(
+        file,
+        byte_order="<",
+        allow_multiple=True,
+    ).rename(W="eV", X="phi")
     data_var_name = next(iter(datas.data_vars.keys()))
     return datas[data_var_name]
 
@@ -244,6 +245,7 @@ def _determine_dim(viewer_ini: ConfigParser, dim_name: str) -> tuple[int, NDArra
 
     return num, coord, name
 
+
 def _fix_angles(data: xr.DataArray) -> xr.DataArray:
     """Adjusts the coordinates of the manipulator in the given DataArray.
 
@@ -261,13 +263,19 @@ def _fix_angles(data: xr.DataArray) -> xr.DataArray:
     """
     # Shift manipulator r1 to get theta angle and convert to radians
     if "r1" in data.attrs:
-        data = data.assign_coords({"theta":
-                                   np.deg2rad(data.r1 - UranosEndstation.NORMAL_EMISSION["r1"])})
+        data = data.assign_coords(
+            {
+                "theta": np.deg2rad(data.r1 - UranosEndstation.NORMAL_EMISSION["r1"]),
+            },
+        )
 
     # Shift manipulator r3 to get beta angle and convert to radians
     if "r3" in data.attrs:
-        data = data.assign_coords({"beta":
-                                   np.deg2rad(data.r3 - UranosEndstation.NORMAL_EMISSION["r3"])})
+        data = data.assign_coords(
+            {
+                "beta": np.deg2rad(data.r3 - UranosEndstation.NORMAL_EMISSION["r3"]),
+            },
+        )
 
     # Convert phi to radians
     if "phi" in data.coords:

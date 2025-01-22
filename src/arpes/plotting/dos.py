@@ -182,7 +182,7 @@ def plot_dos(
         Normalize(vmin=data.min().item(), vmax=data.max().item()),
     )
     kwargs.setdefault("cmap", "viridis")
-    figsize = figsize if figsize else (7.0, 5.0)
+    figsize = figsize or (7.0, 5.0)
 
     fig, gs = create_figure_and_axes(figsize, orientation)
     ax0 = fig.add_subplot(gs[0])

@@ -164,13 +164,13 @@ class Interpretation:
             if isinstance(n_items, tuple):
                 layout = n_items
             else:
-                n_rows = int(math.ceil(n_items**0.5))
+                n_rows = math.ceil(n_items**0.5)
                 layout = (n_rows, n_rows)
 
             items = self.top_losses()[:n_items]
         else:
             n_items = len(items)
-            n_rows = int(math.ceil(n_items**0.5))
+            n_rows = math.ceil(n_items**0.5)
             layout = (n_rows, n_rows)
 
         assert isinstance(n_items, int)

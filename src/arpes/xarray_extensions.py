@@ -1080,7 +1080,7 @@ class ARPESPropertyBase(ARPESInfoProperty, ARPESOffsetProperty, ARPESProvenanceP
                     break
 
         if isinstance(settings.get("slit"), float):
-            settings["slit"] = int(round(settings["slit"]))
+            settings["slit"] = round(settings["slit"])
 
         return settings
 
@@ -2125,7 +2125,7 @@ class GenericAccessorBase:
         Aargs:
             dir_names (Sequence[Hashable]): Dimension names for iterateion.
 
-        Yield:
+        Yields:
             Iteratoring the data like:
             ((0, 0), {'phi': -0.2178031280148764, 'eV': 9.0})
             which shows the relationship between pixel position and physical (like "eV" and "phi").
@@ -2152,7 +2152,7 @@ class GenericAccessorBase:
             dim_names (Sequence[Hashable]): Dimensions for iteration.
             reverse: return the "reversivle" iterator.
 
-        Yield:
+        Yields:
             Iterator of the physical position like ("eV" and "phi")
             {'phi': -0.2178031280148764, 'eV': 9.002}
         """
