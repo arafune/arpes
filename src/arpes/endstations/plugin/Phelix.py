@@ -162,7 +162,7 @@ class PhelixEndstation(HemisphericalEndstation,
                     file=str(frame_path),
                     record=provenance_context,
                 )
-            
+
             dataset.attrs["location"] = self.PRINCIPAL_NAME
             return dataset
 
