@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Literal
 
 import numpy as np
 import pytest
@@ -50,14 +51,18 @@ def test_load_data_with_plugin_specified() -> None:
     assert np.all(data.spectrum.values == directly_specified_data.spectrum.values)
 
 
-@pytest.mark.parametrize("data_name, expected_shape", [
+@pytest.mark.parametrize(("data_name", "expected_shape"), [
     ("cut", (240, 240)),
     ("cut2", (600, 501)),
     ("map", (81, 150, 111)),
     ("map2", (137, 82, 116))],
     ids=["cut", "cut2", "map", "map2"])
 
-def test_load_example_data(data_name, expected_shape) -> None:
+
+def test_load_example_data(
+    data_name: Literal["cut", "cut2", "map", "map2"],
+    expected_shape: tuple[int, int] | tuple[int, int, int],
+    ) -> None:
     """Test loading example data for different types."""
     data = load_example_data(data_name)
 
