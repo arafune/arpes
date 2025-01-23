@@ -14,9 +14,12 @@ from arpes.io import load_data, load_example_data
 
 
 def test_load_data() -> None:
-    """[TODO:summary].
+    """Test direct loading of fits data using ALG-MC.
 
-    [TODO:description]
+    This test function loads data from a specified FITS file located in the
+    'resources/datasets/basic' directory and checks if the loaded data is an
+    instance of an xarray.Dataset. It also verifies that the shape of the
+    spectrum data is (240, 240).
 
     Args:
         sandbox_configuration ([TODO:type]): [TODO:description]
@@ -51,19 +54,36 @@ def test_load_data_with_plugin_specified() -> None:
     assert np.all(data.spectrum.values == directly_specified_data.spectrum.values)
 
 
-@pytest.mark.parametrize(("data_name", "expected_shape"), [
-    ("cut", (240, 240)),
-    ("cut2", (600, 501)),
-    ("map", (81, 150, 111)),
-    ("map2", (137, 82, 116))],
-    ids=["cut", "cut2", "map", "map2"])
-
+@pytest.mark.parametrize(
+    ("data_name", "expected_shape"),
+    [
+        ("cut", (240, 240)),
+        ("cut2", (600, 501)),
+        ("map", (81, 150, 111)),
+        ("map2", (137, 82, 116)),
+    ],
+    ids=["cut", "cut2", "map", "map2"],
+    # Description: Parametrize test cases for different example data and their expected shapes
+)
 
 def test_load_example_data(
     data_name: Literal["cut", "cut2", "map", "map2"],
     expected_shape: tuple[int, int] | tuple[int, int, int],
     ) -> None:
-    """Test loading example data for different types."""
+    """Test loading example data.
+
+    Parameters:
+    data_name (Literal["cut", "cut2", "map", "map2"]): The name of the example data to load.
+    expected_shape (tuple[int, int] | tuple[int, int, int]): The expected shape of the data.
+
+    Asserts:
+    - The loaded data is an xarray Dataset.
+    - The 'spectrum' in the dataset is an xarray DataArray.
+    - The shape of the 'spectrum' matches the expected shape.
+    - All necessary coordinates:
+        ('phi', 'psi', 'alpha', 'chi', 'beta', 'theta', 'x', 'y', 'z', 'hv')
+        are present in the data.
+    """
     data = load_example_data(data_name)
 
     # check that the data is an xarray dataset
