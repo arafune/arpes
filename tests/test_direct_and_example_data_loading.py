@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import numpy as np
+import pytest
 import xarray as xr
 
 from arpes.endstations.plugin.ALG_main import ALGMainChamber
@@ -49,15 +50,25 @@ def test_load_data_with_plugin_specified() -> None:
     assert np.all(data.spectrum.values == directly_specified_data.spectrum.values)
 
 
-def test_load_example_data() -> None:
-    """[TODO:summary].
+@pytest.mark.parametrize("data_name, expected_shape", [
+    ("cut", (240, 240)),
+    ("cut2", (600, 501)),
+    ("map", (81, 150, 111)),
+    ("map2", (137, 82, 116))],
+    ids=["cut", "cut2", "map", "map2"])
 
-    [TODO:description]
+def test_load_example_data(data_name, expected_shape) -> None:
+    """Test loading example data for different types."""
+    data = load_example_data(data_name)
 
-    Args:
-        sandbox_configuration ([TODO:type]): [TODO:description]
-    """
-    data = load_example_data("cut")
-
+    # check that the data is an xarray dataset
     assert isinstance(data, xr.Dataset)
-    assert data.spectrum.shape == (240, 240)
+    assert isinstance(data.spectrum, xr.DataArray)
+
+    # check that the data has the expected shape
+    assert data.spectrum.shape == expected_shape
+
+    # assert that all necessary coordinates are present
+    necessary_coords = {"phi", "psi", "alpha", "chi", "beta", "theta", "x", "y", "z", "hv"}
+    for necessary_coord in necessary_coords:
+        assert necessary_coord in data.coords
