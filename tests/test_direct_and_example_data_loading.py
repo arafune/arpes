@@ -67,11 +67,15 @@ def test_load_data_with_plugin_specified() -> None:
     # Description: Parametrize test cases for different example data and their expected shapes
 )
 
-def test_load_example_data(
+def test_load_example_map_data(
     data_name: Literal["cut", "cut2", "cut3", "map", "map2"],
     expected_shape: tuple[int, int] | tuple[int, int, int],
     ) -> None:
-    """Test loading example data.
+    """Test loading example ARPES map data.
+
+    This test validates the loading of example data in a form of:
+        - 2D cuts: Two-dimensional data slices.
+        - 3D maps: Three-dimensional datasets.
 
     Parameters:
     data_name (Literal["cut", "cut2", "cut3, "map", "map2"]): The name of the example data to load.
