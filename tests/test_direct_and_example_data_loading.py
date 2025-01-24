@@ -59,21 +59,22 @@ def test_load_data_with_plugin_specified() -> None:
     [
         ("cut", (240, 240)),
         ("cut2", (600, 501)),
+        ("cut3", (137, 82)),
         ("map", (81, 150, 111)),
         ("map2", (137, 82, 116)),
     ],
-    ids=["cut", "cut2", "map", "map2"],
+    ids=["cut", "cut2", "cut3", "map", "map2"],
     # Description: Parametrize test cases for different example data and their expected shapes
 )
 
 def test_load_example_data(
-    data_name: Literal["cut", "cut2", "map", "map2"],
+    data_name: Literal["cut", "cut2", "cut3", "map", "map2"],
     expected_shape: tuple[int, int] | tuple[int, int, int],
     ) -> None:
     """Test loading example data.
 
     Parameters:
-    data_name (Literal["cut", "cut2", "map", "map2"]): The name of the example data to load.
+    data_name (Literal["cut", "cut2", "cut3, "map", "map2"]): The name of the example data to load.
     expected_shape (tuple[int, int] | tuple[int, int, int]): The expected shape of the data.
 
     Asserts:
