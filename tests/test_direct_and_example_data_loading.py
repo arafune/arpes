@@ -90,10 +90,13 @@ def test_load_example_data(
     assert isinstance(data, xr.Dataset)
     assert isinstance(data.spectrum, xr.DataArray)
 
-    # check that the data has the expected shape
-    assert data.spectrum.shape == expected_shape
+    # Verify the shape of 'spectrum' matches the expected shape
+    assert data.spectrum.shape == expected_shape, (
+        f"{data_name}: Shape mismatch. "
+        f"Expected {expected_shape}, got {data.spectrum.shape}"
+    )
 
-    # assert that all necessary coordinates are present
+    # Verify all necessary coordinates are present
     necessary_coords = {"phi", "psi", "alpha", "chi", "beta", "theta", "x", "y", "z", "hv"}
-    for necessary_coord in necessary_coords:
-        assert necessary_coord in data.coords
+    missing_coords = necessary_coords - set(map(str, data.coords))
+    assert not missing_coords, f"{data_name}: Missing coordinates: {missing_coords}"
