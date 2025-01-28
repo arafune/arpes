@@ -23,12 +23,12 @@ from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar
 import numpy as np
 import scipy.stats
 import xarray as xr
-from tqdm.notebook import tqdm
 
 from .analysis.sarpes import to_intensity_polarization
 from .debug import setup_logger
 from .provenance import update_provenance
 from .utilities import lift_dataarray_to_generic
+from .utilities.jupyter import get_tqdm
 from .utilities.normalize import normalize_to_spectrum
 from .utilities.region import normalize_region
 
@@ -55,6 +55,9 @@ __all__ = (
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
 logger = setup_logger(__name__, LOGLEVEL)
+
+
+tqdm = get_tqdm()
 
 
 @update_provenance("Estimate prior")

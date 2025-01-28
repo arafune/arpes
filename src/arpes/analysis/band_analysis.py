@@ -21,7 +21,7 @@ from arpes.fits import AffineBackgroundModel, LorentzianModel, QuadraticModel, b
 from arpes.models.band import Band
 from arpes.provenance import update_provenance
 from arpes.utilities.conversion.forward import convert_coordinates_to_kspace_forward
-from arpes.utilities.jupyter import wrap_tqdm
+from arpes.utilities.jupyter import get_tqdm
 
 if TYPE_CHECKING:
     from collections.abc import Hashable, Iterator
@@ -43,6 +43,8 @@ __all__ = (
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
 logger = setup_logger(__name__, LOGLEVEL)
+
+tqdm = get_tqdm()
 
 
 class BandDescription(TypedDict, total=False):
@@ -449,7 +451,7 @@ def fit_patterned_bands(  # noqa: PLR0913
     )
 
     total_slices = np.prod([len(arr.coords[d]) for d in free_directions])
-    for coord_dict in wrap_tqdm(
+    for coord_dict in tqdm(
         arr.G.iter_coords(free_directions),
         interactive=interactive,
         desc="fitting",  # Prefix for the progressbar.

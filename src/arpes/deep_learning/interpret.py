@@ -14,8 +14,9 @@ from typing import TYPE_CHECKING, Any
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import tqdm
 from torch.utils.data.dataset import Dataset, Subset
+
+from arpes.utilities.jupyter import get_tqdm
 
 if TYPE_CHECKING:
     import pytorch_lightning as pl
@@ -26,6 +27,8 @@ __all__ = [
     "Interpretation",
     "InterpretationItem",
 ]
+
+tqdm = get_tqdm()
 
 
 @dataclass
@@ -194,7 +197,7 @@ class Interpretation:
         """Converts data loader into a list of interpretation items corresponding to the data."""
         items = []
 
-        for batch in tqdm.tqdm(dataloader.iter_all()):
+        for batch in tqdm(dataloader.iter_all()):
             x, y, indices = batch
             with torch.no_grad():
                 y_hat = self.model(x).cpu()

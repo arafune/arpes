@@ -22,12 +22,12 @@ import dill
 import lmfit
 import numpy as np
 import xarray as xr
-from tqdm.notebook import tqdm
 
 import arpes.fits.fit_models
 from arpes import VERSION
 from arpes.debug import setup_logger
 from arpes.utilities import normalize_to_spectrum
+from arpes.utilities.jupyter import get_tqdm
 
 from . import mp_fits
 from .hot_pool import hot_pool
@@ -47,6 +47,8 @@ LOGLEVEL = LOGLEVELS[1]
 logger = setup_logger(__name__, LOGLEVEL)
 
 T = TypeVar("T")
+
+tqdm = get_tqdm()
 
 
 def result_to_hints(

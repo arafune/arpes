@@ -13,26 +13,27 @@ from typing import TYPE_CHECKING, Required, TypedDict, TypeVar
 from urllib.error import HTTPError
 
 import ipykernel
+from ipykernel.zmqshell import ZMQInteractiveShell
 from IPython.core.getipython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
 from jupyter_server import serverapp
-from tqdm.notebook import tqdm
+from tqdm import tqdm as cli_tqdm
+from tqdm.notebook import tqdm as notebook_tqdm
 from traitlets.config import MultipleInstanceError
 
 from arpes.config import CONFIG
 from arpes.debug import setup_logger
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Callable
 
-    from _typeshed import Incomplete
 __all__ = (
     "generate_logfile_path",
     "get_full_notebook_information",
     "get_notebook_name",
     "get_recent_history",
     "get_recent_logs",
-    "wrap_tqdm",
+    "get_tqdm",
 )
 
 LOGLEVELS = (DEBUG, INFO)
@@ -42,17 +43,25 @@ logger = setup_logger(__name__, LOGLEVEL)
 T = TypeVar("T")
 
 
-def wrap_tqdm(
-    x: Iterable[T],
-    *args: Incomplete,
-    interactive: bool = True,
-    **kwargs: Incomplete,
-) -> Iterable[T]:
-    """Wraps with tqdm but supports disabling with a flag."""
-    if not interactive:
-        return x
+def get_tqdm() -> Callable[..., cli_tqdm | notebook_tqdm]:
+    """Returns the appropriate tqdm function based on the execution environment.
 
-    return tqdm(x, *args, **kwargs)
+    If it running in a Jupyter notebook environment, it returs 'tqdm.notebook'.
+    Otherwise, it returns the standard 'tqdm.tqdm' for CLI and other environment.
+
+    Returns:
+        Callable[..., cli_tqdm | notebook_tqdm] : The tqdm The tqdm function suitable for the
+        current environment.
+
+    Raise:
+        RuntimeError: If tqdm is not installed or cannot be imoprted
+    """
+    shell = get_ipython()
+    if shell is None:
+        return cli_tqdm
+    if isinstance(shell, ZMQInteractiveShell):
+        return notebook_tqdm
+    return cli_tqdm
 
 
 class ServerInfo(TypedDict, total=False):
