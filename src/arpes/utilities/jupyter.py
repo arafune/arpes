@@ -57,8 +57,6 @@ def get_tqdm() -> Callable[..., cli_tqdm | notebook_tqdm]:
         RuntimeError: If tqdm is not installed or cannot be imoprted
     """
     shell = get_ipython()
-    if shell is None:
-        return cli_tqdm
     if isinstance(shell, ZMQInteractiveShell):
         return notebook_tqdm
     return cli_tqdm
