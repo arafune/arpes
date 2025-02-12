@@ -59,12 +59,8 @@ class DetectorCalibration:
     ) -> NDArray[np.float64]:
         """Applies a calibration to the detector `phi` angle."""
         left, right = (
-            scipy.interpolate.interp1d(self._left_edge.eV.values, self._left_edge.phi.values)(
-                0,
-            ).item(),
-            scipy.interpolate.interp1d(self._right_edge.eV.values, self._right_edge.phi.values)(
-                0,
-            ).item(),
+            np.interp(x=0, xp=self._left_edge.eV.values, fp=self._left_edge.phi.values),
+            np.interp(x=0, xp=self._right_edge.eV.values, fp=self._right_edge.phi.values),
         )
         xs = np.concatenate([self._left_edge.eV.values, self._right_edge.eV.values])
         ys = np.concatenate([self._left_edge.phi.values, self._right_edge.phi.values])
