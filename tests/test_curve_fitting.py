@@ -42,7 +42,6 @@ def test_broadcast_fitting(dataarray_cut: xr.DataArray) -> None:
             "a_width": {"value": 0.1},
             "a_lin_bkg": {"value": 20000, "max": 30000, "min": 10000},
         },
-        progress=False,
     )
     a_band_data = fit_results.results.F.bands["a_"]
     np.testing.assert_allclose(
@@ -85,7 +84,6 @@ def test_broadcast_fitting(dataarray_cut: xr.DataArray) -> None:
             "a_width": {"value": 0.1},
             "a_lin_bkg": {"value": 20000, "max": 30000, "min": 10000},
         },
-        progress=True,
     )
     assert fit_results.results.F.parameter_names == {
         "a_const_bkg",
