@@ -85,7 +85,7 @@ def grid_interpolator_from_dataarray(
     values: NDArray[np.float64] = arr.values
     for dim in flip_axes:
         values = np.flip(values, arr.dims.index(dim))
-    interp_points = [
+    interp_points: list[NDArray[np.float64]] = [
         arr.coords[d].values[::-1] if d in flip_axes else arr.coords[d].values for d in arr.dims
     ]
     trace_size = [len(pts) for pts in interp_points]
@@ -94,7 +94,7 @@ def grid_interpolator_from_dataarray(
         logger.debug(f"Using fast_interp.Interpolator: size {trace_size}")
         return Interpolator.from_arrays(interp_points, values)
     return RegularGridInterpolator(
-        points=interp_points,
+        points=tuple(interp_points),
         values=values,
         bounds_error=bounds_error,
         fill_value=fill_value,
@@ -484,11 +484,13 @@ def convert_coordinates(
     logger.debug(
         f"meshgrid: {[len(target_coordinates[dim]) for dim in coordinate_transform['dims']]}",
     )
-    meshed_coordinates = np.meshgrid(
-        *[target_coordinates[dim] for dim in coordinate_transform["dims"]],
-        indexing="ij",
-    )
-    meshed_coordinates = [meshed_coord.ravel() for meshed_coord in meshed_coordinates]
+    meshed_coordinates = [
+        meshed_coord.ravel()
+        for meshed_coord in np.meshgrid(
+            *[target_coordinates[dim] for dim in coordinate_transform["dims"]],
+            indexing="ij",
+        )
+    ]
 
     if "eV" not in arr.dims:
         with contextlib.suppress(ValueError):
