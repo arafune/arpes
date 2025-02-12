@@ -33,7 +33,7 @@ from . import mp_fits
 from .hot_pool import hot_pool
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable, Sequence
+    from collections.abc import Sequence
 
     from arpes.fits import ParametersArgs
     from arpes.provenance import Provenance
@@ -135,7 +135,6 @@ def broadcast_model(  # noqa: PLR0913
     window: xr.DataArray | None = None,
     *,
     parallelize: bool | None = None,
-    progress: bool = True,
     safe: bool = False,
 ) -> xr.Dataset:
     r"""Perform a fit across a number of dimensions.
@@ -211,8 +210,6 @@ def broadcast_model(  # noqa: PLR0913
         | list[type[lmfit.Model] | float | Literal["+", "-", "*", "/", "(", ")"]]
     ) = parse_model(model_cls)
 
-    wrap_progress: tqdm | Callable[..., Iterable] = tqdm if progress else _fake_wqdm
-
     serialize = parallelize
     assert isinstance(serialize, bool)
     fitter = mp_fits.MPWorker(
@@ -231,7 +228,7 @@ def broadcast_model(  # noqa: PLR0913
 
         pool = hot_pool.pool
         exe_results = list(
-            wrap_progress(
+            tqdm(
                 pool.imap(fitter, results.G.iter_coords()),  # IMapIterator
                 total=int(n_fits),
                 desc="Fitting on pool...",
@@ -240,7 +237,7 @@ def broadcast_model(  # noqa: PLR0913
     else:
         logger.debug(f"Running fits (nfits={n_fits}) serially")
         exe_results = []
-        for cut_coords in wrap_progress(
+        for cut_coords in tqdm(
             results.G.iter_coords(),
             desc="Fitting",
             total=int(n_fits),
@@ -285,20 +282,3 @@ def broadcast_model(  # noqa: PLR0913
     }
 
     return fit_result_dataset
-
-
-def _fake_wqdm(x: Iterable[T], **kwargs: str | float) -> Iterable[T]:
-    """A placeholder for tqdm.notebook.tqdm that returns the input iterable unchanged.
-
-    This function simulates the behavior of tqdm for cases where progress tracking
-    is not needed, effectively acting as a no-op that passes the iterable through.
-
-    Args:
-        x (Iterable[T]): An iterable to be processed.
-        kwargs: Dummy parameters that are not used in the function.
-
-    Returns:
-        Iterable[T]: The same iterable passed as the argument.
-    """
-    del kwargs  # kwargs is dummy parameter
-    return x
