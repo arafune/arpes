@@ -298,13 +298,9 @@ class SpectralFunction:
         """
         if k is None:
             k = np.linspace(-200, 200, 800, dtype=np.float64)
-        elif len(k) == len(("start", "stop", "num")):
-            k = np.linspace(*k, dtype=np.float64)
 
         if omega is None:
             omega = np.linspace(-1000, 1000, 2000, dtype=np.float64)
-        elif len(omega) == len(("start", "stop", "num")):
-            omega = np.linspace(*omega, dtype=np.float64)
 
         assert isinstance(k, np.ndarray)
         assert isinstance(omega, np.ndarray)
