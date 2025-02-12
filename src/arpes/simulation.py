@@ -311,7 +311,7 @@ class SpectralFunction:
 
         self.temperature = temperature
         self.omega = omega
-        self.k = k
+        self.k: NDArray[np.float64] = k
 
     def imag_self_energy(self) -> NDArray[np.float64]:
         """Provides the imaginary part of the self energy."""
@@ -319,7 +319,7 @@ class SpectralFunction:
             shape=self.omega.shape,
         )
 
-    def real_self_energy(self) -> NDArray[np.complex128]:
+    def real_self_energy(self) -> NDArray[np.float64]:
         """Defaults to using Kramers-Kronig from the imaginary self energy."""
         return np.imag(sig.hilbert(self.imag_self_energy()))
 
