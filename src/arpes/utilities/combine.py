@@ -39,10 +39,7 @@ def concat_along_phi(
         assert 0 <= occupation_ratio <= 1, "occupation_ratio should be between 0 and 1 (or None)."
     id_arr_a = arr_a.attrs["id"]
     id_arr_b = arr_b.attrs["id"]
-    arr_a = arr_a.G.with_values(
-        arr_a.values * enhance_a,
-        keep_attrs=True,
-    )
+    arr_a = arr_a.G.with_values(arr_a.values * enhance_a)
     id_add = _combine_id(id_arr_a, id_arr_b)
     if occupation_ratio is None:
         concat_array = xr.concat(
@@ -61,9 +58,9 @@ def concat_along_phi(
             raise RuntimeError(
                 msg,
             )
-        assert (
-            left_arr.coords["phi"].values.max() < right_arr.coords["phi"].values.max()
-        ), 'Cannot combine them. Try "occupation_ration=None"'
+        assert left_arr.coords["phi"].values.max() < right_arr.coords["phi"].values.max(), (
+            'Cannot combine them. Try "occupation_ration=None"'
+        )
         seam_phi = (
             left_arr.coords["phi"].values.max() - right_arr.coords["phi"].values.min()
         ) * occupation_ratio + right_arr.coords["phi"].values.min()

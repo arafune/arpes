@@ -36,7 +36,6 @@ def normalize_sarpes_photocurrent(data: xr.Dataset) -> xr.Dataset:
     copied.down.values = (copied.down * (copied.photocurrent_up / copied.photocurrent_down)).values
     copied.down = copied.down.G.with_values(
         (copied.down * (copied.photocurrent_up / copied.photocurrent_down)).values,
-        keep_attrs=True,
     )
     return copied
 

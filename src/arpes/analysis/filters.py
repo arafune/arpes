@@ -122,7 +122,7 @@ def boxcar_filter_arr(
             input=array_values,
             size=widths_pixel,
         )
-    filtered_arr = arr.G.with_values(array_values, keep_attrs=True)
+    filtered_arr = arr.G.with_values(array_values)
     if "id" in arr.attrs:
         del filtered_arr.attrs["id"]
         provenance_context: Provenance = {
@@ -212,5 +212,4 @@ def savitzky_golay_filter(
             deriv=deriv,
             axis=axis,
         ),
-        keep_attrs=True,
     )

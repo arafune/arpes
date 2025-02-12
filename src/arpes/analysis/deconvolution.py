@@ -120,7 +120,7 @@ def make_psf1d(
         A one dimensional point spread array.
     """
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-    psf = data.G.with_values(np.zeros_like(data.values) + 1, keep_attrs=True)
+    psf = data.G.with_values(np.zeros_like(data.values) + 1)
     other_dims = list(data.dims)
     other_dims.remove(dim)
     for od in other_dims:

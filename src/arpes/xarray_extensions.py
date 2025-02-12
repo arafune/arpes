@@ -2796,7 +2796,7 @@ class GenericDataArrayAccessor(GenericAccessorBase):
         )
         if zero_nans:
             shifted_data[np.isnan(shifted_data)] = 0
-        built_data = data.G.with_values(shifted_data, keep_attrs=True)
+        built_data = data.G.with_values(shifted_data)
         if shift_coords:
             built_data = built_data.assign_coords(
                 {shift_axis: data.coords[shift_axis] + mean_shift},

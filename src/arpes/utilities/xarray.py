@@ -101,10 +101,7 @@ def apply_dataarray(
     Returns:
         xr.DataArray replaced after the function.
     """
-    return arr.G.with_values(
-        f(arr.values, *args, **kwargs),
-        keep_attrs=True,
-    )
+    return arr.G.with_values(f(arr.values, *args, **kwargs))
 
 
 def lift_dataarray(  # unused
