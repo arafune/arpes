@@ -597,7 +597,7 @@ def plot_arr(
     arr: xr.DataArray,
     ax: Axes | None = None,
     over: AxesImage | None = None,
-    mask: xr.DataArray | None = None,
+    mask: xr.DataArray | list[slice] | None = None,
     **kwargs: Incomplete,
 ) -> Axes | None:
     """Convenience method to plot an array with a mask over some other data."""
@@ -614,8 +614,10 @@ def plot_arr(
             _, quad = imshow_arr(arr, ax=ax, over=over, **kwargs)
         if mask is not None:
             over = quad if over is None else over
+            assert isinstance(mask, xr.DataArray)
             imshow_mask(mask, ax=ax, over=over, **kwargs)
     if n_dims == 1:
+        assert isinstance(mask, list | None)
         ax = lineplot_arr(arr, ax=ax, mask=mask, **kwargs)
 
     return ax
