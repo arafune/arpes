@@ -11,10 +11,8 @@ import numpy as np
 import xarray as xr
 
 from . import normalize_to_spectrum
-from .xarray import unwrap_xarray_dict
 
 if TYPE_CHECKING:
-    from _typeshed import Incomplete
     from numpy.typing import NDArray
 
     from arpes._typing import DataType, XrTypes
@@ -76,32 +74,13 @@ def unravel_from_mask(
     return dest.unstack("stacked")
 
 
-def _normalize_point(
-    data: xr.DataArray,
-    around: dict[str, xr.DataArray] | xr.Dataset | None,
-    **kwargs: NDArray[np.float64] | float,
-) -> dict[str, xr.DataArray]:
-    collected_kwargs = {k: kwargs[str(k)] for k in data.dims if k in kwargs}
-
-    if around:
-        if isinstance(around, xr.Dataset):
-            around = unwrap_xarray_dict({str(d): around[d] for d in data.dims})
-    else:
-        around = collected_kwargs
-
-    assert isinstance(around, dict)
-    assert set(around.keys()) == set(data.dims)
-    return around
-
-
 def select_disk_mask(
     data: xr.DataArray,
     radius: float,
     outer_radius: float | None = None,
-    around: dict | xr.Dataset | None = None,
+    around: dict[str, float] | None = None,
     *,
     flat: bool = False,
-    **kwargs: Incomplete,
 ) -> NDArray[np.float64]:
     """A complement to `select_disk` which only generates the mask for the selection.
 
@@ -117,23 +96,18 @@ def select_disk_mask(
         data: The data which should be masked
         radius: The radius of the circle to mask
         outer_radius: The outer radius of an annulus to mask
-        around: The location of the center point otherwise specified by `kwargs`
+        around: The location of the center point.
         flat: Whether to return the mask as a 1D (raveled) mask
           (flat=True) or as a ND mask with the same dimensionality as
           the input data (flat=False).
-        kwargs: The location of the center point otherwise specified by `around`
 
     Returns:
         A mask with the same shape as `data`.
     """
-    if outer_radius is not None and radius > outer_radius:
-        radius, outer_radius = outer_radius, radius
-
     data_array = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
 
-    around = _normalize_point(data_array, around, **kwargs)
-
     raveled = data_array.G.ravel()
+    assert around is not None
 
     dim_order = list(around.keys())
     dist = np.sqrt(
@@ -154,10 +128,9 @@ def select_disk(
     data: xr.DataArray,
     radius: float,
     outer_radius: float | None = None,
-    around: dict | xr.Dataset | None = None,
+    around: dict[str, float] | None = None,
     *,
     invert: bool = False,
-    **kwargs: Incomplete,
 ) -> tuple[dict[str, NDArray[np.float64]], NDArray[np.float64], NDArray[np.float64]]:
     """Selects the data in a disk around the point requested.
 
@@ -182,8 +155,8 @@ def select_disk(
         kwargs: The central point, otherwise specified by `around`
     """
     data_array = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-    around = _normalize_point(data_array, around, **kwargs)
     mask = select_disk_mask(data_array, radius, outer_radius=outer_radius, around=around, flat=True)
+    assert around is not None
 
     if invert:
         mask = np.logical_not(mask)
