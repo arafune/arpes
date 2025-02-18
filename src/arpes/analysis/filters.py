@@ -121,7 +121,7 @@ def boxcar_filter_arr(
         array_values = ndimage.uniform_filter(
             input=array_values,
             size=widths_pixel,
-        )
+        ).astype(np.float64)
     filtered_arr = arr.G.with_values(array_values)
     if "id" in arr.attrs:
         del filtered_arr.attrs["id"]
