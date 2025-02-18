@@ -84,11 +84,9 @@ def select_disk_mask(
 ) -> NDArray[np.float64]:
     """A complement to `select_disk` which only generates the mask for the selection.
 
-    Selects the data in a disk around the point described by `around` and `kwargs`. A point is a
-    labelled collection of coordinates that matches all of the dimensions of `data`. The
-    coordinates can either be passed through a dict as `around`, as the coordinates of a Dataset
-    through `around` or explicitly in keyword argument syntax through `kwargs`. The radius for the
-    disk is specified through the required `radius` parameter.
+    Selects the data in a disk around the point described by `around`. A point is a labelled
+    collection of coordinates that matches all of the dimensions of `data`. The radius for the disk
+    is specified through the required `radius` parameter.
 
     Returns the ND mask that represents the filtered coordinates.
 
@@ -136,11 +134,9 @@ def select_disk(
 
      (or annulus if `outer_radius` is provided)
 
-    The point is specified by `around` and `kwargs`. A point is a labeled collection of coordinates
-    that matches all of the dimensions of `data`. The coordinates can either be passed through a
-    dict as `around`, as the coordinates of a Dataset through `around` or explicitly in keyword
-    argument syntax through `kwargs`. The radius for the disk is specified through the required
-    `radius` parameter.
+    A point is a labeled collection of coordinates that matches all of the dimensions of `data`.
+    The coordinates can be passed through a dict as `around`. The radius for the disk is
+    specified through the required `radius` parameter.
 
     Data is returned as a tuple with the type tuple[dict[str, np.ndarray], np.ndarray,
     containing a dictionary with the filtered lists of coordinates, an array with the original data
@@ -150,9 +146,8 @@ def select_disk(
         data: The data to perform the selection from
         radius: The inner radius of the annulus selection
         outer_radius: The outer radius of the annulus selection
-        around: The central point, otherwise specified by `kwargs`
+        around: The central point.
         invert: Whether to invert the mask, i.e. everything but the annulus
-        kwargs: The central point, otherwise specified by `around`
     """
     data_array = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     mask = select_disk_mask(data_array, radius, outer_radius=outer_radius, around=around, flat=True)
