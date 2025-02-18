@@ -179,7 +179,7 @@ class ConfigSettings(TypedDict, total=False):
     use_tex: bool
 
 
-class WorkSpaceType(TypedDict, total=False):
+class WorkSpaceType(TypedDict):
     """TypedDict for arpes.CONFIG["WORKSPACE"]."""
 
     path: str | Path
