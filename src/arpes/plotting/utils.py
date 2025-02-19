@@ -1329,8 +1329,8 @@ def label_for_dim(
 
 def fancy_labels(
     ax_or_ax_set: Axes | Sequence[Axes],
-    data: DataType | None = None,
 ) -> None:
+    data: DataType | None = (None,)
     """Attaches better display axis labels for all axes.
 
     Axes are determined by those that can be traversed in the passed figure or axes.
