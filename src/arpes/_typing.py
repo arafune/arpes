@@ -51,6 +51,8 @@ if TYPE_CHECKING:
     from matplotlib.widgets import AxesWidget, Button, TextBox
     from numpy.typing import ArrayLike, NDArray
 
+from xarray.core.common import DataWithCoords
+
 __all__ = [
     "ANGLE",
     "EMISSION_ANGLE",
@@ -72,7 +74,7 @@ __all__ = [
 ]
 
 
-DataType = TypeVar("DataType", xr.DataArray, xr.Dataset)
+DataType = TypeVar("DataType", bound=DataWithCoords)
 NormalizableDataType: TypeAlias = DataType | str | uuid.UUID
 
 XrTypes: TypeAlias = xr.DataArray | xr.Dataset
