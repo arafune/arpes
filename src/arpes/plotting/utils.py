@@ -36,6 +36,7 @@ from arpes.debug import setup_logger
 from arpes.utilities import normalize_to_spectrum
 from arpes.utilities.jupyter import get_notebook_name, get_recent_history
 
+
 if TYPE_CHECKING:
     from _typeshed import Incomplete
     from lmfit.model import Model
@@ -44,6 +45,7 @@ if TYPE_CHECKING:
     from matplotlib.image import AxesImage
     from matplotlib.typing import ColorType
     from numpy.typing import NDArray
+    from xarray.core.common import DataWithCoords
 
     from arpes._typing import DataType, MPLPlotKwargs, PLTSubplotParam, XrTypes
     from arpes.provenance import Provenance
@@ -1241,7 +1243,7 @@ def label_for_colorbar(data: XrTypes) -> str:
 
 
 def label_for_dim(
-    data: DataType | None = None,
+    data: DataWithCoords | None = None,
     dim_name: Hashable = "",
     *,
     escaped: bool = True,
@@ -1330,7 +1332,6 @@ def label_for_dim(
 def fancy_labels(
     ax_or_ax_set: Axes | Sequence[Axes],
 ) -> None:
-    data: DataType | None = (None,)
     """Attaches better display axis labels for all axes.
 
     Axes are determined by those that can be traversed in the passed figure or axes.
@@ -1339,6 +1340,7 @@ def fancy_labels(
         ax_or_ax_set: The axis to search for subaxes
         data: The source data, used to calculate names, typically you can leave this empty
     """
+    data: xr.DataArray | xr.Dataset | None = None
     if isinstance(ax_or_ax_set, Sequence):
         for ax in ax_or_ax_set:
             fancy_labels(ax)
