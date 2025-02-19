@@ -13,7 +13,7 @@ from arpes.constants import K_BOLTZMANN_MEV_KELVIN
 from arpes.utilities import normalize_to_spectrum
 
 if TYPE_CHECKING:
-    from arpes._typing import DataType
+    from arpes._typing import XrTypes
 
 __all__ = ("total_resolution_estimate",)
 
@@ -261,7 +261,7 @@ def beamline_resolution_estimate(
 
 
 def thermal_broadening_estimate(
-    data: DataType,
+    data: XrTypes,
     *,
     meV: bool = False,  # noqa: N803
 ) -> float:
