@@ -74,21 +74,18 @@ def shift_by(
     return arr_copy
 
 
-T = TypeVar("T", NDArray[np.float64], float)
-
-
 def inv_fermi_distribution(
-    energy: T,
+    energy: float,
     temperature: float,
     mu: float = 0.0,
-) -> T:
+) -> float:
     """Expects energy in eV and temperature in Kelvin."""
     return np.exp((energy - mu) / (K_BOLTZMANN_EV_KELVIN * temperature)) + 1.0
 
 
 def fermi_distribution(
-    energy: T,
+    energy: float,
     temperature: float,
-) -> T:
+) -> float:
     """Expects energy in eV and temperature in Kelvin."""
     return 1.0 / inv_fermi_distribution(energy, temperature)
