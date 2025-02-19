@@ -1128,7 +1128,7 @@ def load_scan(
     Returns:
         Loaded and normalized ARPES scan data.
     """
-    note: dict[Hashable, str | float] | ScanDesc = scan_desc.get("note", scan_desc)
+    note: dict[str, str | float] | ScanDesc = scan_desc.get("note", scan_desc)
     full_note: ScanDesc = copy.deepcopy(scan_desc)
     assert isinstance(note, dict)
     full_note.update(note)
