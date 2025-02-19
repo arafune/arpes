@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import warnings
+from functools import singledispatch
 from logging import DEBUG, INFO
 from typing import TYPE_CHECKING, Any, Concatenate, ParamSpec, TypeVar
 
@@ -16,8 +17,8 @@ if TYPE_CHECKING:
     import numpy as np
     from _typeshed import Incomplete
     from numpy.typing import NDArray
+    from xarray.core.common import DataWithCoords
 
-    from arpes._typing import DataType
 
 __all__ = (
     "lift_dataarray",
@@ -33,6 +34,7 @@ LOGLEVEL = LOGLEVELS[1]
 logger = setup_logger(__name__, LOGLEVEL)
 
 T = TypeVar("T")
+P = ParamSpec("P")
 
 
 def unwrap_xarray_item(item: xr.DataArray) -> xr.DataArray | float:
@@ -122,9 +124,6 @@ def lift_dataarray(  # unused
     return g
 
 
-P = ParamSpec("P")
-
-
 def lift_dataarray_attrs(
     f: Callable[Concatenate[dict[str, T], P], dict[str, T]],
 ) -> Callable[Concatenate[xr.DataArray, P], xr.DataArray]:
@@ -166,7 +165,7 @@ def lift_dataarray_attrs(
 
 def lift_datavar_attrs(
     f: Callable[Concatenate[dict[str, T], P], dict[str, T]],
-) -> Callable[Concatenate[DataType, P], DataType]:
+) -> Callable[Concatenate[DataWithCoords, P], DataWithCoords]:
     """Lifts a function that operates dicts to a function that acts on xr attrs.
 
     Applies to all attributes of all the datavars in a xr.Dataset, as well as the Dataset
@@ -179,11 +178,12 @@ def lift_datavar_attrs(
         The function modified to apply to xr instances.
     """
 
+    @singledispatch
     def g(
-        data: DataType,
+        data: DataWithCoords,
         *args: P.args,
         **kwargs: P.kwargs,
-    ) -> DataType:
+    ) -> DataWithCoords:
         """Applies the function to the attributes of the data.
 
         Args:
@@ -191,13 +191,21 @@ def lift_datavar_attrs(
             *args: Additional arguments to pass to the function "f"
             **kwargs: Additional keyword arguments to pass to the function "f"
         """
-        arr_lifted = lift_dataarray_attrs(f)
-        if isinstance(data, xr.DataArray):
-            return arr_lifted(data, *args, **kwargs)
+        del args, kwargs
+        msg = f"Unsupported type: {type(data)}"
+        raise NotImplementedError(msg)
 
+    @g.register
+    def _(data: xr.DataArray, *args: P.args, **kwargs: P.kwargs) -> xr.DataArray:
+        """Applies function to attributes of a DataArray."""
+        arr_lifted = lift_dataarray_attrs(f)
+        return arr_lifted(data, *args, **kwargs)
+
+    @g.register
+    def _(data: xr.Dataset, *args: P.args, **kwargs: P.kwargs) -> xr.Dataset:
+        arr_lifted = lift_dataarray_attrs(f)
         new_vars = {k: arr_lifted(da, *args, **kwargs) for k, da in data.data_vars.items()}
         new_root_attrs = f(data.attrs, *args, **kwargs)
-
         return xr.Dataset(new_vars, data.coords, new_root_attrs)
 
     return g
