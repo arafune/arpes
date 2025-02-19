@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Literal, TypedDict, TypeVar, Unpack
+from typing import TYPE_CHECKING, Literal, TypedDict, Unpack
 
 import numpy as np
 import scipy.ndimage
 import xarray as xr
-from numpy.typing import NDArray
 
 from arpes.constants import K_BOLTZMANN_EV_KELVIN
+
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
 
 __all__ = [
     "fermi_distribution",
@@ -22,7 +24,7 @@ __all__ = [
 class ShiftParam(TypedDict, total=False):
     """Keyword parameter for scipy.ndimage.shift."""
 
-    order: int
+    order: Literal[0, 1, 2, 3, 4, 5]
     mode: Literal[
         "reflect",
         "grid-mirror",
