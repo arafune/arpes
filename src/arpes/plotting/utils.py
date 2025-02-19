@@ -36,7 +36,6 @@ from arpes.debug import setup_logger
 from arpes.utilities import normalize_to_spectrum
 from arpes.utilities.jupyter import get_notebook_name, get_recent_history
 
-
 if TYPE_CHECKING:
     from _typeshed import Incomplete
     from lmfit.model import Model
