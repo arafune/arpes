@@ -69,8 +69,8 @@ def create_figure_and_axes(
 def add_colorbar(
     ax: Axes,
     orientation: Literal["horizontal", "vertical"] = "horizontal",
-    norm: Normalize | None,
-    cmap: str | Colormap | None,
+    norm: Normalize | None = None,
+    cmap: str | Colormap | None = None,
 ) -> None:
     """Add a colorbar to the plot.
 
@@ -82,6 +82,8 @@ def add_colorbar(
         cmap (str | Colormap): The colormap for the colorbar. If None, the default (viridis) is
             used.
     """
+    if cmap is None:
+        cmap = "viridis"
     if orientation.startswith("h"):
         axins = inset_axes(
             ax,

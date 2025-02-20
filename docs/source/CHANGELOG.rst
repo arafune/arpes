@@ -9,6 +9,16 @@ Primary (X.-.-) version numbers are used to denote backwards
 incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
+4.2.4 (XXXX-XX-XX)
+^^^^^^^^^^^^^^^^^^
+
+Changed
+~~~~~~~
+
+* Rename inset_cut_locator -> insert_cut_locator
+* Remove sum_annotation and mean_annotation in plotting.utils
+
+
 4.2.3 (2025-1-5)
 ^^^^^^^^^^^^^^^^^^
 
