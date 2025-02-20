@@ -738,8 +738,8 @@ def dos_axes(
 
 
 def inset_cut_locator(
-    data: DataType,
-    reference_data: DataType,
+    data: XrTypes,
+    reference_data: XrTypes,
     ax: Axes,
     location: dict[str, Incomplete],
     color: ColorType = "red",
