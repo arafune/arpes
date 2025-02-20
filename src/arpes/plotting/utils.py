@@ -354,7 +354,7 @@ def data_to_axis_units(
     points: tuple[float, float],
     ax: Axes | None = None,
 ) -> NDArray[np.float64]:
-    """Converts between data and axis units."""
+    """Converts from data coordinates to axis coordinates (figure pixcels)."""
     if ax is None:
         ax = plt.gca()
     assert isinstance(ax, Axes)
@@ -365,7 +365,7 @@ def axis_to_data_units(
     points: tuple[float, float],
     ax: Axes | None = None,
 ) -> NDArray[np.float64]:
-    """Converts between axis and data units."""
+    """Converts from axis coordinate to data coorinates."""
     if ax is None:
         ax = plt.gca()
     assert isinstance(ax, Axes)
@@ -514,6 +514,7 @@ LATEX_ESCAPE_MAP = {
     "^": r"\^{}",
     "\\": r"\textbackslash{}",
 }
+
 LATEX_ESCAPE_REGEX = re.compile(
     "|".join(
         re.escape(str(k)) for k in sorted(LATEX_ESCAPE_MAP.keys(), key=lambda item: -len(item))
