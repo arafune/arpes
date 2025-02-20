@@ -80,7 +80,6 @@ __all__ = (
     "latex_escape",
     "lineplot_arr",
     "load_data_for_figure",
-    "mean_annotation",
     "mod_plot_to_ax",
     "name_for_dim",
     "path_for_holoviews",
@@ -91,7 +90,6 @@ __all__ = (
     "remove_colorbars",
     "savefig",
     "simple_ax_grid",
-    "sum_annotation",
     "summarize",
     "unchanged_limits",
     "unit_for_dim",
@@ -175,18 +173,25 @@ def simple_ax_grid(
 
 
 @contextlib.contextmanager
-def dark_background(overrides: dict[str, Incomplete]) -> Iterator[None]:
-    """Context manager for plotting "dark mode"."""
-    defaults = {
+def dark_background(overrides: dict[str, str] | None = None) -> Iterator[None]:
+    """Context manager for plotting in "dark mode", including Colorbar settings."""
+    default_dark_mode = {
         "axes.edgecolor": "white",
         "xtick.color": "white",
         "ytick.color": "white",
         "axes.labelcolor": "white",
         "text.color": "white",
+        "figure.facecolor": "black",
+        "savefig.facecolor": "black",
+        "grid.color": "gray",
+        "colorbar.edgecolor": "white",
+        "colorbar.tick.color": "white",
+        "colorbar.labelcolor": "white",
     }
-    defaults.update(overrides)
+    if overrides:
+        default_dark_mode.update(overrides)
 
-    with plt.rc_context(defaults):
+    with plt.rc_context(default_dark_mode):
         yield
 
 
@@ -297,7 +302,18 @@ def sum_annotation(
     eV: slice | None = None,  # noqa: N803
     phi: slice | None = None,
 ) -> str:
-    """Annotates that a given axis was summed over by listing the integration range."""
+    """Annotates that a given axis was summed over by listing the integration range.
+
+    Warning:
+      This method will be deprecated. It is not used frequently, it is not common, and there is no
+      advantage to having it as a function.
+    """
+    warnings.warn(
+        "This method will be deprecated",
+        category=DeprecationWarning,
+        stacklevel=2,
+    )
+
     eV_annotation, phi_annotation = "", ""
 
     assert "use_tex" in SETTINGS
@@ -326,7 +342,18 @@ def mean_annotation(
     eV: slice | None = None,  # noqa: N803
     phi: slice | None = None,
 ) -> str:
-    """Annotates that a given axis was meant (summed) over by listing the integration range."""
+    """Annotates that a given axis was meant (summed) over by listing the integration range.
+
+    Warning:
+      This method will be deprecated. It is not used frequently, it is not common, and there is no
+      advantage to having it as a function.
+    """
+    warnings.warn(
+        "This method will be deprecated",
+        category=DeprecationWarning,
+        stacklevel=2,
+    )
+
     eV_annotation, phi_annotation = "", ""
 
     assert "use_tex" in SETTINGS
