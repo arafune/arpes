@@ -1,6 +1,5 @@
 """Standard plotting routines and utility code for ARPES analyses."""
 
-# pyright: reportUnusedImport=false
 from __future__ import annotations
 
 from .annotations import annotate_cuts, annotate_experimental_conditions, annotate_point
@@ -31,3 +30,4 @@ from .utils import (
     savefig,
     simple_ax_grid,
 )
+from .decoration import h_gradient_fill, v_gradient_fill
