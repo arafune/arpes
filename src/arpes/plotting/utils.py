@@ -72,7 +72,7 @@ __all__ = (
     "frame_with",
     "get_colorbars",
     "imshow_arr",
-    "inset_cut_locator",
+    "insert_cut_locator",
     "invisible_axes",
     "label_for_colorbar",
     "label_for_dim",
@@ -737,7 +737,7 @@ def dos_axes(
     return fig, axes
 
 
-def inset_cut_locator(
+def insert_cut_locator(
     data: XrTypes,
     reference_data: XrTypes,
     ax: Axes,
@@ -757,6 +757,8 @@ def inset_cut_locator(
         location: The location in the cut
         color: The color to use for the indicator line
         kwargs: Passed to ax.plot when making the indicator lines
+
+    Todo: Follow the docs.  (Rename from inset_cut_locator)
     """
     quad = data.S.plot(ax=ax)
     assert isinstance(ax, Axes)
