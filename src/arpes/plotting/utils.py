@@ -21,7 +21,7 @@ import numpy as np
 import xarray as xr
 from matplotlib import colors, gridspec
 from matplotlib.axes import Axes
-from matplotlib.cm import ScalarMappable
+from matplotlib.cm import ScalarMappable, get_cmap
 from matplotlib.colorbar import Colorbar
 from matplotlib.colors import Colormap, colorConverter
 from matplotlib.figure import Figure
@@ -47,7 +47,7 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
     from xarray.core.common import DataWithCoords
 
-    from arpes._typing import DataType, MPLPlotKwargs, PLTSubplotParam, XrTypes
+    from arpes._typing import DataType, MPLPlotKwargs, PLTSubplotParam, XrTypes, PColorMeshKwargs
     from arpes.provenance import Provenance
 
 __all__ = (
@@ -65,7 +65,7 @@ __all__ = (
     "get_colorbars",
     "h_gradient_fill",
     "imshow_arr",
-    "imshow_mask",
+    "pcolormesh_mask",
     "inset_cut_locator",
     "invisible_axes",
     "label_for_colorbar",
@@ -643,6 +643,55 @@ def plot_arr(
         ax = lineplot_arr(arr, ax=ax, mask=mask, **kwargs)
 
     return ax
+
+
+def pcolormesh_mask(
+    mask: xr.DataArray,
+    ax: Axes | None = None,
+    over: AxesImage | None = None,
+    **kwargs: Unpack[PColorMeshKwargs],
+) -> None:
+    """Plots a mask using `pcolormesh`, preserving its spatial structure.
+
+    This function replaces `imshow_mask`, explicitly handling non-uniform grids.
+
+    Args:
+        mask (xr.DataArray): Binary or continuous mask data.
+        ax (Axes | None, optional): The matplotlib axis to plot on. Defaults to None.
+        over (AxesImage | None, optional): The reference image for coordinate alignment.
+            Defaults to None.
+        **kwargs: Additional arguments passed to `pcolormesh`.
+
+    Todo: Consider better handling of NaN values and transparency.
+    """
+    assert over is not None
+
+    if ax is None:
+        ax = plt.gca()
+    assert isinstance(ax, Axes)
+
+    default_kwargs = {
+        "alpha": 1.0,
+        "cmap": "Reds",
+        "shading": "auto",
+    }
+
+    for k, v in default_kwargs.items():
+        kwargs.setdefault(k, v)  # type: ignore[misc]
+
+    if "cmap" in kwargs and isinstance(kwargs["cmap"], str):
+        kwargs["cmap"] = get_cmap(name=kwargs["cmap"])
+    assert "cmap" in kwargs
+    assert isinstance(kwargs["cmap"], Colormap)
+    kwargs["cmap"].set_bad("k", alpha=0)
+    masked_data = np.where(np.isnan(mask.values), np.nan, mask.values)
+
+    ax.pcolormesh(
+        mask.coords[mask.dims[1]].values,
+        mask.coords[mask.dims[0]].values,
+        masked_data,
+        **kwargs,
+    )
 
 
 def imshow_mask(
