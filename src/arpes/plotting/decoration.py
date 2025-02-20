@@ -1,15 +1,15 @@
 """Contains utility functions for decorating matplotlib look."""
 
-import numpy as np
-import matplotlib.pyplot as plt
 from typing import Literal, Unpack
-from matplotlib.colors import colorConverter
-from arpes._typing import IMshowParam
 
-from matplotlib.image import AxesImage
+import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.axes import Axes
-
+from matplotlib.colors import colorConverter
+from matplotlib.image import AxesImage
 from matplotlib.typing import ColorType
+
+from arpes._typing import IMshowParam
 
 __all__ = ("h_gradient_fill", "v_gradient_fill")
 

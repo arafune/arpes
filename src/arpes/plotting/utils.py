@@ -30,7 +30,7 @@ from matplotlib.offsetbox import AnchoredOffsetbox, AuxTransformBox, TextArea, V
 from titlecase import titlecase
 
 from arpes import VERSION
-from arpes._typing import IMshowParam, Plot2DStyle, XrTypes
+from arpes._typing import XrTypes
 from arpes.config import CONFIG, FIGURE_PATH, SETTINGS, attempt_determine_workspace, is_using_tex
 from arpes.constants import TWO_DIMENSION
 from arpes.debug import setup_logger
@@ -47,7 +47,15 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
     from xarray.core.common import DataWithCoords
 
-    from arpes._typing import DataType, MPLPlotKwargs, PLTSubplotParam, XrTypes, PColorMeshKwargs
+    from arpes._typing import (
+        DataType,
+        IMshowParam,
+        MPLPlotKwargs,
+        PColorMeshKwargs,
+        Plot2DStyle,
+        PLTSubplotParam,
+        XrTypes,
+    )
     from arpes.provenance import Provenance
 
 __all__ = (
@@ -64,7 +72,6 @@ __all__ = (
     "frame_with",
     "get_colorbars",
     "imshow_arr",
-    "pcolormesh_mask",
     "inset_cut_locator",
     "invisible_axes",
     "label_for_colorbar",
@@ -78,6 +85,7 @@ __all__ = (
     "name_for_dim",
     "path_for_holoviews",
     "path_for_plot",
+    "pcolormesh_mask",
     "plot_arr",
     "quick_tex",
     "remove_colorbars",
