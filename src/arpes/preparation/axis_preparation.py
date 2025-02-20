@@ -4,18 +4,17 @@ from __future__ import annotations
 
 import copy
 import functools
+from logging import DEBUG, INFO
 from typing import TYPE_CHECKING
 
-from logging import DEBUG, INFO
 import numpy as np
 import xarray as xr
 from scipy.ndimage import geometric_transform
 
+from arpes.debug import setup_logger
 from arpes.provenance import Provenance, provenance, update_provenance
 from arpes.utilities import lift_dataarray_to_generic
 from arpes.utilities.normalize import normalize_to_spectrum
-
-from arpes.debug import setup_logger
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -36,7 +35,7 @@ __all__ = (
 )
 
 LOGLEVELS = (DEBUG, INFO)
-LOGLEVEL = LOGLEVELS[0]
+LOGLEVEL = LOGLEVELS[1]
 logger = setup_logger(__name__, LOGLEVEL)
 
 
@@ -45,15 +44,16 @@ def vstack_data(arr_list: list[DataType], new_dim: str) -> DataType:
     """Build a new DataArray | Dataset with an additional dimension.
 
     Args:
-        arr_list (list[xr.Dataset] | list[xr.DataArray]): Source data series
+        arr_list (list[xr.Dataset] | list[xr.DataArray]): Source data series, all data must contain
+            "new_dim" value in coords or attrs.
         new_dim (str): name of axis as a new dimension
 
     Returns:
         DataType:  Data with an additional dimension
     """
-    if not all((new_dim in data.attrs) for data in arr_list):
+    if not all(new_dim in data.attrs for data in arr_list):
         logger.debug(f"{new_dim} is not included")
-        assert all([(new_dim in data.coords for data in arr_list)])
+        assert all(new_dim in data.coords for data in arr_list)
     else:
         arr_list = [data.assign_coords({new_dim: data.attrs[new_dim]}) for data in arr_list]
     return xr.concat(objs=arr_list, dim=new_dim)
