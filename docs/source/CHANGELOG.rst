@@ -17,7 +17,13 @@ Changed
 
 * Rename inset_cut_locator -> insert_cut_locator
 * Remove sum_annotation and mean_annotation in plotting.utils
-
+* Remove to_arrays in xarray_extensions.py because of too-simple.
+* Remove src/arpes/optics.py
+  - This should not be included in pyarpes, because it is not closely related to arpes analysis.
+* Remove src/arpes/utilities/image.py
+  - In certain special situations, this may be a meaningful function. However, as a practical matter, direct reading of image data is not likely to produce meaningful data (data that can be used in a paper).
+* Remove arpes.exceptions : pragmatically, it has not been used. And I don't think the own class for exception is good idea.
+* Remove arg keep_parent_ref in provenance and provenance_multiple_parents
 
 4.2.3 (2025-1-5)
 ^^^^^^^^^^^^^^^^^^
