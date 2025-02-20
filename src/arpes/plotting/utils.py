@@ -79,7 +79,6 @@ __all__ = (
     "label_for_symmetry_point",
     "latex_escape",
     "lineplot_arr",
-    "load_data_for_figure",
     "mean_annotation",
     "mod_plot_to_ax",
     "name_for_dim",
