@@ -48,7 +48,6 @@ if TYPE_CHECKING:
     from xarray.core.common import DataWithCoords
 
     from arpes._typing import (
-        DataType,
         IMshowParam,
         MPLPlotKwargs,
         PColorMeshKwargs,
