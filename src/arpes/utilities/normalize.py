@@ -12,7 +12,7 @@ import xarray as xr
 from arpes.debug import setup_logger
 
 if TYPE_CHECKING:
-    from arpes._typing import XrTypes
+    from xarray.core.common import DataWithCoords
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
@@ -22,7 +22,7 @@ logger = setup_logger(__name__, LOGLEVEL)
 __all__ = ("normalize_to_spectrum",)
 
 
-def normalize_to_spectrum(data: XrTypes | str) -> xr.DataArray:
+def normalize_to_spectrum(data: DataWithCoords | str) -> xr.DataArray:
     """Tries to extract the actual ARPES spectrum from a dataset containing other variables."""
     from arpes.io import load_data
 

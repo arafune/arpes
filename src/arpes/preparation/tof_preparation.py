@@ -63,8 +63,8 @@ def convert_to_kinetic_energy(
 
     new_data = np.zeros(tuple(new_shape))
 
-    def energy_to_time(conv: float, energy: float) -> float | np.float64:
-        return np.sqrt(conv / energy)
+    def energy_to_time(conv: float, energy: float) -> np.float64:
+        return np.sqrt(conv / energy, dtype=np.float64)
 
     # Rebin data
     old_data = dataarray.data

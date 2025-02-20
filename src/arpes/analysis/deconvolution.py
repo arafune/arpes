@@ -65,7 +65,12 @@ def deconvolve_ice(
     iteration_list = [arr]
 
     for _ in range(n_iterations - 1):
-        iteration_list.append(scipy.ndimage.convolve(iteration_list[-1], psf))
+        iteration_list.append(
+            np.asarray(
+                scipy.ndimage.convolve(iteration_list[-1], psf),
+                dtype=np.float64,
+            ),
+        )
     iteration_array = np.asarray(iteration_list)
 
     deconv = arr * 0

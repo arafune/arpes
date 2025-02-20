@@ -17,6 +17,7 @@ from arpes.utilities import normalize_to_spectrum
 
 if TYPE_CHECKING:
     from lmfit.model import ModelResult
+    from xarray.core.common import DataWithCoords
 
     from arpes._typing import DataType
 
@@ -29,7 +30,7 @@ logger = setup_logger(__name__, LOGLEVEL)
 
 
 def determine_broadened_fermi_distribution(
-    reference_data: DataType,
+    reference_data: DataWithCoords,
     *,
     fixed_temperature: bool = True,
 ) -> ModelResult:

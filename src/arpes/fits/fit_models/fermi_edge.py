@@ -76,7 +76,10 @@ class AffineBroadenedFD(XModelMixin):
         x_scaling = x[1] - x[0]
         fermi = 1 / (np.exp(dx / width) + 1)
         return (
-            gaussian_filter((const_bkg + lin_bkg * dx) * fermi, sigma=conv_width / x_scaling)
+            np.asarray(
+                gaussian_filter((const_bkg + lin_bkg * dx) * fermi, sigma=conv_width / x_scaling),
+                dtype=np.float64,
+            )
             + offset
         )
 
