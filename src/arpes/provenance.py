@@ -97,6 +97,7 @@ class Provenance(_Provenance, total=False):
     enhance_a: float
     shift_coords: list[tuple[Hashable, float]]
     coords_correction: list[CoordsOffset]
+    data: list[Provenance]
 
 
 def attach_id(data: XrTypes) -> None:

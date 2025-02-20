@@ -14,7 +14,7 @@ from collections.abc import Callable, Hashable, Iterable, Iterator, Sequence
 from datetime import UTC
 from logging import DEBUG, INFO
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, Unpack
+from typing import TYPE_CHECKING, Literal, Unpack
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,6 +22,7 @@ import xarray as xr
 from matplotlib import colors, gridspec
 from matplotlib.axes import Axes
 from matplotlib.cm import ScalarMappable
+from matplotlib.colorbar import Colorbar
 from matplotlib.colors import Colormap, colorConverter
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
@@ -53,13 +54,11 @@ __all__ = (
     "AnchoredHScaleBar",
     "axis_to_data_units",
     "calculate_aspect_ratio",
-    # context managers
+    "color_for_darkbackground",
     "dark_background",
-    # units related
     "data_to_axis_units",
     "daxis_ddata_units",
     "ddata_daxis_units",
-    # Axis generation
     "dos_axes",
     "fancy_labels",
     "frame_with",
@@ -67,31 +66,25 @@ __all__ = (
     "h_gradient_fill",
     "imshow_arr",
     "imshow_mask",
-    # insets related
     "inset_cut_locator",
-    # matplotlib 'macros'
     "invisible_axes",
-    # Decorating + labeling
     "label_for_colorbar",
     "label_for_dim",
     "label_for_symmetry_point",
     "latex_escape",
-    "lineplot_arr",  # 1D version of imshow_arr
+    "lineplot_arr",
     "load_data_for_figure",
     "mean_annotation",
     "mod_plot_to_ax",
     "name_for_dim",
     "path_for_holoviews",
-    # General + IO
     "path_for_plot",
-    "plot_arr",  # generic dimension version of imshow_arr, plot_arr
-    # TeX related
+    "plot_arr",
     "quick_tex",
     "remove_colorbars",
     "savefig",
     "simple_ax_grid",
     "sum_annotation",
-    # Data summaries
     "summarize",
     "unchanged_limits",
     "unit_for_dim",
@@ -328,6 +321,33 @@ def dark_background(overrides: dict[str, Incomplete]) -> Iterator[None]:
 
     with plt.rc_context(defaults):
         yield
+
+
+def color_for_darkbackground(obj: Colorbar | Axes) -> None:
+    """Change color to fit the dark background.
+
+    This function adjusts the colors of the given Matplotlib Colorbar or Axes
+    object to make them suitable for a dark background.
+
+    Args:
+        obj (Colorbar | Axes): The Matplotlib Colorbar or Axes object to adjust.
+    """
+    if isinstance(obj, Colorbar):
+        obj.ax.yaxis.set_tick_params(color="white")
+        obj.ax.yaxis.label.set_color("white")
+        obj.ax.spines["outline"].set_edgecolor("white")
+        for label in obj.ax.get_yticklabels():
+            label.set_color("white")
+
+    if isinstance(obj, Axes):
+        obj.spines["bottom"].set_color("white")
+        obj.spines["top"].set_color("white")
+        obj.spines["right"].set_color("white")
+        obj.spines["left"].set_color("white")
+        obj.tick_params(axis="both", colors="white")
+        obj.xaxis.label.set_color("white")
+        obj.yaxis.label.set_color("white")
+        obj.title.set_color("white")
 
 
 def data_to_axis_units(
@@ -1024,7 +1044,13 @@ def savefig(
                 **kwargs,
             )
 
-        savefig(f"{desired_path}-low-PAPER.pdf", dpi=200, data=data, paper=False, **kwargs)
+        savefig(
+            f"{desired_path}-low-PAPER.pdf",
+            dpi=200,
+            data=data,
+            paper=False,
+            **kwargs,
+        )
 
         return
 
@@ -1037,7 +1063,7 @@ def savefig(
         "name": "savefig",
     }
 
-    def extract(for_data: XrTypes) -> dict[str, Any]:
+    def extract_provenance(for_data: XrTypes) -> Provenance:
         return for_data.attrs.get("provenance", {})
 
     if data is not None:
@@ -1045,12 +1071,8 @@ def savefig(
             data,
             list | tuple | set,
         )
-        provenance_context.update(
-            {
-                "jupyter_context": get_recent_history(1),
-                "data": [extract(d) for d in data],
-            },
-        )
+        provenance_context["jupyter_context"] = get_recent_history(1)
+        provenance_context["data"] = [extract_provenance(d) for d in data]
     else:
         # get more recent history because we don't have the data
         provenance_context.update(

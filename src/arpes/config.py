@@ -60,7 +60,7 @@ SETTINGS: ConfigSettings = {
 }
 
 CONFIG: ConfigType = {
-    "WORKSPACE": {},
+    "WORKSPACE": {"path": "", "name": ""},
     "CURRENT_CONTEXT": None,
     "ENABLE_LOGGING": True,
     "LOGGING_STARTED": False,
@@ -113,7 +113,7 @@ class WorkspaceManager:
 
         ToDo: TEST
         """
-        self._cached_workspace: WorkSpaceType = {}
+        self._cached_workspace: WorkSpaceType = {"path": "", "name": ""}
         self._workspace_name: str = workspace_name
 
     def __enter__(self) -> None:
