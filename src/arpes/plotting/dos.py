@@ -45,7 +45,7 @@ logger = setup_logger(__name__, LOGLEVEL)
 
 def create_figure_and_axes(
     figsize: tuple[float, float],
-    orientation: Literal["horizontal", "vertical"],
+    orientation: Literal["horizontal", "vertical"] = "horizontal",
 ) -> tuple[Figure, gridspec.GridSpec]:
     """Create a figure and axes for plotting.
 
@@ -68,7 +68,7 @@ def create_figure_and_axes(
 
 def add_colorbar(
     ax: Axes,
-    orientation: str,
+    orientation: Literal["horizontal", "vertical"] = "horizontal",
     norm: Normalize | None,
     cmap: str | Colormap | None,
 ) -> None:
