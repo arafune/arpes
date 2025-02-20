@@ -1330,6 +1330,7 @@ def label_for_dim(
 
 def fancy_labels(
     ax_or_ax_set: Axes | Sequence[Axes],
+    data: DataWithCoords | None = None,
 ) -> None:
     """Attaches better display axis labels for all axes.
 
@@ -1339,7 +1340,6 @@ def fancy_labels(
         ax_or_ax_set: The axis to search for subaxes
         data: The source data, used to calculate names, typically you can leave this empty
     """
-    data: xr.DataArray | xr.Dataset | None = None
     if isinstance(ax_or_ax_set, Sequence):
         for ax in ax_or_ax_set:
             fancy_labels(ax)
