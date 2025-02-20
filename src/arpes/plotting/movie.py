@@ -5,7 +5,7 @@ from __future__ import annotations
 from logging import DEBUG, INFO
 from numbers import Number
 from pathlib import Path
-from typing import TYPE_CHECKING, Unpack
+from typing import TYPE_CHECKING, Unpack, reveal_type
 
 import matplotlib as mpl
 import numpy as np
@@ -16,6 +16,7 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.axes import Axes
 from matplotlib.colorbar import Colorbar
 from matplotlib.figure import Figure
+from matplotlib.patches import Patch
 
 import arpes.config
 from arpes.constants import TWO_DIMENSION
@@ -100,7 +101,7 @@ def color_for_darkbackground(obj: Colorbar | Axes) -> None:
     if isinstance(obj, Colorbar):
         obj.ax.yaxis.set_tick_params(color="white")
         obj.ax.yaxis.label.set_color("white")
-        obj.outline.set_edgecolor("white")
+        obj.outline.set_color("white")  # type: ignore[PGH003]
         for label in obj.ax.get_yticklabels():
             label.set_color("white")
 
