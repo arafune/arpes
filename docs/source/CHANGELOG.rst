@@ -25,6 +25,7 @@ Changed
 * Remove arpes.exceptions: pragmatically, it has not been used. And I don't think the own class for exception is good idea.
 * Remove arg keep_parent_ref in provenance and provenance_multiple_parents
 * Remove load_data_for_figure from plotting.utils
+* Remove CoincidentLinePlot (Same (at least similar) feature can be done with fill_between)
 
 4.2.3 (2025-1-5)
 ^^^^^^^^^^^^^^^^^^
