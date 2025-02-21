@@ -5,10 +5,11 @@ from __future__ import annotations
 import functools
 import operator
 import warnings
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
+from functools import singledispatch
 from logging import DEBUG, INFO
 from string import ascii_lowercase
-from typing import TYPE_CHECKING, Any, Literal, TypeGuard
+from typing import TYPE_CHECKING, Any, Literal
 
 import lmfit as lf
 import xarray as xr
@@ -16,10 +17,6 @@ import xarray as xr
 from arpes.debug import setup_logger
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
-
-    from _typeshed import Incomplete
-
     from arpes.fits import ParametersArgs, XModelMixin
 
 LOGLEVELS = (DEBUG, INFO)
@@ -32,26 +29,30 @@ def unwrap_params(
     iter_coordinate: dict[str, slice | float],
 ) -> dict[str, Any]:
     """Inspects arraylike parameters and extracts appropriate value for current fit."""
+    return {k: _transform_or_walk(v, iter_coordinate) for k, v in params.items()}
 
-    def transform_or_walk(
-        v: dict | xr.DataArray | Iterable[float],
-    ) -> Incomplete:
-        """[TODO:summary].
 
-        [TODO:description]
+@singledispatch
+def _transform_or_walk(v: object, iter_coordinate: dict[str, slice | float]) -> object:
+    """Default case: return the value as is."""
+    del iter_coordinate
+    return v
 
-        Args:
-            v: [TODO:description]
-        """
-        if isinstance(v, dict):
-            return unwrap_params(v, iter_coordinate)
 
-        if isinstance(v, xr.DataArray):
-            return v.sel(iter_coordinate, method="nearest").item()
+@_transform_or_walk.register
+def _(v: dict, iter_coordinate: dict[str, slice | float]) -> dict:
+    return unwrap_params(v, iter_coordinate)
 
-        return v
 
-    return {k: transform_or_walk(v) for k, v in params.items()}
+@_transform_or_walk.register
+def _(v: xr.DataArray, iter_coordinate: dict[str, slice | float]) -> float:
+    return v.sel(iter_coordinate, method="nearest").item()
+
+
+@_transform_or_walk.register
+def _(v: Iterable, iter_coordinate: dict[str, slice | float]) -> Iterable:
+    del iter_coordinate
+    return v
 
 
 def apply_window(
@@ -104,23 +105,37 @@ def reduce_model_with_operators(
     models: Sequence[lf.Model | Literal["+", "*", "-", "/"]],
 ) -> lf.Model:
     """Combine models according to mathematical operators."""
-    if isinstance(models, tuple):
-        return models[0](prefix=f"{models[1]}_", nan_policy="omit")
+    if isinstance(models, Sequence) and len(models) == 1:
+        if isinstance(models[0], lf.Model):
+            return models[0]
+        msg = f"Invalid input: {models}"
+        raise ValueError(msg)
 
-    if isinstance(models, list) and len(models) == 1:
-        return reduce_model_with_operators(models[0])
+    if len(models) < len(("left", "operator", "right")):
+        msg = "Invalid model sequence, expected at least 3 elements"
+        raise ValueError(msg)
 
-    left, op, right = models[0], models[1], models[2:]
-    left, right = reduce_model_with_operators(left), reduce_model_with_operators(right)
-    assert left is not None
-    assert right is not None
-    operation = {
-        "+": left + right,
-        "*": left * right,
-        "-": left - right,
-        "/": left / right,
-    }
-    return operation.get(op, "None")
+    left, op, *right = models
+
+    if not isinstance(op, str) or op not in ("+", "*", "-", "/"):
+        msg = f"Invalid operators: {op}"
+        raise ValueError(msg)
+
+    left = reduce_model_with_operators(left)
+    right = reduce_model_with_operators(right)
+
+    match op:
+        case "*":
+            return left * right
+        case "+":
+            return left + right
+        case "-":
+            return left - right
+        case "/":
+            return left / right
+        case _:
+            msg = f"Unsupported operator: {op}"
+            raise ValueError(msg)
 
 
 def compile_model(
@@ -138,49 +153,49 @@ def compile_model(
     params = params or {}
     assert isinstance(params, dict | Sequence)
 
-    def _is_sequence_of_models(models: Sequence) -> TypeGuard[Sequence[type[lf.Model]]]:
-        return all(issubclass(token, lf.Model) for token in models)
-
-    prefix_compile = "{}"
-    if not prefixes:
-        prefixes = ascii_lowercase
-        prefix_compile = "{}_"
+    prefixes = prefixes or ascii_lowercase
+    prefix_compile = "{}_" if prefixes is ascii_lowercase else "{}"
 
     if isinstance(uncompiled_model, type) and issubclass(uncompiled_model, lf.Model):
-        if prefixes == ascii_lowercase:
-            return uncompiled_model()
-        return uncompiled_model(prefix=prefixes[0])
+        return uncompiled_model(prefix=prefixes[0]) if prefixes else uncompiled_model()
 
-    if isinstance(uncompiled_model, Sequence) and _is_sequence_of_models(uncompiled_model):
+    if isinstance(uncompiled_model, Sequence) and all(
+        issubclass(m, lf.Model) for m in uncompiled_model
+    ):
         return _compositemodel_from_model_sequence(
-            uncompiled_model=uncompiled_model,
-            params=params,
-            prefixes=prefixes,
-            prefix_compile=prefix_compile,
+            uncompiled_model,
+            params,
+            prefixes,
+            prefix_compile,
         )
-    warnings.warn("Beware of equal operator precedence.", stacklevel=2)
-    prefix = iter(prefixes)
-    model = [m if isinstance(m, str) else (m, next(prefix)) for m in uncompiled_model]
-    return reduce_model_with_operators(_parens_to_nested(model))
+
+    warnings.warn("Beware of equal operator precedudnce.", stacklevel=2)
+    prefix_iter = iter(prefixes)
+    model_with_prefixes = [
+        m if isinstance(m, str) else (m, next(prefix_iter)) for m in uncompiled_model
+    ]
+    return reduce_model_with_operators(_parens_to_nested(model_with_prefixes))
 
 
 def _compositemodel_from_model_sequence(
-    uncompiled_model: Sequence[type[lf.Model]],
+    uncompiled_model: Sequence[type[XModelMixin]],
     params: dict | Sequence,
     prefixes: Sequence[str],
     prefix_compile: str,
 ) -> XModelMixin:
-    models: list[lf.Model] = [
+    """Creates a compoosite model from a sequence of model classes."""
+    models: list[XModelMixin] = [
         m(prefix=prefix_compile.format(prefixes[i]), nan_policy="omit")
         for i, m in enumerate(uncompiled_model)
     ]
     if isinstance(params, Sequence):
-        for cs, m in zip(params, models, strict=True):
-            for k, params_for_name in cs.items():
-                m.set_param_hint(name=k, **params_for_name)
+        for param_set, model in zip(params, models, strict=True):
+            for name, param_args in param_set.items():
+                model.set_param_hint(name=name, **param_args)
 
-    built = functools.reduce(operator.add, models)
+    combined_model = functools.reduce(operator.add, models)
+
     if isinstance(params, dict):
-        for k, v in params.items():
-            built.set_param_hint(k, **v)
-    return built
+        for name, param_args in params.items():
+            combined_model.set_param_hint(name, **param_args)
+    return combined_model
