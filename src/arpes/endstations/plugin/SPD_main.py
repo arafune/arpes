@@ -71,6 +71,9 @@ class SPDEndstation(HemisphericalEndstation, SingleFileEndstation):
         "Bias Voltage": "bias_voltage",
         "Igor Text File Exporter Version": "igor_text_file_exporter_version",
         "Lens Voltage": "lens voltage",
+        "Y": "y",
+        "X": "x",
+        "Z": "z",
     }
     MERGE_ATTRS: ClassVar[Spectrometer] = {
         "analyzer": "Specs PHOIBOS 100",

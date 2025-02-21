@@ -45,7 +45,7 @@ logger = setup_logger(__name__, LOGLEVEL)
 
 def create_figure_and_axes(
     figsize: tuple[float, float],
-    orientation: Literal["horizontal", "vertical"],
+    orientation: Literal["horizontal", "vertical"] = "horizontal",
 ) -> tuple[Figure, gridspec.GridSpec]:
     """Create a figure and axes for plotting.
 
@@ -68,9 +68,9 @@ def create_figure_and_axes(
 
 def add_colorbar(
     ax: Axes,
-    orientation: str,
-    norm: Normalize | None,
-    cmap: str | Colormap | None,
+    orientation: Literal["horizontal", "vertical"] = "horizontal",
+    norm: Normalize | None = None,
+    cmap: str | Colormap | None = None,
 ) -> None:
     """Add a colorbar to the plot.
 
@@ -82,6 +82,8 @@ def add_colorbar(
         cmap (str | Colormap): The colormap for the colorbar. If None, the default (viridis) is
             used.
     """
+    if cmap is None:
+        cmap = "viridis"
     if orientation.startswith("h"):
         axins = inset_axes(
             ax,

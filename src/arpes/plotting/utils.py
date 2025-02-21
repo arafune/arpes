@@ -48,7 +48,6 @@ if TYPE_CHECKING:
     from xarray.core.common import DataWithCoords
 
     from arpes._typing import (
-        DataType,
         IMshowParam,
         MPLPlotKwargs,
         PColorMeshKwargs,
@@ -72,14 +71,13 @@ __all__ = (
     "frame_with",
     "get_colorbars",
     "imshow_arr",
-    "inset_cut_locator",
+    "insert_cut_locator",
     "invisible_axes",
     "label_for_colorbar",
     "label_for_dim",
     "label_for_symmetry_point",
     "latex_escape",
     "lineplot_arr",
-    "mean_annotation",
     "mod_plot_to_ax",
     "name_for_dim",
     "path_for_holoviews",
@@ -90,7 +88,6 @@ __all__ = (
     "remove_colorbars",
     "savefig",
     "simple_ax_grid",
-    "sum_annotation",
     "summarize",
     "unchanged_limits",
     "unit_for_dim",
@@ -174,18 +171,25 @@ def simple_ax_grid(
 
 
 @contextlib.contextmanager
-def dark_background(overrides: dict[str, Incomplete]) -> Iterator[None]:
-    """Context manager for plotting "dark mode"."""
-    defaults = {
+def dark_background(overrides: dict[str, str] | None = None) -> Iterator[None]:
+    """Context manager for plotting in "dark mode", including Colorbar settings."""
+    default_dark_mode = {
         "axes.edgecolor": "white",
         "xtick.color": "white",
         "ytick.color": "white",
         "axes.labelcolor": "white",
         "text.color": "white",
+        "figure.facecolor": "black",
+        "savefig.facecolor": "black",
+        "grid.color": "gray",
+        "colorbar.edgecolor": "white",
+        "colorbar.tick.color": "white",
+        "colorbar.labelcolor": "white",
     }
-    defaults.update(overrides)
+    if overrides:
+        default_dark_mode.update(overrides)
 
-    with plt.rc_context(defaults):
+    with plt.rc_context(default_dark_mode):
         yield
 
 
@@ -296,7 +300,18 @@ def sum_annotation(
     eV: slice | None = None,  # noqa: N803
     phi: slice | None = None,
 ) -> str:
-    """Annotates that a given axis was summed over by listing the integration range."""
+    """Annotates that a given axis was summed over by listing the integration range.
+
+    Warning:
+      This method will be deprecated. It is not used frequently, it is not common, and there is no
+      advantage to having it as a function.
+    """
+    warnings.warn(
+        "This method will be deprecated",
+        category=DeprecationWarning,
+        stacklevel=2,
+    )
+
     eV_annotation, phi_annotation = "", ""
 
     assert "use_tex" in SETTINGS
@@ -325,7 +340,18 @@ def mean_annotation(
     eV: slice | None = None,  # noqa: N803
     phi: slice | None = None,
 ) -> str:
-    """Annotates that a given axis was meant (summed) over by listing the integration range."""
+    """Annotates that a given axis was meant (summed) over by listing the integration range.
+
+    Warning:
+      This method will be deprecated. It is not used frequently, it is not common, and there is no
+      advantage to having it as a function.
+    """
+    warnings.warn(
+        "This method will be deprecated",
+        category=DeprecationWarning,
+        stacklevel=2,
+    )
+
     eV_annotation, phi_annotation = "", ""
 
     assert "use_tex" in SETTINGS
@@ -709,9 +735,9 @@ def dos_axes(
     return fig, axes
 
 
-def inset_cut_locator(
-    data: DataType,
-    reference_data: DataType,
+def insert_cut_locator(
+    data: XrTypes,
+    reference_data: XrTypes,
     ax: Axes,
     location: dict[str, Incomplete],
     color: ColorType = "red",
@@ -729,6 +755,8 @@ def inset_cut_locator(
         location: The location in the cut
         color: The color to use for the indicator line
         kwargs: Passed to ax.plot when making the indicator lines
+
+    Todo: Follow the docs.  (Rename from inset_cut_locator)
     """
     quad = data.S.plot(ax=ax)
     assert isinstance(ax, Axes)
