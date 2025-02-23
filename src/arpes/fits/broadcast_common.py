@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
 import functools
-from functools import singledispatch
 import operator
 import warnings
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
+from functools import singledispatch
 from logging import DEBUG, INFO
 from string import ascii_lowercase
 from typing import TYPE_CHECKING, Any, Literal, TypeGuard
@@ -30,27 +29,27 @@ def unwrap_params(
     iter_coordinate: dict[str, slice | float],
 ) -> dict[str, Any]:
     """Inspects arraylike parameters and extracts appropriate value for current fit."""
-    return {k: transform_or_walk(v, iter_coordinate) for k, v in params.items()}
+    return {k: _transform_or_walk(v, iter_coordinate) for k, v in params.items()}
 
 
 @singledispatch
-def transform_or_walk(v: object, iter_coordinate: dict[str, slice | float]) -> object:
+def _transform_or_walk(v: object, iter_coordinate: dict[str, slice | float]) -> object:
     """Default case: return the value as is."""
     del iter_coordinate
     return v
 
 
-@transform_or_walk.register
+@_transform_or_walk.register
 def _(v: dict, iter_coordinate: dict[str, slice | float]) -> dict:
     return unwrap_params(v, iter_coordinate)
 
 
-@transform_or_walk.register
+@_transform_or_walk.register
 def _(v: xr.DataArray, iter_coordinate: dict[str, slice | float]) -> float:
     return v.sel(iter_coordinate, method="nearest").item()
 
 
-@transform_or_walk.register
+@_transform_or_walk.register
 def _(v: Iterable, iter_coordinate: dict[str, slice | float]) -> Iterable:
     del iter_coordinate
     return v
