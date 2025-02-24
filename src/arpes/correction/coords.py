@@ -95,22 +95,8 @@ def corrected_coords(
                 corrected_data.attrs[coord_name] -= corrected_data.attrs[correction_type]
 
         # angle correction by beta or theta
-        elif correction_type == "beta":
-            if corrected_data.S.is_slit_vertical:
-                corrected_data = shift_by(corrected_data, "phi", corrected_data.attrs["beta"])
-            else:
-                corrected_data = shift_by(corrected_data, "psi", corrected_data.attrs["beta"])
-            corrected_data.coords["beta"] = 0
-
-        elif correction_type == "theta":
-            if corrected_data.S.is_slit_vertical:
-                # Shift the corrected_data by the value of "theta" attribute along the "psi" axis
-                corrected_data = shift_by(corrected_data, "psi", corrected_data.attrs["theta"])
-            else:
-                # Shift the corrected_data by the value of "theta" attribute along the "phi" axis
-                corrected_data = shift_by(corrected_data, "phi", corrected_data.attrs["theta"])
-            corrected_data.coords["theta"] = 0
-
+        elif correction_type in {"beta", "theta"}:
+            corrected_data = _apply_beta_theta_offset(corrected_data, correction_type)
         corrected_data.attrs[correction_type] = 0
 
         # provenance
@@ -125,7 +111,7 @@ def corrected_coords(
 
 def _apply_beta_theta_offset(
     data: xr.DataArray,
-    correction_type: Literal["beta", "theta"],
+    correction_type: str,
 ) -> xr.DataArray:
     assert correction_type in {"beta", "theta"}
     axis = "psi" if data.S.is_slit_vertical else "phi"
