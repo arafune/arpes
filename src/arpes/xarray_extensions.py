@@ -1505,7 +1505,6 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
         radius: dict[Hashable, float] | float | None = None,  # radius={"phi": 0.005}
         *,
         mode: ReduceMethod = "sum",
-        **kwargs: Incomplete,
     ) -> xr.DataArray:
         """Performs a binned selection around a point or points.
 
@@ -1528,7 +1527,6 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
             radius: The radius of the selection in each coordinate. If dimensions are omitted, a
                     standard sized selection will be made as a compromise.
             mode: How the reduction should be performed, one of "sum" or "mean". Defaults to "sum"
-            kwargs: Can be used to pass radii parameters by keyword with `_r` postfix.
 
         Returns:
             The binned selection around the desired point or points.
@@ -1539,7 +1537,7 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
         if isinstance(points, xr.Dataset):
             points = {k: points[k].item() for k in points.data_vars}
         assert isinstance(points, dict)
-        radius = self._radius(points, radius, **kwargs)
+        radius = self._radius(points, radius)
         logger.debug(f"radius: {radius}")
 
         assert isinstance(radius, dict)
@@ -1583,10 +1581,9 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
     def select_around(
         self,
         point: dict[Hashable, float],
-        radius: dict[Hashable, float] | float,
+        radius: dict[Hashable, float] | float | None,
         *,
         mode: ReduceMethod = "sum",
-        **kwargs: float,
     ) -> xr.DataArray:
         """Selects and integrates a region around a one dimensional point.
 
@@ -1594,23 +1591,19 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
         point on a path of a k-point of interest. See also the companion method
         `select_around_data`.
 
-        If radii are not set, or provided through kwargs as 'eV_r' or 'phi_r' for instance,
-        then we will try to use reasonable default values; buyer beware.
-
         Args:
             point: The point where the selection should be performed.
             radius: The radius of the selection in each coordinate. If dimensions are omitted, a
                     standard sized selection will be made as a compromise.
             safe: If true, infills radii with default values. Defaults to `True`.
             mode: How the reduction should be performed, one of "sum" or "mean". Defaults to "sum"
-            **kwargs: Can be used to pass radii parameters by keyword with `_r` postfix.
 
         Returns:
             The binned selection around the desired point.
         """
         assert mode in {"sum", "mean"}, "mode parameter should be either sum or mean."
         assert isinstance(point, dict | xr.Dataset)
-        radius = self._radius(point, radius, **kwargs)
+        radius = self._radius(point, radius)
         stride = self._obj.G.stride(generic_dim_names=False)
         nearest_sel_params: dict[Hashable, float] = {}
         for dim, v in radius.items():
