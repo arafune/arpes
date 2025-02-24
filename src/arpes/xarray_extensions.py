@@ -1507,13 +1507,67 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
             return True
         return False
 
+    def _get_radius_and_nearest_params(
+        self,
+        points: dict[Hashable, float | xr.DataArray],
+        radius: dict[Hashable, float],
+    ) -> tuple[dict[Hashable, float], dict[Hashable, float]]:
+        """Computes the selection radius and nearest selection parameters.
+
+        Args:
+            points: The reference points for selection.
+            radius: The selection radius for each coordinate.
+
+        Returns:
+            A tuple containing the adjusted radius and nearest selection parameters.
+        """
+        radius = self._radius(points, radius)
+        stride = self._obj.G.stride(generic_dim_names=False)
+        nearest_sel_params = {dim: points[dim] for dim, v in radius.items() if v < stride[dim]}
+        radius = {dim: v for dim, v in radius.items() if dim not in nearest_sel_params}
+        return radius, nearest_sel_params
+
+    def _apply_selection_and_reduce(
+        self,
+        points: dict[Hashable, float | xr.DataArray],
+        radius: dict[Hashable, float],
+        nearest_sel_params: dict[Hashable, float],
+        mode: ReduceMethod,
+    ) -> xr.DataArray:
+        """Applies the selection process and performs reduction.
+
+        Args:
+            points: The reference points for selection.
+            radius: The selection radius for each coordinate.
+            nearest_sel_params: Parameters for nearest selection.
+            mode: Reduction method, either "sum" or "mean".
+
+        Returns:
+            The selected and reduced data array.
+        """
+        selection_slices = {
+            dim: slice(points[dim] - radius[dim], points[dim] + radius[dim])
+            for dim in points
+            if dim in radius
+        }
+        selected = self._obj.sel(selection_slices)
+        if nearest_sel_params:
+            selected = selected.sel(nearest_sel_params, method="nearest")
+            for d in nearest_sel_params:
+                del selected.coords[d]
+        return (
+            selected.sum(list(radius.keys()))
+            if mode == "sum"
+            else selected.mean(list(radius.keys()))
+        )
+
     def select_around_data(
         self,
         points: dict[Hashable, xr.DataArray] | xr.Dataset,
-        radius: dict[Hashable, float] | float | None = None,  # radius={"phi": 0.005}
+        radius: dict[Hashable, float] | float | None = None,
         *,
         mode: ReduceMethod = "sum",
-        **kwargs: Incomplete,
+        **kwargs: float,
     ) -> xr.DataArray:
         """Performs a binned selection around a point or points.
 
@@ -1542,51 +1596,12 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
             The binned selection around the desired point or points.
         """
         assert mode in {"sum", "mean"}, "mode parameter should be either sum or mean."
-        assert isinstance(points, dict | xr.Dataset)
-        radius = radius or {}
         if isinstance(points, xr.Dataset):
             points = {k: points[k].item() for k in points.data_vars}
         assert isinstance(points, dict)
-        radius = self._radius(points, radius, **kwargs)
-        logger.debug(f"radius: {radius}")
 
-        assert isinstance(radius, dict)
-        logger.debug(f"iter(points.values()): {iter(points.values())}")
-
-        along_dims = next(iter(points.values())).dims
-        selected_dims = list(points.keys())
-
-        new_dim_order = [d for d in self._obj.dims if d not in along_dims] + list(along_dims)
-
-        data_for = self._obj.transpose(*new_dim_order)
-        new_data = data_for.sum(selected_dims, keep_attrs=True)
-
-        stride: dict[Hashable, float] = self._obj.G.stride(generic_dim_names=False)
-        for coord in data_for.G.iter_coords(along_dims):
-            value = data_for.sel(coord, method="nearest")
-            nearest_sel_params: dict[Hashable, xr.DataArray] = {}
-            for dim, v in radius.items():
-                if v < stride[dim]:
-                    nearest_sel_params[dim] = points[dim].sel(coord)
-            radius = {dim: v for dim, v in radius.items() if dim not in nearest_sel_params}
-            selection_slices = {
-                dim: slice(
-                    points[dim].sel(coord) - radius[dim],
-                    points[dim].sel(coord) + radius[dim],
-                )
-                for dim in points
-                if dim in radius
-            }
-            selected = value.sel(selection_slices)
-            if nearest_sel_params:
-                selected = selected.sel(nearest_sel_params, method="nearest")
-            for d in nearest_sel_params:
-                del selected.coords[d]
-            if mode == "sum":
-                new_data.loc[coord] = selected.sum(list(radius.keys())).values
-            elif mode == "mean":
-                new_data.loc[coord] = selected.mean(list(radius.keys())).values
-        return new_data
+        radius, nearest_sel_params = self._get_radius_and_nearest_params(points, radius or {})
+        return self._apply_selection_and_reduce(points, radius, nearest_sel_params, mode)
 
     def select_around(
         self,
@@ -1617,27 +1632,8 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
             The binned selection around the desired point.
         """
         assert mode in {"sum", "mean"}, "mode parameter should be either sum or mean."
-        assert isinstance(point, dict | xr.Dataset)
-        radius = self._radius(point, radius, **kwargs)
-        stride = self._obj.G.stride(generic_dim_names=False)
-        nearest_sel_params: dict[Hashable, float] = {}
-        for dim, v in radius.items():
-            if v < stride[dim]:
-                nearest_sel_params[dim] = point[dim]
-        radius = {dim: v for dim, v in radius.items() if dim not in nearest_sel_params}
-        selection_slices = {
-            dim: slice(point[dim] - radius[dim], point[dim] + radius[dim])
-            for dim in point
-            if dim in radius
-        }
-        selected = self._obj.sel(selection_slices)
-        if nearest_sel_params:
-            selected = selected.sel(nearest_sel_params, method="nearest")
-        for d in nearest_sel_params:
-            del selected.coords[d]
-        if mode == "sum":
-            return selected.sum(list(radius.keys()))
-        return selected.mean(list(radius.keys()))
+        radius, nearest_sel_params = self._get_radius_and_nearest_params(point, radius)
+        return self._apply_selection_and_reduce(point, radius, nearest_sel_params, mode)
 
 
 @xr.register_dataarray_accessor("S")
