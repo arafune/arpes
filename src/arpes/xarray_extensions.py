@@ -191,21 +191,22 @@ class ARPESAngleProperty:
                 if "eV" in data_var.dims:
                     data_var.attrs["angle_unit"] = angle_unit
 
-    def swap_angle_unit(self) -> None:
-        """Swap angle unit (radians <-> degrees).
+    def switch_angle_unit(self) -> None:
+        """Switch angle unit (radians <-> degrees).
 
         Change the value of angle related objects/variables in attrs and coords
         """
-        if self.angle_unit == "Radians" or self.angle_unit.startswith("rad"):
+        angle_unit = self.angle_unit.lower()
+        if angle_unit.startswith("rad"):
             self.radian_to_degree()
-        elif self.angle_unit == "Degrees" or self.angle_unit.startswith("deg"):
+        elif angle_unit.startswith("deg"):
             self.degree_to_radian()
         else:
             msg = 'The angle_unit must be "Radians" or "Degrees"'
             raise TypeError(msg)
 
     def radian_to_degree(self) -> None:
-        """Swap angle unit in from Radians to Degrees."""
+        """Switch angle unit in from Radians to Degrees."""
         self.angle_unit = "Degrees"
         for angle in flatten_literals(ANGLE):
             if angle in self._obj.attrs:
@@ -218,7 +219,7 @@ class ARPESAngleProperty:
                 self._obj.coords[angle] = np.rad2deg(self._obj.coords[angle])
 
     def degree_to_radian(self) -> None:
-        """Swap angle unit in from Degrees and Radians."""
+        """Switch angle unit in from Degrees and Radians."""
         self.angle_unit = "Radians"
         for angle in flatten_literals(ANGLE):
             if angle in self._obj.attrs:
@@ -3349,7 +3350,7 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
                 data.attrs["energy_notation"] = "Binding"
 
     def radian_to_degree(self) -> None:
-        """Swap angle unit in from Radians to Degrees."""
+        """Switch angle unit in from Radians to Degrees."""
         super().radian_to_degree()
         self.angle_unit = "Degrees"
         for data in self._obj.data_vars.values():
@@ -3357,7 +3358,7 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
             data.S.angle_unit = "Radians"
 
     def degree_to_radian(self) -> None:
-        """Swap angle unit in from Degrees and Radians."""
+        """Switch angle unit in from Degrees and Radians."""
         super().degree_to_radian()
         self.angle_unit = "Radians"
         for data in self._obj.data_vars.values():
