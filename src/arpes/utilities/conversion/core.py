@@ -359,7 +359,7 @@ def convert_to_kspace(  # noqa: PLR0913
     assert isinstance(arr, xr.DataArray)
 
     if arr.S.angle_unit.startswith("Deg") or arr.S.angle_unit.startswith("deg"):
-        arr.S.swap_angle_unit()
+        arr.S.switch_angle_unit()
     logger.debug(f"bounds (covnert_to_kspace): {bounds}")
     logger.debug(f"keys in coords (convert_to_kspace): {coords.keys()}")
     # Chunking logic
