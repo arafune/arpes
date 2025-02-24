@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import warnings
 from logging import DEBUG, INFO
-from typing import TYPE_CHECKING, get_args, Literal
+from typing import TYPE_CHECKING, Literal, get_args
 
 import xarray as xr
 
