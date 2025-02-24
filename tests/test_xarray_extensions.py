@@ -303,13 +303,18 @@ class TestGeneralforDataArray:
     def test_G_shift(
         self,
         dataarray_map: xr.DataArray,
-        dataset_temperature_dependence: xr.Dataset,
     ) -> None:
         """Test for G.shift_by."""
         fmap = dataarray_map
         cut = fmap.sum("theta", keep_attrs=True).sel(eV=slice(-0.2, 0.1), phi=slice(-0.25, 0.3))
         fit_results = broadcast_model(AffineBroadenedFD, cut, "phi")
-        edge = QuadraticModel().guess_fit(fit_results.results.F.p("center")).eval(x=fmap.phi)
+        edge = (
+            QuadraticModel()
+            .guess_fit(
+                fit_results.results.F.p("center"),
+            )
+            .eval(x=fmap.phi)
+        )
         np.testing.assert_allclose(
             actual=fmap.G.shift_by(edge, shift_axis="eV", by_axis="phi").sel(
                 eV=0,
@@ -317,61 +322,6 @@ class TestGeneralforDataArray:
             )[:][0][:5],
             desired=np.array([5.625749, 566.8711542, 757.8334417, 637.2900199, 610.679927]),
             rtol=1e-2,
-        )
-        #
-        # Taken from custom-dot-t-function
-        #
-        near_ef = (
-            dataset_temperature_dependence.sel(eV=slice(-0.05, 0.05), phi=slice(-0.2, None))
-            .sum("eV")
-            .spectrum
-        )
-        phis = broadcast_model(
-            [AffineBackgroundModel, LorentzianModel],
-            near_ef,
-            "temperature",
-        ).results.F.p("b_center")
-        near_ef.G.shift_by(phis - phis.mean(), shift_axis="phi")
-        np.testing.assert_allclose(
-            near_ef.sel(phi=-0.12, method="nearest").values,
-            np.array(
-                [
-                    4041.9375,
-                    4023.5,
-                    4068.875,
-                    4011.21875,
-                    4002.75,
-                    4006.8125,
-                    3918.9375,
-                    3989.0,
-                    4003.125,
-                    3941.4375,
-                    3910.09375,
-                    3753.40625,
-                    3789.03125,
-                    3800.71875,
-                    3844.28125,
-                    3812.75,
-                    3867.9375,
-                    3864.5625,
-                    3863.34375,
-                    3803.8125,
-                    3840.625,
-                    3853.21875,
-                    3823.21875,
-                    3783.625,
-                    3829.21875,
-                    3794.90625,
-                    3824.09375,
-                    3763.5625,
-                    3687.65625,
-                    3513.0,
-                    3454.40625,
-                    3295.9375,
-                    3370.84375,
-                    3266.96875,
-                ],
-            ),
         )
 
     def test_G_meshgrid(self, dataarray_cut: xr.DataArray) -> None:
@@ -434,6 +384,72 @@ class TestGeneralforDataArray:
 
 class TestGeneralforDataset:
     """Test class for GenericDatasetAccessor."""
+
+    @pytest.fixture
+    def near_ef(self, dataset_temperature_dependence: xr.Dataset) -> xr.DataArray:
+        return (
+            dataset_temperature_dependence.sel(
+                eV=slice(-0.05, 0.05),
+                phi=slice(-0.2, None),
+            )
+            .sum(dim="eV")
+            .spectrum
+        )
+
+    @pytest.fixture
+    def phis(self, near_ef: xr.DataArray):
+        return broadcast_model(
+            [AffineBackgroundModel, LorentzianModel],
+            near_ef,
+            "temperature",
+        ).results.F.p("b_center")
+
+    def test_G_shift(self, near_ef: xr.DataArray, phis: xr.DataArray):
+        #
+        # Taken from custom-dot-t-function.ipynb
+        #
+        near_ef.G.shift_by(phis - phis.mean(), shift_axis="phi")
+        np.testing.assert_allclose(
+            near_ef.sel(phi=-0.12, method="nearest").values,
+            np.array(
+                [
+                    4041.9375,
+                    4023.5,
+                    4068.875,
+                    4011.21875,
+                    4002.75,
+                    4006.8125,
+                    3918.9375,
+                    3989.0,
+                    4003.125,
+                    3941.4375,
+                    3910.09375,
+                    3753.40625,
+                    3789.03125,
+                    3800.71875,
+                    3844.28125,
+                    3812.75,
+                    3867.9375,
+                    3864.5625,
+                    3863.34375,
+                    3803.8125,
+                    3840.625,
+                    3853.21875,
+                    3823.21875,
+                    3783.625,
+                    3829.21875,
+                    3794.90625,
+                    3824.09375,
+                    3763.5625,
+                    3687.65625,
+                    3513.0,
+                    3454.40625,
+                    3295.9375,
+                    3370.84375,
+                    3266.96875,
+                ],
+            ),
+        )
 
     def test_G_meshgrid_operation(self, dataarray_cut: xr.DataArray):
         """Test G.scale_meshgrid and G.shift_meshgrid, and transform_meshgrid."""
