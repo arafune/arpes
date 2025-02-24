@@ -84,11 +84,11 @@ def corrected_coords(
                 )
                 continue
 
-            corrected_data = shift_by(
-                corrected_data,
-                coord_name,
-                -corrected_data.attrs[correction_type],
-            )
+            if coord_name in data.dims:
+                shift_value = -corrected_data.attrs[correction_type]
+            else:
+                shift_value = corrected_data.attrs[correction_type]
+            corrected_data = shift_by(corrected_data, coord_name, shift_value)
 
             # data.attrs[coords_name] should consistent with data.coords[coords_name]
             if coord_name in corrected_data.attrs:
