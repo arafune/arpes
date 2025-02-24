@@ -1359,7 +1359,6 @@ class ARPESAccessorBase(ARPESProperty):
     def _radius(
         points: dict[Hashable, xr.DataArray] | dict[Hashable, float],
         radius: float | dict[Hashable, float] | None,
-        **kwargs: float,
     ) -> dict[Hashable, float]:
         """Helper function. Generate radius dict.
 
@@ -1368,21 +1367,14 @@ class ARPESAccessorBase(ARPESProperty):
         Args:
             points (dict[Hashable, float]): Selection point
             radius (dict[Hashable, float] | float | None): radius
-            kwargs (float): additional radii parameters by keyword with `_r` postfix.
 
         Returns: dict[Hashable, float]
             radius for selection.
         """
         if isinstance(radius, float):
             radius = {str(d): radius for d in points}
-        else:
-            collectted_terms = {f"{k}_r" for k in points}.intersection(set(kwargs.keys()))
-            if collectted_terms:
-                radius = {
-                    d: kwargs.get(f"{d}_r", DEFAULT_RADII.get(str(d), UNSPECIFIED)) for d in points
-                }
-            elif radius is None:
-                radius = {d: DEFAULT_RADII.get(str(d), UNSPECIFIED) for d in points}
+        elif radius is None:
+            radius = {d: DEFAULT_RADII.get(str(d), UNSPECIFIED) for d in points}
         assert isinstance(radius, dict)
         return {d: radius.get(str(d), DEFAULT_RADII.get(str(d), UNSPECIFIED)) for d in points}
 
