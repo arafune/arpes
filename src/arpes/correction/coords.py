@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import warnings
 from logging import DEBUG, INFO
-from typing import TYPE_CHECKING, get_args
+from typing import TYPE_CHECKING, get_args, Literal
 
 import xarray as xr
 
@@ -83,11 +83,11 @@ def corrected_coords(
                     stacklevel=2,
                 )
                 continue
-
-            if coord_name in data.dims:
-                shift_value = -corrected_data.attrs[correction_type]
-            else:
-                shift_value = corrected_data.attrs[correction_type]
+            shift_value = (
+                -corrected_data.attrs[correction_type]
+                if coord_name in data.dims
+                else corrected_data.attrs[correction_type]
+            )
             corrected_data = shift_by(corrected_data, coord_name, shift_value)
 
             # data.attrs[coords_name] should consistent with data.coords[coords_name]
@@ -121,3 +121,17 @@ def corrected_coords(
         corrected_data.attrs["provenance"] = provenance_
 
     return corrected_data
+
+
+def _apply_beta_theta_offset(
+    data: xr.DataArray,
+    correction_type: Literal["beta", "theta"],
+) -> xr.DataArray:
+    assert correction_type in {"beta", "theta"}
+    axis = "psi" if data.S.is_slit_vertical else "phi"
+    if correction_type == "beta":
+        axis = "phi" if data.S.is_slit_vertical else "psi"
+    data = shift_by(data, axis, data.attrs.get(correction_type, 0))
+    data.attrs[correction_type] = 0
+    data.coords[correction_type] = 0
+    return data
