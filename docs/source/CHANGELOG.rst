@@ -27,6 +27,8 @@ Changed
 * Remove load_data_for_figure from plotting.utils
 * Remove CoincidentLinePlot (Same (at least similar) feature can be done with fill_between)
 
+* Change method name: S.swap_angle_unit -> S.switch_angle_unit
+
 4.2.3 (2025-1-5)
 ^^^^^^^^^^^^^^^^^^
 
