@@ -39,7 +39,7 @@ def shift_by(
         xr.DataArray: The DataArray with shifted coordinates.
     """
     assert isinstance(data, xr.DataArray)
-    assert coord_name in data.dims
+    assert coord_name in data.coords
     shifted_coords = {coord_name: data.coords[coord_name] + shift_value}
     shifted_data = data.assign_coords(**shifted_coords)
     provenance_: Provenance = shifted_data.attrs.get("provenance", {})
