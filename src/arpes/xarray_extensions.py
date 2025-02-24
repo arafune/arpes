@@ -1567,7 +1567,6 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
         radius: dict[Hashable, float] | float | None = None,
         *,
         mode: ReduceMethod = "sum",
-        **kwargs: float,
     ) -> xr.DataArray:
         """Performs a binned selection around a point or points.
 
@@ -1590,7 +1589,6 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
             radius: The radius of the selection in each coordinate. If dimensions are omitted, a
                     standard sized selection will be made as a compromise.
             mode: How the reduction should be performed, one of "sum" or "mean". Defaults to "sum"
-            kwargs: Can be used to pass radii parameters by keyword with `_r` postfix.
 
         Returns:
             The binned selection around the desired point or points.
@@ -1609,7 +1607,6 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
         radius: dict[Hashable, float] | float,
         *,
         mode: ReduceMethod = "sum",
-        **kwargs: float,
     ) -> xr.DataArray:
         """Selects and integrates a region around a one dimensional point.
 
@@ -1626,7 +1623,6 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
                     standard sized selection will be made as a compromise.
             safe: If true, infills radii with default values. Defaults to `True`.
             mode: How the reduction should be performed, one of "sum" or "mean". Defaults to "sum"
-            **kwargs: Can be used to pass radii parameters by keyword with `_r` postfix.
 
         Returns:
             The binned selection around the desired point.
