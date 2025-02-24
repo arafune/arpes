@@ -450,20 +450,19 @@ class ARPESPhysicalProperty:
         Args:
             nonlinear_order (int): order of the nonliniarity, default to 1
         """
-        if self._obj.coords["hv"].ndim == 0:
-            if self.energy_notation == "Binding":
-                self._obj.coords["eV"] = (
-                    self._obj.coords["eV"] + nonlinear_order * self._obj.coords["hv"]
-                )
-                self._obj.attrs["energy_notation"] = "Final"
-            elif self.energy_notation == "Final":
-                self._obj.coords["eV"] = (
-                    self._obj.coords["eV"] - nonlinear_order * self._obj.coords["hv"]
-                )
-                self._obj.attrs["energy_notation"] = "Binding"
-        else:
+        if self._obj.coords["hv"].ndim != 0:
             msg = "Not implemented yet."
             raise RuntimeError(msg)
+
+        energy_notation = self.energy_notation
+        shift = nonlinear_order * self._obj.coords["hv"]
+
+        if energy_notation == "Binding":
+            self._obj.coords["eV"] = self._obj.coords["eV"] + shift
+            self._obj.attrs["energy_notation"] = "Final"
+        elif energy_notation == "Final":
+            self._obj.coords["eV"] = self._obj.coords["eV"] - shift
+            self._obj.attrs["energy_notation"] = "Binding"
 
 
 class ARPESInfoProperty(ARPESPhysicalProperty):
