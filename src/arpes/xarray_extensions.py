@@ -1365,18 +1365,20 @@ class ARPESAccessorBase(ARPESProperty):
         When radius is dict form, nothing has been done, essentially.
 
         Args:
-            points (dict[Hashable, float]): Selection point
+            points (dict[Hashable, xr.DataArray] | dict[Hashable, float]): Selection point
             radius (dict[Hashable, float] | float | None): radius
 
         Returns: dict[Hashable, float]
             radius for selection.
         """
         if isinstance(radius, float):
-            radius = {str(d): radius for d in points}
-        elif radius is None:
+            return {d: radius for d in points}
+        if radius is None:
             radius = {d: DEFAULT_RADII.get(str(d), UNSPECIFIED) for d in points}
-        assert isinstance(radius, dict)
-        return {d: radius.get(str(d), DEFAULT_RADII.get(str(d), UNSPECIFIED)) for d in points}
+        if not isinstance(radius, dict):
+            msg = "radius should be a float, dictionary or None"
+            raise TypeError(msg)
+        return radius
 
     def sum_other(
         self,

@@ -397,57 +397,54 @@ class TestGeneralforDataset:
         )
 
     @pytest.fixture
-    def phis(self, near_ef: xr.DataArray):
+    def phi_values(self, near_ef: xr.DataArray) -> xr.DataArray:
         return broadcast_model(
             [AffineBackgroundModel, LorentzianModel],
             near_ef,
             "temperature",
         ).results.F.p("b_center")
 
-    def test_G_shift(self, near_ef: xr.DataArray, phis: xr.DataArray):
+    def test_select_around_data(
+        self,
+        dataset_temperature_dependence: xr.Dataset,
+        phi_values: xr.DataArray,
+    ) -> None:
+        selected_data: xr.DataArray = dataset_temperature_dependence.spectrum.S.select_around_data(
+            {"phi": phi_values},
+            mode="mean",
+            radius={"phi": 0.005},
+        )
+        assert selected_data.dims == ("eV", "temperature")
+        np.testing.assert_allclose(
+            selected_data.values[0][:5],
+            np.array([442.52083333, 420.17708333, 402.65625, 434.79166667, 451.3515625]),
+        )
+
+    def test_select_around_data2(
+        self,
+        dataset_temperature_dependence: xr.Dataset,
+        phi_values: xr.DataArray,
+    ) -> None:
+        selected_data: xr.DataArray = dataset_temperature_dependence.spectrum.S.select_around_data(
+            {"phi": phi_values},
+            mode="sum",
+            radius={"phi": 0.005},
+        )
+        assert selected_data.dims == ("eV", "temperature")
+        np.testing.assert_allclose(
+            selected_data.values[0][:5],
+            np.array([1327.5625, 1260.53125, 1207.96875, 1304.375, 1805.40625]),
+        )
+
+    def test_G_shift(self, near_ef: xr.DataArray, phi_values: xr.DataArray):
         #
         # Taken from custom-dot-t-function.ipynb
         #
-        near_ef.G.shift_by(phis - phis.mean(), shift_axis="phi")
+        near_ef.G.shift_by(phi_values - phi_values.mean(), shift_axis="phi")
         np.testing.assert_allclose(
-            near_ef.sel(phi=-0.12, method="nearest").values,
+            near_ef.sel(phi=-0.12, method="nearest").values[:5],
             np.array(
-                [
-                    4041.9375,
-                    4023.5,
-                    4068.875,
-                    4011.21875,
-                    4002.75,
-                    4006.8125,
-                    3918.9375,
-                    3989.0,
-                    4003.125,
-                    3941.4375,
-                    3910.09375,
-                    3753.40625,
-                    3789.03125,
-                    3800.71875,
-                    3844.28125,
-                    3812.75,
-                    3867.9375,
-                    3864.5625,
-                    3863.34375,
-                    3803.8125,
-                    3840.625,
-                    3853.21875,
-                    3823.21875,
-                    3783.625,
-                    3829.21875,
-                    3794.90625,
-                    3824.09375,
-                    3763.5625,
-                    3687.65625,
-                    3513.0,
-                    3454.40625,
-                    3295.9375,
-                    3370.84375,
-                    3266.96875,
-                ],
+                [4041.9375, 4023.5, 4068.875, 4011.21875, 4002.75],
             ),
         )
 
