@@ -468,6 +468,17 @@ class TestGeneralforDataset:
         )
         assert radius == {"phi": 0.02}
 
+    def test__if_radius_is_array(
+        self,
+        dataset_temperature_dependence: xr.Dataset,
+        phi_values: xr.DataArray,
+    ) -> None:
+        with pytest.raises(TypeError, match="radius should be a float, dictionary or None"):
+            dataset_temperature_dependence.spectrum.S._radius(
+                points={"phi": phi_values},
+                radius=[0.02],
+            )
+
     def test_G_shift(self, near_ef: xr.DataArray, phi_values: xr.DataArray):
         #
         # Taken from custom-dot-t-function.ipynb
