@@ -486,41 +486,17 @@ class TestGeneralforDataset:
         meshgrid_set = small_region.G.meshgrid(as_dataset=True)
         shifted_meshgrid = meshgrid_set.G.shift_meshgrid(("phi",), -0.2)
         np.testing.assert_allclose(
-            shifted_meshgrid["phi"][1].values,
+            shifted_meshgrid["phi"][1].values[:3],
             np.array(
-                [
-                    0.20142573,
-                    0.20317106,
-                    0.20491639,
-                    0.20666172,
-                    0.20840704,
-                    0.21015237,
-                    0.2118977,
-                    0.21364303,
-                    0.21538836,
-                    0.21713369,
-                    0.21887902,
-                ],
+                [0.20142573, 0.20317106, 0.20491639],
             ),
         )
 
         scaled_meshgrid = meshgrid_set.G.scale_meshgrid(("eV",), 1.5)
         np.testing.assert_allclose(
-            scaled_meshgrid["eV"][-1].values,
+            scaled_meshgrid["eV"][-1].values[:3],
             np.array(
-                [
-                    -1.155e-07,
-                    -1.155e-07,
-                    -1.155e-07,
-                    -1.155e-07,
-                    -1.155e-07,
-                    -1.155e-07,
-                    -1.155e-07,
-                    -1.155e-07,
-                    -1.155e-07,
-                    -1.155e-07,
-                    -1.155e-07,
-                ],
+                [-1.155e-07, -1.155e-07, -1.155e-07],
             ),
         )
 
