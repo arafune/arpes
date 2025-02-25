@@ -426,7 +426,7 @@ class TestGeneralforDataset:
         phi_values: xr.DataArray,
     ) -> None:
         selected_data: xr.DataArray = dataset_temperature_dependence.spectrum.S.select_around_data(
-            {"phi": phi_values},
+            points={"phi": phi_values},
             mode="sum",
             radius={"phi": 0.005},
         )
@@ -435,6 +435,38 @@ class TestGeneralforDataset:
             selected_data.values[0][:5],
             np.array([1327.5625, 1260.53125, 1207.96875, 1304.375, 1805.40625]),
         )
+
+    def test__radius(
+        self,
+        dataset_temperature_dependence: xr.Dataset,
+        phi_values: xr.DataArray,
+    ) -> None:
+        selected_data: xr.DataArray = dataset_temperature_dependence.spectrum.S.select_around_data(
+            points={"phi": phi_values},
+            mode="sum",
+            radius={"phi": 0.005},
+        )
+
+        should_same_as_above: xr.DataArray = (
+            dataset_temperature_dependence.spectrum.S.select_around_data(
+                points={"phi": phi_values},
+                mode="sum",
+                radius=0.005,
+            )
+        )
+
+        np.testing.assert_allclose(selected_data.values, should_same_as_above.values)
+
+    def test__if_radius_is_None(
+        self,
+        dataset_temperature_dependence: xr.Dataset,
+        phi_values: xr.DataArray,
+    ) -> None:
+        radius = dataset_temperature_dependence.spectrum.S._radius(
+            points={"phi": phi_values},
+            radius=None,
+        )
+        assert radius == {"phi": 0.02}
 
     def test_G_shift(self, near_ef: xr.DataArray, phi_values: xr.DataArray):
         #
