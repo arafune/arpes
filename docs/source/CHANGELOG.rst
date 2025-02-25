@@ -29,6 +29,14 @@ Changed
 
 * Change method name: S.swap_angle_unit -> S.switch_angle_unit
 
+* Deprecated
+  - S.correct_angle_by
+  - S.corrected_angle_by
+  - S.transpose_to_front
+  - S.transpose_to_back
+  - S.to_arrays
+  - arrange_by_indices and unarrange_by_indices (defined in utilities/__init__.py). They are not used internally.
+
 4.2.3 (2025-1-5)
 ^^^^^^^^^^^^^^^^^^
 
