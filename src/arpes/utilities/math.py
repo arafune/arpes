@@ -65,8 +65,6 @@ def shift_by(
     """
     assert axis != by_axis
     arr_copy = arr.copy()
-    if isinstance(value, xr.DataArray):
-        value = value.values
     assert isinstance(value, np.ndarray)
     for axis_idx in range(arr.shape[by_axis]):
         slc = (slice(None),) * by_axis + (axis_idx,) + (slice(None),) * (arr.ndim - by_axis - 1)

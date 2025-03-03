@@ -2721,7 +2721,7 @@ class GenericDataArrayAccessor(GenericAccessorBase):
         shift_axis: str = "",
         by_axis: str = "",
         *,
-        zero_nans: bool = True,
+        zero_nans: bool = False,
         shift_coords: bool = False,
     ) -> xr.DataArray:
         """Shifts the data along the specified axis.
@@ -2734,6 +2734,8 @@ class GenericDataArrayAccessor(GenericAccessorBase):
             by_axis (str): The dimension name of `other`. Ignored when `other` is an xr.DataArray.
             zero_nans (bool): If True, fill np.nan with 0.
             shift_coords (bool): Whether to shift the coordinates as well.
+                The arg will be removed, because it is not unique way to shift from the "other".
+                Currently it uses mean value of "other".
 
         Returns:
             xr.DataArray: The shifted xr.DataArray.
@@ -2749,6 +2751,11 @@ class GenericDataArrayAccessor(GenericAccessorBase):
             by_axis = str(other.dims[0])
             assert len(other.coords[by_axis]) == len(data.coords[by_axis])
             if shift_coords:
+                warnings.warn(
+                    "shift_coords will be deprecated.  Instead, use assign coords explicitly.",
+                    category=DeprecationWarning,
+                    stacklevel=2,
+                )
                 mean_shift = np.mean(other.values)
                 other -= mean_shift
             shift_amount = -other.values / data.G.stride(generic_dim_names=False)[shift_axis]
