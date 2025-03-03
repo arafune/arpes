@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Literal, TypedDict, Unpack
 
 import numpy as np
 import scipy.ndimage
-import xarray as xr
 
 from arpes.constants import K_BOLTZMANN_EV_KELVIN
 

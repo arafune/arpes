@@ -2750,7 +2750,7 @@ class GenericDataArrayAccessor(GenericAccessorBase):
             assert other.ndim == 1
             by_axis = str(other.dims[0])
             assert len(other.coords[by_axis]) == len(data.coords[by_axis])
-            if shift_coords:
+            if shift_coords:  # pragma: no cover
                 warnings.warn(
                     "shift_coords will be deprecated.  Instead, use assign coords explicitly.",
                     category=DeprecationWarning,
@@ -2770,7 +2770,7 @@ class GenericDataArrayAccessor(GenericAccessorBase):
                     msg += '"by_axis" is required.'
                     raise TypeError(msg)
             assert other.shape[0] == len(data.coords[by_axis])
-            if shift_coords:
+            if shift_coords:  # pragma: no cover
                 mean_shift = np.mean(other)
                 other -= mean_shift
             shift_amount = -other / data.G.stride(generic_dim_names=False)[shift_axis]
