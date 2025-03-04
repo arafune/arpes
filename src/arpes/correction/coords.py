@@ -26,6 +26,15 @@ LOGLEVEL = LOGLEVELS[1]
 logger = setup_logger(__name__, LOGLEVEL)
 
 
+__all__ = (
+    "adjust_coords_to_limit",
+    "corrected_coords",
+    "is_equally_spaced",
+    "shift_by",
+    "stretch_coords",
+)
+
+
 def adjust_coords_to_limit(da: xr.DataArray, new_limits: dict) -> dict:
     """Extend the coordinates of an xarray DataArray to given values for each dimension.
 
