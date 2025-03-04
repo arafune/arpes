@@ -17,6 +17,8 @@ from arpes.debug import setup_logger
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from numpy.typing import NDArray
+
     from arpes.provenance import Provenance
 
 LOGLEVELS = (DEBUG, INFO)
@@ -58,14 +60,17 @@ def adjust_coords_to_limit(da: xr.DataArray, new_limits: dict) -> dict:
         elif new_limit < min_coord:
             new_coords = np.arange(new_limit, min_coord, step)
         else:
-            new_coords = np.array([])  # 何も追加しない場合
+            new_coords = np.array([])
 
         new_coords_dict[dim] = new_coords
 
     return new_coords_dict
 
 
-def stretch_coords(da: xr.DataArray, **new_coords: list) -> xr.DataArray:
+def stretch_coords(
+    da: xr.DataArray,
+    new_coords: dict[str, list[float] | NDArray[np.float64]],
+) -> xr.DataArray:
     """Expand the coordinates of an xarray DataArray by adding new coordinate values.
 
     The new values will be filled with NaN.
@@ -81,23 +86,22 @@ def stretch_coords(da: xr.DataArray, **new_coords: list) -> xr.DataArray:
     xr.DataArray
         A new DataArray with expanded coordinates and NaN-filled missing values.
     """
-    coords = da.coords.copy()
+    stretch_coords = {dim: da.coords[dim].values for dim in da.dims}
 
     for dim, values in new_coords.items():
-        if dim in coords:
-            coords[dim] = np.union1d(coords[dim].values, values)
-        else:
-            coords[dim] = np.array(values)
+        stretch_coords[dim] = np.union1d(stretch_coords.get(dim, []), values)
+
+    shape = [len(stretch_coords[dim]) for dim in da.dims]
+    coords = da.coords.copy()
+    coords.update(stretch_coords)
 
     expanded_da = xr.DataArray(
-        np.full([len(v) for v in coords.values()], np.nan, dtype=da.dtype),
+        np.full(shape, np.nan, dtype=np.float64),
         coords=coords,
-        dims=list(coords.keys()),
+        dims=list(da.dims),
         attrs=da.attrs,
     )
-
-    # 既存のデータを埋め込む
-    expanded_da.loc[da.coords] = da
+    expanded_da.loc[{dim: da.coords[dim] for dim in da.dims}] = da.astype(np.float64)
 
     return expanded_da
 
@@ -115,13 +119,10 @@ def is_equally_spaced(coords: np.ndarray, tolerance: float = 1e-5) -> np.bool:
     bool
         True if the coordinates are equally spaced within the tolerance, False otherwise.
     """
-    # 隣接する値の差を計算
     diffs = np.diff(coords)
 
-    # 最初の差との比較
     first_diff = diffs[0]
 
-    # 各差が最初の差と許容範囲内で一致するかを確認
     return np.all(np.abs(diffs - first_diff) <= tolerance)
 
 

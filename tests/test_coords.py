@@ -1,7 +1,6 @@
-"""Unit test for correction/coords.py"""
+"""Unit test for correction/coords.py."""
 
 import numpy as np
-import pytest
 import xarray as xr
 
 from arpes.correction import coords
@@ -41,3 +40,14 @@ def test_adjust_coords_to_limit_2D(dataarray_cut: xr.DataArray) -> None:
             [0.13255804, 0.13488362, 0.1372092, 0.13953478, 0.14186036],
         ),
     )
+
+
+def test_stretch_coords(dataarray_cut: xr.DataArray) -> None:
+    expand_doords = coords.adjust_coords_to_limit(dataarray_cut, {"phi": 0.65, "eV": 0.14})
+    stretched_data = coords.stretch_coords(dataarray_cut, expand_doords)
+    assert stretched_data.shape == (247, 245)
+    np.testing.assert_array_almost_equal(
+        stretched_data.values[0][-5:],
+        np.array([np.nan, np.nan, np.nan, np.nan, np.nan]),
+    )
+    assert np.all(np.isnan(stretched_data.values[-5:]))
