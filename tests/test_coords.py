@@ -28,6 +28,11 @@ def test_adjust_coords_to_limit_largeside(dataarray_cut: xr.DataArray) -> None:
     )
 
 
+def test_adjust_coords_inside_range(dataarray_cut: xr.DataArray) -> None:
+    expand_doords = coords.adjust_coords_to_limit(dataarray_cut, {"eV": 0.0})
+    np.testing.assert_array_almost_equal(expand_doords["eV"], np.array([]))
+
+
 def test_adjust_coords_to_limit_2D(dataarray_cut: xr.DataArray) -> None:
     expand_doords = coords.adjust_coords_to_limit(dataarray_cut, {"phi": 0.65, "eV": 0.14})
     np.testing.assert_array_almost_equal(
