@@ -152,7 +152,15 @@ htmlhelp_basename = "arpesdoc"
 
 # -- Options for LaTeX output ------------------------------------------------
 
-latex_elements = {}
+latex_engine = "xelatex"
+latex_elements = {
+    'papersize': 'a4paper',
+    'pointsize': '12pt',
+    'fontpkg': r'''
+        \usepackage{fontspec}
+        \setmainfont{Times New Roman}
+    ''',
+}
 latex_documents = [
     (
         master_doc,
