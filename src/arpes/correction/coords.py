@@ -6,6 +6,7 @@ import warnings
 from logging import DEBUG, INFO
 from typing import TYPE_CHECKING, get_args
 
+import numpy as np
 import xarray as xr
 
 from arpes._typing import (
@@ -21,6 +22,107 @@ if TYPE_CHECKING:
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
 logger = setup_logger(__name__, LOGLEVEL)
+
+
+def adjust_coords_to_limit(da: xr.DataArray, new_limits: dict) -> dict:
+    """Extend the coordinates of an xarray DataArray to given values for each dimension.
+
+    The extension will ensure that the new coordinates cover up to the given extension value,
+    and only the newly added coordinates will be returned.
+
+    Parameters:
+    da : xr.DataArray
+        The original DataArray with equidistant coordinates.
+    extensions : dict
+        A dictionary specifying the values to which each coordinate should be extended.
+        Example: {"x": 5, "y": -1}
+
+    Returns:
+    dict
+        A dictionary with the new extended coordinates for each dimension.
+        Only the newly added coordinates are returned, which will be used in stretch_coords.
+    """
+    new_coords_dict = {}
+
+    for dim, new_limit in new_limits.items():
+        coords = da.coords[dim].values
+
+        diffs = np.diff(coords)
+        step = np.median(diffs)
+
+        min_coord = np.min(coords)
+        max_coord = np.max(coords)
+
+        if new_limit > max_coord:
+            new_coords = np.arange(max_coord + step, new_limit + step, step)
+        elif new_limit < min_coord:
+            new_coords = np.arange(new_limit, min_coord, step)
+        else:
+            new_coords = np.array([])  # 何も追加しない場合
+
+        new_coords_dict[dim] = new_coords
+
+    return new_coords_dict
+
+
+def stretch_coords(da: xr.DataArray, **new_coords: list) -> xr.DataArray:
+    """Expand the coordinates of an xarray DataArray by adding new coordinate values.
+
+    The new values will be filled with NaN.
+
+    Parameters:
+    da : xr.DataArray
+        The original DataArray.
+    new_coords : dict
+        Dictionary where keys are coordinate names and values are lists of new coordinate values.
+        If no new coordinates are specified, existing coordinates are retained.
+
+    Returns:
+    xr.DataArray
+        A new DataArray with expanded coordinates and NaN-filled missing values.
+    """
+    coords = da.coords.copy()
+
+    for dim, values in new_coords.items():
+        if dim in coords:
+            coords[dim] = np.union1d(coords[dim].values, values)
+        else:
+            coords[dim] = np.array(values)
+
+    expanded_da = xr.DataArray(
+        np.full([len(v) for v in coords.values()], np.nan, dtype=da.dtype),
+        coords=coords,
+        dims=list(coords.keys()),
+        attrs=da.attrs,
+    )
+
+    # 既存のデータを埋め込む
+    expanded_da.loc[da.coords] = da
+
+    return expanded_da
+
+
+def is_equally_spaced(coords: np.ndarray, tolerance: float = 1e-5) -> np.bool:
+    """Check if the given coordinates are equally spaced within a given tolerance.
+
+    Parameters:
+    coords : np.ndarray
+        The coordinates array to check.
+    tolerance : float
+        The acceptable tolerance for the spacing difference.
+
+    Returns:
+    bool
+        True if the coordinates are equally spaced within the tolerance, False otherwise.
+    """
+    # 隣接する値の差を計算
+    diffs = np.diff(coords)
+
+    # 最初の差との比較
+    first_diff = diffs[0]
+
+    # 各差が最初の差と許容範囲内で一致するかを確認
+    return np.all(np.abs(diffs - first_diff) <= tolerance)
 
 
 def shift_by(
