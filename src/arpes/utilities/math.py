@@ -27,14 +27,14 @@ class ShiftParam(TypedDict, total=False):
     mode: Literal[
         "reflect",
         "grid-mirror",
-        "constant",
+        "constant",  # default , use cval
         "grid-constant",
         "nearest",
         "mirror",
         "grid-wrap",
         "wrap",
     ]
-    cval: float
+    cval: float  # default is 0.0
     prefilter: bool
 
 
