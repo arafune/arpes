@@ -15,7 +15,7 @@ from arpes._typing import (
 from arpes.debug import setup_logger
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Hashable, Mapping, Sequence
 
     from numpy.typing import NDArray
 
@@ -35,7 +35,10 @@ __all__ = (
 )
 
 
-def adjust_coords_to_limit(da: xr.DataArray, new_limits: dict) -> dict:
+def adjust_coords_to_limit(
+    da: xr.DataArray,
+    new_limits: Mapping[Hashable, float],
+) -> dict[Hashable, NDArray[np.float64]]:
     """Extend the coordinates of an xarray DataArray to given values for each dimension.
 
     The extension will ensure that the new coordinates cover up to the given extension value,
@@ -78,7 +81,7 @@ def adjust_coords_to_limit(da: xr.DataArray, new_limits: dict) -> dict:
 
 def extend_coords(
     da: xr.DataArray,
-    new_coords: dict[str, list[float] | NDArray[np.float64]],
+    new_coords: Mapping[Hashable, list[float] | NDArray[np.float64]],
 ) -> xr.DataArray:
     """Expand the coordinates of an xarray DataArray by adding new coordinate values.
 

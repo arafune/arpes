@@ -19,7 +19,6 @@ from .math import (
     fermi_distribution,
     inv_fermi_distribution,
     polarization,
-    shift_by,
 )
 from .normalize import normalize_to_spectrum
 from .region import REGIONS, DesignatedRegions, normalize_region

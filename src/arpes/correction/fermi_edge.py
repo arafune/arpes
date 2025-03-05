@@ -11,7 +11,7 @@ from matplotlib.axes import Axes
 
 from arpes.fits import GStepBModel, LinearModel, QuadraticModel, broadcast_model
 from arpes.provenance import Provenance, provenance, update_provenance
-from arpes.utilities.math import shift_by
+from arpes.correction.intensity_map import shift_by
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Hashable, Iterable
