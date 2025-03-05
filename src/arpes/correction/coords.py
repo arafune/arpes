@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import warnings
 from logging import DEBUG, INFO
-from typing import TYPE_CHECKING, get_args
+from typing import TYPE_CHECKING, LiteralString, get_args
 
 import numpy as np
 import xarray as xr
@@ -115,7 +115,7 @@ def stretch_coords(
     return expanded_da
 
 
-def is_equally_spaced(coords: np.ndarray, tolerance: float = 1e-5) -> np.bool:
+def is_equally_spaced(coords: NDArray[np.float64], tolerance: float = 1e-5) -> np.bool:
     """Check if the given coordinates are equally spaced within a given tolerance.
 
     Parameters:
@@ -128,7 +128,7 @@ def is_equally_spaced(coords: np.ndarray, tolerance: float = 1e-5) -> np.bool:
     bool
         True if the coordinates are equally spaced within the tolerance, False otherwise.
     """
-    diffs = np.diff(coords)
+    diffs: NDArray[np.float64] = np.diff(coords)
 
     first_diff = diffs[0]
 
@@ -178,7 +178,6 @@ def corrected_coords(
     """
     if isinstance(correction_types, str):
         correction_types = (correction_types,)
-    assert isinstance(correction_types, tuple)
 
     corrected_data = data.copy(deep=True)
 
@@ -186,7 +185,7 @@ def corrected_coords(
         assert correction_type in get_args(CoordsOffset)
 
         if "_offset" in correction_type:
-            coord_name = correction_type.split("_offset")[0]
+            coord_name: LiteralString = correction_type.split("_offset")[0]
 
             if coord_name not in corrected_data.coords:
                 warnings.warn(
@@ -194,7 +193,6 @@ def corrected_coords(
                     f"{coord_name} by {correction_type}.",
                     stacklevel=2,
                 )
-                continue
             shift_value = (
                 -corrected_data.attrs[correction_type]
                 if coord_name in data.dims
@@ -202,7 +200,6 @@ def corrected_coords(
             )
             corrected_data = shift_by(corrected_data, coord_name, shift_value)
 
-            # data.attrs[coords_name] should consistent with data.coords[coords_name]
             if coord_name in corrected_data.attrs:
                 corrected_data.attrs[coord_name] -= corrected_data.attrs[correction_type]
 
