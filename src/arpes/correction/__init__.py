@@ -16,9 +16,9 @@ from .background import remove_incoherent_background
 from .coords import (
     adjust_coords_to_limit,
     corrected_coords,
+    extend_coords,
     is_equally_spaced,
     shift_by,
-    stretch_coords,
 )
 from .fermi_edge import (
     apply_direct_fermi_edge_correction,

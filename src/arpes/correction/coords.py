@@ -29,9 +29,9 @@ logger = setup_logger(__name__, LOGLEVEL)
 __all__ = (
     "adjust_coords_to_limit",
     "corrected_coords",
+    "extend_coords",
     "is_equally_spaced",
     "shift_by",
-    "stretch_coords",
 )
 
 
@@ -76,7 +76,7 @@ def adjust_coords_to_limit(da: xr.DataArray, new_limits: dict) -> dict:
     return new_coords_dict
 
 
-def stretch_coords(
+def extend_coords(
     da: xr.DataArray,
     new_coords: dict[str, list[float] | NDArray[np.float64]],
 ) -> xr.DataArray:

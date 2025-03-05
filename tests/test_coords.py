@@ -62,9 +62,9 @@ def test_is_equally_spaced(dataarray_cut: xr.DataArray) -> None:
     assert coords.is_equally_spaced(coords_phi)
 
 
-def test_stretch_coords(dataarray_cut: xr.DataArray) -> None:
+def test_extend_coords(dataarray_cut: xr.DataArray) -> None:
     expand_doords = coords.adjust_coords_to_limit(dataarray_cut, {"phi": 0.65, "eV": 0.14})
-    stretched_data = coords.stretch_coords(dataarray_cut, expand_doords)
+    stretched_data = coords.extend_coords(dataarray_cut, expand_doords)
     assert stretched_data.shape == (247, 245)
     np.testing.assert_array_almost_equal(
         stretched_data.values[0][-5:],
