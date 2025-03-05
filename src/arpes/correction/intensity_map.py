@@ -92,7 +92,7 @@ def shift(  # noqa: PLR0913
                 da=data,
                 new_limits={
                     shift_axis: data.coords[shift_axis].min().item()
-                    - np.min(shift_amount_physical_axis),
+                    + np.min(shift_amount_physical_axis),
                 },
             )
             data = coords.extend_coords(data, new_coords=extended_coord)
