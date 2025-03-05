@@ -2721,8 +2721,7 @@ class GenericDataArrayAccessor(GenericAccessorBase):
         shift_axis: str = "",
         by_axis: str = "",
         *,
-        stretch_coords: bool = False,
-        zero_nans: bool = False,
+        extend_coords: bool = False,
         shift_coords: bool = False,
     ) -> xr.DataArray:
         """Shifts the data along the specified axis.
@@ -2735,7 +2734,7 @@ class GenericDataArrayAccessor(GenericAccessorBase):
             by_axis (str): The dimension name of `other`. Ignored when `other` is an xr.DataArray.
             zero_nans (bool): If True, fill np.nan with 0.
 
-            stretch_coords (bool): If True, the coords expands.  Default is False.
+            extend_coords (bool): If True, the coords expands.  Default is False.
             shift_coords (bool): Whether to shift the coordinates as well.
                 The arg will be removed, because it is not unique way to shift from the "other".
                 Currently it uses mean value of "other".
@@ -2745,34 +2744,24 @@ class GenericDataArrayAccessor(GenericAccessorBase):
 
         Todo:
             - Add tests.Data shift along the axis.
+
+        Note:
+            zero_nans is removed.  Use DataArray.fillna(0), if needed.
         """
         assert shift_axis, "shift_by must take shift_axis argument."
         data = self._obj.copy(deep=True)
-        mean_shift: np.float64 | float = 0.0
-        assert other.ndim == 1
-        if isinstance(other, xr.DataArray):
-            by_axis = str(other.dims[0])
-            assert len(other.coords[by_axis]) == len(data.coords[by_axis])
-            if shift_coords:
-                mean_shift = np.mean(other.values)
-                other -= mean_shift
-            shift_amount = -other.values / data.G.stride(generic_dim_names=False)[shift_axis]
-        else:
-            assert isinstance(other, np.ndarray)
-            if not by_axis:
-                if data.ndim == TWO_DIMENSION:
-                    by_axis = str(set(data.dims).difference(shift_axis).pop())
-                else:
-                    msg = "When np.ndarray is used as shift_by, and the data is not 2D,"
-                    msg += '"by_axis" is required.'
-                    raise TypeError(msg)
-            assert other.shape[0] == len(data.coords[by_axis])
-            if shift_coords:
-                mean_shift = np.mean(other)
-                other -= mean_shift
-            shift_amount = -other / data.G.stride(generic_dim_names=False)[shift_axis]
+        shift_amount, mean_shift, by_axis = self._compute_shift_amount(
+            data=data,
+            other=other,
+            shift_axis=shift_axis,
+            by_axis=by_axis,
+            shift_coords=shift_coords,
+        )
 
-        padding_value = 0 if self._obj.dtype == np.int_ or zero_nans else np.nan
+        if extend_coords:
+            pass
+
+        padding_value = 0 if self._obj.dtype == np.int_ else np.nan
         shifted_data: NDArray[np.float64] = utilities.math.shift_by(
             arr=data.values,
             value=shift_amount,
@@ -2788,6 +2777,62 @@ class GenericDataArrayAccessor(GenericAccessorBase):
                 {shift_axis: data.coords[shift_axis] + mean_shift},
             )
         return built_data
+
+    @staticmethod
+    def _compute_shift_amount(
+        data: xr.DataArray,
+        other: xr.DataArray | NDArray[np.float64],
+        shift_axis: str,
+        by_axis: str = "",
+        *,
+        shift_coords: bool = False,
+    ) -> tuple[NDArray[np.float64], float, str]:
+        """Compute shift amount based on `other` and determine `by_axis` if necessary.
+
+        Args:
+            data (xr.DataArray): The target DataArray to shift.
+            other (xr.DataArray | NDArray): Shift values (must be 1D).
+            shift_axis (str): The axis to shift along.
+            by_axis (str, optional): The dimension name of `other`.
+                If empty, inferred for `np.ndarray`.
+            shift_coords (bool, optional): Whether to adjust the coordinates based on the mean
+                shift.
+
+        Returns:
+            tuple[NDArray[np.float64], float, str]:
+                - shift_amount: The computed shift values.
+                - mean_shift: The mean value of `other` (0 if not shifting coords).
+                - by_axis: The determined `by_axis` name.
+        """
+        assert other.ndim == 1, "`other` must be a 1D array."
+
+        mean_shift: float = 0.0
+
+        if isinstance(other, xr.DataArray):
+            by_axis = str(other.dims[0])
+            assert len(other.coords[by_axis]) == len(data.coords[by_axis]), (
+                "Mismatch in coordinate length."
+            )
+            if shift_coords:
+                mean_shift = float(np.mean(other.values))
+                other = other - mean_shift
+            shift_amount = -other.values / data.G.stride(generic_dim_names=False)[shift_axis]
+
+        else:  # other is np.ndarray
+            assert isinstance(other, np.ndarray)
+            if not by_axis:
+                if data.ndim == TWO_DIMENSION:
+                    by_axis = str(set(data.dims).difference(shift_axis).pop())
+                else:
+                    msg = 'When np.ndarray is used as `other`, "by_axis" is required.'
+                    raise TypeError(msg)
+            assert other.shape[0] == len(data.coords[by_axis]), "Mismatch in coordinate length."
+            if shift_coords:
+                mean_shift = float(np.mean(other))
+                other = other - mean_shift
+            shift_amount = -other / data.G.stride(generic_dim_names=False)[shift_axis]
+
+        return shift_amount, mean_shift, by_axis
 
     def shift_coords_by(
         self,
