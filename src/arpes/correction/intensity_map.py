@@ -84,21 +84,24 @@ def shift(  # noqa: PLR0913
         by_axis=by_axis,
         shift_coords=shift_coords,
     )
+    shift_amount_physical_axis = -other
 
     if extend_coords:
-        if np.min(shift_amount) < 0:
+        if np.min(shift_amount_physical_axis) < 0:
             extended_coord = coords.adjust_coords_to_limit(
                 da=data,
                 new_limits={
-                    shift_axis: data.coords[shift_axis].min().item() - np.min(shift_amount),
+                    shift_axis: data.coords[shift_axis].min().item()
+                    - np.min(shift_amount_physical_axis),
                 },
             )
             data = coords.extend_coords(data, new_coords=extended_coord)
-        if np.max(shift_amount) > 0:
+        if np.max(shift_amount_physical_axis) > 0:
             extended_coord = coords.adjust_coords_to_limit(
                 da=data,
                 new_limits={
-                    shift_axis: data.coords[shift_axis].max().item() + np.max(shift_amount),
+                    shift_axis: data.coords[shift_axis].max().item()
+                    + np.max(shift_amount_physical_axis),
                 },
             )
             data = coords.extend_coords(da=data, new_coords=extended_coord)
@@ -175,7 +178,6 @@ def _compute_shift_amount(
             mean_shift = float(np.mean(other))
             other = other - mean_shift
         shift_amount = -other / data.G.stride(generic_dim_names=False)[shift_axis]
-
     return shift_amount, mean_shift, by_axis
 
 
