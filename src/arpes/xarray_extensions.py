@@ -2775,6 +2775,8 @@ class GenericDataArrayAccessor(GenericAccessorBase):
     def drop_nan(self) -> xr.DataArray:
         """Drops the NaN values from the data.
 
+        This is useful for fitting using lmfit.
+
         Returns:
             xr.DataArray: The xr.DataArray with NaN values removed.
 
