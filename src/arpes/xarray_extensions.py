@@ -2721,6 +2721,7 @@ class GenericDataArrayAccessor(GenericAccessorBase):
         shift_axis: str = "",
         by_axis: str = "",
         *,
+        stretch_coords: bool = False,
         zero_nans: bool = False,
         shift_coords: bool = False,
     ) -> xr.DataArray:
@@ -2730,9 +2731,11 @@ class GenericDataArrayAccessor(GenericAccessorBase):
 
         Args:
             other (xr.DataArray | NDArray): Data to shift by. Only supports one-dimensional array.
-            shift_axis (str): The axis to shift along.
+            shift_axis (str): The axis to shift along, which is 1D.
             by_axis (str): The dimension name of `other`. Ignored when `other` is an xr.DataArray.
             zero_nans (bool): If True, fill np.nan with 0.
+
+            stretch_coords (bool): If True, the coords expands.  Default is False.
             shift_coords (bool): Whether to shift the coordinates as well.
                 The arg will be removed, because it is not unique way to shift from the "other".
                 Currently it uses mean value of "other".
@@ -2750,12 +2753,7 @@ class GenericDataArrayAccessor(GenericAccessorBase):
             assert other.ndim == 1
             by_axis = str(other.dims[0])
             assert len(other.coords[by_axis]) == len(data.coords[by_axis])
-            if shift_coords:  # pragma: no cover
-                warnings.warn(
-                    "shift_coords will be deprecated.  Instead, use assign coords explicitly.",
-                    category=DeprecationWarning,
-                    stacklevel=2,
-                )
+            if shift_coords:
                 mean_shift = np.mean(other.values)
                 other -= mean_shift
             shift_amount = -other.values / data.G.stride(generic_dim_names=False)[shift_axis]
@@ -2770,7 +2768,7 @@ class GenericDataArrayAccessor(GenericAccessorBase):
                     msg += '"by_axis" is required.'
                     raise TypeError(msg)
             assert other.shape[0] == len(data.coords[by_axis])
-            if shift_coords:  # pragma: no cover
+            if shift_coords:
                 mean_shift = np.mean(other)
                 other -= mean_shift
             shift_amount = -other / data.G.stride(generic_dim_names=False)[shift_axis]
