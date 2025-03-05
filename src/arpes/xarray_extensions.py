@@ -2749,8 +2749,8 @@ class GenericDataArrayAccessor(GenericAccessorBase):
         assert shift_axis, "shift_by must take shift_axis argument."
         data = self._obj.copy(deep=True)
         mean_shift: np.float64 | float = 0.0
+        assert other.ndim == 1
         if isinstance(other, xr.DataArray):
-            assert other.ndim == 1
             by_axis = str(other.dims[0])
             assert len(other.coords[by_axis]) == len(data.coords[by_axis])
             if shift_coords:
@@ -2759,12 +2759,11 @@ class GenericDataArrayAccessor(GenericAccessorBase):
             shift_amount = -other.values / data.G.stride(generic_dim_names=False)[shift_axis]
         else:
             assert isinstance(other, np.ndarray)
-            assert other.ndim == 1
             if not by_axis:
                 if data.ndim == TWO_DIMENSION:
                     by_axis = str(set(data.dims).difference(shift_axis).pop())
                 else:
-                    msg = "When np.ndarray is used for shift_by, and the data is not 2D,"
+                    msg = "When np.ndarray is used as shift_by, and the data is not 2D,"
                     msg += '"by_axis" is required.'
                     raise TypeError(msg)
             assert other.shape[0] == len(data.coords[by_axis])
