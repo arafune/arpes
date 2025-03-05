@@ -68,6 +68,6 @@ def test_stretch_coords(dataarray_cut: xr.DataArray) -> None:
     assert stretched_data.shape == (247, 245)
     np.testing.assert_array_almost_equal(
         stretched_data.values[0][-5:],
-        np.array([np.nan, np.nan, np.nan, np.nan, np.nan]),
+        np.array([0, 0, 0, 0, 0]),
     )
-    assert np.all(np.isnan(stretched_data.values[-5:]))
+    assert np.all(stretched_data.values[-5:] == 0)

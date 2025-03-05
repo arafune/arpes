@@ -103,9 +103,10 @@ def stretch_coords(
     shape = [len(stretch_coords[dim]) for dim in da.dims]
     coords = da.coords.copy()
     coords.update(stretch_coords)
+    padding_value = 0 if da.dtype == np.int_ else np.nan
 
     expanded_da = xr.DataArray(
-        np.full(shape, np.nan, dtype=np.float64),
+        np.full(shape, padding_value, dtype=np.float64),
         coords=coords,
         dims=list(da.dims),
         attrs=da.attrs,
