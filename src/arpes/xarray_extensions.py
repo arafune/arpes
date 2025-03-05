@@ -2775,12 +2775,15 @@ class GenericDataArrayAccessor(GenericAccessorBase):
                 other -= mean_shift
             shift_amount = -other / data.G.stride(generic_dim_names=False)[shift_axis]
 
+        padding_value = 0 if self._obj.dtype == np.int_ else np.nan
         shifted_data: NDArray[np.float64] = utilities.math.shift_by(
             arr=data.values,
             value=shift_amount,
             axis=data.dims.index(shift_axis),
             by_axis=data.dims.index(by_axis),
             order=1,
+            mode="constant",
+            cval=padding_value,
         )
         if zero_nans:
             shifted_data[np.isnan(shifted_data)] = 0

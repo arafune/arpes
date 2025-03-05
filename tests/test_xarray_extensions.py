@@ -316,7 +316,11 @@ class TestGeneralforDataArray:
             .eval(x=fmap.phi)
         )
         np.testing.assert_allclose(
-            actual=fmap.G.shift_by(edge, shift_axis="eV", by_axis="phi").sel(
+            actual=fmap.G.shift_by(
+                edge,
+                shift_axis="eV",
+                by_axis="phi",
+            ).sel(
                 eV=0,
                 method="nearest",
             )[:][0][:5],
