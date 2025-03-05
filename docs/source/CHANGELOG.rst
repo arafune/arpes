@@ -26,6 +26,7 @@ Changed
 * Remove arg keep_parent_ref in provenance and provenance_multiple_parents
 * Remove load_data_for_figure from plotting.utils
 * Remove CoincidentLinePlot (Same (at least similar) feature can be done with fill_between)
+* Remove zero_nans arg in shift_by. Use da.fillna(0), instead.
 
 * Change method name: S.swap_angle_unit -> S.switch_angle_unit
 
@@ -36,7 +37,6 @@ Changed
   - S.transpose_to_back
   - S.to_arrays
   - arrange_by_indices and unarrange_by_indices (defined in utilities/__init__.py). They are not used internally.
-  - shift_coords arg in G.shift_by  (This is ambiguous. While the mean is used, I don't think it is so correct way. )
 
 4.2.3 (2025-1-5)
 ^^^^^^^^^^^^^^^^^^
