@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from arpes.constants import K_BOLTZMANN_EV_KELVIN
-
 from arpes.debug import setup_logger
 
 if TYPE_CHECKING:
