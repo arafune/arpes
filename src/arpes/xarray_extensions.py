@@ -1502,7 +1502,7 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
 
     def select_around_data(
         self,
-        points: dict[Hashable, xr.DataArray] | xr.Dataset,
+        points: Mapping[Hashable, xr.DataArray],
         radius: dict[Hashable, float] | float | None = None,  # radius={"phi": 0.005}
         *,
         mode: ReduceMethod = "sum",
