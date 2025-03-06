@@ -1407,7 +1407,7 @@ class ARPESAccessorBase(ARPESProperty):
 
     def fat_sel(
         self,
-        widths: dict[str, Any] | None = None,
+        widths: dict[Hashable, float] | None = None,
         method: ReduceMethod = "mean",
         **kwargs: float,
     ) -> XrTypes:
@@ -1424,9 +1424,12 @@ class ARPESAccessorBase(ARPESProperty):
                     Defaults to None.
             method: Method for ruducing the data. Defaults to "mean".
             kwargs: slice dict. The width can also be specified by like "eV_wdith=0.1".
+                (Will be Deprecated)
 
         Returns:
             The data after selection.
+
+        Note: The width must be specified by width.  Not kwargs.
         """
         logger.debug(f"widths: {widths}")
         logger.debug(f"kwargs: {kwargs}")
@@ -1441,7 +1444,7 @@ class ARPESAccessorBase(ARPESProperty):
             default_widths["theta"] = 1.0
             default_widths["psi"] = 1.0
 
-        extra_kwargs: dict[str, Incomplete] = {
+        extra_kwargs: dict[Hashable, float] = {
             k: v for k, v in kwargs.items() if k not in self._obj.dims
         }
         logger.debug(f"extra_kwargs: {extra_kwargs}")
