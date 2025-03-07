@@ -1493,26 +1493,6 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
         self._obj: xr.DataArray = xarray_obj
         assert isinstance(self._obj, xr.DataArray)
 
-    def cut_nan_coords(self: Self) -> xr.DataArray:
-        """Selects data where coordinates are not `nan`.
-
-        Returns (xr.DataArray):
-            The subset of the data where coordinates are not `nan`.
-
-        Todo:
-            Test
-        """
-        slices = {}
-        assert isinstance(self._obj, xr.DataArray)
-        for cname, cvalue in self._obj.coords.items():
-            try:
-                end_ind = np.where(np.isnan(cvalue.values))[0][0]
-                end_ind = None if end_ind == -1 else end_ind
-                slices[cname] = slice(None, end_ind)
-            except IndexError:
-                pass
-        return self._obj.isel(slices)
-
     def corrected_coords(
         self,
         correction_types: CoordsOffset | Sequence[CoordsOffset],
