@@ -22,7 +22,15 @@ if TYPE_CHECKING:
 
     from arpes._typing import DataType, ReduceMethod, XrTypes
 
-__all__ = ("ravel_from_mask", "select_disk", "select_disk_mask", "unravel_from_mask")
+__all__ = (
+    "fat_sel",
+    "ravel_from_mask",
+    "select_around",
+    "select_around_data",
+    "select_disk",
+    "select_disk_mask",
+    "unravel_from_mask",
+)
 
 
 LOGLEVELS = (DEBUG, INFO)
@@ -52,6 +60,27 @@ def fat_sel(
     method: ReduceMethod = "mean",
     **kwargs: float,
 ) -> XrTypes:
+    """Allows integrating a selection over a small region.
+
+    The produced dataset will be normalized by dividing by the number
+    of slices integrated over.
+
+    This can be used to produce temporary datasets that have reduced
+    uncorrelated noise.
+
+    Args:
+        data: The data to be selected from.
+        widths: Override the widths for the slices. Reasonable defaults are used otherwise.
+                Defaults to None.
+        method: Method for ruducing the data. Defaults to "mean".
+        kwargs: slice dict. The width can also be specified by like "eV_wdith=0.1".
+            (Will be Deprecated)
+
+    Returns:
+        The data after selection.
+
+    Note: The width must be specified by width.  Not kwargs.
+    """
     logger.debug(f"widths: {widths}")
     logger.debug(f"kwargs: {kwargs}")
     if widths is None:
@@ -183,6 +212,23 @@ def select_around(
     *,
     mode: ReduceMethod = "sum",
 ) -> xr.DataArray:
+    """Selects and integrates a region around a one dimensional point.
+
+    This method is useful to do a small region integration, especially around
+    point on a path of a k-point of interest. See also the companion method
+    `select_around_data`.
+
+    Args:
+        data: The data to be selected from.
+        point: The point where the selection should be performed.
+        radius: The radius of the selection in each coordinate. If dimensions are omitted, a
+                standard sized selection will be made as a compromise.
+        safe: If true, infills radii with default values. Defaults to `True`.
+        mode: How the reduction should be performed, one of "sum" or "mean". Defaults to "sum"
+
+    Returns:
+        The binned selection around the desired point.
+    """
     assert mode in {"sum", "mean"}, "mode parameter should be either sum or mean."
     assert isinstance(point, dict | xr.Dataset)
     radius = _radius(point, radius)
