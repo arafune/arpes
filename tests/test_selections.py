@@ -1,5 +1,6 @@
 """Test suite for selections utilities."""
 
+import pytest
 import numpy as np
 import xarray as xr
 
@@ -8,9 +9,28 @@ from arpes.utilities.selections import (
     select_disk,
     select_disk_mask,
     unravel_from_mask,
+    _radius,
 )
 
 rng = np.random.default_rng()
+
+
+def test__if_radius_is_None(
+    phi_values: xr.DataArray,
+) -> None:
+    radius = _radius(
+        points={"phi": phi_values},
+        radius=None,
+    )
+    assert radius == {"phi": 0.02}
+
+
+def test__if_radius_is_array(phi_values: xr.DataArray) -> None:
+    with pytest.raises(TypeError, match="radius should be a float, dictionary or None"):
+        _radius(
+            points={"phi": phi_values},
+            radius=[0.02],
+        )
 
 
 def test_ravel_from_mask() -> None:

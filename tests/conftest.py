@@ -12,6 +12,12 @@ import arpes.config
 import arpes.endstations
 from arpes.io import example_data
 from tests.utils import cache_loader
+from arpes.fits.utilities import broadcast_model
+from arpes.fits.fit_models import (
+    AffineBackgroundModel,
+    LorentzianModel,
+)
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
@@ -91,6 +97,27 @@ def dataset_temperature_dependence() -> xr.Dataset:
 def mock_tarpes() -> list[xr.DataArray]:
     """A fixture for making a mock mimicking the tarpes measurements."""
     return example_data.t_arpes
+
+
+@pytest.fixture
+def near_ef(dataset_temperature_dependence: xr.Dataset) -> xr.DataArray:
+    return (
+        dataset_temperature_dependence.sel(
+            eV=slice(-0.05, 0.05),
+            phi=slice(-0.2, None),
+        )
+        .sum(dim="eV")
+        .spectrum
+    )
+
+
+@pytest.fixture
+def phi_values(near_ef: xr.DataArray) -> xr.DataArray:
+    return broadcast_model(
+        [AffineBackgroundModel, LorentzianModel],
+        near_ef,
+        "temperature",
+    ).results.F.p("b_center")
 
 
 @dataclass

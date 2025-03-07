@@ -88,7 +88,7 @@ from .plotting.movie import plot_movie
 from .plotting.parameter import plot_parameter
 from .plotting.spatial import reference_scan_spatial
 from .plotting.utils import fancy_labels, remove_colorbars
-from .utilities import apply_dataarray
+from .utilities import apply_dataarray, selections
 from .utilities.xarray import unwrap_xarray_item
 
 if TYPE_CHECKING:
@@ -130,22 +130,6 @@ __all__ = ["ARPESDataArrayAccessor", "ARPESDatasetAccessor", "ARPESFitToolsAcces
 
 EnergyNotation: TypeAlias = Literal["Binding", "Final"]
 
-DEFAULT_RADII: dict[str, float] = {
-    "kp": 0.02,
-    "kx": 0.02,
-    "ky": 0.02,
-    "kz": 0.05,
-    "phi": 0.02,
-    "beta": 0.02,
-    "theta": 0.02,
-    "psi": 0.02,
-    "eV": 0.05,
-    "delay": 0.2,
-    "T": 2,
-    "temperature": 2,
-}
-
-UNSPECIFIED = 0.1
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
@@ -1354,31 +1338,6 @@ class ARPESAccessorBase(ARPESProperty):
         dims.remove(dim)
         return self._obj.transpose(*([*dims, dim]))
 
-    @staticmethod
-    def _radius(
-        points: dict[Hashable, xr.DataArray] | dict[Hashable, float],
-        radius: float | dict[Hashable, float] | None,
-    ) -> dict[Hashable, float]:
-        """Helper function. Generate radius dict.
-
-        When radius is dict form, nothing has been done, essentially.
-
-        Args:
-            points (dict[Hashable, xr.DataArray] | dict[Hashable, float]): Selection point
-            radius (dict[Hashable, float] | float | None): radius
-
-        Returns: dict[Hashable, float]
-            radius for selection.
-        """
-        if isinstance(radius, float):
-            return {d: radius for d in points}
-        if radius is None:
-            radius = {d: DEFAULT_RADII.get(str(d), UNSPECIFIED) for d in points}
-        if not isinstance(radius, dict):
-            msg = "radius should be a float, dictionary or None"
-            raise TypeError(msg)
-        return radius
-
     def sum_other(
         self,
         dim_or_dims: list[str],
@@ -1431,50 +1390,7 @@ class ARPESAccessorBase(ARPESProperty):
 
         Note: The width must be specified by width.  Not kwargs.
         """
-        logger.debug(f"widths: {widths}")
-        logger.debug(f"kwargs: {kwargs}")
-        if widths is None:
-            widths = {}
-        assert isinstance(widths, dict)
-        default_widths = DEFAULT_RADII
-
-        if self._obj.S.angle_unit == "Degrees":
-            default_widths["phi"] = 1.0
-            default_widths["beta"] = 1.0
-            default_widths["theta"] = 1.0
-            default_widths["psi"] = 1.0
-
-        extra_kwargs: dict[Hashable, float] = {
-            k: v for k, v in kwargs.items() if k not in self._obj.dims
-        }
-        logger.debug(f"extra_kwargs: {extra_kwargs}")
-        slice_center: dict[str, float] = {k: v for k, v in kwargs.items() if k in self._obj.dims}
-        logger.debug(f"slice_center: {slice_center}")
-        slice_widths: dict[str, float] = {
-            k: widths.get(k, extra_kwargs.get(k + "_width", default_widths.get(k)))
-            for k in slice_center
-        }
-        logger.debug(f"slice_widths: {slice_widths}")
-        slices = {
-            k: slice(v - slice_widths[k] / 2, v + slice_widths[k] / 2)
-            for k, v in slice_center.items()
-        }
-        sliced = self._obj.sel(slices)
-
-        if not any(slice_center.keys()):
-            msg = "The slice center is not spcefied."
-            raise TypeError(msg)
-        if method == "mean":
-            normalized = sliced.mean(slices.keys(), keep_attrs=True)
-        elif method == "sum":
-            normalized = sliced.sum(slices.keys(), keep_attrs=True)
-        else:
-            msg = "Method should be either 'mean' or 'sum'."
-            raise RuntimeError(msg)
-
-        for k, v in slice_center.items():
-            normalized.coords[k] = v
-        return normalized
+        return selections.fat_sel(data=self._obj, widths=widths, method=method, **kwargs)
 
 
 class ARPESDataArrayAccessorBase(ARPESAccessorBase):
@@ -1535,52 +1451,12 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
         Returns:
             The binned selection around the desired point or points.
         """
-        assert mode in {"sum", "mean"}, "mode parameter should be either sum or mean."
-        assert isinstance(points, dict | xr.Dataset)
-        radius = radius or {}
-        if isinstance(points, xr.Dataset):
-            points = {k: points[k].item() for k in points.data_vars}
-        assert isinstance(points, dict)
-        radius = self._radius(points, radius)
-        logger.debug(f"radius: {radius}")
-
-        assert isinstance(radius, dict)
-        logger.debug(f"iter(points.values()): {iter(points.values())}")
-
-        along_dims = next(iter(points.values())).dims
-        selected_dims = list(points.keys())
-
-        new_dim_order = [d for d in self._obj.dims if d not in along_dims] + list(along_dims)
-
-        data_for = self._obj.transpose(*new_dim_order)
-        new_data = data_for.sum(selected_dims, keep_attrs=True)
-
-        stride: dict[Hashable, float] = self._obj.G.stride(generic_dim_names=False)
-        for coord in data_for.G.iter_coords(along_dims):
-            value = data_for.sel(coord, method="nearest")
-            nearest_sel_params: dict[Hashable, xr.DataArray] = {}
-            for dim, v in radius.items():
-                if v < stride[dim]:
-                    nearest_sel_params[dim] = points[dim].sel(coord)
-            radius = {dim: v for dim, v in radius.items() if dim not in nearest_sel_params}
-            selection_slices = {
-                dim: slice(
-                    points[dim].sel(coord) - radius[dim],
-                    points[dim].sel(coord) + radius[dim],
-                )
-                for dim in points
-                if dim in radius
-            }
-            selected = value.sel(selection_slices)
-            if nearest_sel_params:
-                selected = selected.sel(nearest_sel_params, method="nearest")
-            for d in nearest_sel_params:
-                del selected.coords[d]
-            if mode == "sum":
-                new_data.loc[coord] = selected.sum(list(radius.keys())).values
-            elif mode == "mean":
-                new_data.loc[coord] = selected.mean(list(radius.keys())).values
-        return new_data
+        return selections.select_around_data(
+            data=self._obj,
+            points=points,
+            radius=radius,
+            mode=mode,
+        )
 
     def select_around(
         self,
@@ -1605,28 +1481,7 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
         Returns:
             The binned selection around the desired point.
         """
-        assert mode in {"sum", "mean"}, "mode parameter should be either sum or mean."
-        assert isinstance(point, dict | xr.Dataset)
-        radius = self._radius(point, radius)
-        stride = self._obj.G.stride(generic_dim_names=False)
-        nearest_sel_params: dict[Hashable, float] = {}
-        for dim, v in radius.items():
-            if v < stride[dim]:
-                nearest_sel_params[dim] = point[dim]
-        radius = {dim: v for dim, v in radius.items() if dim not in nearest_sel_params}
-        selection_slices = {
-            dim: slice(point[dim] - radius[dim], point[dim] + radius[dim])
-            for dim in point
-            if dim in radius
-        }
-        selected = self._obj.sel(selection_slices)
-        if nearest_sel_params:
-            selected = selected.sel(nearest_sel_params, method="nearest")
-        for d in nearest_sel_params:
-            del selected.coords[d]
-        if mode == "sum":
-            return selected.sum(list(radius.keys()))
-        return selected.mean(list(radius.keys()))
+        return selections.select_around(data=self._obj, point=point, radius=radius, mode=mode)
 
 
 @xr.register_dataarray_accessor("S")

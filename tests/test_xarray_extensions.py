@@ -5,9 +5,7 @@ import pytest
 import xarray as xr
 
 from arpes.fits.fit_models import (
-    AffineBackgroundModel,
     AffineBroadenedFD,
-    LorentzianModel,
     QuadraticModel,
 )
 from arpes.fits.utilities import broadcast_model
@@ -428,26 +426,28 @@ class TestGeneralforDataArray:
 class TestGeneralforDataset:
     """Test class for GenericDatasetAccessor."""
 
-    @pytest.fixture
-    def near_ef(self, dataset_temperature_dependence: xr.Dataset) -> xr.DataArray:
-        return (
-            dataset_temperature_dependence.sel(
-                eV=slice(-0.05, 0.05),
-                phi=slice(-0.2, None),
-            )
-            .sum(dim="eV")
-            .spectrum
+    def test_select_around_data0(
+        self,
+        dataset_temperature_dependence: xr.Dataset,
+        phi_values: xr.DataArray,
+    ) -> None:
+        selected_data: xr.DataArray = dataset_temperature_dependence.spectrum.S.select_around_data(
+            points={"phi": phi_values},
+            mode="sum",
+            radius={"phi": 0.005},
         )
 
-    @pytest.fixture
-    def phi_values(self, near_ef: xr.DataArray) -> xr.DataArray:
-        return broadcast_model(
-            [AffineBackgroundModel, LorentzianModel],
-            near_ef,
-            "temperature",
-        ).results.F.p("b_center")
+        should_same_as_above: xr.DataArray = (
+            dataset_temperature_dependence.spectrum.S.select_around_data(
+                points={"phi": phi_values},
+                mode="sum",
+                radius=0.005,
+            )
+        )
 
-    def test_select_around_data(
+        np.testing.assert_allclose(selected_data.values, should_same_as_above.values)
+
+    def test_select_around_data1(
         self,
         dataset_temperature_dependence: xr.Dataset,
         phi_values: xr.DataArray,
@@ -478,49 +478,6 @@ class TestGeneralforDataset:
             selected_data.values[0][:5],
             np.array([1327.5625, 1260.53125, 1207.96875, 1304.375, 1805.40625]),
         )
-
-    def test__radius(
-        self,
-        dataset_temperature_dependence: xr.Dataset,
-        phi_values: xr.DataArray,
-    ) -> None:
-        selected_data: xr.DataArray = dataset_temperature_dependence.spectrum.S.select_around_data(
-            points={"phi": phi_values},
-            mode="sum",
-            radius={"phi": 0.005},
-        )
-
-        should_same_as_above: xr.DataArray = (
-            dataset_temperature_dependence.spectrum.S.select_around_data(
-                points={"phi": phi_values},
-                mode="sum",
-                radius=0.005,
-            )
-        )
-
-        np.testing.assert_allclose(selected_data.values, should_same_as_above.values)
-
-    def test__if_radius_is_None(
-        self,
-        dataset_temperature_dependence: xr.Dataset,
-        phi_values: xr.DataArray,
-    ) -> None:
-        radius = dataset_temperature_dependence.spectrum.S._radius(
-            points={"phi": phi_values},
-            radius=None,
-        )
-        assert radius == {"phi": 0.02}
-
-    def test__if_radius_is_array(
-        self,
-        dataset_temperature_dependence: xr.Dataset,
-        phi_values: xr.DataArray,
-    ) -> None:
-        with pytest.raises(TypeError, match="radius should be a float, dictionary or None"):
-            dataset_temperature_dependence.spectrum.S._radius(
-                points={"phi": phi_values},
-                radius=[0.02],
-            )
 
     def test_G_shift(self, near_ef: xr.DataArray, phi_values: xr.DataArray):
         #
