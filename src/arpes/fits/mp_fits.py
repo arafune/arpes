@@ -113,7 +113,7 @@ class MPWorker:
         logger.debug(f"prefixes: {self.prefixes}")
 
         if self.safe:
-            cut_data = cut_data.G.drop_nan()
+            cut_data = cut_data.dropna(dim=cut_data.dims[0], how="any")
 
         weights_for = None
         if self.weights is not None:

@@ -2610,22 +2610,6 @@ class GenericDataArrayAccessor(GenericAccessorBase):
             data_shifted = coords.shift_by(data_shifted, coord, shift)
         return data_shifted
 
-    def drop_nan(self) -> xr.DataArray:
-        """Drops the NaN values from the data.
-
-        This is useful for fitting using lmfit.
-
-        Returns:
-            xr.DataArray: The xr.DataArray with NaN values removed.
-
-        Todo:
-            - Add tests.
-        """
-        assert len(self._obj.dims) == 1
-
-        mask = np.logical_not(np.isnan(self._obj.values))
-        return self._obj.isel({self._obj.dims[0]: mask})
-
     def with_values(
         self,
         new_values: NDArray[np.float64],
