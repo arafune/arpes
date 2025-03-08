@@ -200,13 +200,16 @@ def shift_by(
     Returns:
         NDArray[np.float64]: The shifted array.
     """
-    assert axis != by_axis
+    assert axis != by_axis, "`axis` and `by_axis` must be different."
     arr_copy = arr.copy()
     assert isinstance(value, np.ndarray)
+    assert value.shape == (arr.shape[by_axis],), (
+        "`value` must have the same length as `arr` along `by_axis`."
+    )
     for axis_idx in range(arr.shape[by_axis]):
         slc = (slice(None),) * by_axis + (axis_idx,) + (slice(None),) * (arr.ndim - by_axis - 1)
         shift_amount = (0,) * axis + (value[axis_idx],) + (0,) * (arr.ndim - axis - 1)
         shift_amount = shift_amount[1:] if axis > by_axis else shift_amount[:-1]
-        logger.debug(f"shift_amount: {shift_amount}")
+        logger.debug(f"Shifting slice {slc} by {shift_amount}")
         arr_copy[slc] = scipy.ndimage.shift(arr[slc], shift_amount, **kwargs)
     return arr_copy
