@@ -383,6 +383,8 @@ def convert_to_kspace(  # noqa: PLR0913
 
     # temporarily reassign coordinates for dimensions we will not
     # convert to "index-like" dimensions
+    #
+    # Todo: <RA> Consider: Why did he do that? Is it necessory?
     restore_index_like_coordinates: dict[str, NDArray[np.float64]] = {
         dim: arr.coords[dim].values for dim in momentum_incompatibles
     }
