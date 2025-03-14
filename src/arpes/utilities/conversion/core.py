@@ -236,7 +236,7 @@ def slice_along_path(  # noqa: PLR0913
             "dims": converted_dims,
             "transforms": dict(
                 zip(
-                    arr.dims,  # type: ignore[arg-type] # <- Hashable str problem
+                    str(arr.dims),
                     [converter_for_coordinate_name(str(d)) for d in arr.dims],
                     strict=True,
                 ),
@@ -381,18 +381,6 @@ def convert_to_kspace(  # noqa: PLR0913
         [str(d) for d in arr.dims if is_dimension_convertible_to_momentum(str(d))],
     )
 
-    # temporarily reassign coordinates for dimensions we will not
-    # convert to "index-like" dimensions
-    #
-    # Todo: <RA> Consider: Why did he do that? Is it necessory?
-    restore_index_like_coordinates: dict[str, NDArray[np.float64]] = {
-        dim: arr.coords[dim].values for dim in momentum_incompatibles
-    }
-    new_index_like_coordinates = {
-        dim: np.arange(len(arr.coords[dim].values)) for dim in momentum_incompatibles
-    }
-    arr = arr.assign_coords(new_index_like_coordinates)
-
     if not momentum_compatibles:
         return arr  # no need to convert, might be XPS or similar
 
@@ -447,7 +435,7 @@ def convert_to_kspace(  # noqa: PLR0913
         },
     )
     assert isinstance(result, xr.DataArray)
-    return result.assign_coords(restore_index_like_coordinates)
+    return result
 
 
 class CoordinateTransform(TypedDict, total=True):
