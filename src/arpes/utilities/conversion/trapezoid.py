@@ -23,6 +23,8 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
+    from arpes._typing import MOMENTUM
+
 __all__ = ["apply_trapezoidal_correction"]
 
 LOGLEVELS = (DEBUG, INFO)
@@ -97,19 +99,23 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
 
         # we normalize the corners so that they are equivalent to four corners at the Fermi level
         # and one volt below.
-        c1, c2, c3, c4 = sorted(corners, key=operator.itemgetter("phi"))
-        c1, c2 = sorted([c1, c2], key=operator.itemgetter("eV"))
-        c3, c4 = sorted([c3, c4], key=operator.itemgetter("eV"))
+        lower_left, upper_left, lower_right, upper_right = sorted(
+            corners,
+            key=operator.itemgetter("phi"),
+        )
+        lower_left, upper_left = sorted([lower_left, upper_left], key=operator.itemgetter("eV"))
+        lower_right, upper_right = sorted([lower_right, upper_right], key=operator.itemgetter("eV"))
 
-        # now, corners are in
-        # (c1, c2, c3, c4) = (LL, UL, LR, UR) order
-
-        left_per_volt = (c1["phi"] - c2["phi"]) / (c1["eV"] - c2["eV"])
-        left_phi_fermi = c2["phi"] - c2["eV"] * left_per_volt
+        left_per_volt = (lower_left["phi"] - upper_left["phi"]) / (
+            lower_left["eV"] - upper_left["eV"]
+        )
+        left_phi_fermi = upper_left["phi"] - upper_left["eV"] * left_per_volt
         left_phi_one_volt = left_phi_fermi - left_per_volt
 
-        right_per_volt = (c3["phi"] - c4["phi"]) / (c3["eV"] - c4["eV"])
-        right_phi_fermi = c3["phi"] - c4["eV"] * right_per_volt
+        right_per_volt = (lower_right["phi"] - upper_right["phi"]) / (
+            lower_right["eV"] - upper_right["eV"]
+        )
+        right_phi_fermi = lower_right["phi"] - upper_right["eV"] * right_per_volt
         right_phi_one_volt = right_phi_fermi - right_per_volt
 
         self.corner_angles = (
@@ -121,17 +127,22 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
 
     def get_coordinates(
         self,
-        *args: dict[Incomplete, Incomplete],
-        **kwargs: dict[Incomplete, Incomplete],
+        resolution: dict[MOMENTUM, float] | None = None,
+        bounds: dict[MOMENTUM, tuple[float, float]] | None = None,
     ) -> dict[Hashable, NDArray[np.float64]]:
-        if args:
-            logger.debug("ConvertTrapezoidalCorrection.get_coordinates: args is not used but set.")
-        if kwargs:
-            for k, v in kwargs.items():
-                msg = f"ConvertTrapezoidalCorrection.get_coordinates: key({k}: value{v} is not used"
-                msg += " but set."
-                logger.debug(msg)
+        """[TODO:summary].
 
+        [TODO:description]
+
+        Args:
+            resolution: [TODO:description]
+            bounds: [TODO:description]
+
+        Returns:
+            [TODO:description]
+        """
+        del resolution
+        del bounds
         return {k: v.values for k, v in self.arr.indexes.items()}
 
     def conversion_for(self, dim: Hashable) -> Callable[..., NDArray[np.float64]]:
@@ -141,7 +152,7 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
         return {
             "phi": self.phi_to_phi,
         }.get(
-            dim,
+            str(dim),
             _with_identity,
         )
 
@@ -244,7 +255,7 @@ def apply_trapezoidal_correction(
         raise ValueError(msg)
     logger.debug("Replacing dummy coordinates with index-like ones.")
     removed = [d for d in data.dims if d not in {"eV", "phi"}]
-    data = data.transpose(*(["eV", "phi", *removed]))
+    data = data.transpose("eV", "phi", ...)
     converted_dims = data.dims
 
     restore_index_like_coordinates = {r: data.coords[r].values for r in removed}
