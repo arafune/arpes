@@ -247,20 +247,13 @@ def apply_trapezoidal_correction(
         assert isinstance(data, xr.DataArray)
         data.attrs.update(attrs)
 
-    original_coords = data.coords
-
     logger.debug("Determining dimensions.")
     if "phi" not in data.dims:
         msg = "The data must have a phi coordinate."
         raise ValueError(msg)
     logger.debug("Replacing dummy coordinates with index-like ones.")
-    removed = [d for d in data.dims if d not in {"eV", "phi"}]
     data = data.transpose("eV", "phi", ...)
     converted_dims = data.dims
-
-    restore_index_like_coordinates = {r: data.coords[r].values for r in removed}
-    new_index_like_coordinates = {r: np.arange(len(data.coords[r].values)) for r in removed}
-    data = data.assign_coords(new_index_like_coordinates)
 
     converter = ConvertTrapezoidalCorrection(data, converted_dims, corners=corners)
     converted_coordinates = converter.get_coordinates()
@@ -278,8 +271,4 @@ def apply_trapezoidal_correction(
     )
     assert isinstance(result, xr.DataArray)
     logger.debug("Reassigning index-like coordinates.")
-    result = result.assign_coords(restore_index_like_coordinates)
-    result = result.assign_coords(
-        {c: v for c, v in original_coords.items() if c not in result.coords},
-    )
     return result.assign_attrs(data.attrs)
