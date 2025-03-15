@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import operator
-import warnings
 from logging import DEBUG, INFO
 from typing import TYPE_CHECKING
 
@@ -12,7 +11,6 @@ import numpy as np
 import xarray as xr
 
 from arpes.debug import setup_logger
-from arpes.utilities import normalize_to_spectrum
 
 from .base import CoordinateConverter
 from .core import convert_coordinates
@@ -224,32 +222,9 @@ def apply_trapezoidal_correction(
     Returns:
         The corrected data.
     """
-    if isinstance(data, dict):
-        warnings.warn(
-            "Treating dict-like data as an attempt to forward convert a single coordinate.",
-            stacklevel=2,
-        )
-        converter = ConvertTrapezoidalCorrection(None, [], corners=corners)
-        result = dict(data)
-        result["phi"] = converter.phi_to_phi_forward(
-            np.array([data["eV"]]),
-            np.array([data["phi"]]),
-        )[0]
-        return result
-
-    if isinstance(data, xr.Dataset):
-        msg = "Remember to use a DataArray not a Dataset, "
-        msg += "attempting to extract spectrum and copy attributes."
-        warnings.warn(msg, stacklevel=2)
-        attrs = data.attrs.copy()
-        data = normalize_to_spectrum(data)
-        assert isinstance(data, xr.DataArray)
-        data.attrs.update(attrs)
-
+    assert isinstance(data, xr.DataArray)
+    assert "phi" in data.coords, "The data must have a phi coordinate."
     logger.debug("Determining dimensions.")
-    if "phi" not in data.dims:
-        msg = "The data must have a phi coordinate."
-        raise ValueError(msg)
     data = data.transpose("eV", "phi", ...)
     converted_dims = data.dims
 
@@ -262,9 +237,7 @@ def apply_trapezoidal_correction(
         converted_coordinates,
         {
             "dims": list(data.dims),
-            "transforms": dict(
-                zip(data.dims, [converter.conversion_for(d) for d in data.dims], strict=True),
-            ),
+            "transforms": {dim: converter.conversion_for(dim) for dim in data.dims},
         },
     )
     assert isinstance(result, xr.DataArray)
