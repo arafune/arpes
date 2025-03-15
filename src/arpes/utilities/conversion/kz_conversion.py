@@ -119,11 +119,13 @@ class ConvertKpKz(CoordinateConverter):
             kp_low - K_SPACE_BORDER,
             kp_high + K_SPACE_BORDER,
             resolution.get("kp", inferred_kp_res),
+            dtype=np.float64,
         )
         coordinates["kz"] = np.arange(
             kz_low - K_SPACE_BORDER,
             kz_high + K_SPACE_BORDER,
             resolution.get("kz", inferred_kz_res),
+            dtype=np.float64,
         )
         base_coords = {
             k: v.values for k, v in self.arr.coords.items() if k not in {"eV", "phi", "hv"}
