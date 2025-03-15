@@ -425,13 +425,7 @@ def convert_to_kspace(  # noqa: PLR0913
         target_coordinates=converted_coordinates,
         coordinate_transform={
             "dims": converted_dims,
-            "transforms": dict(
-                zip(
-                    (str(dim) for dim in arr.dims),
-                    [converter.conversion_for(dim) for dim in arr.dims],
-                    strict=True,
-                ),
-            ),
+            "transforms": {str(dim): converter.conversion_for(dim) for dim in arr.dims},
         },
     )
     assert isinstance(result, xr.DataArray)
