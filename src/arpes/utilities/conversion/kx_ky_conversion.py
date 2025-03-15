@@ -179,6 +179,7 @@ class ConvertKp(CoordinateConverter):
             kp_low - K_SPACE_BORDER,
             kp_high + K_SPACE_BORDER,
             resolution.get("kp", inferred_kp_res),
+            dtype=np.float64,
         )
         base_coords = {
             k: v.values
@@ -356,11 +357,13 @@ class ConvertKxKy(CoordinateConverter):
             kx_low - K_SPACE_BORDER,
             kx_high + K_SPACE_BORDER,
             resolution.get("kx", inferred_kx_res),
+            dtype=np.float64,
         )
         coordinates["ky"] = np.arange(
             ky_low - K_SPACE_BORDER,
             ky_high + K_SPACE_BORDER,
             resolution.get("ky", inferred_ky_res),
+            dtype=np.float64,
         )
         base_coords = {
             k: v  # should v.values?base

@@ -221,7 +221,6 @@ def apply_trapezoidal_correction(
             points near the Fermi level and near the bottom of the spectrum just at the edge of
             recorded angular region.
 
-
     Returns:
         The corrected data.
     """
@@ -251,7 +250,6 @@ def apply_trapezoidal_correction(
     if "phi" not in data.dims:
         msg = "The data must have a phi coordinate."
         raise ValueError(msg)
-    logger.debug("Replacing dummy coordinates with index-like ones.")
     data = data.transpose("eV", "phi", ...)
     converted_dims = data.dims
 
