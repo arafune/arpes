@@ -101,6 +101,14 @@ def _compute_ktot(
     binding_energy: NDArray[np.float64],
     k_tot: NDArray[np.float64],
 ) -> None:
+    """Calculate 0.512 √E.
+
+    Args:
+        hv: [TODO:description]
+        work_function: [TODO:description]
+        binding_energy: [TODO:description]
+        k_tot: [TODO:description]
+    """
     for i in numba.prange(len(binding_energy)):
         k_tot[i] = K_INV_ANGSTROM * np.sqrt(
             hv - work_function + binding_energy[i],
@@ -191,25 +199,18 @@ class ConvertKp(CoordinateConverter):
 
     def compute_k_tot(self, binding_energy: NDArray[np.float64]) -> None:
         """Compute the total momentum (inclusive of kz) at different binding energies."""
-        if self.arr.S.energy_notation == "Binding":
-            self.k_tot = _safe_compute_k_tot(
-                self.arr.S.hv,
-                self.arr.S.analyzer_work_function,
-                binding_energy,
-            )
-        elif self.arr.S.energy_notation == "Final":
-            self.k_tot = _safe_compute_k_tot(0, self.arr.S.analyzer_work_function, binding_energy)
-        else:
+        energy_notation = self.arr.S.energy_notation
+        hv = self.arr.S.hv
+        work_function = self.arr.S.analyzer_work_function
+        if energy_notation not in {"Final", "Binding"}:
             warning_msg = "Energy notation is not specified. Assume the Binding energy notation"
             warnings.warn(
                 warning_msg,
                 stacklevel=2,
             )
-            self.k_tot = _safe_compute_k_tot(
-                self.arr.S.hv,
-                self.arr.S.analyzer_work_function,
-                binding_energy,
-            )
+            energy_notation = "Binding"
+        hv_ = 0 if energy_notation == "Final" else hv
+        self.k_tot = _safe_compute_k_tot(hv_, work_function, binding_energy)
 
     def kspace_to_phi(
         self,
@@ -375,25 +376,18 @@ class ConvertKxKy(CoordinateConverter):
 
     def compute_k_tot(self, binding_energy: NDArray[np.float64]) -> None:
         """Compute the total momentum (inclusive of kz) at different binding energies."""
-        if self.arr.energy_notation == "Binding":
-            self.k_tot = _safe_compute_k_tot(
-                self.arr.S.hv,
-                self.arr.S.analyzer_work_function,
-                binding_energy,
-            )
-        elif self.arr.energy_notation == "Final":
-            self.k_tot = _safe_compute_k_tot(0, self.arr.S.analyzer_work_function, binding_energy)
-        else:
+        energy_notation = self.arr.S.energy_notation
+        hv: float = self.arr.S.hv
+        work_function = self.arr.S.analyzer_work_function
+        if energy_notation not in {"Final", "Binding"}:
             warning_msg = "Energy notation is not specified. Assume the Binding energy notation"
             warnings.warn(
                 warning_msg,
                 stacklevel=2,
             )
-            self.k_tot = _safe_compute_k_tot(
-                self.arr.S.hv,
-                self.arr.S.analyzer_work_function,
-                binding_energy,
-            )
+            energy_notation = "Binding"
+        hv_ = 0.0 if energy_notation == "Final" else hv
+        self.k_tot = _safe_compute_k_tot(hv_, work_function, binding_energy)
 
     def conversion_for(self, dim: Hashable) -> Callable[..., NDArray[np.float64]]:
         """Looks up the appropriate momentum-to-angle conversion routine by dimension name."""
