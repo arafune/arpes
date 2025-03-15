@@ -526,7 +526,7 @@ def convert_coordinates(
             c (xr.DataArray): DataArray for check.
 
         Returns: bool
-            [TODO:description]
+            Return True if the dim of array is subset of dim of coordinate_transform.
         """
         if isinstance(c, xr.DataArray):
             return set(c.dims).issubset(coordinate_transform["dims"])
@@ -543,16 +543,16 @@ def convert_coordinates(
         coordinate_transform["dims"],
         attrs=arr.attrs,
     )
-    old_mapped_coords = [
-        xr.DataArray(
-            values,
-            coords=target_coordinates,
-            dims=coordinate_transform["dims"],
-            attrs=arr.attrs,
-        )
-        for values in old_dimensions
-    ]
     if as_dataset:
+        old_mapped_coords = [
+            xr.DataArray(
+                values,
+                coords=target_coordinates,
+                dims=coordinate_transform["dims"],
+                attrs=arr.attrs,
+            )
+            for values in old_dimensions
+        ]
         variables = {"data": data}
         variables.update(
             dict(
