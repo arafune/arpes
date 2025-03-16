@@ -29,7 +29,7 @@ from .base import CoordinateConverter
 from .core import convert_coordinates
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Hashable
+    from collections.abc import Callable, Hashable, Sequence
 
     from _typeshed import Incomplete
     from numpy.typing import NDArray
@@ -125,13 +125,13 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
         left_per_volt = (lower_left["phi"] - upper_left["phi"]) / (
             lower_left["eV"] - upper_left["eV"]
         )
-        left_phi_fermi = upper_left["phi"] - upper_left["eV"] * left_per_volt
+        left_phi_fermi = upper_left["phi"]
         left_phi_one_volt = left_phi_fermi - left_per_volt
 
         right_per_volt = (lower_right["phi"] - upper_right["phi"]) / (
             lower_right["eV"] - upper_right["eV"]
         )
-        right_phi_fermi = lower_right["phi"] - upper_right["eV"] * right_per_volt
+        right_phi_fermi = lower_right["phi"]
         right_phi_one_volt = right_phi_fermi - right_per_volt
 
         self.corner_angles = (
@@ -223,7 +223,7 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
 
 def apply_trapezoidal_correction(
     data: xr.DataArray,
-    corners: list[dict[str, float] | float],
+    corners: Sequence[dict[str, float] | float],
     from_trapezoid: bool = True,
 ) -> xr.DataArray:
     r"""Applies the trapezoidal correction in angular units by linearly interpolating slices.
@@ -258,11 +258,22 @@ def apply_trapezoidal_correction(
     """
     assert isinstance(data, xr.DataArray)
     assert "phi" in data.coords, "The data must have a phi coordinate."
+    assert len(corners) == len(("LL", "UL", "LR", "UR"))
+    eV_max, eV_min = data.coords["eV"].max().item, data.coords["eV"].min().item
+    if all(isinstance(corner, float) for corner in corners):
+        trapezoid_corners = [
+            {"eV": eV_min, "phi": corners[0]},
+            {"eV": eV_max, "phi": corners[1]},
+            {"eV": eV_min, "phi": corners[2]},
+            {"eV": eV_max, "phi": corners[3]},
+        ]
+    else:
+        trapezoid_corners = corners
     logger.debug("Determining dimensions.")
     data = data.transpose("eV", "phi", ...)
     converted_dims = data.dims
 
-    converter = ConvertTrapezoidalCorrection(data, converted_dims, corners=corners)
+    converter = ConvertTrapezoidalCorrection(data, converted_dims, corners=trapezoid_corners)
     converted_coordinates = converter.get_coordinates()
 
     logger.debug("Calling convert_coordinates")
