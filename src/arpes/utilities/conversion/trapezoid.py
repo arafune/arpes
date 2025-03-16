@@ -4,10 +4,10 @@ There are two types of trapezoidal correction for ARPES data: one that results i
 shape and one that starts with a trapezoidal shape.
 
 In the original version (<= v3.0), only the first one is considered.
-The need for trapezoidal correction is not very common. However, there are cases where one may want
+The trapezoidal correction is so frequently needed. However, there are cases where one may want
 to apply trapezoidal correction to measured data. Additionally, while it may have been a local
-requirement specific to their group, the process in the ConvertTrapezoidCorrection's __init__
-method does not seem correct.
+requirement specific to their group, the process in the original ConvertTrapezoidCorrection's
+__init__ method does not seem correct.
 
 Since there have been significant changes in the specifications, caution is required if this
 feature was used in a previous version.
@@ -266,7 +266,7 @@ def apply_trapezoidal_correction(
         eV       \_______/               (L_Rect) +--------+  (R_Rect)
             (LL)          (LR)
 
-                          ----------→ phi
+                                ----------→ phi
     Args:
         data: The xarray instances to perform correction on
         corners: The coordinate of the trapezoid corners. (thus, len(corners)==4)  If it is dict,
@@ -275,9 +275,11 @@ def apply_trapezoidal_correction(
             (dict arg can be used in the case from_trapezoid=False).
         rectangle_phis (list[float]): the phi value of the rectangle corners
             (i.e. L_Rect and R_Rect). if not specified (None), use the
-            arr.coords["phi"].min().item, and arr.coords["phi"].max().item.
-        from_trapezoid: bool, if True, transpose to rectangle. in this case the corners are
-            set as those of the trapezoid (left figure).  If False, trapspose *to* trapezoid. In
+            arr.coords["phi"].min().item, and arr.coords["phi"].max().item. As the coords of "eV"
+            (and other coords excepting "phi"), does not change, specifying L_Rect and R_Rect is
+            enough.
+        from_trapezoid: bool, if True, transpose *to* rectangle. in this case the corners are
+            set as those of the trapezoid (left figure).  If False, trapspose *from* rectangle. In
             this case, the corners indicate the points to which the maximum and minimum values
             of eV and phi in the original data are mapped, respectively.
 
