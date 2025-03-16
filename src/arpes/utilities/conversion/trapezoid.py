@@ -49,6 +49,7 @@ def _phi_to_phi(
     phi: NDArray[np.float64],
     phi_out: NDArray[np.float64],
     corners: dict[str, dict[str, float]],
+    rectangle_phis: list[float],
 ) -> None:
     """Performs reverse coordinate interpolation using four angular waypoints.
 
@@ -60,6 +61,7 @@ def _phi_to_phi(
         phi_out: The array to populate with the measured phi angles
         corners: dict[str, dict[str, float]] the values for the edge of the trapezoid
             (the hemisphere's range).
+        rectangle (list[float, float]): the min and max value of the rectangle frame.
     """
     for i in numba.prange(len(phi)):
         slope_left_edge_ = (corners["upper_left"]["phi"] - corners["lower_left"]["phi"]) / (
@@ -77,10 +79,8 @@ def _phi_to_phi(
             + corners["upper_right"]["phi"]
         )
 
-        dac_da = (right_edge - left_edge) / (
-            corners["upper_right"]["phi"] - corners["upper_left"]["phi"]
-        )
-        phi_out[i] = (phi[i] - corners["upper_left"]["phi"]) * dac_da + left_edge
+        dac_da = (right_edge - left_edge) / (max(rectangle_phis) - min(rectangle_phis))
+        phi_out[i] = (phi[i] - min(rectangle_phis)) * dac_da + left_edge
 
 
 @numba.njit(parallel=True)
@@ -89,6 +89,7 @@ def _phi_to_phi_forward(
     phi: NDArray[np.float64],
     phi_out: NDArray[np.float64],
     corners: dict[str, dict[str, float]],
+    rectangle_phis: list[float],
 ) -> None:
     """The inverse transform to ``_phi_to_phi`` (See that function for details).
 
@@ -112,9 +113,7 @@ def _phi_to_phi_forward(
 
         # These are the forward equations
         c = (phi[i] - left_edge) / (right_edge - left_edge)
-        phi_out[i] = corners["upper_left"]["phi"] + c * (
-            corners["upper_right"]["phi"] - corners["upper_left"]["phi"]
-        )
+        phi_out[i] = min(rectangle_phis) + c * (max(rectangle_phis) - min(rectangle_phis))
 
 
 class ConvertTrapezoidalCorrection(CoordinateConverter):
@@ -124,6 +123,7 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
         self,
         *args: Incomplete,
         corners: list[dict[str, float]],
+        rectangle_phis: list[float],
         **kwargs: Incomplete,
     ) -> None:
         """[TODO:summary].
@@ -131,6 +131,7 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
         Args:
             args: [TODO:description]
             corners: corner coordinates of the trapezoid.
+            rectangle_phis (list[float]): the min and max phi value of the rectangle frame.
             kwargs: [TODO:description]
         """
         super().__init__(*args, **kwargs)
@@ -151,6 +152,7 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
             "lower_right": lower_right,
             "upper_right": upper_right,
         }
+        self.rectangle_phis = rectangle_phis
 
     def get_coordinates(
         self,
@@ -197,6 +199,7 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
         Args:
             binding_energy (NDArray[np.float64]): The array of binding energy values.
             phi (NDArray[np.float64]): The array of phi values to be converted.
+            rectangle_phis (list[float]): max and min of the angle phi in the rectangle.
 
         Returns:
             NDArray[np.float64]: The transformed phi values.
@@ -207,7 +210,13 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
         if self.phi is not None:
             return self.phi
         self.phi = np.zeros_like(phi)
-        _phi_to_phi(binding_energy, phi, self.phi, self.corners)
+        _phi_to_phi(
+            energy=binding_energy,
+            phi=phi,
+            phi_out=self.phi,
+            corners=self.corners,
+            rectangle_phis=self.rectangle_phis,
+        )
         return self.phi
 
     def phi_to_phi_forward(
@@ -223,12 +232,19 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
         Args:
             binding_energy (NDArray[np.float64]): The array of binding energy values.
             phi (NDArray[np.float64]): The array of phi values to be converted.
+            rectangle_phis (list[float]): max and min of the angle phi in the rectangle.
 
         Returns:
             NDArray[np.float64]: The transformed phi values after the forward transformation.
         """
         phi_out = np.zeros_like(phi)
-        _phi_to_phi_forward(binding_energy, phi, phi_out, self.corners)
+        _phi_to_phi_forward(
+            energy=binding_energy,
+            phi=phi,
+            phi_out=phi_out,
+            corners=self.corners,
+            rectangle_phis=self.rectangle_phis,
+        )
         return phi_out
 
 
@@ -288,6 +304,13 @@ def apply_trapezoidal_correction(
     else:
         msg = "corners should be list of dict or list of float."
         raise TypeError(msg)
+
+    if rectangle_phis is None and from_trapezoid:
+        rectangle_phis = [trapezoid_corners[1]["phi"], trapezoid_corners[3]["phi"]]
+    elif rectangle_phis is None and not from_trapezoid:
+        rectangle_phis = [data.coords["phi"].min().item(), data.coords["phi"].max().item()]
+    assert isinstance(rectangle_phis, list)
+
     logger.debug("Determining dimensions.")
     data = data.transpose("eV", "phi", ...)
     converted_dims = data.dims
@@ -296,15 +319,16 @@ def apply_trapezoidal_correction(
         arr=data,
         converted_dims=converted_dims,
         corners=trapezoid_corners,
+        rectangle_phis=rectangle_phis,
     )
     converted_coordinates = converter.get_coordinates()
-
+    transforms = {str(dim): converter.conversion_for(dim) for dim in data.dims}
     result = convert_coordinates(
         arr=data,
         target_coordinates=converted_coordinates,
         coordinate_transform={
             "dims": list(data.dims),
-            "transforms": {str(dim): converter.conversion_for(dim) for dim in data.dims},
+            "transforms": transforms,
         },
     )
     assert isinstance(result, xr.DataArray)
