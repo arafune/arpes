@@ -304,9 +304,9 @@ def apply_trapezoidal_correction(
     return result.assign_attrs(data.attrs)
 
 
-def _is_all_floats(corners: List[float | int]) -> TypeGuard[list[float]]:
+def _is_all_floats(corners: list[float | int]) -> TypeGuard[list[float]]:
     return all(isinstance(corner, float) for corner in corners)
 
 
-def _is_all_dicts(corners: List[Any]) -> TypeGuard[List[dict[str, float]]]:
+def _is_all_dicts(corners: list[dict]) -> TypeGuard[list[dict[str, float]]]:
     return all(isinstance(corner, dict) for corner in corners)
