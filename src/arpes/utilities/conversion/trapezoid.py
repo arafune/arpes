@@ -24,9 +24,8 @@ import numpy as np
 import xarray as xr
 
 from arpes.debug import setup_logger
-
-from .base import CoordinateConverter
-from .core import convert_coordinates
+from arpes.utilities.conversion.base import CoordinateConverter
+from arpes.utilities.conversion.core import convert_coordinates
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Hashable
@@ -261,25 +260,22 @@ def apply_trapezoidal_correction(
     this as performing a coordinate conversion between two angular coordinate sets, the measured
     angles and the true angles.
 
-
-
            (UL)_____________ (UR)                 +--------+
         ↑      \           /                      |        |
-        |       \         /       ↔               |        |
-        eV       \_______/                 (LL_T) +--------+   (LR_T)
+        |       \         /        ⇄              |        |
+        eV       \_______/               (L_Rect) +--------+  (R_Rect)
             (LL)          (LR)
 
                           ----------→ phi
-
     Args:
         data: The xarray instances to perform correction on
         corners: The coordinate of the trapezoid corners. (thus, len(corners)==4)  If it is dict,
             the key must be both "eV" and "phi", which is used in from_trapezoid=True.
             If it is list, the for corners (LL, UL, LR, UR), which is used in from_trapezoid=False
             (dict arg can be used in the case from_trapezoid=False).
-        rectangle_phis (list[float]): the phi value of the rectangle corners. (i.e. LL_T and LR_T)
-            if not specified (None), use the arr.coords["phi"].min().item, and
-            arr.coords["phi"].max().item.
+        rectangle_phis (list[float]): the phi value of the rectangle corners
+            (i.e. L_Rect and R_Rect). if not specified (None), use the
+            arr.coords["phi"].min().item, and arr.coords["phi"].max().item.
         from_trapezoid: bool, if True, transpose to rectangle. in this case the corners are
             set as those of the trapezoid (left figure).  If False, trapspose *to* trapezoid. In
             this case, the corners indicate the points to which the maximum and minimum values
@@ -322,7 +318,6 @@ def apply_trapezoidal_correction(
         rectangle_phis=rectangle_phis,
     )
     converted_coordinates = converter.get_coordinates()
-
     transforms = {str(dim): converter.conversion_for(dim) for dim in data.dims}
     if not from_trapezoid:
         transforms["phi"] = converter.phi_to_phi_forward
