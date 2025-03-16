@@ -1,4 +1,17 @@
-"""Implements forward and reverse trapezoidal corrections."""
+"""Implements forward and reverse trapezoidal corrections.
+
+There are two types of trapezoidal correction for ARPES data: one that results in a trapezoidal
+shape and one that starts with a trapezoidal shape.
+
+In the original version (<= v3.0), only the first one is considered.
+The need for trapezoidal correction is not very common. However, there are cases where one may want
+to apply trapezoidal correction to measured data. Additionally, while it may have been a local
+requirement specific to their group, the process in the ConvertTrapezoidCorrection's __init__
+method does not seem correct.
+
+Since there have been significant changes in the specifications, caution is required if this
+feature was used in a previous version.
+"""
 
 from __future__ import annotations
 
@@ -39,6 +52,8 @@ def _phi_to_phi(
 ) -> None:
     """Performs reverse coordinate interpolation using four angular waypoints.
 
+    Transform from rectangle to trapezoid.
+
     Args:
         energy: The binding energy in the corrected coordinate space
         phi: The angle in the corrected coordinate space
@@ -72,7 +87,10 @@ def _phi_to_phi_forward(
     phi_out: NDArray[np.float64],
     corner_angles: tuple[float, float, float, float],
 ) -> None:
-    """The inverse transform to ``_phi_to_phi``. See that function for details."""
+    """The inverse transform to ``_phi_to_phi`` (See that function for details).
+
+    Transform from trapezoid to rectangle
+    """
     l_fermi, l_volt, r_fermi, r_volt = corner_angles
     for i in numba.prange(len(phi)):
         left_edge = l_fermi - energy[i] * (l_volt - l_fermi)
@@ -205,19 +223,35 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
 
 def apply_trapezoidal_correction(
     data: xr.DataArray,
-    corners: list[dict[str, float]],
+    corners: list[dict[str, float] | float],
+    from_trapezoid: bool = True,
 ) -> xr.DataArray:
-    """Applies the trapezoidal correction to data in angular units by linearly interpolating slices.
+    r"""Applies the trapezoidal correction in angular units by linearly interpolating slices.
 
     Shares some code with standard coordinate conversion, i.e. to momentum, because you can think of
     this as performing a coordinate conversion between two angular coordinate sets, the measured
     angles and the true angles.
 
+
+
+           (UL)_____________ (UR)          (UL) +--------+   (UR)
+        ↑      \           /                    |        |
+        |       \         /       ↔             |        |
+        eV       \_______/                 (LL) +--------+   (LR)
+            (LL)          (LR)
+
+                          ----------→ phi
+
     Args:
         data: The xarray instances to perform correction on
-        corners: These don't actually have to be corners, but are waypoints of the conversion. Use
-            points near the Fermi level and near the bottom of the spectrum just at the edge of
-            recorded angular region.
+        corners: The coordinate of the trapezoid corners. (thus, len(corners)==4)  If it is dict,
+            the key must be both "eV" and "phi", which is used in from_trapezoid=True.
+            If it is list, the for corners (LL, UL, LR, UR), which is used in from_trapezoid=False
+            (dict arg can be used in the case from_trapezoid=False).
+        from_trapezoid: bool, if True, transpose to rectangle. in this case the corners are
+            set as those of the trapezoid (left figure).  If False, trapspose *to* trapezoid. In
+            this case, the corners indicate the points to which the maximum and minimum values
+            of eV and phi in the original data are mapped, respectively.
 
     Returns:
         The corrected data.
@@ -233,11 +267,11 @@ def apply_trapezoidal_correction(
 
     logger.debug("Calling convert_coordinates")
     result = convert_coordinates(
-        data,
-        converted_coordinates,
-        {
+        arr=data,
+        target_coordinates=converted_coordinates,
+        coordinate_transform={
             "dims": list(data.dims),
-            "transforms": {dim: converter.conversion_for(dim) for dim in data.dims},
+            "transforms": {str(dim): converter.conversion_for(dim) for dim in data.dims},
         },
     )
     assert isinstance(result, xr.DataArray)
