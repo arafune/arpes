@@ -61,15 +61,26 @@ def _phi_to_phi(
         corners: dict[str, dict[str, float]] the values for the edge of the trapezoid
             (the hemisphere's range).
     """
-    l_fermi, l_volt, r_fermi, r_volt = corner_angles
     for i in numba.prange(len(phi)):
-        left_edge = l_fermi - energy[i] * (l_volt - l_fermi)
-        right_edge = r_fermi - energy[i] * (r_volt - r_fermi)
+        slope_left_edge_ = (corners["upper_left"]["phi"] - corners["lower_left"]["phi"]) / (
+            corners["upper_left"]["eV"] - corners["lower_left"]["eV"]
+        )
+        slope_right_edge_ = (corners["upper_right"]["phi"] - corners["lower_right"]["phi"]) / (
+            corners["upper_right"]["eV"] - corners["lower_right"]["eV"]
+        )
+        left_edge = (
+            slope_left_edge_ * (energy[i] - corners["upper_left"]["eV"])
+            + corners["upper_left"]["phi"]
+        )
+        right_edge = (
+            slope_right_edge_ * (energy[i] - corners["upper_right"]["eV"])
+            + corners["upper_right"]["phi"]
+        )
 
-        # These are the forward equations, we can just invert them below
-
-        dac_da = (right_edge - left_edge) / (r_fermi - l_fermi)
-        phi_out[i] = (phi[i] - l_fermi) * dac_da + left_edge
+        dac_da = (right_edge - left_edge) / (
+            corners["upper_right"]["phi"] - corners["upper_left"]["phi"]
+        )
+        phi_out[i] = (phi[i] - corners["upper_left"]["phi"]) * dac_da + left_edge
 
 
 @numba.njit(parallel=True)
@@ -83,14 +94,27 @@ def _phi_to_phi_forward(
 
     Transform from trapezoid to rectangle
     """
-    l_fermi, l_volt, r_fermi, r_volt = corner_angles
     for i in numba.prange(len(phi)):
-        left_edge = l_fermi - energy[i] * (l_volt - l_fermi)
-        right_edge = r_fermi - energy[i] * (r_volt - r_fermi)
+        slope_left_edge_ = (corners["upper_left"]["phi"] - corners["lower_left"]["phi"]) / (
+            corners["upper_left"]["eV"] - corners["lower_left"]["eV"]
+        )
+        slope_right_edge_ = (corners["upper_right"]["phi"] - corners["lower_right"]["phi"]) / (
+            corners["upper_right"]["eV"] - corners["lower_right"]["eV"]
+        )
+        left_edge = (
+            slope_left_edge_ * (energy[i] - corners["upper_left"]["eV"])
+            + corners["upper_left"]["phi"]
+        )
+        right_edge = (
+            slope_right_edge_ * (energy[i] - corners["upper_right"]["eV"])
+            + corners["upper_right"]["phi"]
+        )
 
         # These are the forward equations
         c = (phi[i] - left_edge) / (right_edge - left_edge)
-        phi_out[i] = l_fermi + c * (r_fermi - l_fermi)
+        phi_out[i] = corners["upper_left"]["phi"] + c * (
+            corners["upper_right"]["phi"] - corners["upper_left"]["phi"]
+        )
 
 
 class ConvertTrapezoidalCorrection(CoordinateConverter):
@@ -127,26 +151,6 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
             "lower_right": lower_right,
             "upper_right": upper_right,
         }
-        """
-        left_per_volt = (lower_left["phi"] - upper_left["phi"]) / (
-            lower_left["eV"] - upper_left["eV"]
-        )
-        left_phi_fermi = upper_left["phi"]
-        left_phi_one_volt = left_phi_fermi - left_per_volt
-
-        right_per_volt = (lower_right["phi"] - upper_right["phi"]) / (
-            lower_right["eV"] - upper_right["eV"]
-        )
-        right_phi_fermi = lower_right["phi"]
-        right_phi_one_volt = right_phi_fermi - right_per_volt
-
-        self.corner_angles = (
-            left_phi_fermi,
-            left_phi_one_volt,
-            right_phi_fermi,
-            right_phi_one_volt,
-        )
-        """
 
     def get_coordinates(
         self,
@@ -203,7 +207,7 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
         if self.phi is not None:
             return self.phi
         self.phi = np.zeros_like(phi)
-        _phi_to_phi(binding_energy, phi, self.phi, self.corner_angles)
+        _phi_to_phi(binding_energy, phi, self.phi, self.corners)
         return self.phi
 
     def phi_to_phi_forward(
@@ -224,13 +228,14 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
             NDArray[np.float64]: The transformed phi values after the forward transformation.
         """
         phi_out = np.zeros_like(phi)
-        _phi_to_phi_forward(binding_energy, phi, phi_out, self.corner_angles)
+        _phi_to_phi_forward(binding_energy, phi, phi_out, self.corners)
         return phi_out
 
 
 def apply_trapezoidal_correction(
     data: xr.DataArray,
     corners: list[dict[str, float] | float],
+    rectangle_phis: list[float] | None = None,
     *,
     from_trapezoid: bool = True,
 ) -> xr.DataArray:
@@ -242,10 +247,10 @@ def apply_trapezoidal_correction(
 
 
 
-           (UL)_____________ (UR)          (UL) +--------+   (UR)
-        ↑      \           /                    |        |
-        |       \         /       ↔             |        |
-        eV       \_______/                 (LL) +--------+   (LR)
+           (UL)_____________ (UR)                 +--------+
+        ↑      \           /                      |        |
+        |       \         /       ↔               |        |
+        eV       \_______/                 (LL_T) +--------+   (LR_T)
             (LL)          (LR)
 
                           ----------→ phi
@@ -256,6 +261,9 @@ def apply_trapezoidal_correction(
             the key must be both "eV" and "phi", which is used in from_trapezoid=True.
             If it is list, the for corners (LL, UL, LR, UR), which is used in from_trapezoid=False
             (dict arg can be used in the case from_trapezoid=False).
+        rectangle_phis (list[float]): the phi value of the rectangle corners. (i.e. LL_T and LR_T)
+            if not specified (None), use the arr.coords["phi"].min().item, and
+            arr.coords["phi"].max().item.
         from_trapezoid: bool, if True, transpose to rectangle. in this case the corners are
             set as those of the trapezoid (left figure).  If False, trapspose *to* trapezoid. In
             this case, the corners indicate the points to which the maximum and minimum values
@@ -291,7 +299,6 @@ def apply_trapezoidal_correction(
     )
     converted_coordinates = converter.get_coordinates()
 
-    logger.debug("Calling convert_coordinates")
     result = convert_coordinates(
         arr=data,
         target_coordinates=converted_coordinates,
