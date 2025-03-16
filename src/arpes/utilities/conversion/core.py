@@ -400,8 +400,8 @@ def convert_to_kspace(  # noqa: PLR0913
     assert convert_cls is not None, "Cannot select convert class"
 
     converter: CoordinateConverter = convert_cls(
-        arr,
-        converted_dims,
+        arr=arr,
+        dim_order=converted_dims,
         calibration=calibration,
     )
 

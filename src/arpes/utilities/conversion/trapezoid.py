@@ -284,8 +284,8 @@ def apply_trapezoidal_correction(
     converted_dims = data.dims
 
     converter = ConvertTrapezoidalCorrection(
-        data,
-        converted_dims,
+        arr=data,
+        converted_dims=converted_dims,
         corners=trapezoid_corners,
     )
     converted_coordinates = converter.get_coordinates()
