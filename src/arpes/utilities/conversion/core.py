@@ -234,13 +234,7 @@ def slice_along_path(  # noqa: PLR0913
         target_coordinates=converted_coordinates,
         coordinate_transform={
             "dims": converted_dims,
-            "transforms": dict(
-                zip(
-                    str(arr.dims),
-                    [converter_for_coordinate_name(str(d)) for d in arr.dims],
-                    strict=True,
-                ),
-            ),
+            "transforms": {str(d): converter_for_coordinate_name(str(d)) for d in arr.dims},
         },
         as_dataset=True,
     )
