@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import operator
 from logging import DEBUG, INFO
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeGuard
 
 import numba
 import numpy as np
@@ -29,7 +29,7 @@ from .base import CoordinateConverter
 from .core import convert_coordinates
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Hashable, Sequence
+    from collections.abc import Callable, Hashable
 
     from _typeshed import Incomplete
     from numpy.typing import NDArray
@@ -110,6 +110,13 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
         corners: list[dict[str, float]],
         **kwargs: Incomplete,
     ) -> None:
+        """[TODO:summary].
+
+        Args:
+            args: [TODO:description]
+            corners: corner coordinates of the trapezoid.
+            kwargs: [TODO:description]
+        """
         super().__init__(*args, **kwargs)
         self.phi = None
 
@@ -223,7 +230,7 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
 
 def apply_trapezoidal_correction(
     data: xr.DataArray,
-    corners: Sequence[dict[str, float] | float],
+    corners: list[dict[str, float] | float],
     from_trapezoid: bool = True,
 ) -> xr.DataArray:
     r"""Applies the trapezoidal correction in angular units by linearly interpolating slices.
@@ -260,20 +267,27 @@ def apply_trapezoidal_correction(
     assert "phi" in data.coords, "The data must have a phi coordinate."
     assert len(corners) == len(("LL", "UL", "LR", "UR"))
     eV_max, eV_min = data.coords["eV"].max().item, data.coords["eV"].min().item
-    if all(isinstance(corner, float) for corner in corners):
+    if _is_all_floats(corners):
         trapezoid_corners = [
             {"eV": eV_min, "phi": corners[0]},
             {"eV": eV_max, "phi": corners[1]},
             {"eV": eV_min, "phi": corners[2]},
             {"eV": eV_max, "phi": corners[3]},
         ]
-    else:
+    elif _is_all_dicts(corners):
         trapezoid_corners = corners
+    else:
+        msg = "corners should be list of dict or list of float."
+        raise TypeError(msg)
     logger.debug("Determining dimensions.")
     data = data.transpose("eV", "phi", ...)
     converted_dims = data.dims
 
-    converter = ConvertTrapezoidalCorrection(data, converted_dims, corners=trapezoid_corners)
+    converter = ConvertTrapezoidalCorrection(
+        data,
+        converted_dims,
+        corners=trapezoid_corners,
+    )
     converted_coordinates = converter.get_coordinates()
 
     logger.debug("Calling convert_coordinates")
@@ -288,3 +302,11 @@ def apply_trapezoidal_correction(
     assert isinstance(result, xr.DataArray)
     logger.debug("Reassigning index-like coordinates.")
     return result.assign_attrs(data.attrs)
+
+
+def _is_all_floats(corners: List[float | int]) -> TypeGuard[list[float]]:
+    return all(isinstance(corner, float) for corner in corners)
+
+
+def _is_all_dicts(corners: List[Any]) -> TypeGuard[List[dict[str, float]]]:
+    return all(isinstance(corner, dict) for corner in corners)
