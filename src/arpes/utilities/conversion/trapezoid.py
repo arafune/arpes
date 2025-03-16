@@ -48,7 +48,7 @@ def _phi_to_phi(
     energy: NDArray[np.float64],
     phi: NDArray[np.float64],
     phi_out: NDArray[np.float64],
-    corner_angles: tuple[float, float, float, float],
+    corners: dict[str, dict[str, float]],
 ) -> None:
     """Performs reverse coordinate interpolation using four angular waypoints.
 
@@ -58,16 +58,8 @@ def _phi_to_phi(
         energy: The binding energy in the corrected coordinate space
         phi: The angle in the corrected coordinate space
         phi_out: The array to populate with the measured phi angles
-        corner_angles: (tuple[float, float, float, float]) the values for the edge of the
-            hemisphere's range.  (l_fermi, l_volt, r_fermi, r_volt)
-            l_fermi: The measured phi coordinate of the left edge of the hemisphere's range
-                at the Fermi level
-            l_volt: The measured phi coordinate of the left edge of the hemisphere's range
-                at a binding energy of 1 eV (eV = -1.0)
-            r_fermi: The measured phi coordinate of the right edge of the hemisphere's range
-                at the Fermi level
-            r_volt: The measured phi coordinate of the right edge of the hemisphere's range
-                at a binding energy of 1 eV (eV = -1.0)
+        corners: dict[str, dict[str, float]] the values for the edge of the trapezoid
+            (the hemisphere's range).
     """
     l_fermi, l_volt, r_fermi, r_volt = corner_angles
     for i in numba.prange(len(phi)):
@@ -85,7 +77,7 @@ def _phi_to_phi_forward(
     energy: NDArray[np.float64],
     phi: NDArray[np.float64],
     phi_out: NDArray[np.float64],
-    corner_angles: tuple[float, float, float, float],
+    corners: dict[str, dict[str, float]],
 ) -> None:
     """The inverse transform to ``_phi_to_phi`` (See that function for details).
 
@@ -129,6 +121,13 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
         lower_left, upper_left = sorted([lower_left, upper_left], key=operator.itemgetter("eV"))
         lower_right, upper_right = sorted([lower_right, upper_right], key=operator.itemgetter("eV"))
 
+        self.corners: dict[str, dict[str, float]] = {
+            "lower_left": lower_left,
+            "upper_left": upper_left,
+            "lower_right": lower_right,
+            "upper_right": upper_right,
+        }
+        """
         left_per_volt = (lower_left["phi"] - upper_left["phi"]) / (
             lower_left["eV"] - upper_left["eV"]
         )
@@ -147,6 +146,7 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
             right_phi_fermi,
             right_phi_one_volt,
         )
+        """
 
     def get_coordinates(
         self,
@@ -231,6 +231,7 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
 def apply_trapezoidal_correction(
     data: xr.DataArray,
     corners: list[dict[str, float] | float],
+    *,
     from_trapezoid: bool = True,
 ) -> xr.DataArray:
     r"""Applies the trapezoidal correction in angular units by linearly interpolating slices.
@@ -304,9 +305,9 @@ def apply_trapezoidal_correction(
     return result.assign_attrs(data.attrs)
 
 
-def _is_all_floats(corners: list[float | int]) -> TypeGuard[list[float]]:
+def _is_all_floats(corners: list[dict[str, float] | float]) -> TypeGuard[list[float]]:
     return all(isinstance(corner, float) for corner in corners)
 
 
-def _is_all_dicts(corners: list[dict]) -> TypeGuard[list[dict[str, float]]]:
+def _is_all_dicts(corners: list[dict[str, float] | float]) -> TypeGuard[list[dict[str, float]]]:
     return all(isinstance(corner, dict) for corner in corners)
