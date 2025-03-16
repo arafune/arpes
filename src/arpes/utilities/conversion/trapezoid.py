@@ -61,7 +61,7 @@ def _phi_to_phi(
         phi_out: The array to populate with the measured phi angles
         corners: dict[str, dict[str, float]] the values for the edge of the trapezoid
             (the hemisphere's range).
-        rectangle (list[float, float]): the min and max value of the rectangle frame.
+        rectangle_phis (list[float, float]): the min and max value of the rectangle frame.
     """
     for i in numba.prange(len(phi)):
         slope_left_edge_ = (corners["upper_left"]["phi"] - corners["lower_left"]["phi"]) / (
@@ -322,7 +322,10 @@ def apply_trapezoidal_correction(
         rectangle_phis=rectangle_phis,
     )
     converted_coordinates = converter.get_coordinates()
+
     transforms = {str(dim): converter.conversion_for(dim) for dim in data.dims}
+    if not from_trapezoid:
+        transforms["phi"] = converter.phi_to_phi_forward
     result = convert_coordinates(
         arr=data,
         target_coordinates=converted_coordinates,
