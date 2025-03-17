@@ -252,9 +252,18 @@ def trapezoid(
 ) -> xr.DataArray:
     r"""Applies the trapezoidal correction in angular units by linearly interpolating slices.
 
-    Shares some code with standard coordinate conversion, i.e. to momentum, because you can think of
-    this as performing a coordinate conversion between two angular coordinate sets, the measured
-    angles and the true angles.
+    This function shares some code with standard coordinate conversion routines, such as those
+    used for momentum conversion, because it can be viewed as a coordinate conversion between two
+    angular coordinate systems: the measured angles and the true angles.
+
+    However, this procedure should be regarded as a correction rather than a conversion. Therefore,
+    the convert_to_kspace procedure is not appropriate for use with the ConvertTrapezoidalCorrection
+    class.
+
+    This function is specifically designed for the ConvertTrapezoidalCorrection class. The most
+    notable difference is that this function preserves the stride of phi (granularity of phi) in
+    the corrected data.
+
 
            (UL)_____________ (UR)                 +--------+
         ↑      \           /                      |        |
