@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
 
 
-__all__ = ["apply_trapezoidal_correction"]
+__all__ = ["trapezoid"]
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
@@ -243,7 +243,7 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
         return phi_out
 
 
-def apply_trapezoidal_correction(
+def trapezoid(
     data: xr.DataArray,
     corners: list[dict[str, float] | float],
     rectangle_phis: list[float] | None = None,
