@@ -15,7 +15,6 @@ different projects.
 from __future__ import annotations
 
 import json
-import logging
 import warnings
 from dataclasses import dataclass, field
 from logging import DEBUG, INFO
@@ -190,8 +189,8 @@ def attempt_determine_workspace(current_path: str | Path = "") -> None:
                 CONFIG["WORKSPACE"] = {"path": current_path, "name": Path(current_path).name}
                 return
             current_path = Path(current_path).parent
-    except Exception:
-        logging.exception("Exception occurs")
+    except FileNotFoundError:
+        logger.exception("Exception occurs")
     CONFIG["WORKSPACE"] = {
         "path": pdataset,
         "name": Path(pdataset).stem,
@@ -367,7 +366,7 @@ def setup_logging() -> None:
                 ipython.run_line_magic("logstart", str(log_path))
             CONFIG["LOGGING_FILE"] = log_path
     except AttributeError:
-        logging.exception("Attribute Error occurs.  Check module loading for IPypthon")
+        logger.exception("Attribute Error occurs.  Check module loading for IPypthon")
 
 
 logger.debug("setup_logging")
