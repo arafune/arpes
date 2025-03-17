@@ -134,22 +134,7 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
         """
         super().__init__(*args, **kwargs)
         self.phi = None
-
-        # we normalize the corners so that they are equivalent to four corners at the Fermi level
-        # and one volt below.
-        lower_left, upper_left, lower_right, upper_right = sorted(
-            corners,
-            key=operator.itemgetter("phi"),
-        )
-        lower_left, upper_left = sorted([lower_left, upper_left], key=operator.itemgetter("eV"))
-        lower_right, upper_right = sorted([lower_right, upper_right], key=operator.itemgetter("eV"))
-
-        self.corners: dict[str, dict[str, float]] = {
-            "lower_left": lower_left,
-            "upper_left": upper_left,
-            "lower_right": lower_right,
-            "upper_right": upper_right,
-        }
+        self.corners = _corners(corners)
         self.rectangle_phis = rectangle_phis
 
     def get_coordinates(
@@ -157,20 +142,32 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
         resolution: dict[str, float] | None = None,
         bounds: dict[str, tuple[float, float]] | None = None,
     ) -> dict[Hashable, NDArray[np.float64]]:
-        """[TODO:summary].
-
-        [TODO:description]
+        """Calculates the coordinates which should be used in correced data.
 
         Args:
-            resolution: [TODO:description]
-            bounds: [TODO:description]
+            resolution(dict): Represents corrected resolution
+            bounds(dict, optional): bounds of the momentum coordinates
 
-        Returns:
-            [TODO:description]
+        Returns: dict[str, NDArray[np.float]
+            Object that is to be used the coordinates in the corrected dat.
         """
-        del resolution
-        del bounds
-        return {k: v.values for k, v in self.arr.indexes.items()}
+        resolution = resolution if resolution is not None else {}
+        bounds = bounds if bounds is not None else {}
+
+        coordinates = {k: v.values for k, v in self.arr.coords.items()}
+        if "phi" in bounds:
+            phi_low, phi_high = bounds["phi"]
+        else:
+            phi_low, phi_high = (
+                self.arr.coords["phi"].min().item(),
+                self.arr.coords["phi"].max().item(),
+            )
+        coordinates["phi"] = np.arange(
+            phi_low,
+            phi_high,
+            resolution.get("phi", self.arr.G.stride("phi", generic_dim_names=False)),
+        )
+        return coordinates
 
     def conversion_for(self, dim: Hashable) -> Callable[..., NDArray[np.float64]]:
         def _with_identity(*args: NDArray[np.float64]) -> NDArray[np.float64]:
@@ -318,7 +315,36 @@ def apply_trapezoidal_correction(
         corners=trapezoid_corners,
         rectangle_phis=rectangle_phis,
     )
-    converted_coordinates = converter.get_coordinates()
+    c: dict[str, dict[str, float]] = _corners(trapezoid_corners)
+
+    if from_trapezoid:
+        upper_width = c["upper_right"]["phi"] - c["upper_left"]["phi"]
+        lower_width = c["lower_right"]["phi"] - c["lower_left"]["phi"]
+
+        phi_resolution = (
+            data.G.stride("phi", generic_dim_names=False)
+            * (max(rectangle_phis) - min(rectangle_phis))
+            / max(upper_width, lower_width)
+        )
+        phi_bounds = (min(rectangle_phis), max(rectangle_phis))
+    else:
+        phi_resolution = (
+            data.G.stride("phi", generic_dim_names=False)
+            * min(
+                c["lower_right"]["phi"] - c["lower_left"]["phi"],
+                c["upper_right"]["phi"] - c["upper_left"]["phi"],
+            )
+            / (max(rectangle_phis) - min(rectangle_phis))
+        )
+        phi_bounds = (
+            min(c["upper_left"]["phi"], c["lower_left"]["phi"]) - phi_resolution,
+            max(c["upper_right"]["phi"], c["lower_right"]["phi"]) + phi_resolution,
+        )
+
+    converted_coordinates = converter.get_coordinates(
+        resolution={"phi": phi_resolution},
+        bounds={"phi": phi_bounds},
+    )
     transforms = {str(dim): converter.conversion_for(dim) for dim in data.dims}
     if not from_trapezoid:
         transforms["phi"] = converter.phi_to_phi_forward
@@ -341,3 +367,19 @@ def _is_all_floats(corners: list[dict[str, float] | float]) -> TypeGuard[list[fl
 
 def _is_all_dicts(corners: list[dict[str, float] | float]) -> TypeGuard[list[dict[str, float]]]:
     return all(isinstance(corner, dict) for corner in corners)
+
+
+def _corners(corners: list[dict[str, float]]) -> dict[str, dict[str, float]]:
+    lower_left, upper_left, lower_right, upper_right = sorted(
+        corners,
+        key=operator.itemgetter("phi"),
+    )
+    lower_left, upper_left = sorted([lower_left, upper_left], key=operator.itemgetter("eV"))
+    lower_right, upper_right = sorted([lower_right, upper_right], key=operator.itemgetter("eV"))
+
+    return {
+        "lower_left": lower_left,
+        "upper_left": upper_left,
+        "lower_right": lower_right,
+        "upper_right": upper_right,
+    }
