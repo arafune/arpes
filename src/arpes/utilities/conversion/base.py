@@ -17,8 +17,6 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import MOMENTUM
-
     from .calibration import DetectorCalibration
 
 __all__ = ["K_SPACE_BORDER", "MOMENTUM_BREAKPOINTS", "CoordinateConverter"]
@@ -130,8 +128,6 @@ class CoordinateConverter:
         dim: Hashable,
     ) -> Callable[[NDArray[np.float64]], NDArray[np.float64]]:
         """Fetches the method responsible for calculating `dim` from momentum coordinates."""
-        assert isinstance(dim, str)
-        return self.kspace_to_BE
 
     def identity_transform(self, axis_name: Hashable, *args: Incomplete) -> NDArray[np.float64]:
         """Just returns the coordinate requested from args.
