@@ -154,8 +154,8 @@ class ConvertKp(CoordinateConverter):
 
     def get_coordinates(
         self,
-        resolution: dict[MOMENTUM, float] | None = None,
-        bounds: dict[MOMENTUM, tuple[float, float]] | None = None,
+        resolution: dict[str, float] | None = None,
+        bounds: dict[str, tuple[float, float]] | None = None,
     ) -> dict[Hashable, NDArray[np.float64]]:
         """Calculates appropriate coordinate bounds.
 
@@ -172,7 +172,8 @@ class ConvertKp(CoordinateConverter):
         resolution = resolution if resolution is not None else {}
         bounds = bounds if bounds is not None else {}
 
-        coordinates = super().get_coordinates(resolution, bounds=bounds)
+        coordinates = {k: v.values for k, v in self.arr.coords.items() if k == "eV"}
+
         (kp_low, kp_high) = calculate_kp_bounds(self.arr)
         if "kp" in bounds:
             kp_low, kp_high = bounds["kp"]
@@ -310,8 +311,8 @@ class ConvertKxKy(CoordinateConverter):
 
     def get_coordinates(
         self,
-        resolution: dict[MOMENTUM, float] | None = None,
-        bounds: dict[MOMENTUM, tuple[float, float]] | None = None,
+        resolution: dict[str, float] | None = None,
+        bounds: dict[str, tuple[float, float]] | None = None,
     ) -> dict[Hashable, NDArray[np.float64]]:
         """Calculates the coordinates which should be used in momentum space.
 
@@ -326,7 +327,9 @@ class ConvertKxKy(CoordinateConverter):
         """
         resolution = resolution if resolution is not None else {}
         bounds = bounds if bounds is not None else {}
-        coordinates = super().get_coordinates(resolution, bounds=bounds)
+
+        coordinates = {k: v.values for k, v in self.arr.coords.items() if k == "eV"}
+
         ((kx_low, kx_high), (ky_low, ky_high)) = calculate_kx_ky_bounds(self.arr)
         if "kx" in bounds:
             kx_low, kx_high = bounds["kx"]

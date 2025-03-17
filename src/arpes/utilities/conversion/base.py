@@ -144,8 +144,8 @@ class CoordinateConverter:
     @abstractmethod
     def get_coordinates(
         self,
-        resolution: dict[MOMENTUM, float] | None = None,
-        bounds: dict[MOMENTUM, tuple[float, float]] | None = None,
+        resolution: dict[str, float] | None = None,
+        bounds: dict[str, tuple[float, float]] | None = None,
     ) -> dict[Hashable, NDArray[np.float64]]:
         """Calculates the coordinates which should be used in momentum space.
 
@@ -158,6 +158,3 @@ class CoordinateConverter:
             Object that is to be used the coordinates in the momentum converted data.
             Thus the keys are "kp", "kx", and "eV", but not "phi"
         """
-        resolution = resolution if resolution is not None else {}
-        bounds = bounds if bounds is not None else {}
-        return {k: v.values for k, v in self.arr.coords.items() if k == "eV"}

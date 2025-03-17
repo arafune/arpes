@@ -86,8 +86,8 @@ class ConvertKpKz(CoordinateConverter):
 
     def get_coordinates(
         self,
-        resolution: dict[MOMENTUM, float] | None = None,
-        bounds: dict[MOMENTUM, tuple[float, float]] | None = None,
+        resolution: dict[str, float] | None = None,
+        bounds: dict[str, tuple[float, float]] | None = None,
     ) -> dict[Hashable, NDArray[np.float64]]:
         """Calculates the coordinates which should be used in momentum space.
 
@@ -103,7 +103,9 @@ class ConvertKpKz(CoordinateConverter):
         resolution = resolution if resolution is not None else {}
         assert resolution is not None
         bounds = bounds if bounds is not None else {}
-        coordinates = super().get_coordinates(resolution=resolution, bounds=bounds)
+
+        coordinates = {k: v.values for k, v in self.arr.coords.items() if k == "eV"}
+
         ((kp_low, kp_high), (kz_low, kz_high)) = calculate_kp_kz_bounds(self.arr)
         if "kp" in bounds:
             kp_low, kp_high = bounds["kp"]
