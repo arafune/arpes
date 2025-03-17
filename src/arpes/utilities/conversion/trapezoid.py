@@ -33,7 +33,6 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import MOMENTUM
 
 __all__ = ["apply_trapezoidal_correction"]
 
