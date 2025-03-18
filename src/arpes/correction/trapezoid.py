@@ -201,6 +201,7 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
             phi_high,
             resolution.get("phi", self.arr.G.stride("phi", generic_dim_names=False)),
         )
+        logger.debug(f"coordinates: {coordinates}")
         return coordinates
 
     def conversion_for(self, dim: Hashable) -> Callable[..., NDArray[np.float64]]:
@@ -383,6 +384,8 @@ def trapezoid(
             min(c["upper_left"]["phi"], c["lower_left"]["phi"]) - phi_resolution,
             max(c["upper_right"]["phi"], c["lower_right"]["phi"]) + phi_resolution,
         )
+    logger.debug(f"phi_resolution: {phi_resolution}")
+    logger.debug(f"phi_bounds: {phi_bounds}")
 
     converted_coordinates = converter.get_coordinates(
         resolution={"phi": phi_resolution},
