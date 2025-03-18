@@ -54,12 +54,19 @@ def _phi_to_phi(
     Transform from rectangle to trapezoid.
 
     Args:
-        energy: The binding energy in the corrected coordinate space
-        phi: The angle in the corrected coordinate space
-        phi_out: The array to populate with the measured phi angles
-        corners: dict[str, dict[str, float]] the values for the edge of the trapezoid
+        energy: The binding energy in the corrected coordinate space.
+        phi: The angle in the corrected coordinate space.
+        phi_out: The array to populate with the measured phi angles.
+        corners (dict[str, dict[str, float]]): The values for the edge of the trapezoid
             (the hemisphere's range).
         rectangle_phis (list[float, float]): the min and max value of the rectangle frame.
+
+    Returns:
+        None: The function modifies the phi_out array in-place.
+
+    Notes:
+        This function uses Numba's njit decorator to compile the function just-in-time,
+        which can improve performance.
     """
     for i in numba.prange(len(phi)):
         slope_left_edge_ = (corners["upper_left"]["phi"] - corners["lower_left"]["phi"]) / (
@@ -89,9 +96,30 @@ def _phi_to_phi_forward(
     corners: dict[str, dict[str, float]],
     rectangle_phis: list[float],
 ) -> None:
-    """The inverse transform to ``_phi_to_phi`` (See that function for details).
+    """Transform from trapezoid to rectangle.
 
-    Transform from trapezoid to rectangle
+    This function performs the inverse transform of `_phi_to_phi`.
+    It takes in the energy and phi values of a trapezoid and outputs the corresponding phi values of
+    a rectangle.
+
+    Args:
+        energy : NDArray[np.float64]
+            The energy values of the trapezoid.
+        phi : NDArray[np.float64]
+            The phi values of the trapezoid.
+        phi_out : NDArray[np.float64]
+            The output phi values of the rectangle.
+        corners : dict[str, dict[str, float]]
+            The corners of the trapezoid, each corner is a dictionary with 'eV' and 'phi' keys.
+        rectangle_phis : list[float]
+            The phi values of the rectangle.
+
+    Returns: None
+        The function modifies the phi_out array in-place.
+
+    Notes:
+        This function uses Numba's njit decorator to compile the function just-in-time, which can
+        improve performance.
     """
     for i in numba.prange(len(phi)):
         slope_left_edge_ = (corners["upper_left"]["phi"] - corners["lower_left"]["phi"]) / (
