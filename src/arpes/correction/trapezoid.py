@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import operator
 from logging import DEBUG, INFO
-from typing import TYPE_CHECKING, TypeGuard
+from typing import TYPE_CHECKING, TypeGuard, TypeVar
 
 import numba
 import numpy as np
@@ -279,23 +279,23 @@ def trapezoid(
 
                                 ----------→ phi
     Args:
-        data: The xarray instances to perform correction on
-        corners: The coordinate of the trapezoid corners. (thus, len(corners)==4)  If it is dict,
-            the key must be both "eV" and "phi", which is used in from_trapezoid=True.
-            If it is list, the for corners (LL, UL, LR, UR), which is used in from_trapezoid=False
-            (dict arg can be used in the case from_trapezoid=False).
-        rectangle_phis (list[float]): the phi value of the rectangle corners
+        data (xr.DataArray): The xarray instances to perform correction on.
+        corners (list[dict [str, float] | float]): The coordinate of the trapezoid corners.
+            If it is dict, the key must be both "eV" and "phi", which is used in
+            from_trapezoid=True. If it is list, the for corners (LL, UL, LR, UR), which is used in
+            from_trapezoid=False (dict arg can be used in the case from_trapezoid=False).
+        rectangle_phis (list[float]): the phi value of the rectangle corners.
             (i.e. L_Rect and R_Rect). if not specified (None), use the
-            arr.coords["phi"].min().item, and arr.coords["phi"].max().item. As the coords of "eV"
-            (and other coords excepting "phi"), does not change, specifying L_Rect and R_Rect is
-            enough.
+            arr.coords["phi"].min().item, and arr.coords["phi"].max().item. Defaults to None.
+            As the coords of "eV" (and other coords excepting "phi"), does not change, specifying
+            L_Rect and R_Rect is enough.
         from_trapezoid: bool, if True, transpose *to* rectangle. in this case the corners are
             set as those of the trapezoid (left figure).  If False, trapspose *from* rectangle. In
             this case, the corners indicate the points to which the maximum and minimum values
-            of eV and phi in the original data are mapped, respectively.
+            of eV and phi in the original data are mapped, respectively. Defaults to True.
 
     Returns:
-        The corrected data.
+        xr.DataArray: The corrected data.
     """
     assert isinstance(data, xr.DataArray)
     assert "phi" in data.coords, "The data must have a phi coordinate."
@@ -374,6 +374,13 @@ def trapezoid(
     assert isinstance(result, xr.DataArray)
     logger.debug("Reassigning index-like coordinates.")
     return result.assign_attrs(data.attrs)
+
+
+T = TypeVar("T")
+
+
+def _is_all_type(corners: list[T], type_: type[T]) -> TypeGuard[list[T]]:
+    return all(isinstance(corner, type_) for corner in corners)
 
 
 def _is_all_floats(corners: list[dict[str, float] | float]) -> TypeGuard[list[float]]:
