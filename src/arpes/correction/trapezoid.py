@@ -124,13 +124,19 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
         rectangle_phis: list[float],
         **kwargs: Incomplete,
     ) -> None:
-        """[TODO:summary].
+        """Initializes a ConvertTrapezoidalCorrection instance.
 
         Args:
-            args: [TODO:description]
-            corners: corner coordinates of the trapezoid.
+            *args: Variable length argument list.
+            corners (list[dict[str, float]]): The corner coordinates of the trapezoid.
+                Each dictionary should have the following keys: "phi", "eV".
             rectangle_phis (list[float]): the min and max phi value of the rectangle frame.
-            kwargs: [TODO:description]
+            **kwargs: Incompliete
+
+        Note:
+            The corners list should contain exactly 4 dictionaries, representing the 4 corners of
+            the trapezoid.
+            The rectangle_phis list should contain exactly 2 float values.
         """
         super().__init__(*args, **kwargs)
         self.phi = None
