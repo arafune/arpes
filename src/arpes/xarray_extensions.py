@@ -141,10 +141,11 @@ T = TypeVar("T")
 class ARPESAngleProperty:
     """Class for Angle related property.
 
-    This class should not be called directly.
-
     Attributes:
         _obj (XrTypes): ARPES data
+
+    Note:
+        This class should not be called directly.
 
     """
 
@@ -189,7 +190,7 @@ class ARPESAngleProperty:
             raise TypeError(msg)
 
     def radian_to_degree(self) -> None:
-        """Switch angle unit in from Radians to Degrees."""
+        """Switch angle unit from Radians to Degrees."""
         self.angle_unit = "Degrees"
         for angle in flatten_literals(ANGLE):
             if angle in self._obj.attrs:
@@ -202,7 +203,7 @@ class ARPESAngleProperty:
                 self._obj.coords[angle] = np.rad2deg(self._obj.coords[angle])
 
     def degree_to_radian(self) -> None:
-        """Switch angle unit in from Degrees and Radians."""
+        """Switch angle unit from Degrees and Radians."""
         self.angle_unit = "Radians"
         for angle in flatten_literals(ANGLE):
             if angle in self._obj.attrs:
