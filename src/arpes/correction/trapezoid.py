@@ -355,7 +355,7 @@ def trapezoid(
 
     converter = ConvertTrapezoidalCorrection(
         arr=data,
-        converted_dims=converted_dims,
+        dim_order=converted_dims,
         corners=trapezoid_corners,
         rectangle_phis=rectangle_phis,
     )

@@ -134,7 +134,9 @@ class CoordinateConverter:
 
         Useful if the transform is the identity.
         """
-        assert isinstance(self.dim_order, list)
+        assert isinstance(self.dim_order, (list | tuple)), (
+            f"self.dim_oder should be list | tuple, but {type(self.dim_order)}"
+        )
         return args[self.dim_order.index(str(axis_name))]
 
     @abstractmethod

@@ -148,6 +148,8 @@ class ConvertKp(CoordinateConverter):
             calibration: DetectorCalibration | None = None,
         """
         super().__init__(*args, **kwargs)
+        logger.debug(f"self.dim_order: {self.dim_order}")
+
         self.k_tot: NDArray[np.float64] | None = None
         self.phi: NDArray[np.float64] | None = None
 
