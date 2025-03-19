@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING, TypeGuard, TypeVar
 import numba
 import numpy as np
 import xarray as xr
+from numba import typed, types
 
 from arpes.debug import setup_logger
 from arpes.utilities.conversion.base import CoordinateConverter
@@ -46,7 +47,7 @@ def _phi_to_phi(
     energy: NDArray[np.float64],
     phi: NDArray[np.float64],
     phi_out: NDArray[np.float64],
-    corners: dict[str, dict[str, float]],
+    corners: typed.typeddict.Dict[str, typed.typeddict.Dict[str, float]],
     rectangle_phis: list[float],
 ) -> None:
     """Performs reverse coordinate interpolation using four angular waypoints.
@@ -93,7 +94,7 @@ def _phi_to_phi_forward(
     energy: NDArray[np.float64],
     phi: NDArray[np.float64],
     phi_out: NDArray[np.float64],
-    corners: dict[str, dict[str, float]],
+    corners: typed.typeddict.Dict[str, typed.typeddict.Dict[str, float]],
     rectangle_phis: list[float],
 ) -> None:
     """Transform from trapezoid to rectangle.
@@ -168,7 +169,10 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
         """
         super().__init__(*args, **kwargs)
         self.phi = None
-        self.corners = _corners(corners)
+        self.corners: typed.typeddict.Dict[str, typed.typeddict.Dict[str, float]] = (
+            _corners_typed_dict(corners)
+        )
+
         self.rectangle_phis = rectangle_phis
 
     def get_coordinates(
@@ -268,6 +272,7 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
             NDArray[np.float64]: The transformed phi values after the forward transformation.
         """
         phi_out = np.zeros_like(phi)
+        logger.debug(f"type of self.corners in phi_to_phi_forward : {type(self.corners)}")
         _phi_to_phi_forward(
             energy=binding_energy,
             phi=phi,
@@ -420,6 +425,20 @@ def _is_all_floats(corners: list[dict[str, float] | float]) -> TypeGuard[list[fl
 
 def _is_all_dicts(corners: list[dict[str, float] | float]) -> TypeGuard[list[dict[str, float]]]:
     return all(isinstance(corner, dict) for corner in corners)
+
+
+def _corners_typed_dict(
+    corners: list[dict[str, float]],
+) -> typed.typeddict.Dict[str, typed.typeddict.Dict[str, float]]:
+    normal_dict_corners = _corners(corners)
+    inter_dict_type = types.DictType(keyty=types.unicode_type, valty=types.float64)
+    typed_dict_corners = typed.Dict.empty(key_type=types.unicode_type, value_type=inter_dict_type)
+    for corner_position, coords in normal_dict_corners.items():
+        each_corner = typed.Dict.empty(key_type=types.unicode_type, value_type=types.float64)
+        for coord_name in ["eV", "phi"]:
+            each_corner[coord_name] = coords[coord_name]
+        typed_dict_corners[corner_position] = each_corner
+    return typed_dict_corners
 
 
 def _corners(corners: list[dict[str, float]]) -> dict[str, dict[str, float]]:
