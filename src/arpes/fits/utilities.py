@@ -13,6 +13,7 @@ but in the future we would like to provide:
 
 from __future__ import annotations
 
+import warnings
 from datetime import UTC, datetime
 from logging import DEBUG, INFO
 from os import cpu_count
@@ -22,7 +23,7 @@ import dill
 import lmfit
 import numpy as np
 import xarray as xr
-import warnings
+
 import arpes.fits.fit_models
 from arpes import VERSION
 from arpes.debug import setup_logger
