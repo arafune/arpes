@@ -1,16 +1,15 @@
 """Unit test for trapezoid correction."""
 
-import numpy as np
-import arpes
+
+import xarray as xr
 
 from arpes.correction.trapezoid import (
-    _is_all_dicts,
-    _is_all_floats,
     _corners,
     _corners_typed_dict,
+    _is_all_dicts,
+    _is_all_floats,
     trapezoid,
 )
-import xarray as xr
 
 corners = [
     {"eV": 9, "phi": -0.2686923867293084},

@@ -2985,7 +2985,7 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
         return self.spectrum.S.spectrum_type
 
     @property
-    def degrees_of_freedom(self) -> set[Hashable]:
+    def degrees_of_freedom(self) -> set[Hashable]:  # pragma: no cover
         """The collection of all degrees of freedom.
 
         Equivalently, dimensions on a piece of data.
@@ -2996,7 +2996,7 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
         return set(self.spectrum.dims)
 
     @property
-    def spectrum_degrees_of_freedom(self) -> set[Hashable]:
+    def spectrum_degrees_of_freedom(self) -> set[Hashable]:  # pragma: no cover
         """Collects the spectrometer degrees of freedom.
 
         Spectrometer degrees of freedom are any which would be collected by an ARToF
@@ -3005,10 +3005,16 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
         Returns:
             The collection of spectrum degrees of freedom.
         """
-        return self.degrees_of_freedom.intersection({"eV", "phi", "pixel", "kx", "kp", "ky"})
+        warnings.warn(
+            "This method is deprecated.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return set(self.spectrum.dims).intersection({"eV", "phi", "pixel", "kx", "kp", "ky"})
 
     @property
-    def scan_degrees_of_freedom(self) -> set[Hashable]:
+    def scan_degrees_of_freedom(self) -> set[Hashable]:  # pragma: no cover
         """Collects the scan degrees of freedom.
 
         Scan degrees of freedom are all of the degrees of freedom which are not recorded
@@ -3018,7 +3024,12 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
         Returns:
             The collection of scan degrees of freedom represented in the array.
         """
-        return self.degrees_of_freedom.difference(self.spectrum_degrees_of_freedom)
+        warnings.warn(
+            "This method is deprecated.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return set(self.spectrum.dims).difference(self.spectrum_degrees_of_freedom)
 
     def reference_plot(self: Self, **kwargs: Incomplete) -> None:
         """Creates reference plots for a dataset.
@@ -3047,7 +3058,11 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
         Args:
             kwargs: Passed to plotting routines to provide user control
         """
-        self._obj.sum(self.scan_degrees_of_freedom)
+        spectrum_degrees_of_freedom = set(self.spectrum.dims).intersection(
+            {"eV", "phi", "pixel", "kx", "kp", "ky"},
+        )
+        scan_degrees_of_freedom = set(self.spectrum.dims).difference(spectrum_degrees_of_freedom)
+        self._obj.sum(scan_degrees_of_freedom)
         kwargs.get("out")
         # <== CHECK ME  the above two lines were:
 
@@ -3098,19 +3113,21 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
                     behavior
         """
         self.spectrum.S.reference_plot(pattern=prefix + "{}.png", **kwargs)
-
+        spectrum_degrees_of_freedom = set(self.spectrum.dims).intersection(
+            {"eV", "phi", "pixel", "kx", "kp", "ky"},
+        )
         if self.is_spatial:
             pass
             # <== CHECK ME: original is  referenced = self.referenced_scans
         if "cycle" in self._obj.coords:
-            integrated_over_scan = self._obj.sum(self.spectrum_degrees_of_freedom)
+            integrated_over_scan = self._obj.sum(spectrum_degrees_of_freedom)
             integrated_over_scan.S.spectrum.S.reference_plot(
                 pattern=prefix + "sum_spec_DoF_{}.png",
                 **kwargs,
             )
 
         if "delay" in self._obj.coords:
-            dims = self.spectrum_degrees_of_freedom
+            dims = spectrum_degrees_of_freedom
             dims.remove("eV")
             angle_integrated = self._obj.sum(dims)
 
