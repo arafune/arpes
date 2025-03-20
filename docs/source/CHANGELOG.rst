@@ -41,6 +41,7 @@ Changed
   - S.transpose_to_front
   - S.transpose_to_back
   - S.to_arrays
+  - S.scan_degrees_of_freedom, S.degrees_of_freedom and spectrum_degrees_of_freedom
   - arrange_by_indices and unarrange_by_indices (defined in utilities/__init__.py). They are not used internally.
 
 * Refactoring
