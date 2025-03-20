@@ -77,7 +77,7 @@ def update_configuration(user_path: Path | str = "") -> None:
     The best thing might be to look at what other projects use.
 
     Args:
-        user_path: The path to the user configuration module. Defaults to None.
+        user_path (Path | str): The path to the user configuration module. Defaults to None.
                    If None is provided then this is a noop.
     """
     global HAS_LOADED, FIGURE_PATH, DATASET_PATH  # noqa: PLW0603
@@ -156,7 +156,7 @@ def workspace_matches(path: str | Path) -> bool:
     This is much simpler now: a workspace just has a data folder in it.
 
     Args:
-        path: The path we are chekcking.
+        path (Path | str): The path we are chekcking.
 
     Returns:
         True if the path is a workspace and False otherwise.
@@ -176,7 +176,7 @@ def attempt_determine_workspace(current_path: str | Path = "") -> None:
     has been simplified: see `workspace_matches` for more details.
 
     Args:
-        current_path: Override for "Path.cwd()". Defaults to None.
+        current_path (Path | str): Override for "Path.cwd()". Defaults to None.
 
     ToDo: TEST
     """
@@ -205,7 +205,7 @@ def load_json_configuration(filename: str) -> None:
     nested configuration.
 
     Args:
-        filename: A filename or path containing the settings.
+        filename (str): A filename or path containing the settings.
 
     ToDo: TEST
     """
@@ -269,7 +269,7 @@ def is_using_tex() -> bool:
     Uses the values in rcParams for safety.
 
     Returns:
-        True if matplotlib will use LaTeX for plotting and False otherwise.
+        bool: True if matplotlib will use LaTeX for plotting and False otherwise.
 
     ToDo: TEST
     """
@@ -318,7 +318,7 @@ def use_tex(*, rc_text_should_use: bool = False) -> None:
     matplotlib to generate errors when you try to run standard plots.
 
     Args:
-        rc_text_should_use: Whether to enable TeX. Defaults to False.
+        rc_text_should_use (bool): Whether to enable TeX. Defaults to False.
     """
     # in matplotlib v3 we do not need to change other settings unless
     # the preamble needs customization

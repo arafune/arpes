@@ -51,9 +51,9 @@ def adjust_coords_to_limit(
         A dictionary specifying the values to which each coordinate should be extended.
         Example: {"x": 5, "y": -1}
 
-    Returns: dict
-        A dictionary with the new extended coordinates for each dimension.
-        Only the newly added coordinates are returned, which will be used in stretch_coords.
+    Returns:
+        dict: A dictionary with the new extended coordinates for each dimension.
+            Only the newly added coordinates are returned, which will be used in stretch_coords.
     """
     new_coords_dict = {}
 
@@ -93,8 +93,8 @@ def extend_coords(
         Dictionary where keys are coordinate names and values are lists of new coordinate values.
         If no new coordinates are specified, existing coordinates are retained.
 
-    Returns: xr.DataArray
-        A new DataArray with expanded coordinates and NaN-filled missing values.
+    Returns:
+        xr.DataArray: A new DataArray with expanded coordinates and NaN-filled missing values.
     """
     stretch_coords = {dim: da.coords[dim].values for dim in da.dims}
 
@@ -126,8 +126,8 @@ def is_equally_spaced(coords: NDArray[np.float64], tolerance: float = 1e-5) -> n
     tolerance : float
         The acceptable tolerance for the spacing difference.
 
-    Returns: bool
-        True if the coordinates are equally spaced within the tolerance, False otherwise.
+    Returns:
+        bool: True if the coordinates are equally spaced within the tolerance, False otherwise.
     """
     diffs: NDArray[np.float64] = np.diff(coords)
 
@@ -148,8 +148,8 @@ def shift_by(
         coord_name (str): The coordinate name to shift.
         shift_value (float): The amount of the shift.
 
-    Returns: xr.DataArray
-        The DataArray with shifted coordinates.
+    Returns:
+        xr.DataArray: The DataArray with shifted coordinates.
     """
     assert isinstance(data, xr.DataArray)
     assert coord_name in data.coords
@@ -174,8 +174,8 @@ def corrected_coords(
         correction_types (CoordsOffset | tuple[CoordsOffset]): Correction types to be applied to the
             data.
 
-    Returns: xr.DataArray
-        The data array with corrected coordinates.
+    Returns:
+        xr.DataArray: The data array with corrected coordinates.
     """
     if isinstance(correction_types, str):
         correction_types = (correction_types,)
