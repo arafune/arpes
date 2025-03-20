@@ -23,7 +23,7 @@ Changed
 
 
 
-4.2.4 (XXXX-XX-XX)
+4.2.4 (2025-03-20)
 ^^^^^^^^^^^^^^^^^^
 
 Changed
@@ -41,6 +41,7 @@ Changed
 * Remove load_data_for_figure from plotting.utils
 * Remove CoincidentLinePlot (Same (at least similar) feature can be done with fill_between)
 * Remove zero_nans arg in shift_by. Use da.fillna(0), instead.
+* Remove utilities/transfer.py because it's essentially empty.
 * Remove cut_nan_coords. Use dropna like that:
   for cname in da.coords:
     da = da.dropna(dim=cname, how="any")
