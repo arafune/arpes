@@ -57,7 +57,7 @@ from typing import (
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
-import xarray_lmfit
+import xarray_lmfit  # noqa: F401
 from more_itertools import always_reversible
 from xarray.core.coordinates import DataArrayCoordinates, DatasetCoordinates
 
