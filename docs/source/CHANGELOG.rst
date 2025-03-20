@@ -21,7 +21,15 @@ Changed
     (xarray-lmfit) This is a pretty good implementation and easy to use. "Let's use the libraries we can use."
     I believe it's a good policy, and it is good to have less code to maintain.
 
-
+* Remove
+  - S.correct_angle_by
+  - S.corrected_angle_by
+  - S.transpose_to_front
+  - S.transpose_to_back
+  - S.to_arrays
+  - S.scan_degrees_of_freedom, S.degrees_of_freedom and spectrum_degrees_of_freedom
+  - arrange_by_indices and unarrange_by_indices (defined in utilities/__init__.py). They are not used internally.
+  -  sum_annotation and mean_annotation in plotting.utils
 
 4.2.4 (2025-03-20)
 ^^^^^^^^^^^^^^^^^^

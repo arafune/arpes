@@ -35,36 +35,3 @@ if TYPE_CHECKING:
     from collections.abc import Generator, Sequence
 
     import xarray as xr
-
-
-def arrange_by_indices(items: list[Any], indices: list[int]) -> list[Any]:  # pragma: no cover
-    """Arranges `items` according to the new `indices` that each item should occupy.
-
-    This function is best illustrated by the example below.
-    It also has an inverse available in 'unarrange_by_indices'.
-
-    Example:
-        >>> arrange_by_indices(['a', 'b', 'c'], [1, 2, 0])
-        ['b', 'c', 'a']
-    """
-    warnings.warn(
-        "This method will be deprecated.",
-        category=DeprecationWarning,
-        stacklevel=2,
-    )
-    return [items[i] for i in indices]
-
-
-def unarrange_by_indices(items: Sequence, indices: Sequence) -> list:  # pragma: no cover
-    """The inverse function to 'arrange_by_indices'.
-
-    Examples:
-    unarrange_by_indices(['b', 'c', 'a'], [1, 2, 0])
-     => ['a', 'b', 'c']
-    """
-    warnings.warn(
-        "This method will be deprecated.",
-        category=DeprecationWarning,
-        stacklevel=2,
-    )
-    return [x for x, _ in sorted(zip(indices, items, strict=True), key=itemgetter(0))]
