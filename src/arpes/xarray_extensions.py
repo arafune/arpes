@@ -57,6 +57,7 @@ from typing import (
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
+import xarray_lmfit
 from more_itertools import always_reversible
 from xarray.core.coordinates import DataArrayCoordinates, DatasetCoordinates
 
@@ -1276,7 +1277,7 @@ class ARPESProperty(ARPESPropertyBase):
 
 
 class ARPESAccessorBase(ARPESProperty):
-    """Base class for the xarray extensions in PyARPES."""
+    """Base class for "S" accessor of the xarray extensions in PyARPES."""
 
     def __init__(self, xarray_obj: XrTypes) -> None:
         self._obj = xarray_obj
@@ -1291,53 +1292,6 @@ class ARPESAccessorBase(ARPESProperty):
             Property list
         """
         return [n for n in dir(self) if name in n]
-
-    def transpose_to_front(self, dim: str) -> XrTypes:  # pragma: no cover
-        """Transpose the dimensions (to front).
-
-        Args:
-            dim: dimension to front
-
-        Returns: (XrTypes)
-            Transposed ARPES data
-
-        Warning:
-            This method will be deprecated. Use standard transpose(dim, ...).
-        """
-        warnings.warn(
-            "This method will be deprecated. Use standard transpose(dim, ...). "
-            "Note Ellipsis is important",
-            category=DeprecationWarning,
-            stacklevel=2,
-        )
-        dims = list(self._obj.dims)
-        assert dim in dims
-        dims.remove(dim)
-        return self._obj.transpose(*([dim, *dims]))
-
-    def transpose_to_back(self, dim: str) -> XrTypes:  # pragma: no cover
-        """Transpose the dimensions (to back).
-
-        Args:
-            dim: dimension to back
-
-        Returns: (XrTypes)
-            Transposed ARPES data.
-
-        Warning:
-            This method will be deprecated. Use standard transpose(dim, ...).
-        """
-        warnings.warn(
-            "This method will be deprecated. Use standard transpose(..., dim). "
-            "Note Ellipsis is important",
-            category=DeprecationWarning,
-            stacklevel=2,
-        )
-
-        dims = list(self._obj.dims)
-        assert dim in dims
-        dims.remove(dim)
-        return self._obj.transpose(*([*dims, dim]))
 
     def sum_other(
         self,
@@ -1392,6 +1346,22 @@ class ARPESAccessorBase(ARPESProperty):
         Note: The width must be specified by width.  Not kwargs.
         """
         return selections.fat_sel(data=self._obj, widths=widths, method=method, **kwargs)
+
+    def modelfit(self, *args: Incomplete, **kwargs: Incomplete) -> xr.Dataset:
+        """Curve fit using lmfit through xarray-lmfit.
+
+            This is the just a wrapper of xlm.modelfit.
+            See the manuall of xarray-lmfit for details.
+
+
+        Args:
+            *args: Pass to xlm.modelfit
+            **kwargs: Pass to xlm.modelfit
+
+        Returns:
+            xr.Dataset: Fit result.
+        """
+        return self._obj.xlm.modelfit(*args, **kwargs)
 
 
 class ARPESDataArrayAccessorBase(ARPESAccessorBase):
