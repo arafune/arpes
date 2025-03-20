@@ -22,7 +22,7 @@ import dill
 import lmfit
 import numpy as np
 import xarray as xr
-
+import warnings
 import arpes.fits.fit_models
 from arpes import VERSION
 from arpes.debug import setup_logger
@@ -184,6 +184,13 @@ def broadcast_model(  # noqa: PLR0913
         (and the data for fit, needless to say.)
 
     """
+    warnings.warn(
+        "This function has not been maintained.  Use S.modelfit() insted. "
+        "(Migration is not so difficult)",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     params = params or {}
 
     if isinstance(broadcast_dims, str):
