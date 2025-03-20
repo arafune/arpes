@@ -10,19 +10,6 @@ incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
 
-5.0.0 (2024-XX-XX)
-^^^^^^^^^^^^^^^^^^
-
-Changed
-~~~~~~~
-
-* Drop broadcast_model.
-  - xarray now has a curve_fit function. And a package that extends it to support lmfit has recently appeared on github.
-    (xarray-lmfit) This is a pretty good implementation and easy to use. "Let's use the libraries we can use."
-    I believe it's a good policy, and it is good to have less code to maintain.
-
-
-
 4.2.4 (2025-03-20)
 ^^^^^^^^^^^^^^^^^^
 
