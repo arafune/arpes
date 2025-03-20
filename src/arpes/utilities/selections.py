@@ -417,7 +417,7 @@ def _radius(
         radius for selection.
     """
     if isinstance(radius, float):
-        return {d: radius for d in points}
+        return dict.fromkeys(points, radius)
     if radius is None:
         radius = {d: DEFAULT_RADII.get(str(d), UNSPECIFIED) for d in points}
     if not isinstance(radius, dict):

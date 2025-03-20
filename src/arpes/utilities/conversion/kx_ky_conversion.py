@@ -26,7 +26,6 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import MOMENTUM
 
 __all__ = ["ConvertKp", "ConvertKxKy"]
 
@@ -101,6 +100,14 @@ def _compute_ktot(
     binding_energy: NDArray[np.float64],
     k_tot: NDArray[np.float64],
 ) -> None:
+    """Calculate 0.512 √E.
+
+    Args:
+        hv: [TODO:description]
+        work_function: [TODO:description]
+        binding_energy: [TODO:description]
+        k_tot: [TODO:description]
+    """
     for i in numba.prange(len(binding_energy)):
         k_tot[i] = K_INV_ANGSTROM * np.sqrt(
             hv - work_function + binding_energy[i],
@@ -141,13 +148,15 @@ class ConvertKp(CoordinateConverter):
             calibration: DetectorCalibration | None = None,
         """
         super().__init__(*args, **kwargs)
+        logger.debug(f"self.dim_order: {self.dim_order}")
+
         self.k_tot: NDArray[np.float64] | None = None
         self.phi: NDArray[np.float64] | None = None
 
     def get_coordinates(
         self,
-        resolution: dict[MOMENTUM, float] | None = None,
-        bounds: dict[MOMENTUM, tuple[float, float]] | None = None,
+        resolution: dict[str, float] | None = None,
+        bounds: dict[str, tuple[float, float]] | None = None,
     ) -> dict[Hashable, NDArray[np.float64]]:
         """Calculates appropriate coordinate bounds.
 
@@ -164,7 +173,8 @@ class ConvertKp(CoordinateConverter):
         resolution = resolution if resolution is not None else {}
         bounds = bounds if bounds is not None else {}
 
-        coordinates = super().get_coordinates(resolution, bounds=bounds)
+        coordinates = {k: v.values for k, v in self.arr.coords.items() if k == "eV"}
+
         (kp_low, kp_high) = calculate_kp_bounds(self.arr)
         if "kp" in bounds:
             kp_low, kp_high = bounds["kp"]
@@ -179,6 +189,7 @@ class ConvertKp(CoordinateConverter):
             kp_low - K_SPACE_BORDER,
             kp_high + K_SPACE_BORDER,
             resolution.get("kp", inferred_kp_res),
+            dtype=np.float64,
         )
         base_coords = {
             k: v.values
@@ -190,25 +201,18 @@ class ConvertKp(CoordinateConverter):
 
     def compute_k_tot(self, binding_energy: NDArray[np.float64]) -> None:
         """Compute the total momentum (inclusive of kz) at different binding energies."""
-        if self.arr.S.energy_notation == "Binding":
-            self.k_tot = _safe_compute_k_tot(
-                self.arr.S.hv,
-                self.arr.S.analyzer_work_function,
-                binding_energy,
-            )
-        elif self.arr.S.energy_notation == "Final":
-            self.k_tot = _safe_compute_k_tot(0, self.arr.S.analyzer_work_function, binding_energy)
-        else:
+        energy_notation = self.arr.S.energy_notation
+        hv = self.arr.S.hv
+        work_function = self.arr.S.analyzer_work_function
+        if energy_notation not in {"Final", "Binding"}:
             warning_msg = "Energy notation is not specified. Assume the Binding energy notation"
             warnings.warn(
                 warning_msg,
                 stacklevel=2,
             )
-            self.k_tot = _safe_compute_k_tot(
-                self.arr.S.hv,
-                self.arr.S.analyzer_work_function,
-                binding_energy,
-            )
+            energy_notation = "Binding"
+        hv_ = 0 if energy_notation == "Final" else hv
+        self.k_tot = _safe_compute_k_tot(hv_, work_function, binding_energy)
 
     def kspace_to_phi(
         self,
@@ -308,8 +312,8 @@ class ConvertKxKy(CoordinateConverter):
 
     def get_coordinates(
         self,
-        resolution: dict[MOMENTUM, float] | None = None,
-        bounds: dict[MOMENTUM, tuple[float, float]] | None = None,
+        resolution: dict[str, float] | None = None,
+        bounds: dict[str, tuple[float, float]] | None = None,
     ) -> dict[Hashable, NDArray[np.float64]]:
         """Calculates the coordinates which should be used in momentum space.
 
@@ -324,7 +328,9 @@ class ConvertKxKy(CoordinateConverter):
         """
         resolution = resolution if resolution is not None else {}
         bounds = bounds if bounds is not None else {}
-        coordinates = super().get_coordinates(resolution, bounds=bounds)
+
+        coordinates = {k: v.values for k, v in self.arr.coords.items() if k == "eV"}
+
         ((kx_low, kx_high), (ky_low, ky_high)) = calculate_kx_ky_bounds(self.arr)
         if "kx" in bounds:
             kx_low, kx_high = bounds["kx"]
@@ -356,11 +362,13 @@ class ConvertKxKy(CoordinateConverter):
             kx_low - K_SPACE_BORDER,
             kx_high + K_SPACE_BORDER,
             resolution.get("kx", inferred_kx_res),
+            dtype=np.float64,
         )
         coordinates["ky"] = np.arange(
             ky_low - K_SPACE_BORDER,
             ky_high + K_SPACE_BORDER,
             resolution.get("ky", inferred_ky_res),
+            dtype=np.float64,
         )
         base_coords = {
             k: v  # should v.values?base
@@ -372,25 +380,18 @@ class ConvertKxKy(CoordinateConverter):
 
     def compute_k_tot(self, binding_energy: NDArray[np.float64]) -> None:
         """Compute the total momentum (inclusive of kz) at different binding energies."""
-        if self.arr.energy_notation == "Binding":
-            self.k_tot = _safe_compute_k_tot(
-                self.arr.S.hv,
-                self.arr.S.analyzer_work_function,
-                binding_energy,
-            )
-        elif self.arr.energy_notation == "Final":
-            self.k_tot = _safe_compute_k_tot(0, self.arr.S.analyzer_work_function, binding_energy)
-        else:
+        energy_notation = self.arr.S.energy_notation
+        hv: float = self.arr.S.hv
+        work_function = self.arr.S.analyzer_work_function
+        if energy_notation not in {"Final", "Binding"}:
             warning_msg = "Energy notation is not specified. Assume the Binding energy notation"
             warnings.warn(
                 warning_msg,
                 stacklevel=2,
             )
-            self.k_tot = _safe_compute_k_tot(
-                self.arr.S.hv,
-                self.arr.S.analyzer_work_function,
-                binding_energy,
-            )
+            energy_notation = "Binding"
+        hv_ = 0.0 if energy_notation == "Final" else hv
+        self.k_tot = _safe_compute_k_tot(hv_, work_function, binding_energy)
 
     def conversion_for(self, dim: Hashable) -> Callable[..., NDArray[np.float64]]:
         """Looks up the appropriate momentum-to-angle conversion routine by dimension name."""

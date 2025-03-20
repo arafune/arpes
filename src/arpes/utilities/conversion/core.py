@@ -234,13 +234,7 @@ def slice_along_path(  # noqa: PLR0913
         target_coordinates=converted_coordinates,
         coordinate_transform={
             "dims": converted_dims,
-            "transforms": dict(
-                zip(
-                    arr.dims,  # type: ignore[arg-type] # <- Hashable str problem
-                    [converter_for_coordinate_name(str(d)) for d in arr.dims],
-                    strict=True,
-                ),
-            ),
+            "transforms": {str(d): converter_for_coordinate_name(str(d)) for d in arr.dims},
         },
         as_dataset=True,
     )
@@ -381,16 +375,6 @@ def convert_to_kspace(  # noqa: PLR0913
         [str(d) for d in arr.dims if is_dimension_convertible_to_momentum(str(d))],
     )
 
-    # temporarily reassign coordinates for dimensions we will not
-    # convert to "index-like" dimensions
-    restore_index_like_coordinates: dict[str, NDArray[np.float64]] = {
-        dim: arr.coords[dim].values for dim in momentum_incompatibles
-    }
-    new_index_like_coordinates = {
-        dim: np.arange(len(arr.coords[dim].values)) for dim in momentum_incompatibles
-    }
-    arr = arr.assign_coords(new_index_like_coordinates)
-
     if not momentum_compatibles:
         return arr  # no need to convert, might be XPS or similar
 
@@ -416,8 +400,8 @@ def convert_to_kspace(  # noqa: PLR0913
     assert convert_cls is not None, "Cannot select convert class"
 
     converter: CoordinateConverter = convert_cls(
-        arr,
-        converted_dims,
+        arr=arr,
+        dim_order=converted_dims,
         calibration=calibration,
     )
 
@@ -435,17 +419,11 @@ def convert_to_kspace(  # noqa: PLR0913
         target_coordinates=converted_coordinates,
         coordinate_transform={
             "dims": converted_dims,
-            "transforms": dict(
-                zip(
-                    (str(dim) for dim in arr.dims),
-                    [converter.conversion_for(dim) for dim in arr.dims],
-                    strict=True,
-                ),
-            ),
+            "transforms": {str(dim): converter.conversion_for(dim) for dim in arr.dims},
         },
     )
     assert isinstance(result, xr.DataArray)
-    return result.assign_coords(restore_index_like_coordinates)
+    return result
 
 
 class CoordinateTransform(TypedDict, total=True):
@@ -536,7 +514,7 @@ def convert_coordinates(
             c (xr.DataArray): DataArray for check.
 
         Returns: bool
-            [TODO:description]
+            Return True if the dim of array is subset of dim of coordinate_transform.
         """
         if isinstance(c, xr.DataArray):
             return set(c.dims).issubset(coordinate_transform["dims"])
@@ -553,16 +531,16 @@ def convert_coordinates(
         coordinate_transform["dims"],
         attrs=arr.attrs,
     )
-    old_mapped_coords = [
-        xr.DataArray(
-            values,
-            coords=target_coordinates,
-            dims=coordinate_transform["dims"],
-            attrs=arr.attrs,
-        )
-        for values in old_dimensions
-    ]
     if as_dataset:
+        old_mapped_coords = [
+            xr.DataArray(
+                values,
+                coords=target_coordinates,
+                dims=coordinate_transform["dims"],
+                attrs=arr.attrs,
+            )
+            for values in old_dimensions
+        ]
         variables = {"data": data}
         variables.update(
             dict(

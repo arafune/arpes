@@ -10,14 +10,13 @@ import pytest
 
 import arpes.config
 import arpes.endstations
-from arpes.io import example_data
-from tests.utils import cache_loader
-from arpes.fits.utilities import broadcast_model
 from arpes.fits.fit_models import (
     AffineBackgroundModel,
     LorentzianModel,
 )
-
+from arpes.fits.utilities import broadcast_model
+from arpes.io import example_data
+from tests.utils import cache_loader
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator

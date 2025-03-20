@@ -37,7 +37,7 @@ def deep_update(destination: NestedDict[T], source: NestedDict[T]) -> NestedDict
     """
     for k, v in source.items():
         if isinstance(v, MutableMapping):
-            sub_dict = cast(NestedDict[T], destination.get(k, {}))
+            sub_dict = cast("NestedDict[T]", destination.get(k, {}))
             destination[k] = deep_update(sub_dict, v)
         else:
             destination[k] = v

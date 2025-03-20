@@ -45,6 +45,8 @@ Changed
   for cname in da.coords:
     da = da.dropna(dim=cname, how="any")
 
+* Move utilities/convert/trapezoid.py -> correction/trapezoid.py
+
 * Change method name: S.swap_angle_unit -> S.switch_angle_unit
 
 * Deprecated
@@ -53,7 +55,12 @@ Changed
   - S.transpose_to_front
   - S.transpose_to_back
   - S.to_arrays
+  - S.scan_degrees_of_freedom, S.degrees_of_freedom and spectrum_degrees_of_freedom
   - arrange_by_indices and unarrange_by_indices (defined in utilities/__init__.py). They are not used internally.
+
+* Refactoring
+
+  * ConvertTrapezoidalCorrection: More general
 
 4.2.3 (2025-1-5)
 ^^^^^^^^^^^^^^^^^^
