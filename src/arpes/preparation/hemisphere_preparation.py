@@ -28,7 +28,7 @@ def stitch_maps(
         dimension(str): dimension for alignment
 
     Returns:
-        The stitched map.
+        xr.DataArray: The stitched map.
     """
     # as a first step we need to align the coords of map2 onto those of map1
     coord1 = arr.coords[dimension].data.copy()
