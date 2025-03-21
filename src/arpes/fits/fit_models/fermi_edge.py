@@ -8,9 +8,9 @@ import lmfit as lf
 import numpy as np
 from lmfit.models import update_param_vals
 from scipy import stats
-from scipy.ndimage import gaussian_filter
 
 from .functional_forms import (
+    affine_broadened_fd,
     band_edge_bkg,
     fermi_dirac,
     fermi_dirac_affine,
@@ -51,44 +51,12 @@ class AffineBroadenedFD(XModelMixin):
     (with resolution broadened Fermi-Dirac occupation).
     """
 
-    @staticmethod
-    def affine_broadened_fd(  # noqa: PLR0913
-        x: NDArray[np.float64],
-        center: float = 0,
-        width: float = 0.003,
-        conv_width: float = 0.02,
-        const_bkg: float = 1,
-        lin_bkg: float = 0,
-        offset: float = 0,
-    ) -> NDArray[np.float64]:
-        """Fermi function convoled with a Gaussian together with affine background.
-
-        Args:
-            x: value to evaluate function at
-            center: center of the step
-            width: width of the step
-            conv_width: The convolution width
-            const_bkg: constant background
-            lin_bkg: linear (affine) background slope
-            offset: constant background
-        """
-        dx = x - center
-        x_scaling = x[1] - x[0]
-        fermi = 1 / (np.exp(dx / width) + 1)
-        return (
-            np.asarray(
-                gaussian_filter((const_bkg + lin_bkg * dx) * fermi, sigma=conv_width / x_scaling),
-                dtype=np.float64,
-            )
-            + offset
-        )
-
     def __init__(self, **kwargs: Unpack[ModelArgs]) -> None:
         """Defer to lmfit for initialization."""
         kwargs.setdefault("prefix", "")
         kwargs.setdefault("independent_vars", ["x"])
         kwargs.setdefault("nan_policy", "raise")
-        super().__init__(self.affine_broadened_fd, **kwargs)
+        super().__init__(affine_broadened_fd, **kwargs)
 
         self.set_param_hint("offset", min=0.0)
         self.set_param_hint("width", min=0.0)
@@ -100,15 +68,7 @@ class AffineBroadenedFD(XModelMixin):
         We use the mean value to estimate the background parameters and physically
         reasonable ones to initialize the edge.
         """
-        pars: lf.Parameters = self.make_params()
-
-        pars[f"{self.prefix}center"].set(value=0)
-        pars[f"{self.prefix}lin_bkg"].set(value=0)
-        pars[f"{self.prefix}const_bkg"].set(value=data.mean().item() * 2)
-        pars[f"{self.prefix}offset"].set(value=data.min().item())
-
-        pars[f"{self.prefix}width"].set(0.005)
-        pars[f"{self.prefix}conv_width"].set(0.02)
+        raise NotImplementedError
 
         return update_param_vals(pars, self.prefix, **kwargs)
 
@@ -649,80 +609,6 @@ class GStepBStandardModel(XModelMixin):
 
     __init__.__doc__ = (
         """A model for fitting Fermi functions with a linear background."""
-        + lf.models.COMMON_INIT_DOC
-    )
-    guess.__doc__ = lf.models.COMMON_GUESS_DOC
-
-
-class TwoLorEdgeModel(XModelMixin):
-    """A model for (two lorentzians with an affine background) multiplied by a gstepb.
-
-    **This is typically not necessary, as you can use the + operator on the Model instances.**
-    """
-
-    @staticmethod
-    def twolorentzian_gstep(  # noqa: PLR0913
-        x: NDArray[np.float64],
-        gamma: float,
-        t_gamma: float,
-        center: float,
-        t_center: float,
-        amp: float,
-        t_amp: float,
-        lin_bkg: float,
-        const_bkg: float,
-        g_center: float,
-        sigma: float,
-        erf_amp: float,
-    ) -> NDArray[np.float64]:
-        """Two Lorentzians, an affine background, and a gstepb edge."""
-        TL = twolorentzian(x, gamma, t_gamma, center, t_center, amp, t_amp, lin_bkg, const_bkg)
-        GS = gstep(x, g_center, sigma, erf_amp)
-        return TL * GS
-
-    def __init__(self, **kwargs: Unpack[ModelArgs]) -> None:
-        """Defer to lmfit for initialization."""
-        kwargs.setdefault("prefix", "")
-        kwargs.setdefault("independent_vars", ["x"])
-        kwargs.setdefault("nan_policy", "raise")
-        super().__init__(self.twolorentzian_gstep, **kwargs)
-
-        self.set_param_hint("amp", min=0.0)
-        self.set_param_hint("gamma", min=0)
-        self.set_param_hint("t_amp", min=0.0)
-        self.set_param_hint("t_gamma", min=0)
-        self.set_param_hint("erf_amp", min=0.0)
-        self.set_param_hint("sigma", min=0)
-        self.set_param_hint("lin_bkg", min=-10, max=10)
-        self.set_param_hint("const_bkg", min=-50, max=50)
-
-    def guess(
-        self,
-        data: XrTypes,
-        x: None = None,
-        **kwargs: Incomplete,
-    ) -> lf.Parameters:
-        """Placeholder for making better heuristic guesses here."""
-        assert x is None
-        pars = self.make_params()
-
-        pars[f"{self.prefix}center"].set(value=0)
-        pars[f"{self.prefix}t_center"].set(value=0)
-        pars[f"{self.prefix}g_center"].set(value=0)
-        pars[f"{self.prefix}lin_bkg"].set(value=0)
-        pars[f"{self.prefix}const_bkg"].set(value=data.min())
-
-        pars[f"{self.prefix}gamma"].set(0.02)
-        pars[f"{self.prefix}t_gamma"].set(0.02)
-        pars[f"{self.prefix}sigma"].set(0.02)
-        pars[f"{self.prefix}amp"].set(value=data.mean() - data.min())
-        pars[f"{self.prefix}t_amp"].set(value=data.mean() - data.min())
-        pars[f"{self.prefix}erf_amp"].set(value=data.mean() - data.min())
-
-        return update_param_vals(pars, self.prefix, **kwargs)
-
-    __init__.__doc__ = (
-        "A model for (two lorentzians with an affine background) multiplied by a gstepb."
         + lf.models.COMMON_INIT_DOC
     )
     guess.__doc__ = lf.models.COMMON_GUESS_DOC
