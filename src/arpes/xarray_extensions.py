@@ -2469,15 +2469,11 @@ class ARPESDatasetFitToolAccessor:
         self._obj = xarray_obj
 
     def show(self, **kwargs: Unpack[ProfileViewParam]) -> AdjointLayout:
-        """[TODO:summary].
-
-        Todo:
-            Need Revision (It does not work, currently)/Consider removing.
-        """
+        """Fit inspection tool."""
         return fit_inspection(self._obj, **kwargs)
 
     @property
-    def fit_dimensions(self) -> list[str]:
+    def fit_dimensions(self, spectral_name="spectrum") -> list[str]:  # pragma: no cover
         """Returns the dimensions which were broadcasted across, as opposed to fit across.
 
         This is a sibling property to `broadcast_dimensions`.
@@ -2487,6 +2483,12 @@ class ARPESDatasetFitToolAccessor:
             For example, a broadcast of MDCs across energy on a dataset with dimensions
             `["eV", "kp"]` would produce `["eV"]`.
         """
+        warnings.warn(
+            "This method will be deprecated.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+
         assert isinstance(self._obj, xr.Dataset)
         return list(set(self._obj.data.dims).difference(self._obj.results.dims))
 
@@ -2618,6 +2620,9 @@ class ARPESFitToolsAccessor:
 
             The output array is infilled with `np.nan` if the fit did not converge/
             the fit result is `None`.
+
+        Memo:
+            Work after xarray-lmfit migration.
         """
         assert isinstance(self._obj, xr.DataArray)
         return self._obj.G.map(param_getter(param_name), otypes=[float])
@@ -2636,6 +2641,9 @@ class ARPESFitToolsAccessor:
 
             The output array is infilled with `np.nan` if the fit did not converge/
             the fit result is `None`.
+
+        Memo:
+            Work after xarray-lmfit migration.
         """
         assert isinstance(self._obj, xr.DataArray)
         return self._obj.G.map(param_stderr_getter(param_name), otypes=[float])
@@ -2691,6 +2699,9 @@ class ARPESFitToolsAccessor:
 
         Todo:
             Test
+
+        Memo:
+            Work after xarray-lmfit migration.
         """
         collected_parameter_names: set[str] = set()
         assert isinstance(self._obj, xr.DataArray)

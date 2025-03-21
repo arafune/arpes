@@ -11,15 +11,13 @@ from scipy import stats
 from scipy.ndimage import gaussian_filter
 
 from .functional_forms import (
+    affine_broadened_fd,
     band_edge_bkg,
     fermi_dirac,
     fermi_dirac_affine,
-    gaussian,
     gstep,
     gstep_stdev,
     gstepb,
-    lorentzian,
-    twolorentzian,
 )
 from .x_model_mixin import XModelMixin
 
