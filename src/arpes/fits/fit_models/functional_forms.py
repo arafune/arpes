@@ -27,25 +27,28 @@ def affine_broadened_fd(  # noqa: PLR0913
     x: NDArray[np.float64],
     center: float = 0,
     width: float = 0.003,
-    conv_width: float = 0.02,
+    sigma: float = 0.02,
     const_bkg: float = 1,
-    liner_slope: float = 0,
+    lin_slope: float = 0,
 ) -> NDArray[np.float64]:
     """Fermi function convoled with a Gaussian together with affine background.
 
     Args:
         x: value to evaluate function at
-        center: center of the step
-        width: width of the step
-        conv_width: The convolution width
-        const_bkg: constant background
-        liner_slope: linear (affine) background slope
+        center: center of the step.
+        width: width of the step.
+        sigma: The gaussian sigma as the convolution width.
+        const_bkg: constant background.
+        lin_slope: linear (affine) background slope.
     """
     dx = x - center
     x_scaling = x[1] - x[0]
     fermi = 1 / (np.exp(dx / width) + 1)
     return np.asarray(
-        gaussian_filter((const_bkg + liner_slope * dx) * fermi, sigma=conv_width / x_scaling),
+        gaussian_filter(
+            (const_bkg + lin_slope * dx) * fermi,
+            sigma=sigma / x_scaling,
+        ),
         dtype=np.float64,
     )
 

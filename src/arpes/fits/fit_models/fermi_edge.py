@@ -42,10 +42,26 @@ __all__ = (
 
 
 class AffineBroadenedFD(Model):
-    """Fitting model for affine density of states convoluted with experimental resolution.
+    r"""A model based for affine density of states convoluted with gaussian.
 
-    (with resolution broadened Fermi-Dirac occupation).
+    The model has three Parameters: `center`, `width`, `const_bkg`, `lin_slope` and `sigma`.
+    constraints to report full width at half maximum and maximum peak
+    height, respectively.
+
+    .. math::
+
+        f(x; center, width, b, a) = \frac{b + a * x}{1+\exp \left(\frac{x-center}{width}\right)}
+
+    where the parameter `const_bkg` corresponds to :math:`b`, `lin_slope` to
+    :math:`a`.
+
+    then, f convoluted by gaussian with the standard deviation `sigma`
+
+    Note:
+        From version 5. offset parameter is removed.  Use ConstantModel in lmfit.
     """
+
+    fwhm_factor = 2 * np.sqrt(2 * np.log(2))
 
     def __init__(
         self,
@@ -57,9 +73,8 @@ class AffineBroadenedFD(Model):
         kwargs.setdefault("nan_policy", "raise")
         super().__init__(affine_broadened_fd, **kwargs)
 
-        self.set_param_hint("offset", min=0.0)
         self.set_param_hint("width", min=0.0)
-        self.set_param_hint("conv_width", min=0.0)
+        self.set_param_hint("sigma", min=0.0)
 
     def guess(self, data: XrTypes, x: NDArray[np.float64], **kwargs: float) -> lf.Parameters:
         """Make some heuristic guesses.
