@@ -5,10 +5,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Unpack
 
 import numpy as np
-from lmfit.models import update_param_vals
+from lmfit.models import Model, update_param_vals
 
 from .functional_forms import affine_bkg
-from .x_model_mixin import XModelMixin
 
 if TYPE_CHECKING:
     import lmfit as lf
@@ -20,7 +19,7 @@ if TYPE_CHECKING:
 __all__ = ("AffineBackgroundModel",)
 
 
-class AffineBackgroundModel(XModelMixin):
+class AffineBackgroundModel(Model):
     """A model for an affine (linear) background."""
 
     def __init__(self, **kwargs: Unpack[ModelArgs]) -> None:
@@ -43,7 +42,7 @@ class AffineBackgroundModel(XModelMixin):
         del x
         pars = self.make_params()
 
-        pars[f"{self.prefix}lin_bkg"].set(value=np.percentile(data, 10))
+        pars[f"{self.prefix}lin_slope"].set(value=np.percentile(data, 10))
         pars[f"{self.prefix}const_bkg"].set(value=0)
 
         return update_param_vals(pars, self.prefix, **kwargs)

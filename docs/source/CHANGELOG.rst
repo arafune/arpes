@@ -22,6 +22,16 @@ Changed
     I believe it's a good policy, and it is good to have less code to maintain.
 
 
+* Remove some Model classes
+  - TwoLorEdgeModel
+
+* Remove some functional_forms for fit
+  - gaussian (Use lmfit)
+  - lorentzian (Use lmfit)
+  - twolorentzian  (No need)
+
+* Change Parammeter name in fit function
+  - lin_bkg -> lin_slope
 
 4.2.4 (XXXX-XX-XX)
 ^^^^^^^^^^^^^^^^^^

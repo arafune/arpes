@@ -38,14 +38,14 @@ class TwoGaussianModel(XModelMixin):
         t_width: float = 1,
         amp: float = 1,
         t_amp: float = 1,
-        lin_bkg: float = 0,
+        lin_slope: float = 0,
         const_bkg: float = 0,
     ) -> NDArray[np.float64]:
         """Two gaussians and an affine background."""
         return (
             gaussian(x, center, width, amp)
             + gaussian(x, t_center, t_width, t_amp)
-            + affine_bkg(x, lin_bkg, const_bkg)
+            + affine_bkg(x, lin_slope, const_bkg)
         )
 
     def __init__(self, **kwargs: Unpack[ModelArgs]) -> None:
@@ -59,7 +59,7 @@ class TwoGaussianModel(XModelMixin):
         self.set_param_hint("width", min=0)
         self.set_param_hint("t_amp", min=0.0)
         self.set_param_hint("t_width", min=0)
-        self.set_param_hint("lin_bkg", min=-10, max=10)
+        self.set_param_hint("lin_slope", min=-10, max=10)
         self.set_param_hint("const_bkg", min=-50, max=50)
 
     def guess(
@@ -72,7 +72,7 @@ class TwoGaussianModel(XModelMixin):
 
         pars[f"{self.prefix}center"].set(value=0)
         pars[f"{self.prefix}t_center"].set(value=0)
-        pars[f"{self.prefix}lin_bkg"].set(value=0)
+        pars[f"{self.prefix}lin_slope"].set(value=0)
         pars[f"{self.prefix}const_bkg"].set(value=data.min())
         pars[f"{self.prefix}width"].set(0.02)  # TODO: we can do better than this
         pars[f"{self.prefix}t_width"].set(0.02)
@@ -102,7 +102,7 @@ class TwoLorModel(XModelMixin):
         self.set_param_hint("gamma", min=0)
         self.set_param_hint("t_amp", min=0.0)
         self.set_param_hint("t_gamma", min=0)
-        self.set_param_hint("lin_bkg", min=-10, max=10)
+        self.set_param_hint("lin_slope", min=-10, max=10)
         self.set_param_hint("const_bkg", min=-50, max=50)
 
     def guess(
@@ -115,7 +115,7 @@ class TwoLorModel(XModelMixin):
 
         pars[f"{self.prefix}center"].set(value=0)
         pars[f"{self.prefix}t_center"].set(value=0)
-        pars[f"{self.prefix}lin_bkg"].set(value=0)
+        pars[f"{self.prefix}lin_slope"].set(value=0)
         pars[f"{self.prefix}const_bkg"].set(value=data.min())
         pars[f"{self.prefix}gamma"].set(0.02)  # TODO: we can do better than this
         pars[f"{self.prefix}t_gamma"].set(0.02)

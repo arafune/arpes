@@ -160,7 +160,7 @@ def normalize_by_fermi_dirac(  # noqa: PLR0913
             lambda x, coord: x
             / broadening_fit.eval(
                 x=x.coords["eV"].values,
-                lin_bkg=0,
+                lin_slope=0,
                 const_bkg=1,
                 offset=0,
                 conv_width=broadening,
@@ -171,7 +171,7 @@ def normalize_by_fermi_dirac(  # noqa: PLR0913
         divided = without_background_arr / broadening_fit.eval(
             x=data.coords["eV"].values,
             conv_width=broadening,
-            lin_bkg=0,
+            lin_slope=0,
             const_bkg=1,
             offset=0,
         )

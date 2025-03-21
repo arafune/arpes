@@ -40,7 +40,7 @@ def test_broadcast_fitting(dataarray_cut: xr.DataArray) -> None:
         params={
             "a_center": {"value": 0.0, "vary": True, "min": -0.1},
             "a_width": {"value": 0.1},
-            "a_lin_bkg": {"value": 20000, "max": 30000, "min": 10000},
+            "a_lin_slope": {"value": 20000, "max": 30000, "min": 10000},
         },
     )
     a_band_data = fit_results.results.F.bands["a_"]
@@ -82,7 +82,7 @@ def test_broadcast_fitting(dataarray_cut: xr.DataArray) -> None:
         params={
             "a_center": {"value": 0.0, "vary": True, "min": -0.1},
             "a_width": {"value": 0.1},
-            "a_lin_bkg": {"value": 20000, "max": 30000, "min": 10000},
+            "a_lin_slope": {"value": 20000, "max": 30000, "min": 10000},
         },
     )
     assert fit_results.results.F.parameter_names == {
@@ -90,7 +90,7 @@ def test_broadcast_fitting(dataarray_cut: xr.DataArray) -> None:
         "a_conv_width",
         "a_center",
         "a_width",
-        "a_lin_bkg",
+        "a_lin_slope",
         "a_offset",
     }
 
