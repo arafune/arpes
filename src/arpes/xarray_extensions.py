@@ -2493,7 +2493,10 @@ class ARPESDatasetFitToolAccessor:
 
 @xr.register_dataarray_accessor("F")
 class ARPESFitToolsAccessor:
-    """Utilities related to examining curve fits."""
+    """Utilities related to examining curve fits.
+
+    modelfit_result or [var]_modelfit_result (When Dataset.S.modelfit is applied.)
+    """
 
     _obj: xr.DataArray
 
