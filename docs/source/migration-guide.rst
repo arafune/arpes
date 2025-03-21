@@ -43,7 +43,7 @@ They are migrated to:
   }
 
   models = VoigtModel(prefix="ip1_") +  VoigtModel(prefix="ip2_")
-  fit_ = arpes.data.S.modelfit("eV",  models=modelsl, params=models.make_params(**mono_params), progress=True)
+  fit_ = arpes.S.modelfit("eV",  models=models, params=models.make_params(**mono_params), progress=True)
 
 
 In the previous version, the return of broadcast_model is the Dataset that contains:
