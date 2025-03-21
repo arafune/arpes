@@ -31,6 +31,8 @@ Changed
   - arrange_by_indices and unarrange_by_indices (defined in utilities/__init__.py). They are not used internally.
   -  sum_annotation and mean_annotation in plotting.utils
 
+  - F.fit_dimensions
+
 4.2.4 (2025-03-20)
 ^^^^^^^^^^^^^^^^^^
 

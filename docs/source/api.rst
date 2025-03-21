@@ -494,7 +494,6 @@ An incomplete list of useful plotting utilities from ``arpes.utilities.plotting`
    plotting.utils.imshow_mask
    plotting.utils.latex_escape
    plotting.utils.fancy_labels
-   plotting.utils.sum_annotation
    plotting.utils.summarize
 
 Interactive Utilities: Matplotlib Based
