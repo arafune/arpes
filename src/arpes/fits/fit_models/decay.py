@@ -6,13 +6,14 @@ from typing import TYPE_CHECKING, Unpack
 
 import lmfit as lf
 import numpy as np
+import xarray as xr
 from lmfit.models import Model, update_param_vals
 
+from arpes._typing import XrTypes
+
 if TYPE_CHECKING:
-    import xarray as xr
     from numpy.typing import NDArray
 
-    from arpes._typing import XrTypes
     from arpes.fits import ModelArgs
 
 __all__ = ("ExponentialDecayCModel", "TwoExponentialDecayCModel")
@@ -62,15 +63,15 @@ class ExponentialDecayCModel(Model):
 
     def guess(
         self,
-        data: XrTypes | NDArray[np.float64],
+        data: NDArray[np.float64] | XrTypes,
         x: NDArray[np.float64] | xr.DataArray,
         **kwargs: float,
     ) -> lf.Parameters:
-        """Make heuristic estimates of parameters.
-
-        200fs is a reasonable value for the time constant, in fact its probably a bit large.
-        We assume data is probably calibrated so that t0 is at 0 delay.
-        """
+        """Estimate initial model parameter values from data."""
+        if isinstance(data, XrTypes):
+            data = data.values
+        if isinstance(x, xr.DataArray):
+            x = x.values
         pars = self.make_params()
         pars[f"{self.prefix}tau"].set(value=0.2)  # 200fs
         pars[f"{self.prefix}t0"].set(value=0)

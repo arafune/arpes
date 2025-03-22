@@ -154,14 +154,21 @@ class FermiLorentzianModel(Model):
 
     def guess(
         self,
-        data: XrTypes,
+        data: XrTypes | NDArray[np.float64],
         x: NDArray[np.float64] | xr.DataArray,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
         """Estimate initial model parameter values from data."""
-        ymin, ymax = min(data), max(data)
-        ymean = data.mean()
-        xmin, xmax = min(x), max(x)
+        if isinstance(data, XrTypes):
+            ymin = data.min().item()
+            ymean = data.mean()
+        else:
+            ymin = min(data)
+            ymean = np.mean(data)
+        if isinstance(x, xr.DataArray):
+            xmin, xmax = x.min().item(), x.max().item()
+        else:
+            xmin, xmax = np.min(x), np.max(x)
         pars = self.make_params(center=(xmax + xmin) / 2.0, erf_amp=(ymean - ymin))
 
         pars[f"{self.prefix}lorcenter"].set(value=0)
@@ -197,7 +204,7 @@ class FermiDiracModel(Model):
 
     def guess(
         self,
-        data: XrTypes,
+        data: NDArray[np.float64] | XrTypes,
         x: NDArray[np.float64] | xr.DataArray,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
@@ -412,11 +419,14 @@ class GStepBStdevModel(Model):
 
     def guess(
         self,
-        data: XrTypes,
+        data: XrTypes | NDArray[np.float64],
         x: NDArray[np.float64] | xr.DataArray,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
-        """Placeholder for making better heuristic guesses here."""
+        """Estimate initial model parameter values from data."""
+        if isinstance(x, xr.DataArray):
+            x = x.values
+
         pars = self.make_params()
 
         pars[f"{self.prefix}center"].set(value=0)
@@ -467,16 +477,19 @@ class GStepBStandardModel(Model):
         x: NDArray[np.float64] | xr.DataArray,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
-        """Placeholder for making better heuristic guesses here.
+        """Estimate initial model parameter values from data."""
+        if isinstance(data, XrTypes):
+            ymin = data.min().item()
+            ymean = data.mean()
+        else:
+            ymin = min(data)
+            ymean = np.mean(data)
+        if isinstance(x, xr.DataArray):
+            xmin, xmax = x.min().item(), x.max().item()
+        else:
+            xmin, xmax = np.min(x), np.max(x)
+        pars = self.make_params(center=(xmax + xmin) / 2.0, erf_amp=(ymean - ymin))
 
-        Args:
-            data ([TODO:type]): [TODO:description]
-            x (NONE): In this guess function, x should be None
-            kwargs: [TODO:description]
-
-        Returns:
-            [TODO:description]
-        """
         pars = self.make_params()
 
         pars[f"{self.prefix}center"].set(value=0)

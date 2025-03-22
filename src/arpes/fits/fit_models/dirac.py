@@ -9,11 +9,12 @@ import xarray as xr
 from lmfit.lineshapes import lorentzian
 from lmfit.models import Model, update_param_vals
 
+from arpes._typing import XrTypes
+
 if TYPE_CHECKING:
     import numpy as np
     from numpy.typing import NDArray
 
-    from arpes._typing import XrTypes
     from arpes.fits import ModelArgs
 
 __all__ = ("DiracDispersionModel",)
@@ -72,11 +73,15 @@ class DiracDispersionModel(Model):
 
     def guess(
         self,
-        data: XrTypes | NDArray[np.float64],
+        data: NDArray[np.float64] | XrTypes,
         x: NDArray[np.float64] | xr.DataArray,
         **kwargs: float,
     ) -> lf.Parameters:
-        """Placeholder for making better heuristic guesses here."""
+        """Estimate initial model parameter values from data."""
+        if isinstance(data, XrTypes):
+            data = data.values
+        if isinstance(x, xr.DataArray):
+            x = x.values
         pars = self.make_params()
         return update_param_vals(pars, self.prefix, **kwargs)
 

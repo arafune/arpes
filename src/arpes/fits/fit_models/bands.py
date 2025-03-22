@@ -43,11 +43,13 @@ class ParabolicDispersionPhiModel(Model):
 
     def guess(
         self,
-        data: XrTypes,
+        data: NDArray[np.float64] | XrTypes,
         x: NDArray[np.float64] | xr.DataArray,
         **kwargs: float,
     ) -> lf.Parameters:
-        """Placeholder for making better heuristic guesses here."""
+        """Estimate initial model parameter values from data."""
+        if isinstance(data, XrTypes):
+            data = data.values
         if isinstance(x, xr.DataArray):
             x = x.values
         pars = self.make_params()

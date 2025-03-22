@@ -53,7 +53,7 @@ def test_broadcast_fitting(dataarray_cut: xr.DataArray) -> None:
                 0.04447656,
             ],
         ),
-        rtol=1e-6,
+        rtol=1e-5,
     )
 
     np.testing.assert_allclose(

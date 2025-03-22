@@ -57,13 +57,15 @@ class FermiVelocityRenormalizationModel(Model):
 
     def guess(
         self,
-        data: XrTypes,
+        data: XrTypes | NDArray[np.float64],
         x: NDArray[np.float64] | xr.DataArray,
         **kwargs: float,
     ) -> lf.Parameters:
         """Placeholder for parameter estimation."""
         if isinstance(x, xr.DataArray):
             x = x.values
+        if isinstance(data, XrTypes):
+            data = data.values
         pars = self.make_params()
 
         return update_param_vals(pars, self.prefix, **kwargs)
@@ -115,8 +117,17 @@ class LogRenormalizationModel(Model):
         self.set_param_hint("alpha", min=0.0)
         self.set_param_hint("vF", min=0.0)
 
-    def guess(self, data, x, **kwargs: float) -> lf.Parameters:
+    def guess(
+        self,
+        data: XrTypes | NDArray[np.float64],
+        x: NDArray[np.float64] | xr.DataArray,
+        **kwargs: float,
+    ) -> lf.Parameters:
         """Placeholder for actually making parameter estimates here."""
+        if isinstance(data, XrTypes):
+            data = data.values
+        if isinstance(x, xr.DataArray):
+            x = x.values
         pars = self.make_params()
 
         pars[f"{self.prefix}kC"].set(value=1.7)
