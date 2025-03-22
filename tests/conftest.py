@@ -7,13 +7,13 @@ from pathlib import Path
 from typing import TYPE_CHECKING, TypedDict
 
 import pytest
-from lmfit.models import LinearModel, LorentzianModel, ConstantModel, QuadraticModel
+from lmfit.models import ConstantModel, LinearModel, LorentzianModel, QuadraticModel
 
 import arpes.config
 import arpes.endstations
+from arpes.fits import AffineBroadenedFD
 from arpes.io import example_data
 from tests.utils import cache_loader
-from arpes.fits import AffineBroadenedFD
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
@@ -129,7 +129,11 @@ def edge(dataarray_map: xr.DataArray) -> xr.DataArray:
         lin_slope=0,
     )
     model = AffineBroadenedFD() + ConstantModel()
-    fit_results = cut.S.modelfit("eV", model=model, params=params)
+    fit_results = cut.S.modelfit(
+        "eV",
+        model=model,
+        params=params,
+    )
     return (
         fit_results.modelfit_results.F.p("center")
         .S.modelfit("phi", QuadraticModel())
