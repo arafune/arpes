@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, NoReturn, Unpack
 
 import lmfit as lf
 import numpy as np
+import xarray as xr
 from lmfit.lineshapes import gaussian, lorentzian
 from lmfit.models import Model, update_param_vals
 from scipy import stats
@@ -15,7 +16,6 @@ from .functional_forms import (
     band_edge_bkg,
     fermi_dirac,
     fermi_dirac_affine,
-    gstep,
     gstep_stdev,
     gstepb,
 )
@@ -78,8 +78,23 @@ class AffineBroadenedFD(Model):
         self.set_param_hint("width", min=0.0)
         self.set_param_hint("sigma", min=0.0)
 
-    def guess(self, data: XrTypes, x: NDArray[np.float64], **kwargs: float) -> lf.Parameters:
-        raise NotImplementedError
+    def guess(
+        self,
+        data: XrTypes,
+        x: NDArray[np.float64] | xr.DataArray,
+        **kwargs: float,
+    ) -> lf.Parameters:
+        """Estimate initial model parameter values from data."""
+        ymin, ymax = min(data), max(data)
+        if isinstance(x, xr.DataArray):
+            x = x.values
+        xmin, xmax = min(x), max(x)
+        pars = self.make_params(const_bkg=(ymax - ymin), center=(xmax + xmin) / 2.0)
+        sigma = 0.1 * (xmax - xmin)
+        width = 0.1 * (xmax - xmin)
+        pars[f"{self.prefix}sigma"].set(value=sigma)
+        pars[f"{self.prefix}width"].set(value=width)
+        return update_param_vals(pars, self.prefix, **kwargs)
 
     __init__.__doc__ = (
         "Affine density of states broadened by Fermi-Dirac " + lf.models.COMMON_INIT_DOC
