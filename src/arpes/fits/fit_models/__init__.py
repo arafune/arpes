@@ -17,7 +17,6 @@ from .fermi_edge import (
     GStepBStandardModel,
     GStepBStdevModel,
     TwoBandEdgeBModel,
-    TwoLorEdgeModel,
 )
 from .misc import FermiVelocityRenormalizationModel, LogRenormalizationModel, QuadraticModel
 from .two_dimensional import EffectiveMassModel, Gaussian2DModel
