@@ -273,7 +273,7 @@ def fit_for_self_energy(
     """
     if method == "mdc":
         fit_results = broadcast_model(
-            model_cls=[LorentzianModel, AffineBackgroundModel],
+            model_cls=[LorentzianModel, LinearModel],
             data=data,
             broadcast_dims="eV",
             **kwargs,
@@ -286,7 +286,7 @@ def fit_for_self_energy(
             msg = "Too many possible momentum dimensions, please clarify."
             raise ValueError(msg)
         fit_results = broadcast_model(
-            model_cls=[LorentzianModel, AffineBackgroundModel],
+            model_cls=[LorentzianModel, LinearModel],
             data=data,
             broadcast_dims=next(iter(mom_axes)),
             **kwargs,
