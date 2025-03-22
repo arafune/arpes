@@ -1,4 +1,4 @@
-"""Definitions of band shape.  These models are supporsed to be used for after broadcast_model."""
+"""Definitions of band shape.  These models are supporsed to be used for after S.modelfit."""
 
 from __future__ import annotations
 

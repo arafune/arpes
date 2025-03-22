@@ -10,7 +10,8 @@ import numpy as np
 import xarray as xr
 from matplotlib.axes import Axes
 
-from arpes.fits import GStepBModel, broadcast_model
+from arpes.analysis.general import fit_fermi_edge
+from arpes.constants import TWO_DIMENSION
 from arpes.provenance import save_plot_provenance
 from arpes.utilities import apply_dataarray
 
@@ -27,6 +28,7 @@ __all__ = ["fermi_edge_reference"]
 @save_plot_provenance
 def fermi_edge_reference(
     data_arr: xr.DataArray,
+    energy_range: slice | None = None,
     title: str = "",
     ax: Axes | None = None,
     out: str | Path = "",
@@ -35,8 +37,10 @@ def fermi_edge_reference(
     """Fits for and plots results for the Fermi edge on a piece of data.
 
     Args:
-        data_arr: The data, this should be of type DataArray<lmfit.model.ModelResult>
-        title: A title to attach to the plot
+        data_arr: The data to be fit., this should be of type DataArray.
+        energy_range (slice: None) : Energy range for fitting. if None, (-0.1, 0.1) is used.
+            Default to None.
+        title (str): A title to attach to the plot
         ax:  The axes to plot to, if not specified will be generated
         out:  Where to save the plot
         kwargs: pass to data.plot()
@@ -49,24 +53,23 @@ def fermi_edge_reference(
         stacklevel=2,
     )
     assert isinstance(data_arr, xr.DataArray)
-    sum_dimensions: set[str] = {"cycle", "phi", "kp", "kx"}
-    sum_dimensions.intersection_update(set(data_arr.dims))
-    summed_data = data_arr.sum(*list(sum_dimensions))
-
-    broadcast_dimensions = [str(d) for d in summed_data.dims if str(d) != "eV"]
-    msg = f"Could not product fermi edge reference. Too many dimensions: {broadcast_dimensions}"
-    assert len(broadcast_dimensions) == 1, msg
-    edge_fit = broadcast_model(
-        GStepBModel,
-        summed_data.sel(eV=slice(-0.1, 0.1)),
-        broadcast_dimensions[0],
-    )
+    if len(data_arr.dims) > TWO_DIMENSION:
+        sum_dimensions: set[str] = {"cycle", "phi", "kp", "kx"}
+        sum_dimensions.intersection_update(set(data_arr.dims))
+        data_for_fit = data_arr.sum(
+            *list(sum_dimensions),
+            keep_attrs=True,
+        )
+        assert any(str(d) == "eV" for d in data_for_fit.dims)
+    else:
+        data_for_fit = data_arr
+    edge_fit = fit_fermi_edge(data_for_fit, energy_range=energy_range)
     centers = apply_dataarray(
-        edge_fit.results,
+        edge_fit.modelfit_results,
         np.vectorize(lambda x: x.params["center"].value, otypes=[float]),
     )
     widths = apply_dataarray(
-        edge_fit.results,
+        edge_fit.modelfit_results,
         np.vectorize(lambda x: x.params["width"].value, otypes=[float]),
     )
 
