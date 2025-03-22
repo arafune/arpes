@@ -7,13 +7,14 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import xarray as xr
+from lmfit.models import ConstantModel
 
 import arpes.constants
 import arpes.models.band
 import arpes.utilities
 import arpes.utilities.math
 from arpes.debug import setup_logger
-from arpes.fits import GStepBModel, broadcast_model
+from arpes.fits import AffineBroadenedFD
 from arpes.provenance import update_provenance
 from arpes.utilities import normalize_to_spectrum
 from arpes.utilities.math import fermi_distribution
@@ -53,14 +54,16 @@ def fit_fermi_edge(
     Returns:
         The Fermi edge location.
     """
+    assert isinstance(data, xr.DataArray)
     if energy_range is None:
         energy_range = slice(-0.1, 0.1)
 
-    broadcast_directions = list(data.dims)
-    broadcast_directions.remove("eV")
-    assert len(broadcast_directions) == 1  # for now we don't support more
-
-    return broadcast_model(GStepBModel, data.sel(eV=energy_range), str(broadcast_directions[0]))
+    model = AffineBroadenedFD() + ConstantModel()
+    params = AffineBroadenedFD().guess(
+        data.sel(eV=energy_range).sel(phi=0, method="nearest").values,
+        data.sel(eV=energy_range).coords["eV"].values,
+    )
+    return data.sel(eV=energy_range).S.modelfit("eV", model=model, params=params)
 
 
 @update_provenance("Normalized by the 1/Fermi Dirac Distribution at sample temp")
@@ -106,7 +109,10 @@ def normalize_by_fermi_distribution(
     assert isinstance(distrib, np.ndarray)
     # don't boost by more than 90th percentile of input, by default
     if not max_gain:
-        max_gain = min(np.mean(data.values), np.percentile(data.values, 10))
+        max_gain = np.min(
+            np.mean(data.values, dtype=np.float64),
+            np.percentile(data.values, 10),
+        )
     np.place(distrib, distrib < 1 / max_gain, 1 / max_gain)
     distrib_arr = xr.DataArray(distrib, {"eV": data.coords["eV"].values}, ["eV"])
 
