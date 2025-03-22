@@ -3,10 +3,10 @@
 import numpy as np
 import pytest
 import xarray as xr
+from lmfit.models import QuadraticModel
 
 from arpes.fits.fit_models import (
     AffineBroadenedFD,
-    QuadraticModel,
 )
 from arpes.fits.utilities import broadcast_model
 
