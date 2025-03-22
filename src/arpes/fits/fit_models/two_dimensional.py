@@ -7,11 +7,9 @@ from typing import TYPE_CHECKING, ClassVar, Unpack
 import lmfit as lf
 import numpy as np
 import xarray as xr
-from lmfit.models import update_param_vals
+from lmfit.models import Model, update_param_vals
 
 from arpes.constants import HBAR_SQ_EV_PER_ELECTRON_MASS_ANGSTROM_SQ
-
-from .x_model_mixin import XModelMixin
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete
@@ -24,7 +22,7 @@ __all__ = ("EffectiveMassModel", "Gaussian2DModel")
 any_dim_sentinel = None
 
 
-class Gaussian2DModel(XModelMixin):
+class Gaussian2DModel(Model):
     """2D Gaussian fitting."""
 
     n_dims = 2
@@ -72,7 +70,7 @@ class Gaussian2DModel(XModelMixin):
         self.set_param_hint("amplitude", min=0.0)
 
 
-class EffectiveMassModel(XModelMixin):
+class EffectiveMassModel(Model):
     """A two dimensional model for a quadratic distribution of Lorentzians.
 
     This can be used for "global" fitting of the effective mass of a band, providing higher quality

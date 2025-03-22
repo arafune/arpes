@@ -6,20 +6,19 @@ from typing import TYPE_CHECKING, Unpack
 
 import lmfit as lf
 import numpy as np
-from lmfit.models import update_param_vals
-
-from .x_model_mixin import XModelMixin
+from lmfit.models import Model, update_param_vals
 
 if TYPE_CHECKING:
     import xarray as xr
     from numpy.typing import NDArray
 
+    from arpes._typing import XrTypes
     from arpes.fits import ModelArgs
 
 __all__ = ("ExponentialDecayCModel", "TwoExponentialDecayCModel")
 
 
-class ExponentialDecayCModel(XModelMixin):
+class ExponentialDecayCModel(Model):
     """A model for fitting an exponential decay with a constant background."""
 
     @staticmethod
@@ -63,7 +62,8 @@ class ExponentialDecayCModel(XModelMixin):
 
     def guess(
         self,
-        data: xr.Dataset | NDArray[np.float64],
+        data: XrTypes | NDArray[np.float64],
+        x: NDArray[np.float64] | xr.DataArray,
         **kwargs: float,
     ) -> lf.Parameters:
         """Make heuristic estimates of parameters.
@@ -86,7 +86,7 @@ class ExponentialDecayCModel(XModelMixin):
     guess.__doc__ = lf.models.COMMON_GUESS_DOC
 
 
-class TwoExponentialDecayCModel(XModelMixin):
+class TwoExponentialDecayCModel(Model):
     """A model for fitting an exponential decay with a constant background."""
 
     @staticmethod

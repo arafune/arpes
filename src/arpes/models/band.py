@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING
 import numpy as np
 import scipy.ndimage.filters
 import xarray as xr
+from lmfit.models import GaussianModel, LorentzianModel, Model, VoigtModel
 
-import arpes.fits
 from arpes.analysis.band_analysis_utils import param_getter, param_stderr_getter
 from arpes.debug import setup_logger
 
@@ -17,8 +17,6 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
     from xarray.core.coordinates import DataArrayCoordinates
     from xarray.core.indexes import Indexes
-
-    from arpes.fits import XModelMixin
 
 __all__ = [
     "BackgroundBand",
@@ -93,9 +91,9 @@ class Band:
         return
 
     @property
-    def fit_cls(self) -> type[XModelMixin]:
+    def fit_cls(self) -> type[Model]:
         """Describes which fit class to use for band fitting, default Lorentzian."""
-        return arpes.fits.LorentzianModel
+        return LorentzianModel
 
     def get_dataarray(
         self,
@@ -202,15 +200,15 @@ class VoigtBand(Band):
     """Uses a Voigt lineshape."""
 
     @property
-    def fit_cls(self) -> type[XModelMixin]:  # guess_fit is used.
+    def fit_cls(self) -> type[Model]:  # guess_fit is used.
         """Fit using `arpes.fits.VoigtModel`."""
-        return arpes.fits.VoigtModel
+        return VoigtModel
 
 
 class BackgroundBand(Band):
     """Uses a Gaussian lineshape."""
 
     @property
-    def fit_cls(self) -> type[XModelMixin]:  # guess_fit is used
+    def fit_cls(self) -> type[Model]:  # guess_fit is used
         """Fit using `arpes.fits.GaussianModel`."""
-        return arpes.fits.GaussianModel
+        return GaussianModel

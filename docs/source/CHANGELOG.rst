@@ -20,6 +20,7 @@ Changed
   - xarray now has a curve_fit function. And a package that extends it to support lmfit has recently appeared on github.
     (xarray-lmfit) This is a pretty good implementation and easy to use. "Let's use the libraries we can use."
     I believe it's a good policy, and it is good to have less code to maintain.
+  - XModelMixin class is also removed.
 
 * Impve the compatibiltiies with the lmfit.
   - Note that some parameter names have been changed.

@@ -18,4 +18,3 @@ from .fermi_edge import (
 )
 from .misc import FermiVelocityRenormalizationModel, LogRenormalizationModel
 from .two_dimensional import EffectiveMassModel, Gaussian2DModel
-from .x_model_mixin import XModelMixin, gaussian_convolve

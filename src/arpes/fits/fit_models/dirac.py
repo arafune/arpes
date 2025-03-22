@@ -5,21 +5,21 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Unpack
 
 import lmfit as lf
-from lmfit.models import update_param_vals
-
-from .functional_forms import lorentzian
-from .x_model_mixin import XModelMixin
+import xarray as xr
+from lmfit.lineshapes import lorentzian
+from lmfit.models import Model, update_param_vals
 
 if TYPE_CHECKING:
     import numpy as np
     from numpy.typing import NDArray
 
+    from arpes._typing import XrTypes
     from arpes.fits import ModelArgs
 
 __all__ = ("DiracDispersionModel",)
 
 
-class DiracDispersionModel(XModelMixin):
+class DiracDispersionModel(Model):
     """Model for dirac_dispersion symmetric about the dirac point."""
 
     def dirac_dispersion(  # noqa:  PLR0913
@@ -52,12 +52,12 @@ class DiracDispersionModel(XModelMixin):
             x,
             center=kd - center,
             amplitude=amplitude_1,
-            gamma=sigma_1,
+            sigma=sigma_1,
         ) + lorentzian(
             x,
             center=kd + center,
             amplitude=amplitude_2,
-            gamma=sigma_2,
+            sigma=sigma_2,
         )
 
     def __init__(self, **kwargs: Unpack[ModelArgs]) -> None:
@@ -70,7 +70,12 @@ class DiracDispersionModel(XModelMixin):
         self.set_param_hint("sigma_1", min=0.0)
         self.set_param_hint("sigma_2", min=0.0)
 
-    def guess(self, **kwargs: float) -> lf.Parameters:
+    def guess(
+        self,
+        data: XrTypes | NDArray[np.float64],
+        x: NDArray[np.float64] | xr.DataArray,
+        **kwargs: float,
+    ) -> lf.Parameters:
         """Placeholder for making better heuristic guesses here."""
         pars = self.make_params()
         return update_param_vals(pars, self.prefix, **kwargs)

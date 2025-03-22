@@ -6,12 +6,12 @@ from typing import TYPE_CHECKING, Unpack
 
 import lmfit as lf
 import numpy as np
-from lmfit.models import update_param_vals
+import xarray as xr
+from lmfit.models import Model, update_param_vals
 
-from .x_model_mixin import XModelMixin
+from arpes._typing import XrTypes
 
 if TYPE_CHECKING:
-    import xarray as xr
     from numpy._typing import NDArray
 
     from arpes.fits import ModelArgs
@@ -22,7 +22,7 @@ __all__ = (
 )
 
 
-class FermiVelocityRenormalizationModel(XModelMixin):
+class FermiVelocityRenormalizationModel(Model):
     """A model for Logarithmic Renormalization to Fermi Velocity in Dirac Materials."""
 
     @staticmethod
@@ -55,8 +55,15 @@ class FermiVelocityRenormalizationModel(XModelMixin):
         self.set_param_hint("n0", min=0.0)
         self.set_param_hint("eps", min=0.0)
 
-    def guess(self, **kwargs: float) -> lf.Parameters:
+    def guess(
+        self,
+        data: XrTypes,
+        x: NDArray[np.float64] | xr.DataArray,
+        **kwargs: float,
+    ) -> lf.Parameters:
         """Placeholder for parameter estimation."""
+        if isinstance(x, xr.DataArray):
+            x = x.values
         pars = self.make_params()
 
         return update_param_vals(pars, self.prefix, **kwargs)
@@ -65,7 +72,7 @@ class FermiVelocityRenormalizationModel(XModelMixin):
     guess.__doc__ = lf.models.COMMON_GUESS_DOC
 
 
-class LogRenormalizationModel(XModelMixin):
+class LogRenormalizationModel(Model):
     """A model for Logarithmic Renormalization to Linear Dispersion in Dirac Materials."""
 
     @staticmethod
@@ -108,7 +115,7 @@ class LogRenormalizationModel(XModelMixin):
         self.set_param_hint("alpha", min=0.0)
         self.set_param_hint("vF", min=0.0)
 
-    def guess(self, **kwargs: float) -> lf.Parameters:
+    def guess(self, data, x, **kwargs: float) -> lf.Parameters:
         """Placeholder for actually making parameter estimates here."""
         pars = self.make_params()
 

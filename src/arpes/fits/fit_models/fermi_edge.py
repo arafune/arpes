@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, NoReturn, Unpack
+from typing import TYPE_CHECKING, Unpack
 
 import lmfit as lf
 import numpy as np
@@ -18,7 +18,6 @@ from .functional_forms import (
     gstep_stdev,
     gstepb,
 )
-from .x_model_mixin import XModelMixin
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete
@@ -252,7 +251,7 @@ class GStepBModel(Model):
     guess.__doc__ = lf.models.COMMON_GUESS_DOC
 
 
-class BandEdgeBModel(XModelMixin):
+class BandEdgeBModel(Model):
     """Fitting model for Lorentzian and background multiplied into the fermi dirac distribution."""
 
     def __init__(self, **kwargs: Unpack[ModelArgs]) -> None:
@@ -299,7 +298,7 @@ class BandEdgeBModel(XModelMixin):
         return update_param_vals(pars, self.prefix, **kwargs)
 
 
-class BandEdgeBGModel(XModelMixin):
+class BandEdgeBGModel(Model):
     """Fitting model Lorentzian and background multiplied into the fermi dirac distribution."""
 
     @staticmethod
