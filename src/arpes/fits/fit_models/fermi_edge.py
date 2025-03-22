@@ -11,6 +11,7 @@ from lmfit.lineshapes import gaussian, lorentzian
 from lmfit.models import Model, update_param_vals
 from scipy import stats
 
+from arpes._typing import XrTypes
 from .functional_forms import (
     affine_broadened_fd,
     band_edge_bkg,
@@ -23,7 +24,6 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import XrTypes
     from arpes.fits import ModelArgs
 
 __all__ = (
@@ -76,15 +76,17 @@ class AffineBroadenedFD(Model):
 
     def guess(
         self,
-        data: XrTypes,
+        data: XrTypes | NDArray[np.float64],
         x: NDArray[np.float64] | xr.DataArray,
         **kwargs: float,
     ) -> lf.Parameters:
         """Estimate initial model parameter values from data."""
+        if isinstance(data, XrTypes):
+            ymin, ymax = data.min().item(), data.max().item()
         ymin, ymax = min(data), max(data)
         if isinstance(x, xr.DataArray):
             x = x.values
-        xmin, xmax = min(x), max(x)
+        xmin, xmax = np.min(x), np.max(x)
         sigma = 0.1 * (xmax - xmin)
         width = 0.1 * (xmax - xmin)
 

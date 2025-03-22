@@ -5,7 +5,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal, Required, TypedDict
 
-from .fit_models.backgrounds import AffineBackgroundModel
 from .fit_models.bands import ParabolicDispersionPhiModel
 from .fit_models.decay import ExponentialDecayCModel, TwoExponentialDecayCModel
 from .fit_models.dirac import DiracDispersionModel

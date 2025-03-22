@@ -6,10 +6,9 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import xarray as xr
-from lmfit.models import LorentzianModel
+from lmfit.models import LinearModel, LorentzianModel
 from sklearn.decomposition import PCA
 
-from arpes.fits.fit_models import AffineBackgroundModel
 from arpes.provenance import update_provenance
 from arpes.utilities import normalize_to_spectrum
 from arpes.utilities.conversion import slice_along_path
@@ -269,7 +268,7 @@ def find_kf_by_mdc(
         slice_arr = slice_data.sum("eV")
 
     lor = LorentzianModel()
-    bkg = AffineBackgroundModel(prefix="b_")
+    bkg = LinearModel(prefix="b_")
 
     result = (lor + bkg).guess_fit(data=slice_arr, params=kwargs)
     return result.params["center"].value + offset
