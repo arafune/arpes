@@ -36,7 +36,6 @@ __all__ = (
     "GStepBModel",
     "GStepBStandardModel",
     "GStepBStdevModel",
-    "TwoBandEdgeBModel",
 )
 
 
