@@ -3,11 +3,8 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
-import pytest
 import xarray as xr
-from lmfit.models import ConstantModel, QuadraticModel
 
-from arpes.fits.fit_models import AffineBroadenedFD
 from arpes.utilities.conversion.forward import (
     convert_coordinate_forward,
     convert_through_angular_pair,
@@ -18,31 +15,6 @@ if TYPE_CHECKING:
     from collections.abc import Hashable
 
 RTOL = 1e-2
-
-
-@pytest.fixture
-def energy_corrected(dataarray_map: xr.DataArray) -> xr.DataArray:
-    """A fixture for loading DataArray."""
-    fmap = dataarray_map
-    cut = fmap.sum("theta", keep_attrs=True).sel(eV=slice(-0.2, 0.1), phi=slice(-0.25, 0.3))
-    params = AffineBroadenedFD().make_params(
-        center=0,
-        width=0.005,
-        sigma=0.02,
-        const_bkg=200000,
-        lin_slope=0,
-    )
-    model = AffineBroadenedFD() + ConstantModel()
-    fit_results = cut.S.modelfit("eV", model=model, params=params)
-    edge = (
-        fit_results.modelfit_results.F.p("center")
-        .S.modelfit("phi", QuadraticModel())
-        .modelfit_results.item()
-        .eval(x=fmap.phi)
-    )
-    energy_corrected = fmap.G.shift_by(edge, shift_axis="eV", by_axis="phi")
-    energy_corrected.attrs["energy_notation"] = "Binding"
-    return energy_corrected
 
 
 def test_convert_through_angular_point(energy_corrected: xr.DataArray) -> None:
