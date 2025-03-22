@@ -80,28 +80,30 @@ repeat an analysis across some experimental parameter or variable, such
 as the binding energy to track a dispersion, or across temperature to
 understand a phase transition.
 
-PyARPES provides a tool, ``broadcast_model`` that allows for automatic
-and compositional curve fitting across one or more axes of a Dataset or
-DataArray. You can use the ``params=`` keyword to
-enforce constraints or specify initial guesses for the fitting
-parameters. Broadcasts can be performed over a single dimension
-(``str``) or a list of dimensions (pass ``[str]``). Here we demonstrate
-performing the fitting procedure as a function of the sample
-temperature, and then plot the step edge location onto the data.
+By the previous version of PyARPES,  a tool ``broadcast_model`` that allows
+for automatic and compositional curve fitting across one or more axes of a Dataset or
+DataArray is provided. While it was nicely convenient, but it might be somehow
+complicated and difficult to maintain.  At present, xarray has `curvefit` metohd.
+Unfortunately, this method is not so suitable to handle lmfit model, which is more flexible, and used in PyARPES.
+Fortunatelely, `xarray-lmfit` is made with reference of xr.DataArray/Dataset.curvefit.
+While xarray-lmfit does not work in parallel for xr.DataArray,
+the current computational speed sufficiently high.  This is not the serious problem.
+Thus we have decided to drop broadcast_model and use xarray-lmfit internally.
+By using S.modelfit method, the multidimentional fitting can be easily performed.
 
 .. figure:: _static/broadcast.png
    :alt: A broadcasted curve fitting example
 
    A broadcasted curve fitting example
 
-In the above, we also used the ``.F`` extension to ``xarray`` in order
-to get the concrete values of the ``center`` fit parameter as an
-array. This is necessary because the result of a broadcast fit is a
-Dataset containing the full data, the residual, and the results. The
+The resultant of the fitting is stored as the xr.Dataset.  As same as the previous version, 
+The ``.F`` extension to ``xarray`` in order to access the fitting results.
+This is necessary because the result of a fit is a
+Dataset containing the full data, including the experimental data. The
 results attribute is itself a DataArray whose values are the full
 results of the fit, rather than any single of the values.
 
-Because of the rich information provided by a broadcast, PyARPES also
+Because of the rich information provided by a S.modelfit (xarray-lmfit), PyARPES also
 has facilities for interacting with the results of an array of fit
 results more simply, furnished by the ``.F`` attribute.
 
