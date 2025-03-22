@@ -15,7 +15,6 @@ from .functional_forms import (
     affine_broadened_fd,
     band_edge_bkg,
     fermi_dirac,
-    fermi_dirac_affine,
     gstep_stdev,
     gstepb,
 )
@@ -32,7 +31,6 @@ __all__ = (
     "AffineBroadenedFD",
     "BandEdgeBGModel",
     "BandEdgeBModel",
-    "FermiDiracAffGaussModel",
     "FermiDiracModel",
     "FermiLorentzianModel",
     "GStepBModel",
@@ -430,72 +428,6 @@ class BandEdgeBGModel(XModelMixin):
         pars[f"{self.prefix}width"].set(0.02)
 
         return update_param_vals(pars, self.prefix, **kwargs)
-
-
-class FermiDiracAffGaussModel(XModelMixin):
-    """Fermi Dirac function with affine background multiplied, then all convolved with Gaussian."""
-
-    @staticmethod
-    def fermi_dirac_bkg_gauss(  # noqa: PLR0913
-        x: NDArray[np.float64],
-        center: float = 0,
-        width: float = 0.05,
-        lin_slope: float = 0.0,
-        const_bkg: float = 1.0,
-        sigma: float = 0.01,
-    ) -> NDArray[np.float64]:
-        """Fermi Dirac function with affine background multiplied, convolved with Gaussian."""
-        return np.convolve(
-            fermi_dirac_affine(x, center, width, lin_slope, const_bkg),
-            gaussian(x, (min(x) + max(x)) / 2, sigma, 1 / np.sqrt(2 * np.pi * sigma**2)),
-            mode="same",
-        )
-
-    def __init__(self, **kwargs: Unpack[ModelArgs]) -> None:
-        """Defer to lmfit for initialization."""
-        kwargs.setdefault("prefix", "")
-        kwargs.setdefault("independent_vars", ["x"])
-        kwargs.setdefault("nan_policy", "raise")
-        super().__init__(self.fermi_dirac_bkg_gauss, **kwargs)
-
-        self.set_param_hint("width", vary=False)
-        self.set_param_hint("scale", min=0)
-        self.set_param_hint("sigma", min=0, vary=True)
-        self.set_param_hint("lin_slope", vary=False)
-        self.set_param_hint("const_bkg", vary=False)
-
-    def guess(
-        self,
-        data: XrTypes,
-        x: NDArray[np.float64] | xr.DataArray,
-        **kwargs: float,
-    ) -> lf.Parameters:
-        """Placeholder for making better heuristic guesses here.
-
-        Args:
-            data: [TODO:description]
-            x (NONE): In this guess function, x should be None.
-            kwargs: [TODO:description]
-
-        Returns:
-            [TODO:description]
-        """
-        pars = self.make_params()
-
-        pars[f"{self.prefix}center"].set(value=0)
-        pars[f"{self.prefix}width"].set(value=0.0009264)
-        pars[f"{self.prefix}scale"].set(value=data.mean() - data.min())
-        pars[f"{self.prefix}lin_slope"].set(value=0)
-        pars[f"{self.prefix}const_bkg"].set(value=0)
-        pars[f"{self.prefix}sigma"].set(value=0.023)
-
-        return update_param_vals(pars, self.prefix, **kwargs)
-
-    __init__.__doc__ = (
-        "Fermi Dirac function with affine background multiplied, then all convolved with Gaussian"
-        + lf.models.COMMON_INIT_DOC
-    )
-    guess.__doc__ = lf.models.COMMON_GUESS_DOC
 
 
 class GStepBStdevModel(XModelMixin):

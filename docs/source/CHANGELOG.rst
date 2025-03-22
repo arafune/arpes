@@ -37,6 +37,7 @@ Changed
 
 * Remove some Model classes
   - TwoLorEdgeModel
+  - FermiDiracAffGaussModel  (AffineBroadenedFD is same)
 
 * Remove some functional_forms for fit
   - gaussian (Use lmfit)

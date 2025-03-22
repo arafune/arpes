@@ -13,7 +13,6 @@ from .fit_models.fermi_edge import (
     AffineBroadenedFD,
     BandEdgeBGModel,
     BandEdgeBModel,
-    FermiDiracAffGaussModel,
     FermiDiracModel,
     FermiLorentzianModel,
     GStepBModel,
