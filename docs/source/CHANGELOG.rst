@@ -38,6 +38,8 @@ Changed
 * Remove some Model classes
   - TwoLorEdgeModel
   - FermiDiracAffGaussModel  (AffineBroadenedFD is same)
+  - TwoBandEdgeBModel
+  - QuadraticModel (already in lmfit)
 
 * Remove some functional_forms for fit
   - gaussian (Use lmfit)

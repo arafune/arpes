@@ -19,46 +19,7 @@ if TYPE_CHECKING:
 __all__ = (
     "FermiVelocityRenormalizationModel",
     "LogRenormalizationModel",
-    "QuadraticModel",
 )
-
-
-class QuadraticModel(XModelMixin):
-    """A model for fitting a quadratic function."""
-
-    @staticmethod
-    def quadratic(
-        x: NDArray[np.float64],
-        a: float = 1,
-        b: float = 0,
-        c: float = 0,
-    ) -> NDArray[np.float64]:
-        """Quadratc polynomial."""
-        return a * x**2 + b * x + c
-
-    def __init__(self, **kwargs: Unpack[ModelArgs]) -> None:
-        """Just defer to lmfit for initialization."""
-        kwargs.setdefault("prefix", "")
-        kwargs.setdefault("independent_vars", ["x"])
-        kwargs.setdefault("nan_policy", "raise")
-        super().__init__(self.quadratic, **kwargs)
-
-    def guess(
-        self,
-        data: xr.DataArray | NDArray[np.float64],
-        **kwargs: float,
-    ) -> lf.Parameters:
-        """Placeholder for parameter guesses."""
-        pars = self.make_params()
-
-        pars[f"{self.prefix}a"].set(value=0)
-        pars[f"{self.prefix}b"].set(value=0)
-        pars[f"{self.prefix}c"].set(value=data.mean())
-
-        return update_param_vals(pars, self.prefix, **kwargs)
-
-    __init__.__doc__ = "Quadratic model" + lf.models.COMMON_INIT_DOC
-    guess.__doc__ = lf.models.COMMON_GUESS_DOC
 
 
 class FermiVelocityRenormalizationModel(XModelMixin):

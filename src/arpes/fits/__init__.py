@@ -22,7 +22,6 @@ from .fit_models.fermi_edge import (
 from .fit_models.misc import (
     FermiVelocityRenormalizationModel,
     LogRenormalizationModel,
-    QuadraticModel,
 )
 from .fit_models.two_dimensional import EffectiveMassModel, Gaussian2DModel
 from .fit_models.x_model_mixin import XModelMixin, gaussian_convolve

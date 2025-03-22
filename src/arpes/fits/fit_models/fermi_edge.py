@@ -253,64 +253,6 @@ class GStepBModel(Model):
     guess.__doc__ = lf.models.COMMON_GUESS_DOC
 
 
-class TwoBandEdgeBModel(XModelMixin):
-    """A model for fitting a Lorentzian and background multiplied into the fermi dirac distribution.
-
-    TODO, actually implement two_band_edge_bkg (find original author and their intent).
-    """
-
-    @staticmethod
-    def two_band_edge_bkg() -> NoReturn:
-        """Some missing model referenced in old Igor code retained for visibility here."""
-        raise NotImplementedError
-
-    def __init__(self, **kwargs: Unpack[ModelArgs]) -> None:
-        """Defer to lmfit for initialization."""
-        kwargs.setdefault("prefix", "")
-        kwargs.setdefault("independent_vars", ["x"])
-        kwargs.setdefault("nan_policy", "raise")
-        super().__init__(self.two_band_edge_bkg, **kwargs)
-
-        self.set_param_hint("amplitude_1", min=0.0)
-        self.set_param_hint("gamma_1", min=0.0)
-        self.set_param_hint("amplitude_2", min=0.0)
-        self.set_param_hint("gamma_2", min=0.0)
-
-        self.set_param_hint("offset", min=-10)
-
-    def guess(
-        self,
-        data: XrTypes,
-        x: NDArray[np.float64] | None = None,
-        **kwargs: float,
-    ) -> lf.Parameters:
-        """Placeholder for making better heuristic guesses here.
-
-        We should really do some peak fitting or edge detection to find
-        okay values here.
-        """
-        pars = self.make_params()
-
-        if x is not None:
-            slope = stats.linregress(x, data)[0]
-            pars[f"{self.prefix}lor_center"].set(value=x[np.argmax(data - slope * x)])
-        else:
-            pars[f"{self.prefix}lor_center"].set(value=-0.2)
-
-        pars[f"{self.prefix}gamma"].set(value=0.2)
-        pars[f"{self.prefix}amplitude"].set(value=(data.mean() - data.min()) / 1.5)
-
-        pars[f"{self.prefix}const_bkg"].set(value=data.min())
-        pars[f"{self.prefix}lin_slope"].set(value=0)
-        pars[f"{self.prefix}offset"].set(value=data.min())
-
-        pars[f"{self.prefix}center"].set(value=0)
-
-        pars[f"{self.prefix}width"].set(0.02)
-
-        return update_param_vals(pars, self.prefix, **kwargs)
-
-
 class BandEdgeBModel(XModelMixin):
     """Fitting model for Lorentzian and background multiplied into the fermi dirac distribution."""
 
@@ -430,7 +372,7 @@ class BandEdgeBGModel(XModelMixin):
         return update_param_vals(pars, self.prefix, **kwargs)
 
 
-class GStepBStdevModel(XModelMixin):
+class GStepBStdevModel(Model):
     """A model for fitting Fermi functions with a linear background."""
 
     @staticmethod
@@ -470,11 +412,10 @@ class GStepBStdevModel(XModelMixin):
     def guess(
         self,
         data: XrTypes,
-        x: None = None,
+        x: NDArray[np.float64] | xr.DataArray,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
         """Placeholder for making better heuristic guesses here."""
-        assert x is None  # "x" is not used but for consistency, it should not be removed.
         pars = self.make_params()
 
         pars[f"{self.prefix}center"].set(value=0)
@@ -493,7 +434,7 @@ class GStepBStdevModel(XModelMixin):
     guess.__doc__ = lf.models.COMMON_GUESS_DOC
 
 
-class GStepBStandardModel(XModelMixin):
+class GStepBStandardModel(Model):
     """A model for fitting Fermi functions with a linear background."""
 
     @staticmethod

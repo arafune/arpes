@@ -12,10 +12,10 @@ from __future__ import annotations
 
 import numpy as np
 import xarray as xr
+from lmfit.models import QuadraticModel
 from scipy import signal
 
 from arpes.constants import TWO_DIMENSION
-from arpes.fits.fit_models import QuadraticModel
 
 __all__ = ("align",)
 
