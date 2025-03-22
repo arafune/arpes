@@ -65,7 +65,7 @@ class FitInspectionPlot(QWidget):
 
     def x(self) -> NDArray[np.float64]:
         """Returns the single fit coordinate along the model data."""
-        fit_dim = self.root().dataset.F.fit_dimensions[0]
+        fit_dim = self.root().dataset.F.fit_dimensions()[0]
         return self.root().dataset.coords[fit_dim].values
 
     @property

@@ -2472,8 +2472,7 @@ class ARPESDatasetFitToolAccessor:
         """Fit inspection tool."""
         return fit_inspection(self._obj, **kwargs)
 
-    @property
-    def fit_dimensions(self, spectral_name="spectrum") -> list[str]:  # pragma: no cover
+    def fit_dimensions(self, spectral_name: str = "spectrum") -> list[Hashable]:  # pragma: no cover
         """Returns the dimensions which were broadcasted across, as opposed to fit across.
 
         This is a sibling property to `broadcast_dimensions`.
@@ -2490,7 +2489,17 @@ class ARPESDatasetFitToolAccessor:
         )
 
         assert isinstance(self._obj, xr.Dataset)
-        return list(set(self._obj.data.dims).difference(self._obj.results.dims))
+        if any(str(i).startswith("modelfit_best_fit") for i in self._obj.data_vars):
+            return list(
+                set(self._obj["modelfit_data"].dims).difference(
+                    set(self._obj["modelfit_results"].dims),
+                ),
+            )
+        return list(
+            set(self._obj[f"{spectral_name}_modelfit_data"].dims).difference(
+                set(self._obj[f"{spectral_name}_modelfit_results"].dims),
+            ),
+        )
 
 
 @xr.register_dataarray_accessor("F")

@@ -7,10 +7,11 @@ from typing import TYPE_CHECKING, TypeVar
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
+from lmfit.models import LinearModel
 from matplotlib.axes import Axes
 
 from arpes.correction.intensity_map import shift_by
-from arpes.fits import GStepBModel, LinearModel, QuadraticModel, broadcast_model
+from arpes.fits import GStepBModel, QuadraticModel, broadcast_model
 from arpes.provenance import Provenance, provenance, update_provenance
 
 if TYPE_CHECKING:

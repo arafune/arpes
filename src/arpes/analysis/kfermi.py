@@ -6,8 +6,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import xarray as xr
-
-from arpes.fits import LinearModel
+from lmfit.models import LinearModel
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray

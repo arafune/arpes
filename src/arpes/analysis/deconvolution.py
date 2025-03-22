@@ -9,9 +9,9 @@ import numpy as np
 import scipy
 import scipy.ndimage
 import xarray as xr
+from lmfit.lineshapes import gaussian
 from scipy.stats import multivariate_normal
 from skimage.restoration import richardson_lucy
-from lmfit.lineshapes import gaussian
 
 from arpes.debug import setup_logger
 from arpes.provenance import update_provenance

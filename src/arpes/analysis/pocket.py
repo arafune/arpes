@@ -6,9 +6,10 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import xarray as xr
+from lmfit.models import LorentzianModel
 from sklearn.decomposition import PCA
 
-from arpes.fits.fit_models import AffineBackgroundModel, LorentzianModel
+from arpes.fits.fit_models import AffineBackgroundModel
 from arpes.provenance import update_provenance
 from arpes.utilities import normalize_to_spectrum
 from arpes.utilities.conversion import slice_along_path

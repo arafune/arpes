@@ -26,18 +26,6 @@ from .fit_models.misc import (
     QuadraticModel,
 )
 from .fit_models.two_dimensional import EffectiveMassModel, Gaussian2DModel
-from .fit_models.wrapped import (
-    ConstantModel,
-    GaussianModel,
-    LinearModel,
-    LogisticModel,
-    LorentzianModel,
-    SineModel,
-    SkewedVoigtModel,
-    SplitLorentzianModel,
-    StepModel,
-    VoigtModel,
-)
 from .fit_models.x_model_mixin import XModelMixin, gaussian_convolve
 from .utilities import broadcast_model, result_to_hints
 
