@@ -7,14 +7,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING, TypedDict
 
 import pytest
+from lmfit.models import LinearModel, LorentzianModel
 
 import arpes.config
 import arpes.endstations
-from arpes.fits.fit_models import (
-    AffineBackgroundModel,
-    LorentzianModel,
-)
-from arpes.fits.utilities import broadcast_model
 from arpes.io import example_data
 from tests.utils import cache_loader
 
@@ -112,11 +108,12 @@ def near_ef(dataset_temperature_dependence: xr.Dataset) -> xr.DataArray:
 
 @pytest.fixture
 def phi_values(near_ef: xr.DataArray) -> xr.DataArray:
-    return broadcast_model(
-        [AffineBackgroundModel, LorentzianModel],
-        near_ef,
-        "temperature",
-    ).results.F.p("b_center")
+    model = LinearModel(prefix="a_") + LorentzianModel(prefix="b_")
+    lorents_params = LorentzianModel(prefix="b_").guess(
+        near_ef.sel(temperature=20, method="nearest").values,
+        near_ef.coords["phi"].values,
+    )
+    return near_ef.S.modelfit("phi", model, params=lorents_params).modelfit_results.F.p("b_center")
 
 
 @dataclass
