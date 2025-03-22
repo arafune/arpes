@@ -44,5 +44,11 @@ from .pocket import (
     pocket_parameters,
     radial_edcs_along_pocket,
 )
+from .self_energy import (
+    estimate_bare_band,
+    fit_for_self_energy,
+    quasiparticle_lifetime,
+    to_self_energy,
+)
 from .tarpes import build_crosscorrelation, normalized_relative_change, relative_change
 from .xps import approximate_core_levels
