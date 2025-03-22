@@ -22,7 +22,7 @@ Changed
     I believe it's a good policy, and it is good to have less code to maintain.
   - XModelMixin class is also removed.
 
-* Impve the compatibiltiies with the lmfit.
+* Improve the compatibiltiies with the lmfit.
   - Note that some parameter names have been changed.
 
 * Remove
@@ -41,6 +41,7 @@ Changed
   - FermiDiracAffGaussModel  (AffineBroadenedFD is same)
   - TwoBandEdgeBModel
   - QuadraticModel (already in lmfit)
+  - AffineBackgroundModel (This is same as LinearModel in lmfit)
 
 * Remove some functional_forms for fit
   - gaussian (Use lmfit)

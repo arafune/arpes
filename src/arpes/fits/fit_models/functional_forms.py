@@ -13,7 +13,6 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
 
 __all__ = (
-    "affine_bkg",
     "affine_broadened_fd",
     "band_edge_bkg",
     "fermi_dirac",
@@ -52,25 +51,6 @@ def affine_broadened_fd(  # noqa: PLR0913
         ),
         dtype=np.float64,
     )
-
-
-def affine_bkg(
-    x: NDArray[np.float64],
-    lin_slope: float = 0,
-    const_bkg: float = 0,
-) -> NDArray[np.float64]:
-    """An affine/linear background.
-
-    Args:
-        x: x-value as independent variable
-        lin_slope: coefficient of linear background
-        const_bkg: constant background
-
-    Returns:
-        Background of the form
-          lin_slope * x + const_bkg
-    """
-    return lin_slope * x + const_bkg
 
 
 def fermi_dirac(
