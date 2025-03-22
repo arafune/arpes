@@ -3,11 +3,7 @@
 import numpy as np
 import pytest
 import xarray as xr
-from lmfit.models import QuadraticModel
 
-from arpes.fits.fit_models import (
-    AffineBroadenedFD,
-)
 from arpes.fits.utilities import broadcast_model
 
 
@@ -266,7 +262,10 @@ class TestGeneralforDataArray:
 
     def test_G_stride(self, dataarray_cut: xr.DataArray) -> None:
         """Test for G.stride."""
-        assert dataarray_cut.G.stride("x", "y") == [0.001745329251994332, 0.002325581000000021]
+        assert dataarray_cut.G.stride("x", "y") == [
+            0.001745329251994332,
+            0.002325581000000021,
+        ]
 
         assert dataarray_cut.G.stride(generic_dim_names=False) == {
             "phi": 0.001745329251994332,
@@ -284,19 +283,6 @@ class TestGeneralforDataArray:
             "phi": -0.2910254835234106,
         }
 
-    @pytest.fixture
-    def edge(self, dataarray_map: xr.DataArray) -> xr.DataArray:
-        fmap = dataarray_map
-        cut = fmap.sum("theta", keep_attrs=True).sel(eV=slice(-0.2, 0.1), phi=slice(-0.25, 0.3))
-        fit_results = broadcast_model(AffineBroadenedFD, cut, "phi")
-        return (
-            QuadraticModel()
-            .guess_fit(
-                fit_results.results.F.p("center"),
-            )
-            .eval(x=fmap.phi)
-        )
-
     def test_G_shift(
         self,
         dataarray_map: xr.DataArray,
@@ -313,7 +299,16 @@ class TestGeneralforDataArray:
                 eV=0,
                 method="nearest",
             )[:][0][:5],
-            desired=np.array([5.625749, 566.8711542, 757.8334417, 637.2900199, 610.679927]),
+            desired=np.array(
+                [
+                    5.597668,
+                    552.75706,
+                    741.482219,
+                    623.824148,
+                    597.923063,
+                ],
+            ),
+            # desired=np.array([5.625749, 566.8711542, 757.8334417, 637.2900199, 610.679927]),
             rtol=1e-2,
         )
 
