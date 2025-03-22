@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any, Literal, Required, TypedDict
 import lmfit as lf
 import numpy as np
 import xarray as xr
-from lmfit.models import LorentzianModel, QuadraticModel, LinearModel
+from lmfit.models import LinearModel, LorentzianModel, QuadraticModel
 from scipy.spatial import distance
 
 import arpes.utilities.math
