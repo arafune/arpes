@@ -30,3 +30,4 @@ from .fermi_edge import (
     find_e_fermi_linear_dos,
 )
 from .intensity_map import shift
+from .trapezoid import trapezoid

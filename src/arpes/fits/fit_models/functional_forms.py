@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 
 __all__ = (
     "affine_bkg",
+    "affine_broadened_fd",
     "band_edge_bkg",
     "fermi_dirac",
     "fermi_dirac_affine",

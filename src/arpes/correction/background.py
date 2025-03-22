@@ -38,7 +38,7 @@ def remove_incoherent_background(
         set_zero (bool): set zero if the negative value is obtained after background subtraction.
 
     Returns:
-        Data with a background subtracted.
+        xr.DataArray: Data with a background subtracted.
     """
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     if fermi_level is None:

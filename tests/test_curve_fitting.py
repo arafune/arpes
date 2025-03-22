@@ -95,7 +95,6 @@ def test_broadcast_fitting(dataarray_cut: xr.DataArray) -> None:
     }
 
     assert fit_results.results.F.band_names == {"a_"}
-    assert fit_results.F.fit_dimensions == ["eV"]
     np.testing.assert_allclose(
         fit_results.results.F.mean_square_error().values,
         np.array(

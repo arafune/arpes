@@ -13,6 +13,7 @@ but in the future we would like to provide:
 
 from __future__ import annotations
 
+import warnings
 from datetime import UTC, datetime
 from logging import DEBUG, INFO
 from os import cpu_count
@@ -184,6 +185,13 @@ def broadcast_model(  # noqa: PLR0913
         (and the data for fit, needless to say.)
 
     """
+    warnings.warn(
+        "This function has not been maintained.  Use S.modelfit() insted. "
+        "(Migration is not so difficult)",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     params = params or {}
 
     if isinstance(broadcast_dims, str):

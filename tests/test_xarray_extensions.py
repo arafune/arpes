@@ -18,11 +18,6 @@ class TestforProperties:
         """Test for self.hv."""
         np.testing.assert_equal(hv_map.S.hv.values, np.linspace(50, 90, 21))
 
-    def test_degrees_of_freedom_dims(self, xps_map: xr.Dataset) -> None:
-        """Test for degrees_of_freedom."""
-        assert xps_map.S.spectrum_degrees_of_freedom == {"eV"}
-        assert xps_map.S.scan_degrees_of_freedom == {"x", "y"}
-
     def test_is_spatial(self, xps_map: xr.Dataset) -> None:
         """Test for is_* function."""
         assert xps_map.S.is_spatial
@@ -53,21 +48,12 @@ class TestforProperties:
             ),
         )
 
-    def test_property_for_degrees_of_freedom(
-        self,
-        dataset_cut: xr.Dataset,
-    ) -> None:
-        """Test for spectrum degrees of freedom."""
-        assert dataset_cut.S.spectrum_degrees_of_freedom == {"phi", "eV"}
-        assert dataset_cut.S.degrees_of_freedom == {"phi", "eV"}
-        assert dataset_cut.S.spectrum_type == "cut"
-
     def test_property_for_sample_pos(
         self,
         dataset_cut: xr.Dataset,
         dataarray_cut: xr.DataArray,
     ) -> None:
-        """Test for spectrum degrees of freedom."""
+        """Test for sample_pos property."""
         assert (
             dataarray_cut.S.sample_pos
             == dataset_cut.S.sample_pos

@@ -113,7 +113,7 @@ def v_gradient_fill(
         **kwargs: (str|float): pass to ax.imshow
 
     Returns:
-        The result of the inner imshow call.
+        AxesImage: The result of the inner imshow call.
 
     Todo: Stop using imshow, move to decoration
     """

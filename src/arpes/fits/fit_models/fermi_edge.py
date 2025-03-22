@@ -15,6 +15,7 @@ from .functional_forms import (
     band_edge_bkg,
     fermi_dirac,
     fermi_dirac_affine,
+    gstep,
     gstep_stdev,
     gstepb,
 )

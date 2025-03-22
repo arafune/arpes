@@ -17,8 +17,6 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import MOMENTUM
-
     from .calibration import DetectorCalibration
 
 __all__ = ["K_SPACE_BORDER", "MOMENTUM_BREAKPOINTS", "CoordinateConverter"]
@@ -77,7 +75,6 @@ class CoordinateConverter:
         self.phi: NDArray[np.float64] | None = None
 
     @staticmethod
-    @abstractmethod
     def prep(arr: xr.DataArray) -> None:
         """Perform preprocessing of the array to convert before we start.
 
@@ -112,7 +109,6 @@ class CoordinateConverter:
         )
 
     @staticmethod
-    @abstractmethod
     def kspace_to_BE(
         binding_energy: NDArray[np.float64],
         *args: NDArray[np.float64],
@@ -132,22 +128,22 @@ class CoordinateConverter:
         dim: Hashable,
     ) -> Callable[[NDArray[np.float64]], NDArray[np.float64]]:
         """Fetches the method responsible for calculating `dim` from momentum coordinates."""
-        assert isinstance(dim, str)
-        return self.kspace_to_BE
 
     def identity_transform(self, axis_name: Hashable, *args: Incomplete) -> NDArray[np.float64]:
         """Just returns the coordinate requested from args.
 
         Useful if the transform is the identity.
         """
-        assert isinstance(self.dim_order, list)
+        assert isinstance(self.dim_order, (list | tuple)), (
+            f"self.dim_oder should be list | tuple, but {type(self.dim_order)}"
+        )
         return args[self.dim_order.index(str(axis_name))]
 
     @abstractmethod
     def get_coordinates(
         self,
-        resolution: dict[MOMENTUM, float] | None = None,
-        bounds: dict[MOMENTUM, tuple[float, float]] | None = None,
+        resolution: dict[str, float] | None = None,
+        bounds: dict[str, tuple[float, float]] | None = None,
     ) -> dict[Hashable, NDArray[np.float64]]:
         """Calculates the coordinates which should be used in momentum space.
 
@@ -160,6 +156,3 @@ class CoordinateConverter:
             Object that is to be used the coordinates in the momentum converted data.
             Thus the keys are "kp", "kx", and "eV", but not "phi"
         """
-        resolution = resolution if resolution is not None else {}
-        bounds = bounds if bounds is not None else {}
-        return {k: v.values for k, v in self.arr.coords.items() if k == "eV"}

@@ -24,6 +24,17 @@ Changed
 * Impve the compatibiltiies with the lmfit.
   - Note that some parameter names have been changed.
 
+* Remove
+  - S.correct_angle_by
+  - S.corrected_angle_by
+  - S.transpose_to_front
+  - S.transpose_to_back
+  - S.to_arrays
+  - S.scan_degrees_of_freedom, S.degrees_of_freedom and spectrum_degrees_of_freedom
+  - arrange_by_indices and unarrange_by_indices (defined in utilities/__init__.py). They are not used internally.
+  -  sum_annotation and mean_annotation in plotting.utils
+  - F.fit_dimensions
+
 * Remove some Model classes
   - TwoLorEdgeModel
 
@@ -35,7 +46,7 @@ Changed
 * Change Parammeter name in fit function
   - lin_bkg -> lin_slope
 
-4.2.4 (XXXX-XX-XX)
+4.2.4 (2025-03-20)
 ^^^^^^^^^^^^^^^^^^
 
 Changed
@@ -53,9 +64,12 @@ Changed
 * Remove load_data_for_figure from plotting.utils
 * Remove CoincidentLinePlot (Same (at least similar) feature can be done with fill_between)
 * Remove zero_nans arg in shift_by. Use da.fillna(0), instead.
+* Remove utilities/transfer.py because it's essentially empty.
 * Remove cut_nan_coords. Use dropna like that:
   for cname in da.coords:
     da = da.dropna(dim=cname, how="any")
+
+* Move utilities/convert/trapezoid.py -> correction/trapezoid.py
 
 * Change method name: S.swap_angle_unit -> S.switch_angle_unit
 
@@ -65,7 +79,12 @@ Changed
   - S.transpose_to_front
   - S.transpose_to_back
   - S.to_arrays
+  - S.scan_degrees_of_freedom, S.degrees_of_freedom and spectrum_degrees_of_freedom
   - arrange_by_indices and unarrange_by_indices (defined in utilities/__init__.py). They are not used internally.
+
+* Refactoring
+
+  * ConvertTrapezoidalCorrection: More general
 
 4.2.3 (2025-1-5)
 ^^^^^^^^^^^^^^^^^^

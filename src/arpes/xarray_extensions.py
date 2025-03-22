@@ -26,7 +26,7 @@ The `.G` accessor:
 
 The `.F` accessor:
     This is an accessor which contains tools related to interpreting curve fitting
-    results (assumed the return of broadcast_model).
+    results (assumed the return of S.modelfit).
     In particular there are utilities for vectorized extraction of parameters,
     for plotting several curve fits, or for selecting "worst" or "best" fits according
     to some measure.
@@ -57,6 +57,7 @@ from typing import (
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
+import xarray_lmfit  # noqa: F401
 from more_itertools import always_reversible
 from xarray.core.coordinates import DataArrayCoordinates, DatasetCoordinates
 
@@ -141,10 +142,11 @@ T = TypeVar("T")
 class ARPESAngleProperty:
     """Class for Angle related property.
 
-    This class should not be called directly.
-
     Attributes:
         _obj (XrTypes): ARPES data
+
+    Note:
+        This class should not be called directly.
 
     """
 
@@ -189,7 +191,7 @@ class ARPESAngleProperty:
             raise TypeError(msg)
 
     def radian_to_degree(self) -> None:
-        """Switch angle unit in from Radians to Degrees."""
+        """Switch angle unit from Radians to Degrees."""
         self.angle_unit = "Degrees"
         for angle in flatten_literals(ANGLE):
             if angle in self._obj.attrs:
@@ -202,7 +204,7 @@ class ARPESAngleProperty:
                 self._obj.coords[angle] = np.rad2deg(self._obj.coords[angle])
 
     def degree_to_radian(self) -> None:
-        """Switch angle unit in from Degrees and Radians."""
+        """Switch angle unit from Degrees and Radians."""
         self.angle_unit = "Radians"
         for angle in flatten_literals(ANGLE):
             if angle in self._obj.attrs:
@@ -1275,7 +1277,7 @@ class ARPESProperty(ARPESPropertyBase):
 
 
 class ARPESAccessorBase(ARPESProperty):
-    """Base class for the xarray extensions in PyARPES."""
+    """Base class for "S" accessor of the xarray extensions in PyARPES."""
 
     def __init__(self, xarray_obj: XrTypes) -> None:
         self._obj = xarray_obj
@@ -1290,53 +1292,6 @@ class ARPESAccessorBase(ARPESProperty):
             Property list
         """
         return [n for n in dir(self) if name in n]
-
-    def transpose_to_front(self, dim: str) -> XrTypes:  # pragma: no cover
-        """Transpose the dimensions (to front).
-
-        Args:
-            dim: dimension to front
-
-        Returns: (XrTypes)
-            Transposed ARPES data
-
-        Warning:
-            This method will be deprecated. Use standard transpose(dim, ...).
-        """
-        warnings.warn(
-            "This method will be deprecated. Use standard transpose(dim, ...). "
-            "Note Ellipsis is important",
-            category=DeprecationWarning,
-            stacklevel=2,
-        )
-        dims = list(self._obj.dims)
-        assert dim in dims
-        dims.remove(dim)
-        return self._obj.transpose(*([dim, *dims]))
-
-    def transpose_to_back(self, dim: str) -> XrTypes:  # pragma: no cover
-        """Transpose the dimensions (to back).
-
-        Args:
-            dim: dimension to back
-
-        Returns: (XrTypes)
-            Transposed ARPES data.
-
-        Warning:
-            This method will be deprecated. Use standard transpose(dim, ...).
-        """
-        warnings.warn(
-            "This method will be deprecated. Use standard transpose(..., dim). "
-            "Note Ellipsis is important",
-            category=DeprecationWarning,
-            stacklevel=2,
-        )
-
-        dims = list(self._obj.dims)
-        assert dim in dims
-        dims.remove(dim)
-        return self._obj.transpose(*([*dims, dim]))
 
     def sum_other(
         self,
@@ -1391,6 +1346,22 @@ class ARPESAccessorBase(ARPESProperty):
         Note: The width must be specified by width.  Not kwargs.
         """
         return selections.fat_sel(data=self._obj, widths=widths, method=method, **kwargs)
+
+    def modelfit(self, *args: Incomplete, **kwargs: Incomplete) -> xr.Dataset:
+        """Curve fit using lmfit through xarray-lmfit.
+
+            This is the just a wrapper of xlm.modelfit.
+            See the manuall of xarray-lmfit for details.
+
+
+        Args:
+            *args: Arguments to passed to xlm.modelfit
+            **kwargs: Keyword arguments to passed to xlm.modelfit
+
+        Returns:
+            xr.Dataset: Fit result.
+        """
+        return self._obj.xlm.modelfit(*args, **kwargs)
 
 
 class ARPESDataArrayAccessorBase(ARPESAccessorBase):
@@ -1521,141 +1492,6 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
         array = coords.corrected_coords(self._obj, correction_types)
         self._obj.attrs = array.attrs
         self._obj.coords.update(array.coords)
-
-    def corrected_angle_by(  # pragma: no cover
-        self,
-        angle_for_correction: Literal[
-            "alpha_offset",
-            "beta_offset",
-            "chi_offset",
-            "phi_offset",
-            "psi_offset",
-            "theta_offset",
-            "beta",
-            "theta",
-        ],
-    ) -> xr.DataArray:
-        """Return xr.DataArray corrected angle by "angle_for_correction".
-
-        if "angle_for_correction" is like "'angle'_offset", the 'angle' corrected by the
-        'angle'_offset value. if "angle_for_correction" is "beta" or "theta", the angle "phi" or
-        "psi" is shifted.
-
-        Args:
-            angle_for_correction(str): should be one of "alpha_offset", "beta_offset",
-                                       "chi_offset", "phi_offset", "psi_offset", "theta_offset",
-                                       "beta", "theta"
-
-        Returns:
-            xr.DataArray
-
-        Warning:
-            This method will be deprecated.
-            Use S.corrected_coords((dim1_offset, dim1_offset, ...)), instead.
-        """
-        warnings.warn(
-            "This method will be deprecated. "
-            "Use S.corrected_coords((dim1_offset, dim1_offset, ...)), instead.",
-            category=DeprecationWarning,
-            stacklevel=2,
-        )
-        assert angle_for_correction in {
-            "alpha_offset",
-            "beta_offset",
-            "chi_offset",
-            "phi_offset",
-            "psi_offset",
-            "theta_offset",
-            "beta",
-            "theta",
-        }
-        assert isinstance(self._obj, xr.DataArray)
-        assert angle_for_correction in self._obj.attrs
-        arr: xr.DataArray = self._obj.copy(deep=True)
-        arr.S.correct_angle_by(angle_for_correction)
-        return arr
-
-    def correct_angle_by(  # pragma: no cover
-        self,
-        angle_for_correction: Literal[
-            "alpha_offset",
-            "beta_offset",
-            "chi_offset",
-            "phi_offset",
-            "psi_offset",
-            "theta_offset",
-            "beta",
-            "theta",
-        ],
-    ) -> None:
-        """Angle correction in place.
-
-        if "angle_for_correction" is like "'angle'_offset", the 'angle' corrected by the
-        'angle'_offset value. if "angle_for_correction" is "beta" or "theta", the angle "phi" or
-        "psi" is shifted.
-
-        Args:
-            angle_for_correction (str): should be one of "alpha_offset", "beta_offset",
-                                        "chi_offset", "phi_offset", "psi_offset", "theta_offset",
-                                        "beta", "theta"
-
-        Warning:
-            This method will be deprecated.
-            Use S.corrected_coords((dim1_offset, dim1_offset, ...)), instead.
-        """
-        warnings.warn(
-            "This method will be deprecated. "
-            "Use S.correct_coords((dim1_offset, dim1_offset, ...)), instead.",
-            category=DeprecationWarning,
-            stacklevel=2,
-        )
-        assert angle_for_correction in {
-            "alpha_offset",
-            "beta_offset",
-            "chi_offset",
-            "phi_offset",
-            "psi_offset",
-            "theta_offset",
-            "beta",
-            "theta",
-        }
-        assert angle_for_correction in self._obj.attrs
-        if "_offset" in angle_for_correction:
-            angle = angle_for_correction.split("_")[0]
-            if angle in self._obj.coords:
-                self._obj.coords[angle] = (
-                    self._obj.coords[angle] - self._obj.attrs[angle_for_correction]
-                )
-            if angle in self._obj.attrs:
-                self._obj.attrs[angle] = (
-                    self._obj.attrs[angle] - self._obj.attrs[angle_for_correction]
-                )
-            self._obj.attrs[angle_for_correction] = 0
-            return
-
-        if angle_for_correction == "beta":
-            if self._obj.S.is_slit_vertical:
-                self._obj.coords["phi"] = (
-                    self._obj.coords["phi"] + self._obj.attrs[angle_for_correction]
-                )
-            else:
-                self._obj.coords["psi"] = (
-                    self._obj.coords["psi"] + self._obj.attrs[angle_for_correction]
-                )
-
-        if angle_for_correction == "theta":
-            if self._obj.S.is_slit_vertical:
-                self._obj.coords["psi"] = (
-                    self._obj.coords["psi"] + self._obj.attrs[angle_for_correction]
-                )
-            else:
-                self._obj.coords["phi"] = (
-                    self._obj.coords["phi"] + self._obj.attrs[angle_for_correction]
-                )
-
-        self._obj.coords[angle_for_correction] = 0
-        self._obj.attrs[angle_for_correction] = 0
-        return
 
     # --- Mehhods about plotting
     # --- TODO : [RA] Consider refactoring/removing
@@ -2279,28 +2115,6 @@ class GenericDataArrayAccessor(GenericAccessorBase):
 
         return meshed_coordinates
 
-    def to_arrays(self) -> tuple[NDArray[np.float64], NDArray[np.float64]]:  # pragma: no cover
-        """Converts a (1D) `xr.DataArray` into two plain ``ndarray`` s of their coordinate and data.
-
-        Useful for rapidly converting into a format than can be `plt.scatter` ed
-        or similar.
-
-        Example:
-            We can use this to quickly scatter a 1D dataset where one axis is the coordinate value.
-
-            >>> plt.scatter(*data.G.as_arrays(), marker='s')  # doctest: +SKIP
-
-        Returns:
-            A tuple of the coordinate array (first index) and the data array (second index)
-
-        Warning:
-            This method will be Deprecated.
-        """
-        assert isinstance(self._obj, xr.DataArray)
-        assert len(self._obj.dims) == 1
-        warnings.warn("This method will be deprecated", DeprecationWarning, stacklevel=2)
-        return (self._obj.coords[self._obj.dims[0]].values, self._obj.values)
-
     def clean_outliers(self, clip: float = 0.5) -> xr.DataArray:
         """Clip outliers in the DataArray by limiting values to a specified percentile range.
 
@@ -2655,15 +2469,11 @@ class ARPESDatasetFitToolAccessor:
         self._obj = xarray_obj
 
     def show(self, **kwargs: Unpack[ProfileViewParam]) -> AdjointLayout:
-        """[TODO:summary].
-
-        Todo:
-            Need Revision (It does not work, currently)/Consider removing.
-        """
+        """Fit inspection tool."""
         return fit_inspection(self._obj, **kwargs)
 
     @property
-    def fit_dimensions(self) -> list[str]:
+    def fit_dimensions(self, spectral_name="spectrum") -> list[str]:  # pragma: no cover
         """Returns the dimensions which were broadcasted across, as opposed to fit across.
 
         This is a sibling property to `broadcast_dimensions`.
@@ -2673,13 +2483,22 @@ class ARPESDatasetFitToolAccessor:
             For example, a broadcast of MDCs across energy on a dataset with dimensions
             `["eV", "kp"]` would produce `["eV"]`.
         """
+        warnings.warn(
+            "This method will be deprecated.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+
         assert isinstance(self._obj, xr.Dataset)
         return list(set(self._obj.data.dims).difference(self._obj.results.dims))
 
 
 @xr.register_dataarray_accessor("F")
 class ARPESFitToolsAccessor:
-    """Utilities related to examining curve fits."""
+    """Utilities related to examining curve fits.
+
+    modelfit_result or [var]_modelfit_result (When Dataset.S.modelfit is applied.)
+    """
 
     _obj: xr.DataArray
 
@@ -2801,6 +2620,9 @@ class ARPESFitToolsAccessor:
 
             The output array is infilled with `np.nan` if the fit did not converge/
             the fit result is `None`.
+
+        Memo:
+            Work after xarray-lmfit migration.
         """
         assert isinstance(self._obj, xr.DataArray)
         return self._obj.G.map(param_getter(param_name), otypes=[float])
@@ -2819,6 +2641,9 @@ class ARPESFitToolsAccessor:
 
             The output array is infilled with `np.nan` if the fit did not converge/
             the fit result is `None`.
+
+        Memo:
+            Work after xarray-lmfit migration.
         """
         assert isinstance(self._obj, xr.DataArray)
         return self._obj.G.map(param_stderr_getter(param_name), otypes=[float])
@@ -2874,6 +2699,9 @@ class ARPESFitToolsAccessor:
 
         Todo:
             Test
+
+        Memo:
+            Work after xarray-lmfit migration.
         """
         collected_parameter_names: set[str] = set()
         assert isinstance(self._obj, xr.DataArray)
@@ -2983,42 +2811,6 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
         """
         return self.spectrum.S.spectrum_type
 
-    @property
-    def degrees_of_freedom(self) -> set[Hashable]:
-        """The collection of all degrees of freedom.
-
-        Equivalently, dimensions on a piece of data.
-
-        Returns:
-            All degrees of freedom as a set.
-        """
-        return set(self.spectrum.dims)
-
-    @property
-    def spectrum_degrees_of_freedom(self) -> set[Hashable]:
-        """Collects the spectrometer degrees of freedom.
-
-        Spectrometer degrees of freedom are any which would be collected by an ARToF
-        and their momentum equivalents.
-
-        Returns:
-            The collection of spectrum degrees of freedom.
-        """
-        return self.degrees_of_freedom.intersection({"eV", "phi", "pixel", "kx", "kp", "ky"})
-
-    @property
-    def scan_degrees_of_freedom(self) -> set[Hashable]:
-        """Collects the scan degrees of freedom.
-
-        Scan degrees of freedom are all of the degrees of freedom which are not recorded
-        by the spectrometer but are "scanned over". This includes spatial axes,
-        temperature, etc.
-
-        Returns:
-            The collection of scan degrees of freedom represented in the array.
-        """
-        return self.degrees_of_freedom.difference(self.spectrum_degrees_of_freedom)
-
     def reference_plot(self: Self, **kwargs: Incomplete) -> None:
         """Creates reference plots for a dataset.
 
@@ -3046,7 +2838,11 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
         Args:
             kwargs: Passed to plotting routines to provide user control
         """
-        self._obj.sum(self.scan_degrees_of_freedom)
+        spectrum_degrees_of_freedom = set(self.spectrum.dims).intersection(
+            {"eV", "phi", "pixel", "kx", "kp", "ky"},
+        )
+        scan_degrees_of_freedom = set(self.spectrum.dims).difference(spectrum_degrees_of_freedom)
+        self._obj.sum(scan_degrees_of_freedom)
         kwargs.get("out")
         # <== CHECK ME  the above two lines were:
 
@@ -3097,19 +2893,21 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
                     behavior
         """
         self.spectrum.S.reference_plot(pattern=prefix + "{}.png", **kwargs)
-
+        spectrum_degrees_of_freedom = set(self.spectrum.dims).intersection(
+            {"eV", "phi", "pixel", "kx", "kp", "ky"},
+        )
         if self.is_spatial:
             pass
             # <== CHECK ME: original is  referenced = self.referenced_scans
         if "cycle" in self._obj.coords:
-            integrated_over_scan = self._obj.sum(self.spectrum_degrees_of_freedom)
+            integrated_over_scan = self._obj.sum(spectrum_degrees_of_freedom)
             integrated_over_scan.S.spectrum.S.reference_plot(
                 pattern=prefix + "sum_spec_DoF_{}.png",
                 **kwargs,
             )
 
         if "delay" in self._obj.coords:
-            dims = self.spectrum_degrees_of_freedom
+            dims = spectrum_degrees_of_freedom
             dims.remove("eV")
             angle_integrated = self._obj.sum(dims)
 

@@ -1,15 +1,15 @@
 """Test suite for selections utilities."""
 
-import pytest
 import numpy as np
+import pytest
 import xarray as xr
 
 from arpes.utilities.selections import (
+    _radius,
     ravel_from_mask,
     select_disk,
     select_disk_mask,
     unravel_from_mask,
-    _radius,
 )
 
 rng = np.random.default_rng()

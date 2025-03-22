@@ -52,9 +52,8 @@ def adjust_coords_to_limit(
         Example: {"x": 5, "y": -1}
 
     Returns:
-    dict
-        A dictionary with the new extended coordinates for each dimension.
-        Only the newly added coordinates are returned, which will be used in stretch_coords.
+        dict: A dictionary with the new extended coordinates for each dimension.
+            Only the newly added coordinates are returned, which will be used in stretch_coords.
     """
     new_coords_dict = {}
 
@@ -95,8 +94,7 @@ def extend_coords(
         If no new coordinates are specified, existing coordinates are retained.
 
     Returns:
-    xr.DataArray
-        A new DataArray with expanded coordinates and NaN-filled missing values.
+        xr.DataArray: A new DataArray with expanded coordinates and NaN-filled missing values.
     """
     stretch_coords = {dim: da.coords[dim].values for dim in da.dims}
 
@@ -129,8 +127,7 @@ def is_equally_spaced(coords: NDArray[np.float64], tolerance: float = 1e-5) -> n
         The acceptable tolerance for the spacing difference.
 
     Returns:
-    bool
-        True if the coordinates are equally spaced within the tolerance, False otherwise.
+        bool: True if the coordinates are equally spaced within the tolerance, False otherwise.
     """
     diffs: NDArray[np.float64] = np.diff(coords)
 
