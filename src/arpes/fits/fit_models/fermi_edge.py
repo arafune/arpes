@@ -187,7 +187,12 @@ class FermiDiracModel(Model):
 
         self.set_param_hint("width", min=0)
 
-    def guess(self, data: XrTypes, x: NDArray[np.float64], **kwargs: Incomplete) -> lf.Parameters:
+    def guess(
+        self,
+        data: XrTypes,
+        x: NDArray[np.float64] | xr.DataArray,
+        **kwargs: Incomplete,
+    ) -> lf.Parameters:
         """Makes heuristic guesses for parameters based on input data.
 
         This function sets initial guesses for a set of parameters based on simple
@@ -203,6 +208,8 @@ class FermiDiracModel(Model):
             lf.Parameters: A set of parameters with initial guesses, potentially updated
                         by the provided `kwargs`.
         """
+        if isinstance(x, xr.DataArray):
+            x = x.values
         pars = self.make_params()
 
         pars[f"{self.prefix}center"].set(value=0)

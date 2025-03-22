@@ -20,16 +20,4 @@ from .fermi_edge import (
 )
 from .misc import FermiVelocityRenormalizationModel, LogRenormalizationModel, QuadraticModel
 from .two_dimensional import EffectiveMassModel, Gaussian2DModel
-from .wrapped import (
-    ConstantModel,
-    GaussianModel,
-    LinearModel,
-    LogisticModel,
-    LorentzianModel,
-    SineModel,
-    SkewedVoigtModel,
-    SplitLorentzianModel,
-    StepModel,
-    VoigtModel,
-)
 from .x_model_mixin import XModelMixin, gaussian_convolve
