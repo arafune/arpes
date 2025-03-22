@@ -2497,7 +2497,7 @@ class ARPESDatasetFitToolAccessor:
 class ARPESFitToolsAccessor:
     """Utilities related to examining curve fits.
 
-    modelfit_result or [var]_modelfit_result (When Dataset.S.modelfit is applied.)
+    modelfit_results or [var]_modelfit_results (When Dataset.S.modelfit is applied.)
     """
 
     _obj: xr.DataArray
