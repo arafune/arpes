@@ -199,6 +199,7 @@ def profile_view(
 
 def fit_inspection(
     dataset: xr.Dataset,
+    spectral_name: str = "spectrum",
     *,
     use_quadmesh: bool = False,
     **kwargs: Unpack[ProfileViewParam],
@@ -212,6 +213,7 @@ def fit_inspection(
 
     Args:
         dataset (xr.Dataset): The input dataset containing ARPES data, fit, and residual variables.
+        spectral_name: the name of spectrum in the original Dataset. Default to "spectrum".
         use_quadmesh (bool): If True, uses `hv.QuadMesh` instead of `hv.Image` for plotting.
             `hv.QuadMesh` is more accurate for irregularly spaced coordinates but may be slower.
         kwargs: Additional arguments passed to the plot options, such as plot size, colormap, and
@@ -226,16 +228,24 @@ def fit_inspection(
     kwargs.setdefault("log", False)
     kwargs.setdefault("profile_view_height", 200)
 
-    assert "data" in dataset.data_vars
+    assert any(str(i).endswith("modelfit_data") for i in dataset.data_vars)
+    if any(str(i).startswith("modelfit_data") for i in dataset.data_vars):
+        exp_data = dataset["modelfit_data"]
+    else:
+        exp_data = dataset[f"{spectral_name}_modelfit_data"]
     arpes_measured: xr.DataArray = _fix_xarray_to_fit_with_holoview(
-        dataset.data.transpose(..., "eV"),
+        exp_data.transpose(..., "eV"),
     )
-    fit = arpes_measured + _fix_xarray_to_fit_with_holoview(
-        dataset.residual.transpose(..., "eV"),
+
+    if any(str(i).startswith("modelfit_best_fit") for i in dataset.data_vars):
+        fit_data = dataset["modelfit_best_fit"]
+    else:
+        fit_data = dataset[f"{spectral_name}modelfit_best_fit"]
+    fit = _fix_xarray_to_fit_with_holoview(
+        fit_data.transpose(..., "eV"),
     )
-    residual = _fix_xarray_to_fit_with_holoview(
-        dataset.residual.transpose(..., "eV"),
-    )
+    residual = arpes_measured - fit
+
     max_coords = arpes_measured.G.argmax_coords()
     posx = hv.streams.PointerX(x=max_coords[arpes_measured.dims[0]])
     second_weakest_intensity = np.partition(np.unique(arpes_measured.values.flatten()), 1)[1]
