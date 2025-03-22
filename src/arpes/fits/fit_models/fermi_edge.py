@@ -43,7 +43,7 @@ __all__ = (
 
 
 class AffineBroadenedFD(Model):
-    r"""A model based for affine density of states convoluted with gaussian.
+    r"""A model for affine density of states convoluted with gaussian.
 
     The model has three Parameters: `center`, `width`, `const_bkg`, `lin_slope` and `sigma`.
     constraints to report full width at half maximum and maximum peak
@@ -89,11 +89,15 @@ class AffineBroadenedFD(Model):
         if isinstance(x, xr.DataArray):
             x = x.values
         xmin, xmax = min(x), max(x)
-        pars = self.make_params(const_bkg=(ymax - ymin), center=(xmax + xmin) / 2.0)
         sigma = 0.1 * (xmax - xmin)
         width = 0.1 * (xmax - xmin)
-        pars[f"{self.prefix}sigma"].set(value=sigma)
-        pars[f"{self.prefix}width"].set(value=width)
+
+        pars = self.make_params(
+            const_bkg=(ymax - ymin),
+            center=(xmax + xmin) / 2.0,
+            sigma=sigma,
+            width=width,
+        )
         return update_param_vals(pars, self.prefix, **kwargs)
 
     __init__.__doc__ = (
@@ -102,8 +106,20 @@ class AffineBroadenedFD(Model):
     guess.__doc__ = lf.models.COMMON_GUESS_DOC
 
 
-class FermiLorentzianModel(XModelMixin):
-    """A Lorentzian multiplied by a gstepb background."""
+class FermiLorentzianModel(Model):
+    r"""A model for Lorentzian multiplied by a gstepb background.
+
+    This model ...
+
+    .. math:
+
+        f(x; center, width, erf\_amp, a, b, \gamma, center_l) = L(x; center_l, \gamma)
+        \frac{erf\_amp}{2}*\mathrm{erfc}\left(\frac{\sqrt{4ln(2)} (x-center)}{width}\right)
+
+    where the parameter `gamma` corresponds to :math:`\gamma`, `lorcenter` to :math:`center_l`.
+
+    Todo: Reconsidering the NEED & Lorentzian height.
+    """
 
     @staticmethod
     def gstepb_mult_lorentzian(  # noqa: PLR0913
@@ -140,27 +156,15 @@ class FermiLorentzianModel(XModelMixin):
     def guess(
         self,
         data: XrTypes,
-        x,
+        x: NDArray[np.float64] | xr.DataArray,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
-        """Makes heuristic guesses for parameters based on input data.
+        """Estimate initial model parameter values from data."""
+        ymin, ymax = min(data), max(data)
+        ymean = data.mean()
+        xmin, xmax = min(x), max(x)
+        pars = self.make_params(center=(xmax + xmin) / 2.0, erf_amp=(ymean - ymin))
 
-        This function sets initial guesses for a set of parameters based on simple
-        heuristics, such as the minimum and mean of the input data. The function
-        is a placeholder for future improvements where better guesses can be made.
-
-        Args:
-            data (XrTypes): Input data for making parameter guesses. The data is used
-                            to estimate initial values like background levels and amplitude.
-            kwargs: Additional keyword arguments to update parameter values.
-
-        Returns:
-            lf.Parameters: A set of parameters with initial guesses, potentially updated
-                        by the provided `kwargs`.
-        """
-        pars = self.make_params()
-
-        pars[f"{self.prefix}center"].set(value=0)
         pars[f"{self.prefix}lorcenter"].set(value=0)
         pars[f"{self.prefix}lin_slope"].set(value=0)
         pars[f"{self.prefix}const_bkg"].set(value=data.min())
@@ -176,7 +180,12 @@ class FermiLorentzianModel(XModelMixin):
 
 
 class FermiDiracModel(Model):
-    """A model for the Fermi Dirac function."""
+    r"""A model for the Fermi Dirac function.
+
+    .. math::
+
+    \frac{scale}{\exp\left(\frac{x-center}{width}  +1\right)}
+    """
 
     def __init__(self, **kwargs: Unpack[ModelArgs]) -> None:
         """Defer to lmfit for initialization."""
@@ -193,28 +202,13 @@ class FermiDiracModel(Model):
         x: NDArray[np.float64] | xr.DataArray,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
-        """Makes heuristic guesses for parameters based on input data.
-
-        This function sets initial guesses for a set of parameters based on simple
-        heuristics, such as the minimum and mean of the input data. The function
-        is a placeholder for future improvements where better guesses can be made.
-
-        Args:
-            data (XrTypes): Input data for making parameter guesses. The data is used
-                            to estimate initial values like background levels and amplitude.
-            kwargs: Additional keyword arguments to update parameter values.
-
-        Returns:
-            lf.Parameters: A set of parameters with initial guesses, potentially updated
-                        by the provided `kwargs`.
-        """
+        """Estimate initial model parameter values from data."""
         if isinstance(x, xr.DataArray):
             x = x.values
-        pars = self.make_params()
 
-        pars[f"{self.prefix}center"].set(value=0)
-        pars[f"{self.prefix}width"].set(value=0.05)
-        pars[f"{self.prefix}scale"].set(value=data.mean() - data.min())
+        ymax = max(data)
+        xmin, xmax = min(x), max(x)
+        pars = self.make_params(scale=ymax, center=(xmax - xmin) / 2.0, width=(xmax - xmin) / 10)
 
         return update_param_vals(pars, self.prefix, **kwargs)
 
@@ -222,7 +216,7 @@ class FermiDiracModel(Model):
     guess.__doc__ = lf.models.COMMON_GUESS_DOC
 
 
-class GStepBModel(XModelMixin):
+class GStepBModel(Model):
     """A model for fitting Fermi functions with a linear background."""
 
     def __init__(self, **kwargs: Unpack[ModelArgs]) -> None:
@@ -240,29 +234,13 @@ class GStepBModel(XModelMixin):
     def guess(
         self,
         data: XrTypes,
-        x: None = None,
+        x: NDArray[np.float64] | xr.DataArray,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
-        """Makes heuristic guesses for parameters based on the input data.
-
-        This function initializes parameter values with simple heuristic estimates,
-        such as using the minimum and mean values of the data. The `x` parameter is
-        intentionally ignored, and it should always be `None`.
-
-        Args:
-            data (XrTypes): The input data used to make initial guesses for parameters.
-                            The data's minimum and mean values are used for background
-                            and amplitude estimates.
-            x (None): This parameter is ignored and should always be `None`.
-            kwargs: Additional keyword arguments used to update the guessed parameters.
-
-        Returns:
-            lf.Parameters: A set of parameters initialized with heuristic guesses,
-                        which may be updated with the provided `kwargs`.
-        """
-        pars = self.make_params()
+        """Estimate initial model parameter values from data."""
+        xmin, xmax = min(x), max(x)
+        pars = self.make_params(center=(xmax - xmin) / 2)
         assert x is None
-        pars[f"{self.prefix}center"].set(value=0)
         pars[f"{self.prefix}lin_slope"].set(value=0)
         pars[f"{self.prefix}const_bkg"].set(value=data.min())
 
@@ -352,7 +330,7 @@ class BandEdgeBModel(XModelMixin):
     def guess(
         self,
         data: XrTypes,
-        x: NDArray[np.float64] | None = None,
+        x: NDArray[np.float64] | xr.DataArray,
         **kwargs: float,
     ) -> lf.Parameters:
         """Placeholder for making better heuristic guesses here.
@@ -462,14 +440,13 @@ class FermiDiracAffGaussModel(XModelMixin):
         x: NDArray[np.float64],
         center: float = 0,
         width: float = 0.05,
-        lin_slope: float = 0,
-        const_bkg: float = 0,
-        scale: float = 1,
+        lin_slope: float = 0.0,
+        const_bkg: float = 1.0,
         sigma: float = 0.01,
     ) -> NDArray[np.float64]:
         """Fermi Dirac function with affine background multiplied, convolved with Gaussian."""
         return np.convolve(
-            fermi_dirac_affine(x, center, width, lin_slope, const_bkg, scale),
+            fermi_dirac_affine(x, center, width, lin_slope, const_bkg),
             gaussian(x, (min(x) + max(x)) / 2, sigma, 1 / np.sqrt(2 * np.pi * sigma**2)),
             mode="same",
         )
@@ -490,7 +467,7 @@ class FermiDiracAffGaussModel(XModelMixin):
     def guess(
         self,
         data: XrTypes,
-        x: None = None,
+        x: NDArray[np.float64] | xr.DataArray,
         **kwargs: float,
     ) -> lf.Parameters:
         """Placeholder for making better heuristic guesses here.
@@ -503,7 +480,6 @@ class FermiDiracAffGaussModel(XModelMixin):
         Returns:
             [TODO:description]
         """
-        assert x is None  # "x" is not used but for consistency, it should not be removed.
         pars = self.make_params()
 
         pars[f"{self.prefix}center"].set(value=0)
@@ -614,7 +590,7 @@ class GStepBStandardModel(XModelMixin):
     def guess(
         self,
         data: XrTypes,
-        x: None = None,
+        x: NDArray[np.float64] | xr.DataArray,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
         """Placeholder for making better heuristic guesses here.
@@ -627,7 +603,6 @@ class GStepBStandardModel(XModelMixin):
         Returns:
             [TODO:description]
         """
-        assert x is None  # "x" is not used but for consistency, it should not be removed.
         pars = self.make_params()
 
         pars[f"{self.prefix}center"].set(value=0)

@@ -159,17 +159,15 @@ def band_edge_bkg(  # noqa: PLR0913
     ) + offset
 
 
-def fermi_dirac_affine(  # noqa: PLR0913
+def fermi_dirac_affine(
     x: NDArray[np.float64],
     center: float = 0,
     width: float = 0.05,
     lin_slope: float = 0,
-    const_bkg: float = 0,
-    scale: float = 1,
+    const_bkg: float = 1,
 ) -> NDArray[np.float64]:
     """Fermi step edge with a linear background above the Fermi level."""
-    # Fermi edge with an affine background multiplied in
-    return (scale + lin_slope * x) / (np.exp((x - center) / width) + 1) + const_bkg
+    return (const_bkg + lin_slope * x) / (np.exp((x - center) / width) + 1)
 
 
 def gstep_stdev(
