@@ -2760,10 +2760,10 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
         piece of data.
         Historically, the handling of Dataset and Dataarray was a mess in previous pyarpes.
         Most of the current pyarpes methods/function are sufficient to treat DataArray as the main
-        object. (The few exceptions are broadcast_model, whose return value is a Dataset, which is
+        object. (The few exceptions are S.modelfit, whose return value is a Dataset, which is
         reasonable.) For backward compatibility, the return of load_data is still a Dataset,
         so in many cases, using this property for a DataArray will provide a more robust analysing
-        environment in many cases.
+        environment.
 
         In practice, we filter data variables by whether they contain "spectrum"
         in the name before selecting the one with the largest pixel volume.
