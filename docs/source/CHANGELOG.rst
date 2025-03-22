@@ -21,6 +21,8 @@ Changed
     (xarray-lmfit) This is a pretty good implementation and easy to use. "Let's use the libraries we can use."
     I believe it's a good policy, and it is good to have less code to maintain.
 
+* Impve the compatibiltiies with the lmfit.
+  - Note that some parameter names have been changed.
 
 * Remove some Model classes
   - TwoLorEdgeModel

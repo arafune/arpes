@@ -58,7 +58,8 @@ class AffineBroadenedFD(Model):
     then, f convoluted by gaussian with the standard deviation `sigma`
 
     Note:
-        From version 5. offset parameter is removed.  Use ConstantModel in lmfit.
+        * The constant stride about x ("eV" in most case) is assumed, internally,
+        * From version 5. offset parameter is removed.  Use ConstantModel in lmfit.
     """
 
     fwhm_factor = 2 * np.sqrt(2 * np.log(2))
@@ -77,15 +78,10 @@ class AffineBroadenedFD(Model):
         self.set_param_hint("sigma", min=0.0)
 
     def guess(self, data: XrTypes, x: NDArray[np.float64], **kwargs: float) -> lf.Parameters:
-        """Make some heuristic guesses.
-
-        We use the mean value to estimate the background parameters and physically
-        reasonable ones to initialize the edge.
-        """
         raise NotImplementedError
 
     __init__.__doc__ = (
-        "affine density of states broadened by Fermi-Dirac " + lf.models.COMMON_INIT_DOC
+        "Affine density of states broadened by Fermi-Dirac " + lf.models.COMMON_INIT_DOC
     )
     guess.__doc__ = lf.models.COMMON_GUESS_DOC
 
