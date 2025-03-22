@@ -10,9 +10,11 @@ import xarray as xr
 from lmfit.models import LinearModel, QuadraticModel
 from matplotlib.axes import Axes
 
+from arpes.analysis.general import fit_fermi_edge
 from arpes.correction.intensity_map import shift_by
 from arpes.fits import GStepBModel, broadcast_model
 from arpes.provenance import Provenance, provenance, update_provenance
+from arpes.constants import TWO_DIMENSION
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Hashable, Iterable
@@ -162,11 +164,8 @@ def build_direct_fermi_edge_correction(
     Returns:
         The array of fitted edge coordinates.
     """
-    energy_range = energy_range or slice(-0.1, 0.1)
-
-    exclude_axes = ["eV", along]
-    others = [d for d in arr.dims if d not in exclude_axes]
-    edge_fit = broadcast_model(GStepBModel, arr.sum(others).sel(eV=energy_range), along).results
+    assert len(arr.dims) == TWO_DIMENSION, "arr should be 2D."
+    edge_fit = fit_fermi_edge(arr, energy_range=energy_range).modelfit_result
 
     def sieve(_: Incomplete, v: Incomplete) -> bool:
         return v.item().params["center"].stderr < 0.001  # noqa: PLR2004
