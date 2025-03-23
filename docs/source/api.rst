@@ -7,6 +7,7 @@ of the PyARPES documentation.
 Please note that this is not a complete API documentation page. Less used and 
 internal APIs are not documented here.
 
+.. contents::
 
 Data-loading functions
 ======================
@@ -57,12 +58,10 @@ The `.F` accessor:
 The .S accessor
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Available as methods via ``.S`` accessor.
-
-
 
 .. autoclass::   arpes.xarray_extensions.ARPESAngleProperty
    :members:
+   :exclude_members: _*, __*
    :show-inheritance:
 
 .. autoclass::   arpes.xarray_extensions.ARPESPhysicalProperty
@@ -122,12 +121,14 @@ The .F accessor
 
 Available as methods via ``.F`` accessor.
 
-.. autosummary::
-   :toctree: generated/
-   :recursive:
- 
-   xarray_extensions.ARPESDatasetFitToolAccessor
-   xarray_extensions.ARPESFitToolsAccessor
+.. autoclass:: arpes.xarray_extensions.ARPESDatasetFitToolAccessor
+   :members:
+   :show-inheritance:
+
+.. autoclass:: arpes.xarray_extensions.ARPESFitToolsAccessor
+   :members:
+   :show-inheritance:
+   
 
 Momentum Conversion
 ===================
@@ -456,11 +457,18 @@ General Curve Fitting Utilities
 Models
 ~~~~~~
 
+.. automodule:: arpes.fits
+   :members:
 .. autosummary::
    :toctree: generated/
    :recursive:
-   
-   fits.fit_models
+
+  fit_models.fermi_edge
+  fit_models.dirac
+  fit_models.bands
+  fit_models.functional_forms
+  fit_models.misc
+  fit_models.two_dimensional
 
 Plotting
 ========
@@ -468,12 +476,13 @@ Plotting
 Interactive Utilities: holoviews Based
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. automodule:: arpes.plotting
 .. autosummary::
    :toctree: generated/
 
-   plotting.holoviews.concat_along_phi_ui
-   plotting.holoviews.profile_view
-   plotting.holoviews.fit_inspection
+   holoviews.concat_along_phi_ui
+   holoviews.profile_view
+   holoviews.fit_inspection
 
 General Utilities/Matplotlib Quality of Life
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -483,18 +492,18 @@ An incomplete list of useful plotting utilities from ``arpes.utilities.plotting`
 .. autosummary::
    :toctree: generated/
 
-   plotting.utils.path_for_plot
-   plotting.utils.savefig
-   plotting.utils.simple_ax_grid
-   plotting.utils.invisible_axes
-   plotting.utils.remove_colorbars
-   plotting.utils.frame_with
-   plotting.utils.unchanged_limits
-   plotting.utils.plot_arr
-   plotting.utils.imshow_mask
-   plotting.utils.latex_escape
-   plotting.utils.fancy_labels
-   plotting.utils.summarize
+   utils.path_for_plot
+   utils.savefig
+   utils.simple_ax_grid
+   utils.invisible_axes
+   utils.remove_colorbars
+   utils.frame_with
+   utils.unchanged_limits
+   utils.plot_arr
+   utils.imshow_mask
+   utils.latex_escape
+   utils.fancy_labels
+   utils.summarize
 
 Interactive Utilities: Matplotlib Based
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -505,9 +514,9 @@ Stack Plots
 .. autosummary::
    :toctree: generated/
 
-   plotting.stack_plot.stack_dispersion_plot
-   plotting.stack_plot.flat_stack_plot
-   plotting.stack_plot.offset_scatter_plot
+   stack_plot.stack_dispersion_plot
+   stack_plot.flat_stack_plot
+   stack_plot.offset_scatter_plot
 
 Spin-ARPES Plots
 ~~~~~~~~~~~~~~~~
@@ -515,9 +524,9 @@ Spin-ARPES Plots
 .. autosummary::
    :toctree: generated/
 
-   plotting.spin.spin_polarized_spectrum
-   plotting.spin.spin_colored_spectrum
-   plotting.spin.spin_difference_spectrum
+   spin.spin_polarized_spectrum
+   spin.spin_colored_spectrum
+   spin.spin_difference_spectrum
 
 Count-based and ToF Plots
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -525,8 +534,8 @@ Count-based and ToF Plots
 .. autosummary::
    :toctree: generated/
 
-   plotting.tof.plot_with_std
-   plotting.tof.scatter_with_std
+   tof.plot_with_std
+   tof.scatter_with_std
 
 
 Reference Plots
@@ -535,8 +544,8 @@ Reference Plots
 .. autosummary::
    :toctree: generated/
 
-   plotting.spatial.plot_spatial_reference
-   plotting.spatial.reference_scan_spatial
+   spatial.plot_spatial_reference
+   spatial.reference_scan_spatial
 
 
 Curve Fitting Plots
@@ -544,32 +553,34 @@ Curve Fitting Plots
 
 .. autosummary::
 
-   plotting.fits.plot_fit
-   plotting.fits.plot_fits
-   plotting.parameter.plot_parameter
+   fits.plot_fit
+   fits.plot_fits
+   parameter.plot_parameter
 
 False Color Plots
 ~~~~~~~~~~~~~~~~~
 
 .. autosummary::
 
-   plotting.false_color.false_color_plot
+   false_color.false_color_plot
 
 Plotting with Brillouin Zones
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autosummary::
+  :toctree: generated/
 
-   plotting.bz.bz_plot
-   plotting.bz.plot_data_to_bz
-   plotting.bz.overplot_standard
-   plotting.bz.plot_plane_to_bz
+   bz.bz_plot
+   bz.plot_data_to_bz
+   bz.overplot_standard
+   bz.plot_plane_to_bz
 
 Plot Annotations
 ~~~~~~~~~~~~~~~~
 
 .. autosummary::
+  :toctree: generated/
 
-   plotting.annotations.annotate_cuts
-   plotting.annotations.annotate_point
-   plotting.annotations.annotate_experimental_conditions
+   annotations.annotate_cuts
+   annotations.annotate_point
+   annotations.annotate_experimental_conditions

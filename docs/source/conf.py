@@ -155,7 +155,7 @@ htmlhelp_basename = "arpesdoc"
 latex_engine = "xelatex"
 latex_elements = {
     'papersize': 'a4paper',
-    'pointsize': '12pt',
+    'pointsize': '10pt',
     'fontpkg': r'''
         \usepackage{fontspec}
         \setmainfont{Times New Roman}
