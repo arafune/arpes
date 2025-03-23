@@ -23,8 +23,8 @@ if TYPE_CHECKING:
 def plot_fit(model_result: lf.model.ModelResult, ax: Axes | None = None) -> Axes:
     """Performs a straightforward plot of the data, residual, and fit to an axis.
 
-    When the "fit_results" is the return of broadcast_model, the argument of this function
-    is fit_results.results[n].item(), where n is the index.
+    When the "fit_results" is the return of S.modelfit, the argument of this function
+    is fit_results.modelfit_results[n].item(), where n is the index.
 
     The role of this function is same as the ModelResult.plot(), but in
     less space than it.

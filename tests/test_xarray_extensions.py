@@ -4,8 +4,6 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from arpes.fits.utilities import broadcast_model
-
 
 class TestforProperties:
     """Test class for Array Dataset properties."""

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 from lmfit.lineshapes import lorentzian
 from scipy.ndimage import gaussian_filter
-from scipy.special import erfc  # pylint: disable=no-name-in-module
+from scipy.special import erfc
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
@@ -61,7 +61,7 @@ def fermi_dirac(
 ) -> NDArray[np.float64]:
     r"""Fermi edge, with somewhat arbitrary normalization.
 
-    :math:`\frac{scale}{\exp\left(\frac{x-center}{width}  +1\right)}`
+    :math:`\frac{scale}{\exp\left(\frac{x-center}{width} +1\right)}`
     """
     return scale / (np.exp((x - center) / width) + 1)
 
@@ -102,7 +102,7 @@ def gstep(
 ) -> NDArray[np.float64]:
     r"""Fermi function convolved with a Gaussian.
 
-    :math:`\frac{erf\_amp}{2}*\mathrm{erfc}\left(\frac{\sqrt{4ln(2)} (x-center)}{width}\right)
+    :math:`\frac{erf\_amp}{2} \tims \mathrm{erfc}\left(\frac{(x-center)}{w}\right)
 
     Args:
         x: value to evaluate fit at
@@ -114,7 +114,7 @@ def gstep(
         The step edge.
     """
     dx = x - center
-    return erf_amp * 0.5 * erfc(1.66511 * dx / width)
+    return erf_amp * erfc(dx / width) / 2
 
 
 def band_edge_bkg(  # noqa: PLR0913
@@ -124,7 +124,6 @@ def band_edge_bkg(  # noqa: PLR0913
     amplitude: float = 1,
     gamma: float = 0.1,
     lor_center: float = 0,
-    offset: float = 0,
     lin_slope: float = 0,
     const_bkg: float = 0,
 ) -> NDArray[np.float64]:
@@ -136,7 +135,7 @@ def band_edge_bkg(  # noqa: PLR0913
         x,
         center,
         width,
-    ) + offset
+    )
 
 
 def fermi_dirac_affine(

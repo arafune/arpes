@@ -223,7 +223,15 @@ class FermiDiracModel(Model):
 
 
 class GStepBModel(Model):
-    """A model for fitting Fermi functions with a linear background."""
+    r"""A model for fitting Fermi functions with a linear background.
+
+    .. math::
+        f(x; center, width, A, a, b)= b+a (x-center) +
+        \frac{A}{2}*\mathrm{erfc}\left(\frac{\sqrt{4ln(2)} (x-center)}{width}\right)
+
+    where the parameter `erp_amp` corresponds `A`, `lin_slope` to `a`, and `const_bkg` to `b`.
+
+    """
 
     def __init__(self, **kwargs: Unpack[ModelArgs]) -> None:
         """Defer to lmfit for initialization."""
@@ -246,7 +254,6 @@ class GStepBModel(Model):
         """Estimate initial model parameter values from data."""
         xmin, xmax = min(x), max(x)
         pars = self.make_params(center=(xmax - xmin) / 2)
-        assert x is None
         pars[f"{self.prefix}lin_slope"].set(value=0)
         pars[f"{self.prefix}const_bkg"].set(value=data.min())
 

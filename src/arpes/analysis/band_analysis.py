@@ -100,7 +100,7 @@ def fit_for_effective_mass(
         quad_fit = QuadraticModel().fit(eVs, x=np.array(kps))
 
         return HBAR_SQ_EV_PER_ELECTRON_MASS_ANGSTROM_SQ / (2 * quad_fit.params["a"].value)
-    quad_fit = QuadraticModel().guess_fit(fit_results.results.F.p("a_center"))
+    quad_fit = QuadraticModel().guess_fit(fit_results.modelfit_results.F.p("a_center"))
     return HBAR_SQ_EV_PER_ELECTRON_MASS_ANGSTROM_SQ / (2 * quad_fit.params["a"].value)
 
 
