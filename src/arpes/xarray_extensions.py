@@ -147,7 +147,6 @@ class ARPESAngleProperty:
 
     Note:
         This class should not be called directly.
-
     """
 
     _obj: XrTypes
@@ -254,10 +253,11 @@ class ARPESAngleProperty:
 class ARPESPhysicalProperty:
     """Class for ARPES physical properties.
 
-    This class should not be called directly.
-
     Attributes:
         _obj (XrTypes): ARPES data
+
+    Note:
+        This class should not be called directly.
     """
 
     _obj: XrTypes
@@ -454,10 +454,11 @@ class ARPESPhysicalProperty:
 class ARPESInfoProperty(ARPESPhysicalProperty):
     """Class for Information Property.
 
-    This class should not be called directly.
-
     Attributes:
         _obj (XrTypes): ARPES data
+
+    Note:
+        This class should not be called directly.
     """
 
     _obj: XrTypes
@@ -736,10 +737,11 @@ class ARPESInfoProperty(ARPESPhysicalProperty):
 class ARPESOffsetProperty(ARPESAngleProperty):
     """Class for offset value property.
 
-    This class should not be called directly.
-
     Attributes:
         _obj (XrTypes): ARPES data
+
+    Note:
+        This class should not be called directly.
     """
 
     _obj: XrTypes
@@ -1919,10 +1921,11 @@ class GenericDatasetAccessor(GenericAccessorBase):
     def __init__(self, xarray_obj: xr.Dataset) -> None:
         """Initialization hook for xarray.Dataset.
 
-        This should never need to be called directly.
-
         Args:
             xarray_obj: The parent object which this is an accessor for
+
+        Note:
+            This class should not be called directly.
         """
         self._obj = xarray_obj
         assert isinstance(self._obj, xr.Dataset)
@@ -2526,8 +2529,6 @@ class ARPESFitToolsAccessor:
     def __init__(self, xarray_obj: xr.DataArray) -> None:
         """Initialization hook for xarray.
 
-        This should never need to be called directly.
-
         Args:
             xarray_obj: The parent object which this is an accessor for
         """
@@ -2968,10 +2969,11 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
     def __init__(self, xarray_obj: xr.Dataset) -> None:
         """Initialization hook for xarray.
 
-        This should never need to be called directly.
-
         Args:
             xarray_obj: The parent object which this is an accessor for
+
+        Note:
+            This class should not be called directly.
         """
         self._obj: xr.Dataset
         super().__init__(xarray_obj)
