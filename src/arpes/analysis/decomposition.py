@@ -82,10 +82,6 @@ class DecompositionParam(PCAParam, FastICAParam, NMFParam, FactorAnalysisParam):
     pass
 
 
-class DecompositionParamBase(TypedDict, total=False):
-    n_composition: int | None
-
-
 def decomposition_along(
     data: xr.DataArray,
     axes: list[str],
