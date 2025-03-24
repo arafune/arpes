@@ -142,13 +142,12 @@ def decomposition_along(
             msg,
         )
 
-    if correlation:
-        pipeline: sklearn.Pipeline = make_pipeline(StandardScaler(), decomposition_cls(**kwargs))
-    else:
-        pipeline = make_pipeline(decomposition_cls(**kwargs))
-
+    pipeline = sklearn.Pipeline = (
+        make_pipeline(StandardScaler(), decomposition_cls(**kwargs))
+        if correlation
+        else make_pipeline(decomposition_cls(**kwargs))
+    )
     pipeline.fit(flattened_data.values.T)
-
     decomp = pipeline.steps[-1][1]
 
     transform = decomp.transform(flattened_data.values.T)
