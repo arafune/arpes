@@ -196,6 +196,7 @@ tag_format = "$version"
 testpaths = ["tests"]
 pythonpath = "src"
 addopts = "--cov=arpes --cov-report html"
+env = ["NUMBA_DISABLE_JIT=1"]
 norecursedirs = [
   ".git",
   "__pycache__",
