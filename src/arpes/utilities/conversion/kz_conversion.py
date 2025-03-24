@@ -20,7 +20,6 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-
 __all__ = ["ConvertKpKz", "ConvertKpKzV0", "ConvertKxKyKz"]
 
 
@@ -45,15 +44,11 @@ def _kp_to_polar(
     kinetic_energy: NDArray[np.float64],
     kp: NDArray[np.float64],
     phi: NDArray[np.float64],
-    inner_potential: float,
     angle_offset: float,
 ) -> None:
     """Efficiently performs the inverse coordinate transform phi(hv, kp)."""
     for i in numba.prange(len(kp)):
-        phi[i] = (
-            np.arcsin(kp[i] / (K_INV_ANGSTROM * np.sqrt(kinetic_energy[i] + inner_potential)))
-            + angle_offset
-        )
+        phi[i] = np.arcsin(kp[i] / (K_INV_ANGSTROM * np.sqrt(kinetic_energy[i]))) + angle_offset
 
 
 class ConvertKpKzV0(CoordinateConverter):
@@ -197,7 +192,6 @@ class ConvertKpKz(CoordinateConverter):
             kinetic_energy,
             kp,
             phi=self.phi,
-            inner_potential=self.arr.S.inner_potential,
             angle_offset=self.arr.S.phi_offset,
         )
         if isinstance(self.calibration, DetectorCalibration):
