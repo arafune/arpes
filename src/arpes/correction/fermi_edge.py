@@ -10,12 +10,11 @@ import xarray as xr
 from lmfit.models import LinearModel, QuadraticModel
 from matplotlib.axes import Axes
 
-from arpes.analysis.general import fit_fermi_edge
+from arpes.analysis import fit_fermi_edge
 from arpes.constants import TWO_DIMENSION
 from arpes.correction.intensity_map import shift_by
 from arpes.fits import GStepBModel, broadcast_model
 from arpes.provenance import Provenance, provenance, update_provenance
-from arpes.analysis import fit_fermi_edge
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Hashable, Iterable
