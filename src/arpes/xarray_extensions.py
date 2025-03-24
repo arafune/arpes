@@ -57,7 +57,7 @@ from typing import (
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
-import xarray_lmfit  # noqa: F401
+import xarray_lmfit
 from more_itertools import always_reversible
 from xarray.core.coordinates import DataArrayCoordinates, DatasetCoordinates
 
@@ -2500,6 +2500,18 @@ class ARPESDatasetFitToolAccessor:
                 set(self._obj[f"{spectral_name}_modelfit_results"].dims),
             ),
         )
+
+    def save_fit(self, path: Path | str, **kwargs: Incomplete) -> None:
+        """Wrapper of xarray_lmfit.save_fit.
+
+        Save the result dataset to a netCDF file, which can be loaded by using standard
+        xarray.load_dataset()
+
+        Args:
+            path: Path to save the fit results
+            **kwargs: Passed to xarray.Dataset.to_netcdf
+        """
+        xarray_lmfit.save_fit(self._obj, path, **kwargs)
 
 
 @xr.register_dataarray_accessor("F")

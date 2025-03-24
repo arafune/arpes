@@ -5,6 +5,7 @@ from __future__ import annotations
 from functools import wraps
 from typing import TYPE_CHECKING, Literal, TypedDict, Unpack
 
+import sklearn
 import xarray as xr
 from sklearn.decomposition import FactorAnalysis, FastICA
 
@@ -14,7 +15,6 @@ from arpes.utilities import normalize_to_spectrum
 
 if TYPE_CHECKING:
     import numpy as np
-    import sklearn
     from numpy.typing import NDArray
     from sklearn.base import BaseEstimator
 
