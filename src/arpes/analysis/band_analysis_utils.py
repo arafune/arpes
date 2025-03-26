@@ -19,7 +19,7 @@ class ParamType(NamedTuple):
     stderr: float
 
 
-def param_getter(param_name: str, *, safe: bool = True) -> Callable[..., float]:
+def param_getter(param_name: str) -> Callable[..., float]:
     """Constructs a function to extract a parameter value by name.
 
     Useful to extract data from inside an array of `lmfit.ModelResult` instances.
@@ -34,21 +34,15 @@ def param_getter(param_name: str, *, safe: bool = True) -> Callable[..., float]:
     Returns:
         A function which fetches the fitted value for this named parameter.
     """
-    if safe:
-        safe_param = ParamType(value=np.nan, stderr=np.nan)
+    safe_param = ParamType(value=np.nan, stderr=np.nan)
 
-        def getter(x: lf.model.ModelResult) -> float:
-            try:
-                return x.params.get(param_name, safe_param).value
-            except IndexError:
-                return np.nan
+    def getter(x: lf.model.ModelResult) -> float:
+        return x.params.get(param_name, safe_param).value
 
-        return getter
-
-    return lambda x: x.params[param_name].value
+    return getter
 
 
-def param_stderr_getter(param_name: str, *, safe: bool = True) -> Callable[..., float]:
+def param_stderr_getter(param_name: str) -> Callable[..., float]:
     """Constructs a function to extract a parameter value by name.
 
     Useful to extract data from inside an array of `lmfit.ModelResult` instances.
@@ -62,16 +56,11 @@ def param_stderr_getter(param_name: str, *, safe: bool = True) -> Callable[..., 
 
     Returns:
         A function which fetches the standard error for this named parameter.
+
     """
-    if safe:
-        safe_param = ParamType(value=np.nan, stderr=np.nan)
+    safe_param = ParamType(value=np.nan, stderr=np.nan)
 
-        def getter(x: lf.model.ModelResult) -> float:
-            try:
-                return x.params.get(param_name, safe_param).stderr
-            except IndexError:
-                return np.nan
+    def getter(x: lf.model.ModelResult) -> float:
+        return x.params.get(param_name, safe_param).stderr
 
-        return getter
-
-    return lambda x: x.params[param_name].stderr
+    return getter
