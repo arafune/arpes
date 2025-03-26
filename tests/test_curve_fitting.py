@@ -70,7 +70,7 @@ def test_F_s(fit_results_cut: xr.Dataset) -> None:
                 0.49227957,
             ],
         ),
-        rtol=1e-5,
+        rtol=RTOL,
     )
 
 
