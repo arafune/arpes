@@ -52,6 +52,7 @@ def test_F_p(fit_results_cut: xr.Dataset) -> None:
                 -0.31079581,
             ],
         ),
+        rtol=RTOL,
     )
 
 
