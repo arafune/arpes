@@ -191,12 +191,8 @@ name = "cz_emoji"
 version = "0.0.1"
 tag_format = "$version"
 
-
 [tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = "src"
-addopts = "--cov=arpes --cov-report html"
-env = ["NUMBA_DISABLE_JIT=1"]
+env = ["NUMBA_DISABLE_JIT=1", "NUMBA_CACHE_DIR = /dev/null"]
 norecursedirs = [
   ".git",
   "__pycache__",
@@ -229,3 +225,6 @@ exclude_also = [
   "class .*\\bProtocol\\):",
   "@(abc\\.)?abstractmethod",
 ]
+testpaths = ["tests"]
+pythonpath = "src"
+addopts = "--cov=arpes --cov-report html"

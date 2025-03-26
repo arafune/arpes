@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 __all__ = ["ConvertKpKz", "ConvertKpKzV0", "ConvertKxKyKz"]
 
 
-@numba.njit(parallel=True, cache=True)
+@numba.njit(parallel=True)
 def _kspace_to_hv(
     kp: NDArray[np.float64],
     kz: NDArray[np.float64],
@@ -39,7 +39,7 @@ def _kspace_to_hv(
         hv[i] = HV_CONVERSION * (kp[i] ** 2 + kz[i] ** 2) + energy_shift[i * shift_ratio]
 
 
-@numba.njit(parallel=True, cache=True)
+@numba.njit(parallel=True)
 def _kp_to_polar(
     kinetic_energy: NDArray[np.float64],
     kp: NDArray[np.float64],
