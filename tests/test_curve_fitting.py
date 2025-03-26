@@ -26,6 +26,17 @@ def fit_results_cut(dataarray_cut: xr.DataArray) -> xr.Dataset:
     return near_ef_rebin.S.modelfit("eV", model, params=params)
 
 
+def test_F_parameter_names(fit_results_cut: xr.Dataset) -> None:
+    assert fit_results_cut.modelfit_results.F.parameter_names == {
+        "a_center",
+        "a_const_bkg",
+        "a_lin_slope",
+        "a_sigma",
+        "a_width",
+        "c",
+    }
+
+
 def test_F_p(fit_results_cut: xr.Dataset) -> None:
     np.testing.assert_allclose(
         actual=fit_results_cut.modelfit_results.F.p("a_center"),
