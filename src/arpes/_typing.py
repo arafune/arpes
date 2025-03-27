@@ -163,6 +163,8 @@ def is_dict_kspacecoords(
         TypeGuard[KspaceCoords]: True if the dictionary contains k-space coordinates,
         False otherwise.
     """
+    if not a_dict:
+        return False
     if all(key in {"eV", "kp", "kx", "ky", "kz"} for key in a_dict):
         return all(isinstance(v, np.ndarray) for v in a_dict.values())
     return False
