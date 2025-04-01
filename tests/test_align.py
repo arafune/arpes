@@ -2,7 +2,7 @@
 
 import xarray as xr
 
-from arpes.analysis.align import align, align2d, align1d
+from arpes.analysis.align import align, align1d, align2d
 
 
 def test_align2d_by_self_correlation(dataarray_cut: xr.DataArray):
