@@ -52,9 +52,9 @@ def align2d(a: xr.DataArray, b: xr.DataArray, *, subpixel: bool = True) -> tuple
         x_offset = 0
 
     return (
-        (float(y + y_offset) - a.values.shape[0] / 2.0)
+        (float(y + y_offset) - (a.values.shape[0] - 1) // 2)
         * a.G.stride(generic_dim_names=False)[a.dims[0]],
-        (float(x + x_offset) - a.values.shape[1] / 2.0)
+        (float(x + x_offset) - (a.values.shape[1] - 1) // 2)
         * a.G.stride(generic_dim_names=False)[a.dims[1]],
     )
 
@@ -75,9 +75,9 @@ def align1d(a: xr.DataArray, b: xr.DataArray, *, subpixel: bool = True) -> float
 
     x_offset = _quadratic_fit(corr[x - 10 : x + 10]) if subpixel else 0.0
 
-    return (float(x + x_offset) - a.values.shape[0] / 2.0) * a.G.stride(generic_dim_names=False)[
-        a.dims[0]
-    ]
+    return (float(x + x_offset) - (a.values.shape[0] - 1) // 2) * a.G.stride(
+        generic_dim_names=False,
+    )[a.dims[0]]
 
 
 def align(a: xr.DataArray, b: xr.DataArray, **kwargs: bool) -> tuple[float, float] | float:
