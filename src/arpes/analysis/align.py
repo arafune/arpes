@@ -10,12 +10,17 @@ present.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
-import xarray as xr
 from lmfit.models import QuadraticModel
 from scipy import signal
 
 from arpes.constants import TWO_DIMENSION
+
+if TYPE_CHECKING:
+    import xarray as xr
+    from numpy.typing import NDArray
 
 __all__ = ("align",)
 
@@ -37,33 +42,20 @@ def align2d(a: xr.DataArray, b: xr.DataArray, *, subpixel: bool = True) -> tuple
         boundary="fill",
         mode="same",
     )
-
     y, x = np.unravel_index(np.argmax(corr), corr.shape)
 
     if subpixel:
-        marg = xr.DataArray(
-            corr[y - 10 : y + 10, x],
-            coords={"index": np.linspace(-10, 9, 20)},
-            dims=["index"],
-        )
-        marg = marg / np.max(marg)
-        mod = QuadraticModel().guess_fit(marg)
-        true_y = y + -mod.params["b"].value / (2 * mod.params["a"].value)
-
-        marg = xr.DataArray(
-            corr[y, x - 10 : x + 10],
-            coords={"index": np.linspace(-10, 9, 20)},
-            dims=["index"],
-        )
-        marg = marg / np.max(marg)
-        mod = QuadraticModel().guess_fit(marg)
-        true_x = x + -mod.params["b"].value / (2 * mod.params["a"].value)
-
-        y, x = true_y, true_x
+        y_offset = _quadratic_fit(corr[y - 10 : y + 10, x])
+        x_offset = _quadratic_fit(corr[y, x - 10 : x + 10])
+    else:
+        y_offset = 0
+        x_offset = 0
 
     return (
-        (float(y) - a.values.shape[0] / 2.0) * a.G.stride(generic_dim_names=False)[a.dims[0]],
-        (float(x) - a.values.shape[1] / 2.0) * a.G.stride(generic_dim_names=False)[a.dims[1]],
+        (float(y + y_offset) - (a.values.shape[0] - 1) // 2)
+        * a.G.stride(generic_dim_names=False)[a.dims[0]],
+        (float(x + x_offset) - (a.values.shape[1] - 1) // 2)
+        * a.G.stride(generic_dim_names=False)[a.dims[1]],
     )
 
 
@@ -81,17 +73,10 @@ def align1d(a: xr.DataArray, b: xr.DataArray, *, subpixel: bool = True) -> float
     corr = np.correlate(a.values - np.mean(a.values), b.values - np.mean(b.values), mode="same")
     (x,) = np.unravel_index(np.argmax(corr), corr.shape)
 
-    if subpixel:
-        marg = xr.DataArray(
-            corr[x - 10 : x + 10],
-            coords={"index": np.linspace(-10, 9, 20)},
-            dims=["index"],
-        )
-        marg = marg / np.max(marg)
-        mod = QuadraticModel().guess_fit(marg)
-        x += -mod.params["b"].value / (2 * mod.params["a"].value)
-
-    return (float(x) - a.values.shape[0] / 2.0) * a.G.stride(generic_dim_names=False)[a.dims[0]]
+    x_offset = _quadratic_fit(corr[x - 10 : x + 10]) if subpixel else 0.0
+    return (float(x + x_offset) - (a.values.shape[0]) // 2) * a.G.stride(
+        generic_dim_names=False,
+    )[a.dims[0]]
 
 
 def align(a: xr.DataArray, b: xr.DataArray, **kwargs: bool) -> tuple[float, float] | float:
@@ -110,3 +95,19 @@ def align(a: xr.DataArray, b: xr.DataArray, **kwargs: bool) -> tuple[float, floa
 
     assert len(a.dims) == TWO_DIMENSION
     return align2d(a, b, **kwargs)
+
+
+def _quadratic_fit(peak_neigbor: NDArray[np.float64]) -> float:
+    """Helper function for QuadraticModel fit to determie the peak location.
+
+    Args:
+        peak_neigbor (NDArray[np.float64]): 1D NDarary around the peak. The length must be 20.
+
+    Returns:
+        float: correction of peak position with subpixel resolution.
+    """
+    model = QuadraticModel()
+    x = np.linspace(-10, 9, 20)
+    params = model.guess(peak_neigbor / np.max(peak_neigbor), x)
+    result = model.fit(data=peak_neigbor / np.max(peak_neigbor), params=params, x=x)
+    return -result.params["b"].value / (2 * result.params["a"].value)
