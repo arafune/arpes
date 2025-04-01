@@ -25,7 +25,12 @@ if TYPE_CHECKING:
 __all__ = ("align",)
 
 
-def align2d(a: xr.DataArray, b: xr.DataArray, *, subpixel: bool = True) -> tuple[float, float]:
+def align2d(
+    a: xr.DataArray,
+    b: xr.DataArray,
+    *,
+    subpixel: bool = True,
+) -> tuple[float, float]:
     """Returns the unitful offset of b in a for 2D arrays using 2D correlation.
 
     Args:
@@ -59,7 +64,12 @@ def align2d(a: xr.DataArray, b: xr.DataArray, *, subpixel: bool = True) -> tuple
     )
 
 
-def align1d(a: xr.DataArray, b: xr.DataArray, *, subpixel: bool = True) -> float:
+def align1d(
+    a: xr.DataArray,
+    b: xr.DataArray,
+    *,
+    subpixel: bool = True,
+) -> float:
     """Returns the unitful offset of b in a for 1D arrays using 1D correlation.
 
     Args:
@@ -79,7 +89,11 @@ def align1d(a: xr.DataArray, b: xr.DataArray, *, subpixel: bool = True) -> float
     )[a.dims[0]]
 
 
-def align(a: xr.DataArray, b: xr.DataArray, **kwargs: bool) -> tuple[float, float] | float:
+def align(
+    a: xr.DataArray,
+    b: xr.DataArray,
+    **kwargs: bool,
+) -> tuple[float, float] | float:
     """Returns the unitful offset of b in a for ndarrays.
 
     Args:
