@@ -38,7 +38,7 @@ import contextlib
 import copy
 import itertools
 import warnings
-from collections import OrderedDict
+from collections import Counter, OrderedDict
 from logging import DEBUG, INFO
 from pathlib import Path
 from typing import (
@@ -1845,14 +1845,10 @@ class GenericAccessorBase:
 
     def stride(
         self,
-        *args: str | list[str] | tuple[str, ...],
+        *args: str | Sequence[str],
         generic_dim_names: bool = True,
     ) -> dict[Hashable, float] | list[float] | float:
         """Return the stride in each dimension.
-
-        Note that the stride defined in this method is just a difference between first two values.
-        In most case, this treatment does not cause a problem.  However, when the data has been
-        concatenated, this assumption may not be not valid.
 
         Args:
             args: The dimension to return.  ["eV", "phi"] or "eV", "phi"
@@ -1861,9 +1857,8 @@ class GenericAccessorBase:
         Returns:
             The stride of each dimension
         """
-        indexed_coords: list[xr.DataArray] = [self._obj.coords[d] for d in self._obj.dims]
         indexed_strides: list[float] = [
-            coord.values[1] - coord.values[0] for coord in indexed_coords
+            _check_equal_spacing(self._obj.coords[dim], dim) for dim in self._obj.dims
         ]
 
         dim_names: list[str] | tuple[Hashable, ...] = tuple(self._obj.dims)
@@ -1914,6 +1909,30 @@ class GenericAccessorBase:
             ],
         )
         return self._obj.isel({coordinate_name: mask})
+
+
+def _check_equal_spacing(coords: xr.DataArray, dim_name: Hashable, **kwargs: Incomplete) -> float:
+    """Helper function to check the spacing is equal.
+
+    If not, the most frequent space is returned with warning message.
+
+    Args:
+        coords (xr.DataArray): xr.DataArray coords to be checked.
+        dim_name (str): dimension name.
+        **kwargs: kwargs for np.allclose (atol, rtol, equal_nan, ...)
+
+    Returns:
+        float: the value of spacing.
+    """
+    diffs = np.diff(coords)
+    if np.allclose(diffs, diffs[0], **kwargs):
+        return diffs[0]
+
+    most_common, _ = Counter(diffs).most_common(1)[0]
+    msg = f"Coordinate {dim_name} is not perfectly equally spaced. "
+    msg += f"Use the most common interval {most_common}."
+    warnings.warn(msg, UserWarning, stacklevel=2)
+    return most_common
 
 
 @xr.register_dataset_accessor("G")
