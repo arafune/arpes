@@ -74,8 +74,7 @@ def align1d(a: xr.DataArray, b: xr.DataArray, *, subpixel: bool = True) -> float
     (x,) = np.unravel_index(np.argmax(corr), corr.shape)
 
     x_offset = _quadratic_fit(corr[x - 10 : x + 10]) if subpixel else 0.0
-
-    return (float(x + x_offset) - (a.values.shape[0] - 1) // 2) * a.G.stride(
+    return (float(x + x_offset) - (a.values.shape[0]) // 2) * a.G.stride(
         generic_dim_names=False,
     )[a.dims[0]]
 
