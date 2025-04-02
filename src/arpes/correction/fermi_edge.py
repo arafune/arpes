@@ -80,7 +80,7 @@ def find_e_fermi_linear_dos(
     edc = edc - np.percentile(edc.values, (20,))[0]
     # Note that xr.Dataset.values is method not instance.
     mask = edc > np.percentile(edc.sel(eV=slice(None, guess)), 20)
-    mod = LinearModel().guess_fit(edc[mask])
+    mod = LinearModel().fit(edc[mask])
 
     chemical_potential = -mod.params["intercept"].value / mod.params["slope"].value
 
@@ -212,7 +212,7 @@ def build_quadratic_fermi_edge_correction(
     not_nanny = (np.logical_not(np.isnan(arr)) * 1).sum("eV") > size_phi * 0.30
     condition = np.logical_and(edge_fit.F.s("center") < fit_limit, not_nanny)
 
-    quadratic_corr = QuadraticModel().guess_fit(edge_fit.F.p("center"), weights=condition * 1)
+    quadratic_corr = QuadraticModel().fit(edge_fit.F.p("center"), weights=condition * 2)
     if plot:
         edge_fit.F.p("center").plot()
         plt.plot(arr.coords["phi"], quadratic_corr.best_fit)

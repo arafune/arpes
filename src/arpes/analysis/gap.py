@@ -71,7 +71,11 @@ def determine_broadened_fermi_distribution(
     sum_dims = list(reference_data_array.dims)
     sum_dims.remove("eV")
 
-    return AffineBroadenedFD().guess_fit(reference_data_array.sum(sum_dims), params=params)
+    return AffineBroadenedFD().fit(
+        data=reference_data_array.sum(sum_dims),
+        x=reference_data_array.coords["eV"],
+        params=params,
+    )
 
 
 @update_provenance("Normalize By Fermi Dirac")

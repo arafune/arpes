@@ -200,7 +200,7 @@ class VoigtBand(Band):
     """Uses a Voigt lineshape."""
 
     @property
-    def fit_cls(self) -> type[Model]:  # guess_fit is used.
+    def fit_cls(self) -> type[Model]:
         """Fit using `arpes.fits.VoigtModel`."""
         return VoigtModel
 
@@ -209,6 +209,6 @@ class BackgroundBand(Band):
     """Uses a Gaussian lineshape."""
 
     @property
-    def fit_cls(self) -> type[Model]:  # guess_fit is used
+    def fit_cls(self) -> type[Model]:
         """Fit using `arpes.fits.GaussianModel`."""
         return GaussianModel

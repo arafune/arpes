@@ -51,11 +51,12 @@ def kfermi_from_mdcs(mdc_results: XrTypes, param: str = "") -> NDArray[np.float6
 
     return (
         LinearModel()
-        .guess_fit(
+        .fit(
             data=mdc_results.F.p(real_param_name).G.filter_coord(
                 coordinate_name="eV",
                 sieve=nan_sieve,
             ),
+            x=mdc_results.coords["kp"],
         )
         .eval(x=0)
     )
