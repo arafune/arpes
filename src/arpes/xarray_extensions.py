@@ -73,6 +73,7 @@ from ._typing import (
 from .analysis import param_getter, param_stderr_getter
 from .constants import TWO_DIMENSION
 from .correction import coords, intensity_map
+from .correction.angle_unit import switched_angle_unit
 from .debug import setup_logger
 from .models.band import MultifitBand
 from .plotting.dispersion import (
@@ -175,19 +176,21 @@ class ARPESAngleProperty:
                 if "eV" in data_var.dims:
                     data_var.attrs["angle_unit"] = angle_unit
 
+    def switched_angle_unit(self) -> xr.DataArray:
+        """Return the identical data but the angle unit is converted.
+
+        Change the value of angle related objects/variables in attrs and coords
+        """
+        return switched_angle_unit(self._obj)
+
     def switch_angle_unit(self) -> None:
         """Switch angle unit (radians <-> degrees) in place.
 
         Change the value of angle related objects/variables in attrs and coords
         """
-        angle_unit = self.angle_unit.lower()
-        if angle_unit.startswith("rad"):
-            self.radian_to_degree()
-        elif angle_unit.startswith("deg"):
-            self.degree_to_radian()
-        else:
-            msg = 'The angle_unit must be "Radians" or "Degrees"'
-            raise TypeError(msg)
+        array = switched_angle_unit(self._obj)
+        self._obj.attrs = array.attrs
+        self._obj.coords.update(array.coords)
 
     def radian_to_degree(self) -> None:
         """Switch angle unit from Radians to Degrees."""
