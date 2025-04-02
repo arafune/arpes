@@ -43,6 +43,26 @@ def test_cut_momentum_conversion(dataarray_cut: xr.DataArray) -> None:
     ]
 
 
+def test_cut_with_degree_unit_momemntum_conversion(dataarray_cut: xr.DataArray) -> None:
+    """Validates that the core APIs are functioning."""
+    dataarray_cut.S.switch_angle_unit()
+    kdata = convert_to_kspace(dataarray_cut, kp=np.linspace(-0.12, 0.12, 600))
+    selected = kdata.values.ravel()[[0, 200, 800, 1500, 2800, 20000, 40000, 72000]]
+    assert np.nan_to_num(selected).tolist() == [
+        pytest.approx(c)
+        for c in [
+            0.0,
+            329.93641856427644,
+            282.81464843603896,
+            258.6560679332663,
+            201.5580256163084,
+            142.11410841363914,
+            293.0273837097613,
+            0.0,
+        ]
+    ]
+
+
 def test_cut_momentum_conversion_ranges(dataarray_cut: xr.DataArray) -> None:
     """Validates that the user can select momentum ranges."""
     kdata = convert_to_kspace(dataarray_cut, kp=np.linspace(-0.12, 0.12, 80))
