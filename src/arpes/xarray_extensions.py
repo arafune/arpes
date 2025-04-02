@@ -176,7 +176,7 @@ class ARPESAngleProperty:
                     data_var.attrs["angle_unit"] = angle_unit
 
     def switch_angle_unit(self) -> None:
-        """Switch angle unit (radians <-> degrees).
+        """Switch angle unit (radians <-> degrees) in place.
 
         Change the value of angle related objects/variables in attrs and coords
         """
