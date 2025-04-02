@@ -35,6 +35,7 @@ import xarray as xr
 from scipy.interpolate import RegularGridInterpolator
 
 from arpes.constants import TWO_DIMENSION
+from arpes.correction.angle_unit import switched_angle_unit
 from arpes.debug import setup_logger
 from arpes.provenance import Provenance, provenance, update_provenance
 from arpes.utilities import normalize_to_spectrum
@@ -353,7 +354,7 @@ def convert_to_kspace(  # noqa: PLR0913
     assert isinstance(arr, xr.DataArray)
 
     if arr.S.angle_unit.startswith("Deg") or arr.S.angle_unit.startswith("deg"):
-        arr.S.switch_angle_unit()
+        arr = switched_angle_unit(arr)
     logger.debug(f"bounds (covnert_to_kspace): {bounds}")
     logger.debug(f"keys in coords (convert_to_kspace): {coords.keys()}")
     # Chunking logic
