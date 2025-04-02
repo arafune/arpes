@@ -564,6 +564,30 @@ class TestAngleUnitForDataset:
         with pytest.raises(TypeError, match='The angle_unit must be "Radians" or "Degrees"'):
             dataarray_cut.S.switch_angle_unit()
 
+    def test_switched_angle_unit_for_dataset(self, dataset_cut: xr.Dataset) -> None:
+        converted_data = dataset_cut.S.switched_angle_unit()
+        assert converted_data.S.angle_unit == "Degrees"
+        np.testing.assert_allclose(
+            converted_data.coords["phi"].values[0:6],
+            [12.7, 12.8, 12.9, 13.0, 13.1, 13.2],
+        )
+        np.testing.assert_allclose(
+            converted_data.S.spectrum.coords["phi"].values[0:6],
+            [12.7, 12.8, 12.9, 13.0, 13.1, 13.2],
+        )
+
+    def test_switch_angle_untit_for_dataset(self, dataset_cut: xr.Dataset):
+        dataset_cut.S.switch_angle_unit()
+        assert dataset_cut.S.angle_unit == "Degrees"
+        np.testing.assert_allclose(
+            dataset_cut.coords["phi"].values[0:6],
+            [12.7, 12.8, 12.9, 13.0, 13.1, 13.2],
+        )
+        np.testing.assert_allclose(
+            dataset_cut.S.spectrum.coords["phi"].values[0:6],
+            [12.7, 12.8, 12.9, 13.0, 13.1, 13.2],
+        )
+
     def test_switch_angle_unit(self, dataset_cut: xr.Dataset) -> None:
         """Test for switch_angle_unit (Dataset version)."""
         original_phi_coords = dataset_cut.coords["phi"].values
