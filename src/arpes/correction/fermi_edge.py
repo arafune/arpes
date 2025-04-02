@@ -201,11 +201,14 @@ def build_quadratic_fermi_edge_correction(
     else:
         approximate_fermi_level = 0
     sum_axes = exclude_hemisphere_axes(arr.dims)
-    edge_fit = broadcast_model(
-        model_cls=GStepBModel,
-        data=arr.sum(sum_axes).sel(eV=eV_slice),
-        broadcast_dims="phi",
-        params={"center": {"value": approximate_fermi_level}},
+    model = GStepBModel()
+    spectrum = arr.sum(sum_axes, keep_attrs=True).sel(eV=eV_slice)
+    edge_fit = spectrum.S.modelfit(
+        coords="eV",
+        model=model,
+        params={
+            "center": {"value": approximate_fermi_level},
+        },
     )
 
     size_phi = len(arr.coords["phi"])
@@ -229,10 +232,13 @@ def build_photon_energy_fermi_edge_correction(
 
     (corrects monochromator miscalibration)
     """
-    return broadcast_model(
-        model_cls=GStepBModel,
-        data=arr.sum(exclude_hv_axes(arr.dims)).sel(eV=slice(-energy_window, energy_window)),
-        broadcast_dims="hv",
+    data = arr.sum(exclude_hv_axes(arr.dims), keep_attrs=True).sel(
+        eV=slice(-energy_window, energy_window),
+    )
+    return data.S.model_fit(
+        coords="eV",
+        model=GStepBModel(),
+        params={"center": {"value": 0}},
     )
 
 
