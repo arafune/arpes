@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import warnings
+from collections import Counter
 from logging import DEBUG, INFO
 from typing import TYPE_CHECKING, LiteralString, get_args
-from collections import Counter
+
 import numpy as np
 import xarray as xr
 
