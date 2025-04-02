@@ -62,6 +62,25 @@ def test_is_equally_spaced(dataarray_cut: xr.DataArray) -> None:
     assert coords.is_equally_spaced(coords_phi)
 
 
+def test_is_equally_spaced_exact():
+    coords_ = xr.DataArray([0, 1, 2, 3, 4])
+    spacing = coords.is_equally_spaced(coords_, "x")
+    assert spacing == 1
+
+
+def test_is_equal_spaced_approx():
+    coords_ = xr.DataArray([0, 1.01, 2.02, 3.03, 4.04])
+    spacing = coords.is_equally_spaced(coords_, "x", atol=0.02)
+    assert np.isclose(spacing, 1.01, atol=0.02)
+
+
+def test_is_equal_spaced_spacing_warns():
+    coords_ = xr.DataArray([0, 1, 2, 3.1, 4.1])
+    with pytest.warns(UserWarning, match="Coordinate x is not perfectly equally spaced"):
+        spacing = coords.is_equally_spaced(coords_, "x")
+    assert spacing == 1
+
+
 def test_extend_coords(dataarray_cut: xr.DataArray) -> None:
     expand_doords = coords.adjust_coords_to_limit(dataarray_cut, {"phi": 0.65, "eV": 0.14})
     stretched_data = coords.extend_coords(dataarray_cut, expand_doords)

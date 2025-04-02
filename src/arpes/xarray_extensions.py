@@ -38,7 +38,7 @@ import contextlib
 import copy
 import itertools
 import warnings
-from collections import Counter, OrderedDict
+from collections import OrderedDict
 from logging import DEBUG, INFO
 from pathlib import Path
 from typing import (
@@ -1858,7 +1858,11 @@ class GenericAccessorBase:
             The stride of each dimension
         """
         indexed_strides: list[float] = [
-            _check_equal_spacing(self._obj.coords[dim], dim) for dim in self._obj.dims
+            coords.is_equally_spaced(
+                self._obj.coords[dim],
+                dim,
+            )
+            for dim in self._obj.dims
         ]
 
         dim_names: list[str] | tuple[Hashable, ...] = tuple(self._obj.dims)
@@ -1909,30 +1913,6 @@ class GenericAccessorBase:
             ],
         )
         return self._obj.isel({coordinate_name: mask})
-
-
-def _check_equal_spacing(coords: xr.DataArray, dim_name: Hashable, **kwargs: Incomplete) -> float:
-    """Helper function to check the spacing is equal.
-
-    If not, the most frequent space is returned with warning message.
-
-    Args:
-        coords (xr.DataArray): xr.DataArray coords to be checked.
-        dim_name (str): dimension name.
-        **kwargs: kwargs for np.allclose (atol, rtol, equal_nan, ...)
-
-    Returns:
-        float: the value of spacing.
-    """
-    diffs = np.diff(coords)
-    if np.allclose(diffs, diffs[0], **kwargs):
-        return diffs[0]
-
-    most_common, _ = Counter(diffs).most_common(1)[0]
-    msg = f"Coordinate {dim_name} is not perfectly equally spaced. "
-    msg += f"Use the most common interval {most_common}."
-    warnings.warn(msg, UserWarning, stacklevel=2)
-    return most_common
 
 
 @xr.register_dataset_accessor("G")
