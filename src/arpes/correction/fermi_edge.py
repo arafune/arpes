@@ -13,7 +13,7 @@ from matplotlib.axes import Axes
 from arpes.analysis import fit_fermi_edge
 from arpes.constants import TWO_DIMENSION
 from arpes.correction.intensity_map import shift_by
-from arpes.fits import GStepBModel, broadcast_model
+from arpes.fits import GStepBModel
 from arpes.provenance import Provenance, provenance, update_provenance
 
 if TYPE_CHECKING:

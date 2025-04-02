@@ -10,7 +10,6 @@ import xarray as xr
 from lmfit.models import LinearModel, LorentzianModel
 
 from arpes.constants import HBAR_PER_EV, METERS_PER_SECOND_PER_EV_ANGSTROM
-from arpes.fits.utilities import broadcast_model
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete

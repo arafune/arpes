@@ -23,7 +23,7 @@ from .fit_models.misc import (
     LogRenormalizationModel,
 )
 from .fit_models.two_dimensional import EffectiveMassModel, Gaussian2DModel
-from .utilities import broadcast_model, result_to_hints
+from .utilities import result_to_hints
 
 if TYPE_CHECKING:
     import lmfit

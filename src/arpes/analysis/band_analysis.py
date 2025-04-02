@@ -18,7 +18,6 @@ from scipy.spatial import distance
 import arpes.utilities.math
 from arpes.constants import HBAR_SQ_EV_PER_ELECTRON_MASS_ANGSTROM_SQ, TWO_DIMENSION
 from arpes.debug import setup_logger
-from arpes.fits import broadcast_model
 from arpes.models.band import Band
 from arpes.provenance import update_provenance
 from arpes.utilities.conversion.forward import convert_coordinates_to_kspace_forward

@@ -438,13 +438,6 @@ Data Loading Plugins
 Curve Fitting
 =============
 
-Broadcast Fitting
-~~~~~~~~~~~~~~~~~
-
-.. autosummary::
-   :toctree: generated/
-
-   fits.utilities.broadcast_model
 
 General Curve Fitting Utilities
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
