@@ -81,12 +81,8 @@ def fit_for_effective_mass(
     mom_dim = next(
         dim for dim in ["kp", "kx", "ky", "kz", "phi", "beta", "theta"] if dim in data.dims
     )
-    fit_results = broadcast_model(
-        model_cls=[LorentzianModel, LinearModel],
-        data=data,
-        broadcast_dims=mom_dim,
-        **fit_kwargs,
-    )
+    model = LorentzianModel() + LinearModel()
+    fit_results = data.S.modelfit(coords="eV", model=model, **fit_kwargs)
     if mom_dim in {"phi", "beta", "theta"}:
         forward = convert_coordinates_to_kspace_forward(data)
         assert isinstance(forward, xr.Dataset)
