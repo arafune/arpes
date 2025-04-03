@@ -19,5 +19,5 @@ def safe_decode(input_bytes: bytes, prefer: str = "") -> str:
             return input_bytes.decode(codec)
         except UnicodeDecodeError:
             continue
-
-    raise TypeError("Failed to decode input bytes with available encodings.")
+    msg = "Failed to decode input bytes with available encodings."
+    raise TypeError(msg)
