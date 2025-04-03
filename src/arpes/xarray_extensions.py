@@ -2770,7 +2770,7 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
             Attributes from the parent dataset are assigned onto the selected
             array as a convenience.
 
-        ToDo: Need test
+        Todo: Need test
         """
         if "spectrum" in self._obj.data_vars:
             return self._obj.spectrum
