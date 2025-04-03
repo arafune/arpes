@@ -135,7 +135,10 @@ def normalize_dim(
     dims = [dim_or_dims] if isinstance(dim_or_dims, str) else dim_or_dims
     assert isinstance(dims, list)
 
-    summed_arr = arr.fillna(arr.mean()).sum([d for d in arr.dims if d not in dims])
+    summed_arr = arr.fillna(arr.mean()).sum(
+        [d for d in arr.dims if d not in dims],
+        keep_attrs=True,
+    )
     normalized_arr = arr / (summed_arr / np.prod(summed_arr.shape))
 
     to_return = xr.DataArray(normalized_arr.values, arr.coords, tuple(arr.dims), attrs=arr.attrs)

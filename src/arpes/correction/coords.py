@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import warnings
+from collections import Counter
 from logging import DEBUG, INFO
 from typing import TYPE_CHECKING, LiteralString, get_args
 
@@ -17,6 +18,7 @@ from arpes.debug import setup_logger
 if TYPE_CHECKING:
     from collections.abc import Hashable, Mapping, Sequence
 
+    from _typeshed import Incomplete
     from numpy.typing import NDArray
 
     from arpes.provenance import Provenance
@@ -117,23 +119,32 @@ def extend_coords(
     return expanded_da
 
 
-def is_equally_spaced(coords: NDArray[np.float64], tolerance: float = 1e-5) -> np.bool:
-    """Check if the given coordinates are equally spaced within a given tolerance.
+def is_equally_spaced(
+    coords: xr.DataArray | NDArray[np.float64],
+    dim_name: Hashable | None = None,
+    **kwargs: Incomplete,
+) -> float:
+    """Helper function to check the spacing is equal.
 
-    Parameters:
-    coords : np.ndarray
-        The coordinates array to check.
-    tolerance : float
-        The acceptable tolerance for the spacing difference.
+    If not, the most frequent space is returned with warning message.
+
+    Args:
+        coords (xr.DataArray): xr.DataArray coords to be checked.
+        dim_name (str): dimension name.
+        **kwargs: kwargs for np.allclose (atol, rtol, equal_nan, ...)
 
     Returns:
-        bool: True if the coordinates are equally spaced within the tolerance, False otherwise.
+        float: the value of spacing.
     """
-    diffs: NDArray[np.float64] = np.diff(coords)
+    diffs = np.diff(coords)
+    if np.allclose(diffs, diffs[0], **kwargs):
+        return diffs[0]
 
-    first_diff = diffs[0]
-
-    return np.all(np.abs(diffs - first_diff) <= tolerance)
+    most_common, _ = Counter(diffs).most_common(1)[0]
+    msg = f"Coordinate {dim_name} is not perfectly equally spaced. "
+    msg += f"Use the most common interval {most_common}."
+    warnings.warn(msg, UserWarning, stacklevel=2)
+    return most_common
 
 
 def shift_by(

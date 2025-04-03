@@ -10,7 +10,6 @@ import xarray as xr
 from lmfit.models import LinearModel, LorentzianModel
 
 from arpes.constants import HBAR_PER_EV, METERS_PER_SECOND_PER_EV_ANGSTROM
-from arpes.fits.utilities import broadcast_model
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete
@@ -266,30 +265,19 @@ def fit_for_self_energy(
         data: The input ARPES data.
         method: Determine the broadcast dimension in broadcast_model, one of 'mdc' and 'edc'
         bare_band: Optionally, the bare band. If None is provided the bare band will be estimated.
-        **kwargs: pass to broadcast_model
+        **kwargs: pass to S.modelfit (typical kwargs is param={})
 
     Returns:
         The self energy resulting from curve-fitting.
     """
+    assert data.S.is_kspace
+    model = LorentzianModel() + LinearModel()
     if method == "mdc":
-        fit_results = broadcast_model(
-            model_cls=[LorentzianModel, LinearModel],
-            data=data,
-            broadcast_dims="eV",
-            **kwargs,
-        )
+        possible_mometum_dims = ("kp", "kx", "ky", "kz")
+        mom_axis = next(str(dim) for dim in data.dims if dim in possible_mometum_dims)
+        assert mom_axis is not None
+        model = LorentzianModel() + LinearModel()
+        fit_results = data.S.modelfit(coords=mom_axis, model=model, **kwargs)
     else:
-        possible_mometum_dims = {"phi", "theta", "psi", "beta", "kp", "kx", "ky", "kz"}
-        mom_axes = {str(dim) for dim in data.dims}.intersection(possible_mometum_dims)
-
-        if len(mom_axes) > 1:
-            msg = "Too many possible momentum dimensions, please clarify."
-            raise ValueError(msg)
-        fit_results = broadcast_model(
-            model_cls=[LorentzianModel, LinearModel],
-            data=data,
-            broadcast_dims=next(iter(mom_axes)),
-            **kwargs,
-        )
-
-    return to_self_energy(fit_results.results, bare_band=bare_band)
+        fit_results = data.S.modelfit(coords="eV", model=model, **kwargs)
+    return to_self_energy(fit_results.modelfilt_results, bare_band=bare_band)
