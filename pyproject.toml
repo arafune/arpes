@@ -209,7 +209,22 @@ norecursedirs = [
 
 [tool.coverage.run]
 source = ['arpes']
-omit = ["tests/*", "src/arpes/deep_learning/*"]
+omit = [
+  "tests/*",
+  "src/arpes/deep_learning/*",
+  "src/arpes/endstations/plugin/ALG*",
+  "src/arpes/endstations/plugin/ANTARES.py",
+  "src/arpes/endstations/plugin/BL10_SARPES.py",
+  "src/arpes/endstations/plugin/Elettra_spectromicroscopy.py",
+  "src/arpes/endstations/plugin/HERS.py",
+  "src/arpes/endstations/plugin/MAESTRO.py",
+  "src/arpes/endstations/plugin/MBS.py",
+  "src/arpes/endstations/plugin/SSRF_NSRL.py",
+  "src/arpes/endstations/plugin/STofDLD.py",
+  "src/arpes/endstations/plugin/merlin.py",
+  "src/arpes/endstations/plugin/kaindl.py",
+]
+
 
 [tool.coverage.report]
 exclude_also = [
