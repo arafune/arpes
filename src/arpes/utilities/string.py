@@ -19,5 +19,4 @@ def safe_decode(input_bytes: bytes, prefer: str = "") -> str:
             return input_bytes.decode(codec)
         except UnicodeDecodeError:
             continue
-    msg = "Failed to decode input bytes with available encodings."
-    raise TypeError(msg)
+    return 'codec "latin-1" always return the string.'  # pragma: no cover
