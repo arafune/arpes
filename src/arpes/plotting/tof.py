@@ -66,9 +66,9 @@ def plot_with_std(
         var_names = [k for k in data_set.data_vars if "_std" not in str(k)]
         assert len(var_names) == 1
         name_to_plot = str(var_names[0])
-        assert (
-            name_to_plot + "_std"
-        ) in data_set.data_vars, "Has 'mean_and_deviation' been applied?"
+        assert (name_to_plot + "_std") in data_set.data_vars, (
+            "Has 'mean_and_deviation' been applied?"
+        )
 
     fig: Figure | None = None
     if ax is None:
@@ -76,7 +76,7 @@ def plot_with_std(
     assert isinstance(ax, Axes)
 
     data_set.data_vars[name_to_plot].S.plot(ax=ax, **kwargs)
-    x, y = data_set.data_vars[name_to_plot].G.to_arrays()
+    x, y = data_set.data_vars[name_to_plot].coords["eV"], data_set.data_vars[name_to_plot].values
 
     std = data_set.data_vars[name_to_plot + "_std"].values
     kwargs.setdefault("alpha", 0.3)
@@ -114,15 +114,15 @@ def scatter_with_std(
         var_names = [k for k in data.data_vars if "_std" not in str(k)]
         assert len(var_names) == 1
         name_to_plot = str(var_names[0])
-        assert (
-            name_to_plot + "_std"
-        ) in data.data_vars, "Has 'mean_and_deviation' been applied to the data?"
+        assert (name_to_plot + "_std") in data.data_vars, (
+            "Has 'mean_and_deviation' been applied to the data?"
+        )
 
     fig: Figure | None = None
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize)
     assert isinstance(ax, Axes)
-    x, y = data.data_vars[name_to_plot].G.to_arrays()
+    x, y = data.data_vars[name_to_plot].coords["eV"], data.data_vars[name_to_plot].values
 
     std = data.data_vars[name_to_plot + "_std"].values
     ax.errorbar(x, y, yerr=std, markeredgecolor="black", **kwargs)

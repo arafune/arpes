@@ -34,7 +34,7 @@ def calculate_background_hull(
             processed.append(calculate_background_hull(arr.sel({dim: slice(blow, bhigh)})))
         return xr.concat(processed, dim)
 
-    points = np.stack(arr.G.to_arrays(), axis=1)
+    points = np.stack((arr.coords["eV"], arr.values), axis=1)
     hull = ConvexHull(points)
 
     vertices: NDArray[np.float64] = np.array(hull.vertices)
