@@ -443,7 +443,6 @@ def fit_patterned_bands(  # noqa: PLR0913
     template = arr.sum(fit_direction)
     band_results = template.G.with_values(
         np.ndarray(shape=template.values.shape, dtype=object),
-        keep_attrs=True,
     )
 
     total_slices = np.prod([len(arr.coords[d]) for d in free_directions])

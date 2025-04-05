@@ -744,14 +744,19 @@ class ARPESOffsetProperty(ARPESAngleProperty):
         raise RuntimeError(msg)
 
     @property
-    def logical_offsets(self) -> dict[str, float | xr.DataArray]:
+    def logical_offsets(self) -> dict[str, float | xr.DataArray]:  # pragma: no cover
         """The logical offsets of the sample position.
 
         Returns:
             dict object of long_[x, y, z] + physical_long_[x, y, z]
 
         Todo:
-            Test
+            Consering if this is really suitable way?
+                * While this variable used just in MAESTRO.py which I haven't used, to keep
+                  consistensy with other plugins the following change seems to be reasonable.
+                    * coords["long_x"] should be coosrds["x"] ?
+                    * coords["physical_long_x"] seems to be just x_offset.
+
         """
         assert isinstance(self._obj, xr.DataArray | xr.Dataset)
         if "long_x" not in self._obj.coords:
