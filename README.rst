@@ -112,9 +112,12 @@ Very unfortunately, we cannot get any responses from the original author.  The c
 Questions, difficulties, and suggestions can be directed to Conrad Stansbury (chstan@berkeley.edu)
 or added to the repository as an issue. In the case of trouble, also check the `FAQ`_.
 
+Copyright
+=========
+
 Copyright |copy| 2018-2019 by Conrad Stansbury, all rights reserved.
 
-PyArpes contribution after `cadaaae`_, |copy| 2023-2024 by Ryuichi Arafune, all rights reserved.
+PyArpes contribution after `cadaaae`_, |copy| 2023-2025 by Ryuichi Arafune, all rights reserved.
 
 .. |copy|   unicode:: U+000A9 .. COPYRIGHT SIGN
 
