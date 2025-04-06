@@ -39,6 +39,17 @@ dependencies = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build]
+include = [
+  "LICENSE",
+  "CONTRIBUTING.md",
+  "README.rst",
+  "resources/*.fits",
+  "docs/*.md",
+  "docs/*.png",
+  "arpes/example_data/*.fits",
+  "arpes/example_data/*.nc",
+]
 
 [tool.uv]
 managed = true
@@ -164,6 +175,8 @@ skip-magic-trailing-comma = false
 [tool.mypy]
 ignore_missing_imports = true
 
+python_version = "3.12"
+
 exclude = [
   "ALG_spin_ToF\\.py",
   "fits_utils\\.py",
@@ -182,6 +195,15 @@ exclude = [
   "^src/arpes/deep_learning/.*\\.py$",
 ]
 
+[[tool.mypy.overrides]]
+module = "numba"
+ignore_missing_imports = true
+disable_error_code = ["attr-defined"]
+
+[[tool.mypy.overrides]]
+module = "numba.*"
+ignore_missing_imports = true
+disable_error_code = ["attr-defined"]
 
 [tool.black]
 line-length = 100
