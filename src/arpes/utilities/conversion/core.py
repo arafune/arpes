@@ -345,7 +345,11 @@ def convert_to_kspace(  # noqa: PLR0913
         xr.DataArray: Converted ARPES (k-space) data.
     """
     coords = coords or {}
-    coords.update(kwargs)
+    if kwargs:
+        msg = "Coordinate of k-space should be set by dictionally."
+        msg += "This way (set by kwargs) will be deprecated"
+        warnings.warn(msg, stacklevel=2)
+        coords.update(kwargs)
     assert isinstance(coords, dict)
 
     bounds = bounds or {}
