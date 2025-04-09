@@ -9,6 +9,8 @@ from lmfit.lineshapes import lorentzian
 from scipy.ndimage import gaussian_filter
 from scipy.special import erfc
 
+from arpes.constants import MAX_EXP_ARG
+
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
@@ -21,6 +23,21 @@ __all__ = (
     "gstep_stdev",
     "gstepb",
 )
+
+
+def fermi_dirac(
+    x: NDArray[np.float64],
+    center: float = 0,
+    width: float = 0.05,
+    scale: float = 1,
+) -> NDArray[np.float64]:
+    r"""Fermi edge, with somewhat arbitrary normalization.
+
+    :math:`\frac{scale}{\exp\left(\frac{x-center}{width} +1\right)}`
+    """
+    x_diff = np.clip((x - center) / width, -MAX_EXP_ARG, MAX_EXP_ARG)
+
+    return scale / (1 + np.exp(x_diff))
 
 
 def affine_broadened_fd(  # noqa: PLR0913
@@ -43,7 +60,7 @@ def affine_broadened_fd(  # noqa: PLR0913
     """
     dx = x - center
     x_scaling = x[1] - x[0]
-    fermi = 1 / (np.exp(dx / width) + 1)
+    fermi = fermi_dirac(x=x, center=center, width=width)
     return np.asarray(
         gaussian_filter(
             (const_bkg + lin_slope * dx) * fermi,
@@ -51,19 +68,6 @@ def affine_broadened_fd(  # noqa: PLR0913
         ),
         dtype=np.float64,
     )
-
-
-def fermi_dirac(
-    x: NDArray[np.float64],
-    center: float = 0,
-    width: float = 0.05,
-    scale: float = 1,
-) -> NDArray[np.float64]:
-    r"""Fermi edge, with somewhat arbitrary normalization.
-
-    :math:`\frac{scale}{\exp\left(\frac{x-center}{width} +1\right)}`
-    """
-    return scale / (np.exp((x - center) / width) + 1)
 
 
 def gstepb(  # noqa: PLR0913
@@ -91,7 +95,7 @@ def gstepb(  # noqa: PLR0913
         The step edge.
     """
     dx = x - center
-    return const_bkg + lin_slope * np.min(dx, 0) + gstep(x, center, width, erf_amp)
+    return (const_bkg + lin_slope * dx) * gstep(x, center, width, erf_amp)
 
 
 def gstep(
@@ -131,10 +135,12 @@ def band_edge_bkg(  # noqa: PLR0913
 
     Todo: Reconsidering the Need.
     """
-    return (lorentzian(x, gamma, lor_center, amplitude) + lin_slope * x + const_bkg) * fermi_dirac(
-        x,
-        center,
-        width,
+    return (
+        lorentzian(x, gamma, lor_center, amplitude) + (lin_slope * x + const_bkg)
+    ) * fermi_dirac(
+        x=x,
+        center=center,
+        width=width,
     )
 
 
@@ -146,7 +152,7 @@ def fermi_dirac_affine(
     const_bkg: float = 1,
 ) -> NDArray[np.float64]:
     """Fermi step edge with a linear background above the Fermi level."""
-    return (const_bkg + lin_slope * x) / (np.exp((x - center) / width) + 1)
+    return (const_bkg + lin_slope * x) * fermi_dirac(x=x, center=center, width=width)
 
 
 def gstep_stdev(
