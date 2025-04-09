@@ -8,6 +8,8 @@ bundling necessary information on endstation classes.
 
 from __future__ import annotations
 
+import numpy as np
+
 # eV, A reasonablish value if you aren't sure for the particular sample
 WORK_FUNCTION = 4.3
 
@@ -38,3 +40,6 @@ K_INV_ANGSTROM = 0.5123167219534328
 HV_CONVERSION = 3.814697265625
 
 TWO_DIMENSION = 2
+
+
+MAX_EXP_ARG = np.log(np.finfo(np.float64).max)
