@@ -76,6 +76,7 @@ def find_e_fermi_linear_dos(
     """
     if guess is None:
         guess = edc.eV.values[len(edc.eV) // 2]
+    assert isinstance(guess, float)
 
     edc = edc - np.percentile(edc.values, (20,))[0]
     # Note that xr.Dataset.values is method not instance.
