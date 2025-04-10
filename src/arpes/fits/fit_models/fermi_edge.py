@@ -212,7 +212,11 @@ class FermiDiracModel(Model):
 
         ymax = max(data)
         xmin, xmax = min(x), max(x)
-        pars = self.make_params(scale=ymax, center=(xmax - xmin) / 2.0, width=(xmax - xmin) / 10)
+        pars = self.make_params(
+            scale=ymax,
+            center=(xmax - xmin) / 2.0,
+            width=(xmax - xmin) / 10,
+        )
 
         return update_param_vals(pars, self.prefix, **kwargs)
 

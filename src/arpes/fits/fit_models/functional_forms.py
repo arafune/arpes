@@ -57,12 +57,16 @@ def affine_broadened_fd(  # noqa: PLR0913
         const_bkg: constant background.
         lin_slope: linear (affine) background slope.
     """
-    dx = x - center
     x_scaling = x[1] - x[0]
-    fermi = fermi_dirac(x=x, center=center, width=width)
     return np.asarray(
         gaussian_filter(
-            (const_bkg + lin_slope * dx) * fermi,
+            fermi_dirac_affine(
+                x=x,
+                center=center,
+                width=width,
+                lin_slope=lin_slope,
+                const_bkg=const_bkg,
+            ),
             sigma=sigma / x_scaling,
         ),
         dtype=np.float64,
@@ -93,8 +97,7 @@ def gstepb(  # noqa: PLR0913
     Returns:
         The step edge.
     """
-    dx = x - center
-    return (const_bkg + lin_slope * dx) * gstep(x, center, width, erf_amp)
+    return (const_bkg + lin_slope * (x - center)) * gstep(x, center, width, erf_amp)
 
 
 def gstep(
@@ -116,8 +119,7 @@ def gstep(
     Returns:
         The step edge.
     """
-    dx = x - center
-    return erf_amp * erfc(dx / width) / 2
+    return erf_amp * erfc((x - center) / width) / 2
 
 
 def band_edge_bkg(  # noqa: PLR0913
@@ -151,4 +153,4 @@ def fermi_dirac_affine(
     const_bkg: float = 1,
 ) -> NDArray[np.float64]:
     """Fermi step edge with a linear background above the Fermi level."""
-    return (const_bkg + lin_slope * x) * fermi_dirac(x=x, center=center, width=width)
+    return (const_bkg + lin_slope * (x - center)) * fermi_dirac(x=x, center=center, width=width)
