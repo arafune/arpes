@@ -21,6 +21,7 @@ __all__ = (
     "fermi_dirac_affine",
     "gstep",
     "gstepb",
+    "gstepb_mult_lorentzian",
 )
 
 
@@ -81,7 +82,7 @@ def gstepb(  # noqa: PLR0913
     lin_slope: float = 0,
     const_bkg: float = 0,
 ) -> NDArray[np.float64]:
-    """Fermi function convoled with a Gaussian together with affine background.
+    """Complementary error function as a approximate of the Fermi function convoled with a Gaussian.
 
     This accurately represents low temperature steps where thermal broadening is
     less substantial than instrumental resolution.
@@ -154,3 +155,22 @@ def fermi_dirac_affine(
 ) -> NDArray[np.float64]:
     """Fermi step edge with a linear background above the Fermi level."""
     return (const_bkg + lin_slope * (x - center)) * fermi_dirac(x=x, center=center, width=width)
+
+
+def gstepb_mult_lorentzian(  # noqa: PLR0913
+    x: NDArray[np.float64],
+    center: float = 0,
+    width: float = 1,
+    erf_amp: float = 1,
+    lin_slope: float = 0,
+    const_bkg: float = 0,
+    gamma: float = 1,
+    lorcenter: float = 0,
+) -> NDArray[np.float64]:
+    """A Lorentzian multiplied by a gstepb background."""
+    return gstepb(x, center, width, erf_amp, lin_slope, const_bkg) * lorentzian(
+        x=x,
+        sigma=gamma,
+        center=lorcenter,
+        amplitude=1,
+    )

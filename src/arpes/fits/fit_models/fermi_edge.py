@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Unpack
 import lmfit as lf
 import numpy as np
 import xarray as xr
-from lmfit.lineshapes import gaussian, lorentzian
+from lmfit.lineshapes import gaussian
 from lmfit.models import Model, update_param_vals
 from scipy import stats
 
@@ -18,6 +18,7 @@ from .functional_forms import (
     band_edge_bkg,
     fermi_dirac,
     gstepb,
+    gstepb_mult_lorentzian,
 )
 
 if TYPE_CHECKING:
@@ -118,31 +119,12 @@ class FermiLorentzianModel(Model):
     Todo: Reconsidering the NEED & Lorentzian height.
     """
 
-    @staticmethod
-    def gstepb_mult_lorentzian(  # noqa: PLR0913
-        x: NDArray[np.float64],
-        center: float = 0,
-        width: float = 1,
-        erf_amp: float = 1,
-        lin_slope: float = 0,
-        const_bkg: float = 0,
-        gamma: float = 1,
-        lorcenter: float = 0,
-    ) -> NDArray[np.float64]:
-        """A Lorentzian multiplied by a gstepb background."""
-        return gstepb(x, center, width, erf_amp, lin_slope, const_bkg) * lorentzian(
-            x=x,
-            sigma=gamma,
-            center=lorcenter,
-            amplitude=1,
-        )
-
     def __init__(self, **kwargs: Unpack[ModelArgs]) -> None:
         """Defer to lmfit for initialization."""
         kwargs.setdefault("prefix", "")
         kwargs.setdefault("independent_vars", ["x"])
         kwargs.setdefault("nan_policy", "raise")
-        super().__init__(self.gstepb_mult_lorentzian, **kwargs)
+        super().__init__(gstepb_mult_lorentzian, **kwargs)
 
         self.set_param_hint("erf_amp", min=0.0)
         self.set_param_hint("width", min=0)
