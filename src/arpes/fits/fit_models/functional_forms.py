@@ -20,7 +20,6 @@ __all__ = (
     "fermi_dirac",
     "fermi_dirac_affine",
     "gstep",
-    "gstep_stdev",
     "gstepb",
 )
 
@@ -153,21 +152,3 @@ def fermi_dirac_affine(
 ) -> NDArray[np.float64]:
     """Fermi step edge with a linear background above the Fermi level."""
     return (const_bkg + lin_slope * x) * fermi_dirac(x=x, center=center, width=width)
-
-
-def gstep_stdev(
-    x: NDArray[np.float64],
-    center: float = 0,
-    sigma: float = 1,
-    erf_amp: float = 1,
-) -> NDArray[np.float64]:
-    """Fermi function convolved with a Gaussian.
-
-    Args:
-        x: value to evaluate fit at
-        center: center of the step
-        sigma: width of the step
-        erf_amp: height of the step
-    """
-    dx = x - center
-    return erf_amp * 0.5 * erfc(np.sqrt(2) * dx / sigma)

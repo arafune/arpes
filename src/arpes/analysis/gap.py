@@ -17,7 +17,6 @@ from arpes.utilities import normalize_to_spectrum
 
 if TYPE_CHECKING:
     from lmfit.model import ModelResult
-    from xarray.core.common import DataWithCoords
 
     from arpes._typing import DataType
 
@@ -30,7 +29,7 @@ logger = setup_logger(__name__, LOGLEVEL)
 
 
 def determine_broadened_fermi_distribution(
-    reference_data: DataWithCoords,
+    data: xr.DataArray,
     *,
     fixed_temperature: bool = True,
 ) -> ModelResult:
@@ -48,8 +47,8 @@ def determine_broadened_fermi_distribution(
     ``normalize_by_fermi_dirac``.
 
     Args:
-        reference_data: The data we want to estimate from.
-        fixed_temperature: Whether we should force the temperature to the recorded value.
+        data (xr.DataArray): The data we want to estimate from.
+        fixed_temperature (bool): Whether we should force the temperature to the recorded value.
 
     Return:
         The estimated fit result for the Fermi distribution.
@@ -58,22 +57,16 @@ def determine_broadened_fermi_distribution(
 
     if fixed_temperature:
         params["width"] = {
-            "value": reference_data.S.temp * K_BOLTZMANN_EV_KELVIN,
+            "value": data.S.temp * K_BOLTZMANN_EV_KELVIN,
             "vary": False,
         }
 
-    reference_data_array = (
-        reference_data
-        if isinstance(reference_data, xr.DataArray)
-        else normalize_to_spectrum(reference_data)
-    )
-
-    sum_dims = list(reference_data_array.dims)
+    sum_dims = list(data.dims)
     sum_dims.remove("eV")
 
     return AffineBroadenedFD().fit(
-        data=reference_data_array.sum(sum_dims),
-        x=reference_data_array.coords["eV"],
+        data=data.sum(sum_dims),
+        x=data.coords["eV"],
         params=params,
     )
 
@@ -231,7 +224,6 @@ def symmetrize(
     data: xr.DataArray,
     *,
     subpixel: bool = False,
-    full_spectrum: bool = False,
 ) -> xr.DataArray:
     """Symmetrizes data across the chemical potential.
 
@@ -242,18 +234,13 @@ def symmetrize(
     Args:
         data: Input array.
         subpixel: Enable subpixel correction
-        full_spectrum: Returns data above and below the chemical
-            potential. By default, only the bound part of the spectrum
-            (below the chemical potential) is returned, because the
-            other half is identical.
-
     Returns:
         The symmetrized data.
     """
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     data = data.transpose("eV", ...)
 
-    if subpixel or full_spectrum:
+    if subpixel:
         data = _shift_energy_interpolate(data)
     assert isinstance(data, xr.DataArray)
 
@@ -267,10 +254,7 @@ def symmetrize(
 
     below.values += zeros
 
-    if full_spectrum:
-        if not subpixel:
-            warnings.warn("full spectrum symmetrization uses subpixel correction", stacklevel=2)
-
+    if subpixel:
         full_data = below.copy(deep=True)
 
         new_above = full_data.copy(deep=True)[::-1]

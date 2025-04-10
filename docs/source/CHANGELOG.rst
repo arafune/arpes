@@ -12,6 +12,9 @@ primarily indicate new features and documentation.
 5.0.0-per3 (XXXX-XX-XX)
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
+* Remove 'GStepBStdevModel', which is useless.  Use GstepBModel. 
+
+
 5.0.0-pre2 (2024-05-24)
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
