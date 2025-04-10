@@ -244,7 +244,7 @@ class AnalyzerInfo(TypedDict, total=False):
     analyzer_name: str
     lens_mode: str | None
     lens_mode_name: str | None
-    acquisition_mode: str
+    acquisition_mode: str | None
     pass_energy: float
     slit_shape: str | None
     slit_width: float
@@ -313,15 +313,15 @@ class _BeamLineInfo(TypedDict, total=False):
     undulator_info: Incomplete
     repetition_rate: float
     beam_current: float
-    entrance_slit: float | str
-    exit_slit: float | str
+    entrance_slit: float | str | None
+    exit_slit: float | str | None
     monochromator_info: dict[str, float]
 
 
 class BeamLineSettings(TypedDict, total=False):
-    exit_slit: float | str
-    entrance_slit: float | str
-    hv: float
+    exit_slit: float | str | None
+    entrance_slit: float | str | None
+    hv: float | xr.DataArray
     grating: str | None
 
 
