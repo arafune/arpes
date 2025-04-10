@@ -348,8 +348,8 @@ class SampleInfo(TypedDict, total=False):
 
 
 class ScanInfo(TypedDict, total=False):
-    time: str
-    date: str
+    time: str | None
+    date: str | None
     spectrum_type: SpectrumType
     type: str | None
     experimenter: str | None
