@@ -16,7 +16,6 @@ from .fit_models.fermi_edge import (
     FermiLorentzianModel,
     GStepBModel,
     GStepBStandardModel,
-    GStepBStdevModel,
 )
 from .fit_models.misc import (
     FermiVelocityRenormalizationModel,
