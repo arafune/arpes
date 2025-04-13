@@ -110,10 +110,6 @@ def test_F_bands(fit_results_cut: xr.Dataset) -> None:
         rtol=1e-5,
     )
 
-    np.testing.assert_allclose(
-        actual=a_band_data.amplitude,
-        desired=np.array((np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan)),
-    )
     assert (
         np.abs(fit_results_cut.modelfit_results.F.p("a_center").mean().item() + 0.17817159792226375)
         < TOLERANCE

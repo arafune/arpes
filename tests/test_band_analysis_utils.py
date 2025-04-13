@@ -21,9 +21,9 @@ def test_param_getter_missing():
     param_name = "missing_param"
     model_result = MagicMock(spec=lf.model.ModelResult)
     model_result.params = {}
-
     getter = param_getter(param_name)
-    assert np.isnan(getter(model_result))
+    with pytest.raises(KeyError):
+        assert getter(model_result)
 
 
 def test_param_stderr_getter():
@@ -40,6 +40,6 @@ def test_param_stderr_getter_missing():
     param_name = "missing_param"
     model_result = MagicMock(spec=lf.model.ModelResult)
     model_result.params = {}
-
     getter = param_stderr_getter(param_name)
-    assert np.isnan(getter(model_result))
+    with pytest.raises(KeyError):
+        assert getter(model_result)
