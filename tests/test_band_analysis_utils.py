@@ -1,9 +1,9 @@
 """Unit test for test_band_analyhsis."""
 
-import pytest
-import numpy as np
-import lmfit as lf
 from unittest.mock import MagicMock
+
+import lmfit as lf
+import pytest
 
 from arpes.analysis.band_analysis_utils import param_getter, param_stderr_getter
 

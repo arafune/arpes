@@ -1,7 +1,7 @@
 """Unit test for curve fitting."""
 
-import pytest
 import numpy as np
+import pytest
 import xarray as xr
 from lmfit.models import ConstantModel
 

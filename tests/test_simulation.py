@@ -1,12 +1,12 @@
 """unit test for simulation.py."""
 
-import pytest
 import numpy as np
+import pytest
 import xarray as xr
 from numpy.testing import assert_array_almost_equal
 
-from arpes.simulation import SpectralFunction, SpectralFunctionMFL
 from arpes.constants import K_BOLTZMANN_MEV_KELVIN
+from arpes.simulation import SpectralFunction, SpectralFunctionMFL
 
 
 @pytest.fixture

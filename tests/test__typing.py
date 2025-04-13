@@ -1,9 +1,9 @@
 """Unit test for arpes._typing."""
 
-import pytest
+
 import numpy as np
-from numpy.typing import NDArray
-from typing import Hashable
+import pytest
+
 from arpes._typing import is_dict_kspacecoords  # your_module を適宜変更してください
 
 

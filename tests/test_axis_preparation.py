@@ -1,7 +1,6 @@
 """Unit test for axis_preparation.py."""
 
 import numpy as np
-import pytest
 import xarray as xr
 
 from arpes.preparation.axis_preparation import normalize_dim

@@ -1,12 +1,11 @@
-"""Unit test for string.py"""
+"""Unit test for string.py."""
 
-import pytest
 from arpes.utilities.string import safe_decode
 
 
 def test_safe_decode():
     assert safe_decode(b"hello") == "hello"  # utf-8 by default
-    assert safe_decode("café".encode("utf-8")) == "café"  # utf-8 decoding
+    assert safe_decode("café".encode()) == "café"  # utf-8 decoding
     assert safe_decode("café".encode("latin-1"), prefer="latin-1") == "café"  # latin-1 decoding
 
     assert safe_decode(b"hello", prefer="ascii") == "hello"  # ASCII-compatible bytes

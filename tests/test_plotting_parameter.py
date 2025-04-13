@@ -1,5 +1,6 @@
 import xarray as xr
 from matplotlib.axes import Axes
+
 from arpes.plotting.parameter import plot_parameter
 
 

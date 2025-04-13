@@ -1,10 +1,12 @@
 """Unit test for plotting.dos."""
 
+from pathlib import Path
+
 import numpy as np
 import xarray as xr
-from arpes.plotting.dos import plot_dos
-from pathlib import Path
 from matplotlib.figure import Figure
+
+from arpes.plotting.dos import plot_dos
 
 
 def test_plot_dos_returns_figure():
