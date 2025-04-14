@@ -2524,7 +2524,7 @@ class ARPESFitToolsAccessor:
         two_sigma: bool
         figsize: tuple[float, float]
 
-    def plot_param(self, param_name: str, **kwargs: Unpack[_PlotParamKwargs]) -> None:
+    def plot_param(self, param_name: str, **kwargs: Unpack[_PlotParamKwargs]) -> Axes:
         """Creates a scatter plot of a parameter from a multidimensional curve fit.
 
         Args:
@@ -2532,7 +2532,7 @@ class ARPESFitToolsAccessor:
             kwargs: Passed to plotting routines to provide user control
                 figsize=, color=, markersize=,
         """
-        plot_parameter(self._obj, param_name, **kwargs)
+        return plot_parameter(self._obj, param_name, **kwargs)
 
     def param_as_dataset(self, param_name: str) -> xr.Dataset:
         """Maps from `lmfit.ModelResult` to a Dict parameter summary.
