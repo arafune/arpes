@@ -8,7 +8,7 @@ import xarray as xr
 from IPython.display import HTML
 from matplotlib.animation import FuncAnimation
 from matplotlib.figure import Figure
-
+import matplotlib.pyplot as plt
 from arpes.analysis import tarpes
 from arpes.plotting.movie import (
     _replace_after_col,
@@ -247,3 +247,24 @@ def test_plot_movie_and_evolution_custom_fig_ax(another_sample_data: xr.DataArra
     from IPython.core.display import HTML
 
     assert isinstance(result, HTML)
+
+
+def test_plot_movie_and_evolution_with_labels(another_sample_data: xr.DataArray):
+    """Test that the function correctly applies custom labels."""
+    labels = ("X-axis Label", "Time-axis Label", "Y-axis Label")
+    result = plot_movie_and_evolution(
+        data=another_sample_data,
+        labels=labels,
+        out=None,  # Return HTML
+    )
+    from IPython.core.display import HTML
+
+    assert isinstance(result, HTML)
+
+    # Verify that the labels are correctly applied
+    fig = plt.gcf()
+    ax = fig.axes
+    assert len(ax) == 3
+    assert ax[0].get_xlabel() == labels[0]
+    assert ax[0].get_ylabel() == labels[2]
+    assert ax[1].get_xlabel() == labels[1]
