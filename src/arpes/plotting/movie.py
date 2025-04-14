@@ -88,6 +88,49 @@ def output_animation(  # noqa: PLR0913
     return HTML(anim.to_html5_video())  # HTML(anim.to_jshtml())
 
 
+def _initialize_figure_and_axes(
+    fig_ax: tuple[Figure | None, NDArray[np.object_] | None] | None,
+    figsize: tuple[float, float],
+    width_ratio: tuple[float, float],
+) -> tuple[Figure, NDArray[np.object_]]:
+    """Initialize the figure and axes for the plot."""
+    fig, ax = fig_ax or plt.subplots(
+        nrows=1,
+        ncols=2,
+        figsize=figsize,
+        width_ratios=width_ratio,
+    )
+    assert ax is not None
+    assert isinstance(ax[0], Axes)
+    assert isinstance(ax[1], Axes)
+    assert isinstance(fig, Figure)
+    return fig, ax
+
+
+def _configure_axes_and_labels(
+    ax: NDArray[np.object_],
+    arpes_data: xr.DataArray,
+    evolution_data: xr.DataArray,
+    labels: tuple[str, str, str] | None,
+) -> None:
+    """Configure axes and labels for the plot."""
+    if labels:
+        ax[0].set_xlabel(labels[0])
+        ax[0].set_ylabel(labels[2])
+    else:
+        ax[0].set_xlabel(str(arpes_data.dims[1]))
+        ax[0].set_ylabel(str(arpes_data.dims[0]))
+
+    if labels:
+        ax[1].set_xlabel(labels[1])
+    else:
+        ax[1].set_xlabel(str(evolution_data.dims[1]))
+
+    if evolution_data.dims[0] == arpes_data.dims[0]:
+        ax[1].yaxis.set_ticks([])
+    ax[1].set_ylabel("")
+
+
 @save_plot_provenance
 def plot_movie_and_evolution(  # noqa: PLR0913
     data: xr.DataArray,
@@ -136,18 +179,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913
     width_ratio = width_ratio or (1.0, 4.4)
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
 
-    fig, ax = fig_ax or plt.subplots(
-        nrows=1,
-        ncols=2,
-        figsize=figsize,
-        width_ratios=width_ratio,
-    )
-
-    assert ax is not None
-    assert isinstance(ax[0], Axes)
-    assert isinstance(ax[1], Axes)
-    assert isinstance(fig, Figure)
-    assert isinstance(data, xr.DataArray)
+    fig, ax = _initialize_figure_and_axes(fig_ax, figsize, width_ratio)
     assert data.ndim == TWO_DIMENSION + 1
 
     kwargs.setdefault(
@@ -204,21 +236,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913
         **kwargs,
     )
 
-    if labels:
-        ax[0].set_xlabel(labels[0])
-        ax[0].set_ylabel(labels[2])
-    else:
-        ax[0].set_xlabel(str(arpes_data.dims[1]))
-        ax[0].set_ylabel(str(arpes_data.dims[0]))
-
-    if labels:
-        ax[1].set_xlabel(labels[1])
-    else:
-        ax[1].set_xlabel(str(evolution_data.dims[1]))
-
-    if evolution_data.dims[0] == arpes_data.dims[0]:
-        ax[1].yaxis.set_ticks([])
-    ax[1].set_ylabel("")
+    _configure_axes_and_labels(ax, arpes_data, evolution_data, labels)
 
     cbar: Colorbar = fig.colorbar(evolution_mesh, ax=ax[1])
 
