@@ -14,6 +14,7 @@ from arpes.plotting.movie import (
     _replace_after_col,
     _replace_after_row,
     plot_movie_and_evolution,
+    plot_movie,
 )
 
 
@@ -289,3 +290,32 @@ def test_plot_movie_and_evolution_is_subtracted_true(another_sample_data: xr.Dat
         assert artist.get_cmap().name == "RdBu_r"
         assert artist.get_clim()[0] < 0  # vmin
         assert artist.get_clim()[1] > 0  # vmax
+
+
+def test_plot_movie_and_evolution_is_subtracted_true_with_labels(another_sample_data: xr.DataArray):
+    """Test when data.S.is_subtracted is True and labels are provided."""
+    another_sample_data.attrs["subtracted"] = True
+    labels = ("Custom X-axis", "Custom Y-axis")
+    result = plot_movie(
+        data=another_sample_data,
+        labels=labels,
+        out=None,  # Return HTML
+    )
+    from IPython.core.display import HTML
+
+    assert isinstance(result, HTML)
+
+    # Verify that the colormap and vmin/vmax are set correctly
+    fig = plt.gcf()
+    ax = fig.axes
+    assert len(ax) == 2
+
+    for artist in ax[0].collections:
+        assert artist.get_cmap().name == "RdBu_r"
+        clim = artist.get_clim()
+        assert clim[0] < 0  # vmin
+        assert clim[1] > 0  # vmax
+
+    # Verify that the labels are correctly applied
+    assert ax[0].get_xlabel() == labels[0]
+    assert ax[0].get_ylabel() == labels[1]
