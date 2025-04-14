@@ -174,7 +174,7 @@ def another_sample_data():
         data,
         dims=["eV", "phi", "delay"],
         coords={"eV": y, "phi": x, "delay": time},
-        attrs={"is_subtracted": False},
+        attrs={"subtracted": False},
     )
 
 
@@ -220,7 +220,7 @@ def test_plot_movie_and_evolution_save(tmp_path: Path, another_sample_data: xr.D
 
 def test_plot_movie_and_evolution_missing_attrs(another_sample_data: xr.DataArray):
     """Test that the function handles missing attributes gracefully."""
-    del another_sample_data.attrs["is_subtracted"]
+    del another_sample_data.attrs["subtracted"]
     result = plot_movie_and_evolution(data=another_sample_data, out=None)
     from IPython.core.display import HTML
 
@@ -268,3 +268,24 @@ def test_plot_movie_and_evolution_with_labels(another_sample_data: xr.DataArray)
     assert ax[0].get_xlabel() == labels[0]
     assert ax[0].get_ylabel() == labels[2]
     assert ax[1].get_xlabel() == labels[1]
+
+
+def test_plot_movie_and_evolution_is_subtracted_true(another_sample_data: xr.DataArray):
+    """Test when data.S.is_subtracted is True."""
+    another_sample_data.attrs["subtracted"] = True
+    result = plot_movie_and_evolution(
+        data=another_sample_data,
+        out=None,  # Return HTML
+    )
+    from IPython.core.display import HTML
+
+    assert isinstance(result, HTML)
+
+    # Verify that the colormap and vmin/vmax are set correctly
+    fig = plt.gcf()
+    ax = fig.axes
+    assert len(ax) == 3
+    for artist in ax[0].collections + ax[1].collections:
+        assert artist.get_cmap().name == "RdBu_r"
+        assert artist.get_clim()[0] < 0  # vmin
+        assert artist.get_clim()[1] > 0  # vmax
