@@ -10,9 +10,9 @@ import xarray as xr
 
 from arpes.debug import setup_logger
 from arpes.preparation import normalize_dim
+from arpes.preparation.axis_preparation import vstack_data
 from arpes.provenance import update_provenance
 from arpes.utilities import normalize_to_spectrum
-from arpes.preparation.axis_preparation import vstack_data
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
