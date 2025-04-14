@@ -98,6 +98,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913
     figsize: tuple[float, float] | None = None,
     width_ratio: tuple[float, float] | None = None,
     evolution_at: tuple[str, float] | tuple[str, tuple[float, float]] = ("phi", 0.0),
+    labels: tuple[str, str, str] | None = None,
     *,
     dark_bg: bool = False,
     **kwargs: Unpack[PColorMeshKwargs],
@@ -121,6 +122,8 @@ def plot_movie_and_evolution(  # noqa: PLR0913
         evolution_at (tuple[str, float] | tuple[str, tuple[float, float]): Position for time
             evolution data, and the value.  if when the latter is tuple of two floats, the first
             value is the center value and the second value is the radius of the range.
+        labels (tuple[str, str, str]): Labels for the x- of left side panel, x-of right side panel
+            and y axes of the ARPES data.
         dark_bg (bool): If true, the frame and font color changes to white, default False.
         kwargs: Additional keyword arguments for `pcolormesh`
 
@@ -201,10 +204,18 @@ def plot_movie_and_evolution(  # noqa: PLR0913
         **kwargs,
     )
 
-    ax[0].set_xlabel(str(arpes_data.dims[1]))
-    ax[0].set_ylabel(str(arpes_data.dims[0]))
+    if labels:
+        ax[0].set_xlabel(labels[0])
+        ax[0].set_ylabel(labels[2])
+    else:
+        ax[0].set_xlabel(str(arpes_data.dims[1]))
+        ax[0].set_ylabel(str(arpes_data.dims[0]))
 
-    ax[1].set_xlabel(str(evolution_data.dims[1]))
+    if labels:
+        ax[1].set_xlabel(labels[1])
+    else:
+        ax[1].set_xlabel(str(evolution_data.dims[1]))
+
     if evolution_data.dims[0] == arpes_data.dims[0]:
         ax[1].yaxis.set_ticks([])
     ax[1].set_ylabel("")
@@ -261,6 +272,7 @@ def plot_movie(  # noqa: PLR0913
     fig_ax: tuple[Figure | None, Axes | None] | None = None,
     out: str | Path | float | EllipsisType | None = None,
     figsize: tuple[float, float] | None = None,
+    labels: tuple[str, str] | None = None,
     *,
     dark_bg: bool = False,
     **kwargs: Unpack[PColorMeshKwargs],
@@ -280,6 +292,7 @@ def plot_movie(  # noqa: PLR0913
             the HTML object to display the animation.  and if ... is set, return the
             FuncAnimation object itself.  Default is None.
         figsize (tuple[float, float]): Size of the movie figure, optional.
+        labels (tuple[str, str]): The label for x- and y-axis. (optional)
         dark_bg (bool): If true, the frame and font color changes to white, default False.
         kwargs: Additional keyword arguments for `pcolormesh`.
 
@@ -325,9 +338,13 @@ def plot_movie(  # noqa: PLR0913
         arpes_data.values,
         **kwargs,
     )
+    if labels:
+        ax.set_xlabel(labels[0])
+        ax.set_ylabel(labels[1])
+    else:
+        ax.set_xlabel(str(arpes_data.dims[1]))
+        ax.set_ylabel(str(arpes_data.dims[0]))
 
-    ax.set_xlabel(str(arpes_data.dims[1]))
-    ax.set_ylabel(str(arpes_data.dims[0]))
     arpes_mesh.set_animated(True)
 
     cbar = fig.colorbar(arpes_mesh, ax=ax)
