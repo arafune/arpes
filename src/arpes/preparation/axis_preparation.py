@@ -56,7 +56,10 @@ def vstack_data(arr_list: list[DataType], new_dim: str) -> DataType:
         assert all(new_dim in data.coords for data in arr_list)
     else:
         arr_list = [data.assign_coords({new_dim: data.attrs[new_dim]}) for data in arr_list]
-    return xr.concat(objs=arr_list, dim=new_dim)
+    concatenated_data = xr.concat(arr_list, dim=new_dim)
+    if new_dim in concatenated_data.attrs:
+        del concatenated_data.attrs[new_dim]
+    return concatenated_data
 
 
 @update_provenance("Sort Axis")

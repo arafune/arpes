@@ -119,12 +119,10 @@ def build_crosscorrelation(
         cross_correlations.append(
             spectrum_arr.assign_coords({"delay": delay_time}).expand_dims("delay"),
         )
-    cross_correlation = vstack_data(
+    return vstack_data(
         sorted(cross_correlations, key=lambda x: x.coords["delay"].values.item()),
         new_dim="delay",
     )
-    del cross_correlation.attrs[delayline_dim]
-    return cross_correlation
 
 
 @update_provenance("Normalized subtraction map")

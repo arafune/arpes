@@ -89,7 +89,7 @@ def output_animation(  # noqa: PLR0913
 
 
 @save_plot_provenance
-def plot_movie_and_evolution(  # noqa: PLR0913, PLR0915
+def plot_movie_and_evolution(  # noqa: PLR0913
     data: xr.DataArray,
     time_dim: str = "delay",
     interval_ms: float = 100,
@@ -155,11 +155,6 @@ def plot_movie_and_evolution(  # noqa: PLR0913, PLR0915
         ),
     )
 
-    kwargs.setdefault("vmax", data.max().item())
-    kwargs.setdefault("vmin", data.min().item())
-    assert "vmax" in kwargs
-    assert "vmin" in kwargs
-
     if isinstance(evolution_at[1], Number):
         evolution_data: xr.DataArray = data.sel(
             {evolution_at[0]: evolution_at[1]},
@@ -183,15 +178,19 @@ def plot_movie_and_evolution(  # noqa: PLR0913, PLR0915
 
     if data.S.is_subtracted:
         kwargs["cmap"] = "RdBu_r"
-        kwargs["vmax"] = np.max([np.abs(kwargs["vmin"]), np.abs(kwargs["vmax"])])
+        kwargs["vmax"] = np.max(
+            [
+                np.abs(kwargs.get("vmin", data.min().item())),
+                np.abs(kwargs.get("vmax", data.max().item())),
+            ],
+        )
         kwargs["vmin"] = -kwargs["vmax"]
-
+    kwargs["animated"] = True
     arpes_data = data.isel({time_dim: 0})
     arpes_mesh: QuadMesh = ax[0].pcolormesh(
         arpes_data.coords[arpes_data.dims[1]].values,
         arpes_data.coords[arpes_data.dims[0]].values,
         arpes_data.values,
-        animated=True,
         **kwargs,
     )
 
@@ -199,7 +198,6 @@ def plot_movie_and_evolution(  # noqa: PLR0913, PLR0915
         evolution_data.coords[evolution_data.dims[1]].values,
         evolution_data.coords[evolution_data.dims[0]].values,
         evolution_data.values,
-        animated=True,
         **kwargs,
     )
 
@@ -311,15 +309,15 @@ def plot_movie(  # noqa: PLR0913
         ),
     )
 
-    kwargs.setdefault("vmax", data.max().item())
-    kwargs.setdefault("vmin", data.min().item())
-    assert "vmax" in kwargs
-    assert "vmin" in kwargs
     if data.S.is_subtracted:
         kwargs["cmap"] = "RdBu_r"
-        kwargs["vmax"] = np.max([np.abs(kwargs["vmin"]), np.abs(kwargs["vmax"])])
+        kwargs["vmax"] = np.max(
+            [
+                np.abs(kwargs.get("vmin", data.min().item())),
+                np.abs(kwargs.get("vmax", data.max().item())),
+            ],
+        )
         kwargs["vmin"] = -kwargs["vmax"]
-
     arpes_data = data.isel({time_dim: 0})
     arpes_mesh: QuadMesh = ax.pcolormesh(
         arpes_data.coords[arpes_data.dims[1]].values,
