@@ -1,29 +1,10 @@
 from arpes.utilities.jupyter import get_full_notebook_information
-from unittest.mock import patch, MagicMock
 from pathlib import Path
 
 
-# data for test
-TEST_NOTEBOOKS = [
-    {"id": "123", "title": "Sample Notebook", "content": "This is a test notebook."},
-    {"id": "456", "title": "Another Notebook", "content": "This is another test notebook."},
-]
-
-
-def get_full_notebook_information_test():
-    return TEST_NOTEBOOKS
-
-
-def test_get_full_notebook_information():
-    result = get_full_notebook_information_test()
-    assert isinstance(result, list)
-    assert len(result) == 2
-    assert result[0]["id"] == "123"
-    assert result[0]["title"] == "Sample Notebook"
-    assert result[0]["content"] == "This is a test notebook."
-    assert result[1]["id"] == "456"
-    assert result[1]["title"] == "Another Notebook"
-    assert result[1]["content"] == "This is another test notebook."
+from arpes.utilities.jupyter import generate_logfile_path
+from unittest.mock import patch, MagicMock
+from datetime import datetime, date, time, timezone
 
 
 # Mock CONFIG dictionary
@@ -34,3 +15,28 @@ CONFIG = {
     "LOGGING_STARTED": False,
     "LOGGING_FILE": None,
 }
+
+
+def test_generate_logfile_path_with_name():
+    fixed_date = date(2023, 12, 31)
+    fixed_time = time(23, 59, 59)
+    mock_now = datetime(2023, 12, 31, 23, 59, 59, tzinfo=timezone.utc)
+
+    with patch("arpes.utilities.jupyter.get_notebook_name", return_value="analysis"):
+        with patch("arpes.utilities.jupyter.datetime") as mock_datetime:
+            mock_datetime.datetime.now.return_value = mock_now
+            mock_datetime.UTC = timezone.utc
+            result = generate_logfile_path()
+            assert result == Path("logs/analysis_2023-12-31_23-59-59.log")
+
+
+def test_generate_logfile_path_unnamed():
+    # Check for fallback to 'unnamed'
+    with patch("arpes.utilities.jupyter.get_notebook_name", return_value=None):
+        with patch("arpes.utilities.jupyter.datetime") as mock_datetime:
+            mock_now = datetime(2024, 1, 1, 1, 2, 3, tzinfo=timezone.utc)
+            mock_datetime.datetime.now.return_value = mock_now
+            mock_datetime.UTC = timezone.utc
+            path = generate_logfile_path()
+            assert path.name.startswith("unnamed_2024-01-01_01-02-03")
+            assert path.parent.name == "logs"
