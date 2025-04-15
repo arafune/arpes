@@ -1,12 +1,10 @@
 from pathlib import Path
+from unittest.mock import MagicMock, patch
+
 import pytest
 
-from IPython.core.interactiveshell import InteractiveShell
-import arpes.config
-from arpes.config import setup_logging
-
-from unittest.mock import patch, MagicMock
 import arpes
+import arpes.config
 
 # Mock CONFIG dictionary
 CONFIG = {
@@ -140,7 +138,6 @@ def reset_config_and_flags():
         "LOGGING_FILE": None,
     }
     arpes.HAS_LOADED = False
-    yield
 
 
 def test_has_loaded_short_circuit():

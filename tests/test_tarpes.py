@@ -2,19 +2,20 @@
 
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 import xarray as xr
 from IPython.display import HTML
 from matplotlib.animation import FuncAnimation
 from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
+
 from arpes.analysis import tarpes
 from arpes.plotting.movie import (
     _replace_after_col,
     _replace_after_row,
-    plot_movie_and_evolution,
     plot_movie,
+    plot_movie_and_evolution,
 )
 
 

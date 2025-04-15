@@ -1,11 +1,10 @@
 """Unit test for axis_preparation.py."""
 
 import numpy as np
-import xarray as xr
 import pytest
-from arpes.preparation.axis_preparation import normalize_dim
+import xarray as xr
 
-from arpes.preparation.axis_preparation import vstack_data
+from arpes.preparation.axis_preparation import normalize_dim, vstack_data
 
 
 def test_normalize_dim_single_dim():
