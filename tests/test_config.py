@@ -1,10 +1,12 @@
 from pathlib import Path
 import pytest
 
+from IPython.core.interactiveshell import InteractiveShell
 import arpes.config
 from arpes.config import setup_logging
 
 from unittest.mock import patch, MagicMock
+import arpes
 
 # Mock CONFIG dictionary
 CONFIG = {
@@ -126,3 +128,49 @@ def test_load_json_configuration(monkeypatch):
 
     # Assert that CONFIG is updated correctly
     assert CONFIG["key"] == "value"
+
+
+@pytest.fixture(autouse=True)
+def reset_config_and_flags():
+    import arpes
+
+    arpes.CONFIG = {
+        "ENABLE_LOGGING": True,
+        "LOGGING_STARTED": False,
+        "LOGGING_FILE": None,
+    }
+    arpes.HAS_LOADED = False
+    yield
+
+
+def test_has_loaded_short_circuit():
+    import arpes
+
+    arpes.HAS_LOADED = True
+    arpes.config.setup_logging()
+    assert arpes.CONFIG["LOGGING_STARTED"] is False
+
+
+def test_import_error():
+    with patch("IPython.core.getipython.get_ipython", side_effect=ImportError):
+        import arpes
+
+        arpes.config.setup_logging()
+        assert arpes.CONFIG["LOGGING_STARTED"] is False
+
+
+def test_get_ipython_none():
+    with patch("IPython.core.getipython.get_ipython", return_value=None):
+        import arpes
+
+        arpes.config.setup_logging()
+        assert arpes.CONFIG["LOGGING_STARTED"] is False
+
+
+def test_logging_disabled():
+    with patch("IPython.core.getipython.get_ipython", return_value=MagicMock()):
+        import arpes
+
+        arpes.CONFIG["ENABLE_LOGGING"] = False
+        arpes.config.setup_logging()
+        assert arpes.CONFIG["LOGGING_STARTED"] is False
