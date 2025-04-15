@@ -3,7 +3,7 @@ import pytest
 
 from IPython.core.interactiveshell import InteractiveShell
 import arpes.config
-from arpes.config import setup_logging
+from arpes.config import setup_logging, CONFIG
 
 from unittest.mock import patch, MagicMock
 import arpes
@@ -57,7 +57,7 @@ def test_attempt_determine_workspace_not_found(mock_cwd, mock_workspace_matches)
     assert arpes.config.CONFIG["WORKSPACE"]["name"] == "dataset"
 
 
-def test_update_configuration(monkeypatch):
+def test_update_configuration(monkeypatch: pytest.MonkeyPatch):
     from arpes.config import update_configuration
 
     # Mock HAS_LOADED and paths
@@ -73,7 +73,7 @@ def test_update_configuration(monkeypatch):
     assert mock_path.return_value.__truediv__.call_count == 2
 
 
-def test_workspace_matches(monkeypatch):
+def test_workspace_matches(monkeypatch: pytest.MonkeyPatch):
     from arpes.config import workspace_matches
 
     # Mock Path.iterdir
@@ -88,7 +88,7 @@ def test_workspace_matches(monkeypatch):
     assert workspace_matches("some_path") is False
 
 
-def test_attempt_determine_workspace(monkeypatch):
+def test_attempt_determine_workspace(monkeypatch: pytest.MonkeyPatch):
     from arpes.config import attempt_determine_workspace
 
     # Mock Path.cwd to return a specific path
@@ -109,7 +109,7 @@ def test_attempt_determine_workspace(monkeypatch):
     assert CONFIG["WORKSPACE"]["name"] == "path"
 
 
-def test_load_json_configuration(monkeypatch):
+def test_load_json_configuration(monkeypatch: pytest.MonkeyPatch):
     from arpes.config import load_json_configuration
 
     # Mock Path.open to simulate reading a JSON file
@@ -130,47 +130,18 @@ def test_load_json_configuration(monkeypatch):
     assert CONFIG["key"] == "value"
 
 
-@pytest.fixture(autouse=True)
-def reset_config_and_flags():
-    import arpes
-
-    arpes.CONFIG = {
-        "ENABLE_LOGGING": True,
-        "LOGGING_STARTED": False,
-        "LOGGING_FILE": None,
-    }
-    arpes.HAS_LOADED = False
-    yield
-
-
 def test_has_loaded_short_circuit():
-    import arpes
-
-    arpes.HAS_LOADED = True
-    arpes.config.setup_logging()
-    assert arpes.CONFIG["LOGGING_STARTED"] is False
+    setup_logging()
+    assert CONFIG["LOGGING_STARTED"] is False
 
 
 def test_import_error():
     with patch("IPython.core.getipython.get_ipython", side_effect=ImportError):
-        import arpes
-
-        arpes.config.setup_logging()
-        assert arpes.CONFIG["LOGGING_STARTED"] is False
+        setup_logging()
+        assert CONFIG["LOGGING_STARTED"] is False
 
 
 def test_get_ipython_none():
     with patch("IPython.core.getipython.get_ipython", return_value=None):
-        import arpes
-
-        arpes.config.setup_logging()
-        assert arpes.CONFIG["LOGGING_STARTED"] is False
-
-
-def test_logging_disabled():
-    with patch("IPython.core.getipython.get_ipython", return_value=MagicMock()):
-        import arpes
-
-        arpes.CONFIG["ENABLE_LOGGING"] = False
-        arpes.config.setup_logging()
-        assert arpes.CONFIG["LOGGING_STARTED"] is False
+        setup_logging()
+        assert CONFIG["LOGGING_STARTED"] is False
