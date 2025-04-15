@@ -127,7 +127,7 @@ def test_load_json_configuration(monkeypatch: pytest.MonkeyPatch):
     load_json_configuration("config.json")
 
     # Assert that CONFIG is updated correctly
-    assert areps.config.CONFIG["key"] == "value"
+    assert arpes.config.CONFIG["key"] == "value"
 
 
 def test_has_loaded_short_circuit():
@@ -150,13 +150,31 @@ def test_get_ipython_none():
 def test_setup_logging(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr("arpes.config.HAS_LOADED", False)
 
-    class MockIPython(InteractiveShell):
-        pass
-
     with patch("IPython.core.getipython.get_ipython") as mock_get_ipython:
         mock_ipython = create_autospec(InteractiveShell, instance=True)
-        mock_ipython.logfile = "/tmp/logfile.log"
+        mock_ipython.logfile = "tmp/logfile.log"
         mock_get_ipython.return_value = mock_ipython
         setup_logging()
         assert arpes.config.CONFIG["LOGGING_STARTED"] is True
-        assert arpes.config.CONFIG["LOGGING_FILE"] == "/tmp/logfile.log"
+        assert arpes.config.CONFIG["LOGGING_FILE"] == "tmp/logfile.log"
+
+
+def test_setup_logging_LOGGING_STARTED_is_false(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr("arpes.config.HAS_LOADED", False)
+    monkeypatch.setitem(arpes.config.CONFIG, "LOGGING_STARTED", False)
+    with patch("IPython.core.getipython.get_ipython") as mock_get_ipython:
+        mock_ipython = create_autospec(InteractiveShell, instance=True)
+        mock_ipython.logfile = None
+        mock_get_ipython.return_value = mock_ipython
+        with patch("arpes.utilities.jupyter.generate_logfile_path") as mock_generate_logfile_path:
+            mock_generate_logfile_path.return_value = Path("tmp/logfile.log")
+            setup_logging()
+            assert arpes.config.CONFIG["LOGGING_STARTED"] is True
+            assert arpes.config.CONFIG["LOGGING_FILE"] == Path("tmp/logfile.log")
+
+
+def test_setup_logging_import_error(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr("arpes.config.HAS_LOADED", False)
+
+    with patch("IPython.core.getipython", side_effect=ImportError):
+        assert setup_logging() is None
