@@ -1,9 +1,10 @@
 from pathlib import Path
-from unittest.mock import patch
-
 import pytest
 
 import arpes.config
+from arpes.config import setup_logging
+
+from unittest.mock import patch, MagicMock
 
 
 @pytest.fixture

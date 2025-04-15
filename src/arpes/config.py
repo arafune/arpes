@@ -344,6 +344,11 @@ def setup_logging() -> None:
 
         ipython = get_ipython()
     except ImportError:
+        ipython = None
+        return
+
+    if not ipython:
+        logger.debug("It might be marimo/pytest.")
         return
 
     if not CONFIG["ENABLE_LOGGING"]:
