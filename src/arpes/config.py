@@ -20,6 +20,7 @@ from dataclasses import dataclass, field
 from logging import DEBUG, INFO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+
 import matplotlib as mpl
 import pint
 
@@ -342,6 +343,7 @@ def setup_logging() -> None:
         from IPython.core.interactiveshell import InteractiveShell
 
         ipython = get_ipython()
+
     except ImportError:
         ipython = None
         return
