@@ -348,9 +348,8 @@ def setup_logging() -> None:
         return
 
     if not ipython:
-        logger.debug("It might be marimo/pytest.")
+        logger.debug("It might be marimo.")
         return
-
     if not CONFIG["ENABLE_LOGGING"]:
         logger.debug(f'CONFIG["ENABLE_LOGGING"]: {CONFIG["ENABLE_LOGGING"]}')
         return
