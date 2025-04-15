@@ -20,7 +20,6 @@ from dataclasses import dataclass, field
 from logging import DEBUG, INFO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-
 import matplotlib as mpl
 import pint
 
@@ -354,7 +353,7 @@ def setup_logging() -> None:
     if not CONFIG["ENABLE_LOGGING"]:
         logger.debug(f'CONFIG["ENABLE_LOGGING"]: {CONFIG["ENABLE_LOGGING"]}')
         return
-
+    print(f"ipython is {ipython}")
     if isinstance(ipython, InteractiveShell) and ipython.logfile:
         CONFIG["LOGGING_STARTED"] = True
         CONFIG["LOGGING_FILE"] = ipython.logfile
@@ -371,7 +370,7 @@ def setup_logging() -> None:
                 ipython.run_line_magic("logstart", str(log_path))
             CONFIG["LOGGING_FILE"] = log_path
     except AttributeError:
-        logger.exception("Attribute Error occurs.  Check module loading for IPypthon")
+        logger.exception("Attribute Error occurs.  Check module loading for IPython")
 
 
 logger.debug("setup_logging")
