@@ -297,7 +297,7 @@ class UseTex:
         ToDo: TEST
         """
         self.saved_context["text.usetex"] = mpl.rcParams["text.usetex"]
-        self.saved_context["SETTINGS.use_tex"] = SETTINGS.get("use_tex", False)
+        self.saved_context["use_tex"] = SETTINGS.get("use_tex", False)
         # temporarily set the TeX configuration to the requested one
         use_tex(rc_text_should_use=self.use_tex)
 

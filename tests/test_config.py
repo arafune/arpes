@@ -3,8 +3,8 @@ import pytest
 
 from IPython.core.interactiveshell import InteractiveShell
 import arpes.config
-from arpes.config import setup_logging, CONFIG
-
+from arpes.config import setup_logging, CONFIG, UseTex, use_tex
+import matplotlib as mpl
 from unittest.mock import create_autospec, patch, MagicMock
 import arpes
 
@@ -178,3 +178,40 @@ def test_setup_logging_import_error(monkeypatch: pytest.MonkeyPatch):
 
     with patch("IPython.core.getipython", side_effect=ImportError):
         assert setup_logging() is None
+
+
+@pytest.fixture
+def original_rc_params():
+    # Save original rcParams and restore after test
+    original = mpl.rcParams["text.usetex"]
+    yield original
+    mpl.rcParams["text.usetex"] = original
+
+
+@pytest.fixture
+def mock_settings():
+    with patch("arpes.config.SETTINGS", new_callable=dict) as mock_settings:
+        mock_settings["use_tex"] = False
+        yield mock_settings
+
+
+def test_use_tex_function(original_rc_params, mock_settings):
+    # Test enabling TeX
+    use_tex(rc_text_should_use=True)
+    assert mpl.rcParams["text.usetex"] is True
+    assert mock_settings["use_tex"] is True
+
+    # Test disabling TeX
+    use_tex(rc_text_should_use=False)
+    assert mpl.rcParams["text.usetex"] is False
+    assert mock_settings["use_tex"] is False
+
+
+def test_use_tex_context_manager(original_rc_params, mock_settings):
+    mock_settings["use_tex"] = False
+    with UseTex(use_tex=True):
+        assert mpl.rcParams["text.usetex"] is True
+        assert mock_settings["use_tex"] is True
+    # Ensure settings are restored after exiting the context
+    assert mpl.rcParams["text.usetex"] == original_rc_params
+    assert mock_settings["use_tex"] is False
