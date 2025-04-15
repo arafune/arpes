@@ -343,6 +343,7 @@ def setup_logging() -> None:
         from IPython.core.interactiveshell import InteractiveShell
 
         ipython = get_ipython()
+
     except ImportError:
         ipython = None
         return
@@ -371,7 +372,7 @@ def setup_logging() -> None:
                 ipython.run_line_magic("logstart", str(log_path))
             CONFIG["LOGGING_FILE"] = log_path
     except AttributeError:
-        logger.exception("Attribute Error occurs.  Check module loading for IPypthon")
+        logger.exception("Attribute Error occurs.  Check module loading for IPython")
 
 
 logger.debug("setup_logging")
