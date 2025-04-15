@@ -1,10 +1,12 @@
 from pathlib import Path
-from unittest.mock import MagicMock, patch
-
 import pytest
 
-import arpes
+from IPython.core.interactiveshell import InteractiveShell
 import arpes.config
+from arpes.config import setup_logging, CONFIG
+
+from unittest.mock import create_autospec, patch, MagicMock
+import arpes
 
 # Mock CONFIG dictionary
 CONFIG = {
@@ -55,7 +57,7 @@ def test_attempt_determine_workspace_not_found(mock_cwd, mock_workspace_matches)
     assert arpes.config.CONFIG["WORKSPACE"]["name"] == "dataset"
 
 
-def test_update_configuration(monkeypatch):
+def test_update_configuration(monkeypatch: pytest.MonkeyPatch):
     from arpes.config import update_configuration
 
     # Mock HAS_LOADED and paths
@@ -71,7 +73,7 @@ def test_update_configuration(monkeypatch):
     assert mock_path.return_value.__truediv__.call_count == 2
 
 
-def test_workspace_matches(monkeypatch):
+def test_workspace_matches(monkeypatch: pytest.MonkeyPatch):
     from arpes.config import workspace_matches
 
     # Mock Path.iterdir
@@ -86,7 +88,7 @@ def test_workspace_matches(monkeypatch):
     assert workspace_matches("some_path") is False
 
 
-def test_attempt_determine_workspace(monkeypatch):
+def test_attempt_determine_workspace(monkeypatch: pytest.MonkeyPatch):
     from arpes.config import attempt_determine_workspace
 
     # Mock Path.cwd to return a specific path
@@ -103,11 +105,11 @@ def test_attempt_determine_workspace(monkeypatch):
     attempt_determine_workspace()
 
     # Assert that CONFIG is updated correctly
-    assert CONFIG["WORKSPACE"]["path"] == Path("/mock/path")
-    assert CONFIG["WORKSPACE"]["name"] == "path"
+    assert arpes.config.CONFIG["WORKSPACE"]["path"] == Path("/mock/path")
+    assert arpes.config.CONFIG["WORKSPACE"]["name"] == "path"
 
 
-def test_load_json_configuration(monkeypatch):
+def test_load_json_configuration(monkeypatch: pytest.MonkeyPatch):
     from arpes.config import load_json_configuration
 
     # Mock Path.open to simulate reading a JSON file
@@ -125,49 +127,54 @@ def test_load_json_configuration(monkeypatch):
     load_json_configuration("config.json")
 
     # Assert that CONFIG is updated correctly
-    assert CONFIG["key"] == "value"
-
-
-@pytest.fixture(autouse=True)
-def reset_config_and_flags():
-    import arpes
-
-    arpes.CONFIG = {
-        "ENABLE_LOGGING": True,
-        "LOGGING_STARTED": False,
-        "LOGGING_FILE": None,
-    }
-    arpes.HAS_LOADED = False
+    assert arpes.config.CONFIG["key"] == "value"
 
 
 def test_has_loaded_short_circuit():
-    import arpes
-
-    arpes.HAS_LOADED = True
-    arpes.config.setup_logging()
-    assert arpes.CONFIG["LOGGING_STARTED"] is False
+    setup_logging()
+    assert arpes.config.CONFIG["LOGGING_STARTED"] is False
 
 
 def test_import_error():
     with patch("IPython.core.getipython.get_ipython", side_effect=ImportError):
-        import arpes
-
-        arpes.config.setup_logging()
-        assert arpes.CONFIG["LOGGING_STARTED"] is False
+        setup_logging()
+        assert arpes.config.CONFIG["LOGGING_STARTED"] is False
 
 
 def test_get_ipython_none():
     with patch("IPython.core.getipython.get_ipython", return_value=None):
-        import arpes
-
-        arpes.config.setup_logging()
-        assert arpes.CONFIG["LOGGING_STARTED"] is False
+        setup_logging()
+        assert arpes.config.CONFIG["LOGGING_STARTED"] is False
 
 
-def test_logging_disabled():
-    with patch("IPython.core.getipython.get_ipython", return_value=MagicMock()):
-        import arpes
+def test_setup_logging(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr("arpes.config.HAS_LOADED", False)
 
-        arpes.CONFIG["ENABLE_LOGGING"] = False
-        arpes.config.setup_logging()
-        assert arpes.CONFIG["LOGGING_STARTED"] is False
+    with patch("IPython.core.getipython.get_ipython") as mock_get_ipython:
+        mock_ipython = create_autospec(InteractiveShell, instance=True)
+        mock_ipython.logfile = "tmp/logfile.log"
+        mock_get_ipython.return_value = mock_ipython
+        setup_logging()
+        assert arpes.config.CONFIG["LOGGING_STARTED"] is True
+        assert arpes.config.CONFIG["LOGGING_FILE"] == "tmp/logfile.log"
+
+
+def test_setup_logging_LOGGING_STARTED_is_false(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr("arpes.config.HAS_LOADED", False)
+    monkeypatch.setitem(arpes.config.CONFIG, "LOGGING_STARTED", False)
+    with patch("IPython.core.getipython.get_ipython") as mock_get_ipython:
+        mock_ipython = create_autospec(InteractiveShell, instance=True)
+        mock_ipython.logfile = None
+        mock_get_ipython.return_value = mock_ipython
+        with patch("arpes.utilities.jupyter.generate_logfile_path") as mock_generate_logfile_path:
+            mock_generate_logfile_path.return_value = Path("tmp/logfile.log")
+            setup_logging()
+            assert arpes.config.CONFIG["LOGGING_STARTED"] is True
+            assert arpes.config.CONFIG["LOGGING_FILE"] == Path("tmp/logfile.log")
+
+
+def test_setup_logging_import_error(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr("arpes.config.HAS_LOADED", False)
+
+    with patch("IPython.core.getipython", side_effect=ImportError):
+        assert setup_logging() is None
