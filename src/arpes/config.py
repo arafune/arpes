@@ -361,18 +361,15 @@ def setup_logging() -> None:
         CONFIG["LOGGING_FILE"] = ipython.logfile
         logger.debug(f'CONFIG["LOGGING_FILE"]: {CONFIG["LOGGING_FILE"]}')
 
-    try:
-        if not CONFIG["LOGGING_STARTED"]:
-            CONFIG["LOGGING_STARTED"] = True
-            from .utilities.jupyter import generate_logfile_path
+    if not CONFIG["LOGGING_STARTED"]:
+        CONFIG["LOGGING_STARTED"] = True
+        from .utilities.jupyter import generate_logfile_path
 
-            log_path = generate_logfile_path()
-            log_path.parent.mkdir(exist_ok=True)
-            if isinstance(ipython, InteractiveShell):
-                ipython.run_line_magic("logstart", str(log_path))
-            CONFIG["LOGGING_FILE"] = log_path
-    except AttributeError:
-        logger.exception("Attribute Error occurs.  Check module loading for IPython")
+        log_path = generate_logfile_path()
+        log_path.parent.mkdir(exist_ok=True)
+        if isinstance(ipython, InteractiveShell):
+            ipython.run_line_magic("logstart", str(log_path))
+        CONFIG["LOGGING_FILE"] = log_path
 
 
 logger.debug("setup_logging")
