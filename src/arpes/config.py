@@ -348,12 +348,9 @@ def setup_logging() -> None:
         ipython = None
         return
 
-    if not ipython:
-        logger.debug("It might be marimo.")
-        return
-
-    if not CONFIG["ENABLE_LOGGING"]:
+    if not ipython or not CONFIG["ENABLE_LOGGING"]:
         logger.debug(f'CONFIG["ENABLE_LOGGING"]: {CONFIG["ENABLE_LOGGING"]}')
+        logger.debug("It might be marimo.")
         return
 
     if isinstance(ipython, InteractiveShell) and ipython.logfile:
