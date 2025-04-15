@@ -180,6 +180,40 @@ def test_setup_logging_import_error(monkeypatch: pytest.MonkeyPatch):
         assert setup_logging() is None
 
 
+def test_setup_logging_import_error0(monkeypatch: pytest.MonkeyPatch):
+    """Test setup_logging when ImportError is raised."""
+
+    monkeypatch.setattr("arpes.config.HAS_LOADED", False)
+
+    # Simulate ImportError by patching `IPython.core.getipython` to raise ImportError
+    def mock_import_error(*args, **kwargs):
+        raise ImportError
+
+    # Patch `get_ipython` to raise ImportError
+    monkeypatch.setattr("IPython.core.getipython.get_ipython", mock_import_error)
+
+    # Call the function and ensure no exceptions are raised
+    assert setup_logging() is None
+
+
+def test_setup_logging_import_error(monkeypatch: pytest.MonkeyPatch):
+    """Test setup_logging when ImportError is raised."""
+
+    monkeypatch.setattr("arpes.config.HAS_LOADED", False)
+
+    # Simulate ImportError by patching `get_ipython` to raise ImportError
+    def mock_get_ipython():
+        raise ImportError
+
+    monkeypatch.setattr("IPython.core.getipython.get_ipython", mock_get_ipython)
+
+    # Ensure no exceptions are raised and function exits gracefully
+    try:
+        setup_logging()
+    except Exception as e:
+        pytest.fail(f"setup_logging raised an exception: {e}")
+
+
 @pytest.fixture
 def original_rc_params():
     # Save original rcParams and restore after test
