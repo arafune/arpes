@@ -71,6 +71,8 @@ __all__ = [
     "WorkSpaceType",
     "XrTypes",
     "flatten_literals",
+    "is_homogeneous_dataarray_list",
+    "is_homogeneous_dataset_list",
 ]
 
 
@@ -168,6 +170,16 @@ def is_dict_kspacecoords(
     if all(key in {"eV", "kp", "kx", "ky", "kz"} for key in a_dict):
         return all(isinstance(v, np.ndarray) for v in a_dict.values())
     return False
+
+
+def is_homogeneous_dataarray_list(arr_list: Sequence[XrTypes]) -> TypeGuard[Sequence[xr.DataArray]]:
+    """Check if all elemetns in the list are of type xr.DataArray."""
+    return all(isinstance(arr, xr.DataArray) for arr in arr_list)
+
+
+def is_homogeneous_dataset_list(arr_list: Sequence[XrTypes]) -> TypeGuard[Sequence[xr.DataArray]]:
+    """Check if all elemetns in the list are of type xr.Dataset."""
+    return all(isinstance(arr, xr.Dataset) for arr in arr_list)
 
 
 class _InteractiveConfigSettings(TypedDict, total=False):

@@ -11,13 +11,14 @@ import numpy as np
 import xarray as xr
 from scipy.ndimage import geometric_transform
 
+from arpes._typing import is_homogeneous_dataarray_list, is_homogeneous_dataset_list
 from arpes.debug import setup_logger
 from arpes.provenance import Provenance, provenance, update_provenance
 from arpes.utilities import lift_dataarray_to_generic
 from arpes.utilities.normalize import normalize_to_spectrum
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Sequence
 
     from _typeshed import Incomplete
     from numpy.typing import NDArray
@@ -40,7 +41,7 @@ logger = setup_logger(__name__, LOGLEVEL)
 
 
 @update_provenance("Build new DataArray/Dataset with an additional dimension")
-def vstack_data(arr_list: list[DataType], new_dim: str) -> DataType:
+def vstack_data(arr_list: Sequence[DataType], new_dim: str) -> DataType:
     """Build a new DataArray | Dataset with an additional dimension.
 
     Args:
@@ -56,6 +57,7 @@ def vstack_data(arr_list: list[DataType], new_dim: str) -> DataType:
         assert all(new_dim in data.coords for data in arr_list)
     else:
         arr_list = [data.assign_coords({new_dim: data.attrs[new_dim]}) for data in arr_list]
+    assert is_homogeneous_dataarray_list(arr_list) or is_homogeneous_dataset_list(arr_list)
     concatenated_data = xr.concat(arr_list, dim=new_dim)
     if new_dim in concatenated_data.attrs:
         del concatenated_data.attrs[new_dim]

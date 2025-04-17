@@ -3,10 +3,7 @@
 from __future__ import annotations
 
 from logging import DEBUG, INFO
-from typing import TYPE_CHECKING, TypeVar
-
-import numpy as np
-from numpy.typing import NDArray
+from typing import TYPE_CHECKING
 
 from .constants import HC
 from .debug import setup_logger
@@ -20,10 +17,8 @@ logger = setup_logger(__name__, LOGLEVEL)
 
 __all__ = ("electrons_per_pulse", "wavelength_to_energy")
 
-A = TypeVar("A", NDArray[np.float64], float)
 
-
-def wavelength_to_energy(wavelength_nm: A) -> A:
+def wavelength_to_energy(wavelength_nm: float) -> float:
     """Return Energy of the light.
 
     Args:
