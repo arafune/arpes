@@ -1,4 +1,4 @@
-"""Utilities for statistical bootstraps, particularly useful for ToF experiments.
+"""Utilities for s bootstraps, particularly useful for ToF experiments.
 
 Bootstraps can be tricky to apply correctly. Ensure you understand their
 appropriateness for your data before using them. ToF-ARPES analyzers have
@@ -31,6 +31,7 @@ from .utilities import lift_dataarray_to_generic
 from .utilities.jupyter import get_tqdm
 from .utilities.normalize import normalize_to_spectrum
 from .utilities.region import normalize_region
+from arpes._typing import DataType
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
@@ -39,7 +40,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import AnalysisRegion, DataType
+    from arpes._typing import AnalysisRegion
     from arpes.utilities import DesignatedRegions
 
 __all__ = (
@@ -95,7 +96,7 @@ def estimate_prior_adjustment(
     data = data.S.zero_spectrometer_edges().S.region_sel(region)
     values = data.values.ravel()
     values = values[np.where(values)]
-    return np.std(values) / np.mean(values)
+    return np.std(values, dtype=np.float64) / np.mean(values)
 
 
 @update_provenance("Resample cycle dimension")
@@ -243,14 +244,17 @@ class Normal(Distribution):
         n_samples: int = Distribution.DEFAULT_N_SAMPLES,
     ) -> NDArray[np.float64]:
         """Draws samples from this distribution."""
-        return scipy.stats.norm.rvs(
-            self.center,
-            scale=self.stderr,
-            size=n_samples,
+        return np.asarray(
+            scipy.stats.norm.rvs(
+                self.center,
+                scale=self.stderr,
+                size=n_samples,
+            ),
+            dtype=np.float64,
         )
 
     @classmethod
-    def from_param(cls: type, model_param: lf.Parameters) -> Incomplete:
+    def from_param(cls: type, model_param: lf.Parameter) -> Incomplete:
         """Generates a Normal from an `lmfit.Parameter`."""
         return cls(center=model_param.value, stderr=model_param.stderr)
 
@@ -389,7 +393,7 @@ def bootstrap(
             [
                 run.assign_coords(bootstrap=i)
                 for i, run in enumerate(runs)
-                if isinstance(run, xr.DataArray | xr.Dataset)
+                if isinstance(run, DataType)
             ],
         )
 
