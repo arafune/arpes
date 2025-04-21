@@ -47,8 +47,8 @@ __all__ = ("plot_movie", "plot_movie_and_evolution")
 def output_animation(  # noqa: PLR0913
     anim: FuncAnimation,
     data: xr.DataArray,
-    update_func: Callable[[int], Iterable[Artist]],
-    fig: Figure,
+    update_func: Callable[[int], Iterable[Artist]] | None = None,
+    fig: Figure | None = None,
     time_dim: str = "delay",
     out: str | Path | float | EllipsisType | None = None,
 ) -> Path | HTML | Figure | FuncAnimation:
@@ -71,19 +71,21 @@ def output_animation(  # noqa: PLR0913
             representation if out is None, the figure object if a specific frame is requested, or
             the animation object if out is Ellipsis.
     """
+    if out is Ellipsis:
+        return anim
+
     if isinstance(out, str | Path):
         logger.debug(msg=f"path_for_plot is {path_for_plot(out)}")
         anim.save(str(path_for_plot(out)))
         return path_for_plot(out)
 
+    assert update_func is not None
+    assert fig is not None
     if isinstance(out, Number):
         index: int = data.indexes[time_dim].get_indexer([out], method="nearest")[0]
         update_func(index)
         fig.canvas.draw()
         return fig
-
-    if out is Ellipsis:
-        return anim
 
     return HTML(anim.to_html5_video())  # HTML(anim.to_jshtml())
 
