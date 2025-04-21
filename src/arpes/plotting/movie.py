@@ -164,7 +164,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913
         width_ratio (tuple[float, float]): Width ratio of ARPES data and Time evolution data.
         evolution_at (tuple[str, float] | tuple[str, tuple[float, float]): Position for time
             evolution data, and the value.  if when the latter is tuple of two floats, the first
-            value is the center value and the second value is the radius of the range.
+            value is the center value and the second value is the half-width of the range.
         labels (tuple[str, str, str]): Labels for the x- of left side panel, x-of right side panel
             and y axes of the ARPES data.
         dark_bg (bool): If true, the frame and font color changes to white, default False.
@@ -197,13 +197,13 @@ def plot_movie_and_evolution(  # noqa: PLR0913
         ).transpose(..., time_dim)
     else:
         assert isinstance(evolution_at[1], tuple)
-        start, width = evolution_at[1]
+        start, half_width = evolution_at[1]
         evolution_data = (
             data.sel(
                 {
                     evolution_at[0]: slice(
-                        start - width,
-                        start + width,
+                        start - half_width,
+                        start + half_width,
                     ),
                 },
             )
