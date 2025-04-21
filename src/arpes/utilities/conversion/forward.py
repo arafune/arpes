@@ -571,10 +571,11 @@ def _broadcast_by_dim_location(
     ):
         return np.ones(target_shape) * data
     # else we are dealing with an actual array
-    the_slice: list[None | slice] = [None] * len(target_shape)
+    the_slice: list[slice | None] = [None] * len(target_shape)
     assert dim_location is not None
     the_slice[dim_location] = slice(None, None, None)
-    return np.asarray(data)[the_slice]
+    the_slice = [np.newaxis if s is None else s for s in the_slice]
+    return np.asarray(data)[tuple(the_slice)]
 
     # some notes on angle conversion:
     # BL4 conventions

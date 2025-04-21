@@ -167,17 +167,22 @@ def is_dict_kspacecoords(
     """
     if not a_dict:
         return False
-    if all(key in {"eV", "kp", "kx", "ky", "kz"} for key in a_dict):
-        return all(isinstance(v, np.ndarray) for v in a_dict.values())
-    return False
+    return all(
+        key in {"eV", "kp", "kx", "ky", "kz"} and isinstance(a_dict[str(key)], np.ndarray)
+        for key in a_dict
+    )
 
 
-def is_homogeneous_dataarray_list(arr_list: Sequence[XrTypes]) -> TypeGuard[Sequence[xr.DataArray]]:
+def is_homogeneous_dataarray_list(
+    arr_list: Sequence[XrTypes] | Sequence[DataType],
+) -> TypeGuard[Sequence[xr.DataArray]]:
     """Check if all elemetns in the list are of type xr.DataArray."""
     return all(isinstance(arr, xr.DataArray) for arr in arr_list)
 
 
-def is_homogeneous_dataset_list(arr_list: Sequence[XrTypes]) -> TypeGuard[Sequence[xr.DataArray]]:
+def is_homogeneous_dataset_list(
+    arr_list: Sequence[XrTypes] | Sequence[DataType],
+) -> TypeGuard[Sequence[xr.DataArray]]:
     """Check if all elemetns in the list are of type xr.Dataset."""
     return all(isinstance(arr, xr.Dataset) for arr in arr_list)
 

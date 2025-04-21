@@ -24,6 +24,8 @@ import numpy as np
 import scipy.stats
 import xarray as xr
 
+from arpes._typing import DataType
+
 from .analysis.sarpes import to_intensity_polarization
 from .debug import setup_logger
 from .provenance import update_provenance
@@ -31,7 +33,6 @@ from .utilities import lift_dataarray_to_generic
 from .utilities.jupyter import get_tqdm
 from .utilities.normalize import normalize_to_spectrum
 from .utilities.region import normalize_region
-from arpes._typing import DataType
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
@@ -95,8 +96,8 @@ def estimate_prior_adjustment(
 
     data = data.S.zero_spectrometer_edges().S.region_sel(region)
     values = data.values.ravel()
-    values = values[np.where(values)]
-    return np.std(values, dtype=np.float64) / np.mean(values)
+    non_zero_values = values[values != 0]
+    return np.std(values, dtype=np.float64) / np.mean(non_zero_values)
 
 
 @update_provenance("Resample cycle dimension")
