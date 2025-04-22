@@ -1,12 +1,13 @@
 from pathlib import Path
-import pytest
+from unittest.mock import MagicMock, create_autospec, patch
 
-from IPython.core.interactiveshell import InteractiveShell
-import arpes.config
-from arpes.config import setup_logging, CONFIG, UseTex, use_tex
 import matplotlib as mpl
-from unittest.mock import create_autospec, patch, MagicMock
+import pytest
+from IPython.core.interactiveshell import InteractiveShell
+
 import arpes
+import arpes.config
+from arpes.config import CONFIG, UseTex, setup_logging, use_tex
 
 # Mock CONFIG dictionary
 CONFIG = {
@@ -182,7 +183,6 @@ def test_setup_logging_import_error(monkeypatch: pytest.MonkeyPatch):
 
 def test_setup_logging_import_error0(monkeypatch: pytest.MonkeyPatch):
     """Test setup_logging when ImportError is raised."""
-
     monkeypatch.setattr("arpes.config.HAS_LOADED", False)
 
     # Simulate ImportError by patching `IPython.core.getipython` to raise ImportError
@@ -198,7 +198,6 @@ def test_setup_logging_import_error0(monkeypatch: pytest.MonkeyPatch):
 
 def test_setup_logging_import_error(monkeypatch: pytest.MonkeyPatch):
     """Test setup_logging when ImportError is raised."""
-
     monkeypatch.setattr("arpes.config.HAS_LOADED", False)
 
     # Simulate ImportError by patching `get_ipython` to raise ImportError
