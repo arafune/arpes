@@ -151,6 +151,9 @@ convention = "google"
 "src/arpes/endstations/igor_utils.py" = ["S605"]
 "legacy_files/*" = ["ALL"]
 
+[tool.ruff.flake8-annotations]
+allow-star-arg-any = true
+
 [tool.ruff.format]
 # Like Black, use double quotes for strings.
 quote-style = "double"
