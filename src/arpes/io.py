@@ -24,7 +24,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from arpes._typing import XrTypes, DataType
+from arpes._typing import DataType, XrTypes
 
 from .debug import setup_logger
 from .endstations import ScanDesc, load_scan
