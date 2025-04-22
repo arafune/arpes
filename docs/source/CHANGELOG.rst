@@ -13,7 +13,8 @@ primarily indicate new features and documentation.
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Remove 'GStepBStdevModel', which is useless.  Use GstepBModel. 
-* Remove file_for_pickle, load_pickel, file_for_pickle, which are not used and hard to maintain. (pickles is not so safe and not so portable)
+* Remove file_for_pickle, load_pickel, file_for_pickle. They are not used and hard to maintain. (pickles is not so safe and not so portable)
+  * Instead introduce save_custom_netcdf/load_custom_netcdf
 
 5.0.0-pre2 (2024-05-24)
 ^^^^^^^^^^^^^^^^^^^^^^^^
