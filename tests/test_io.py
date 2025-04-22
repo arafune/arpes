@@ -34,9 +34,32 @@ def sample_dataset() -> xr.Dataset:
 @pytest.fixture
 def sample_datatree() -> xr.DataTree:
     """Fixture to provide a sample xarray.DataTree for testing."""
-    data = xr.DataTree({"node1": xr.DataArray([1, 2]), "node2": xr.DataArray([3, 4])})
+    node1 = xr.DataArray([1, 2], name="node1")
+    node2 = xr.DataArray([3, 4], name="node2")
+    dataset = xr.Dataset({"node1": node1, "node2": node2})
+
+    data = xr.DataTree(dataset)
+
     data.attrs = {"description": "Test DataTree", "info": {"nested": "value"}}
     return data
+
+
+@pytest.fixture
+def sample_hierarchy_datatree() -> xr.DataTree:
+    """Sample hierarchy datatree taken from xarray document.ation.
+
+    https://docs.xarray.dev/en/latest/user-guide/hierarchical-data.html
+
+    """
+    bart = xr.DataTree(name="Bart")
+    lisa = xr.DataTree(name="Lisa")
+    homer = xr.DataTree(name="Homer", children={"Bart": bart, "Lisa": lisa})
+    maggie = xr.DataTree(name="Maggie")
+    homer.children = {"Bart": bart, "Lisa": lisa, "Maggie": maggie}
+    abe = xr.DataTree(name="Abe")
+    abe.children = {"Homer": homer}
+    herbert = xr.DataTree(name="Herb")
+    return abe.assign({"Herbert": herbert})
 
 
 def test_save_load_dataarray(sample_dataarray: xr.DataArray, tmp_path: Path):
