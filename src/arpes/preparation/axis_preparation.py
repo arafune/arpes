@@ -1,11 +1,9 @@
 """Utilities related to treatment of coordinate axes."""
 
-from __future__ import annotations
-
 import copy
 import functools
 from logging import DEBUG, INFO
-from typing import TYPE_CHECKING
+from typing import cast, TYPE_CHECKING
 
 import numpy as np
 import xarray as xr
@@ -16,6 +14,7 @@ from arpes.debug import setup_logger
 from arpes.provenance import Provenance, provenance, update_provenance
 from arpes.utilities import lift_dataarray_to_generic
 from arpes.utilities.normalize import normalize_to_spectrum
+from arpes._typing import DataType
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
@@ -58,7 +57,7 @@ def vstack_data(arr_list: Sequence[DataType], new_dim: str) -> DataType:
     else:
         arr_list = [data.assign_coords({new_dim: data.attrs[new_dim]}) for data in arr_list]
     assert is_homogeneous_dataarray_list(arr_list) or is_homogeneous_dataset_list(arr_list)
-    concatenated_data = xr.concat(arr_list, dim=new_dim)
+    concatenated_data: DataType = cast("DataType", xr.concat(arr_list, dim=new_dim))
     if new_dim in concatenated_data.attrs:
         del concatenated_data.attrs[new_dim]
     return concatenated_data

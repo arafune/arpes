@@ -393,11 +393,7 @@ def convert_coordinates(
     )
 
     if will_collapse:
-        if np.sum(kx**2) > np.sum(ky**2):
-            sign = kx / np.sqrt(kx**2 + 1e-8)
-        else:
-            sign = ky / np.sqrt(ky**2 + 1e-8)
-
+        sign = np.sign(kx) if np.sum(kx**2) > np.sum(ky**2) else np.sign(ky)
         kp = sign * np.sqrt(kx**2 + ky**2)
         data_vars = {"kp": (old_dims, np.squeeze(kp)), "kz": (old_dims, np.squeeze(kz))}
     else:
