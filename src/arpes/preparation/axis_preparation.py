@@ -2,27 +2,25 @@
 
 import copy
 import functools
+from collections.abc import Callable, Sequence
 from logging import DEBUG, INFO
-from typing import cast, TYPE_CHECKING
+from typing import Any, cast
 
 import numpy as np
 import xarray as xr
+from numpy.typing import NDArray
 from scipy.ndimage import geometric_transform
 
-from arpes._typing import is_homogeneous_dataarray_list, is_homogeneous_dataset_list
+from arpes._typing import (
+    DataType,
+    XrTypes,
+    is_homogeneous_dataarray_list,
+    is_homogeneous_dataset_list,
+)
 from arpes.debug import setup_logger
 from arpes.provenance import Provenance, provenance, update_provenance
 from arpes.utilities import lift_dataarray_to_generic
 from arpes.utilities.normalize import normalize_to_spectrum
-from arpes._typing import DataType
-
-if TYPE_CHECKING:
-    from collections.abc import Callable, Sequence
-
-    from _typeshed import Incomplete
-    from numpy.typing import NDArray
-
-    from arpes._typing import XrTypes
 
 __all__ = (
     "dim_normalizer",
@@ -197,7 +195,7 @@ def dim_normalizer(
 
 
 def transform_dataarray_axis(  # noqa: PLR0913
-    func: Callable[[xr.DataArray | xr.Dataset, str], Incomplete],
+    func: Callable[[xr.DataArray | xr.Dataset, str], Any],
     old_and_new_axis_names: tuple[str, str],
     new_axis: NDArray[np.float64] | xr.DataArray,
     dataset: xr.Dataset,
