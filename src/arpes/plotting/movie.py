@@ -47,8 +47,8 @@ __all__ = ("plot_movie", "plot_movie_and_evolution")
 def output_animation(  # noqa: PLR0913
     anim: FuncAnimation,
     data: xr.DataArray,
-    update_func: Callable[[int], Iterable[Artist]],
-    fig: Figure,
+    update_func: Callable[[int], Iterable[Artist]] | None = None,
+    fig: Figure | None = None,
     time_dim: str = "delay",
     out: str | Path | float | EllipsisType | None = None,
 ) -> Path | HTML | Figure | FuncAnimation:
@@ -71,19 +71,21 @@ def output_animation(  # noqa: PLR0913
             representation if out is None, the figure object if a specific frame is requested, or
             the animation object if out is Ellipsis.
     """
+    if out is Ellipsis:
+        return anim
+
     if isinstance(out, str | Path):
         logger.debug(msg=f"path_for_plot is {path_for_plot(out)}")
         anim.save(str(path_for_plot(out)))
         return path_for_plot(out)
 
+    assert update_func is not None
+    assert fig is not None
     if isinstance(out, Number):
         index: int = data.indexes[time_dim].get_indexer([out], method="nearest")[0]
         update_func(index)
         fig.canvas.draw()
         return fig
-
-    if out is Ellipsis:
-        return anim
 
     return HTML(anim.to_html5_video())  # HTML(anim.to_jshtml())
 
@@ -164,7 +166,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913
         width_ratio (tuple[float, float]): Width ratio of ARPES data and Time evolution data.
         evolution_at (tuple[str, float] | tuple[str, tuple[float, float]): Position for time
             evolution data, and the value.  if when the latter is tuple of two floats, the first
-            value is the center value and the second value is the radius of the range.
+            value is the center value and the second value is the half-width of the range.
         labels (tuple[str, str, str]): Labels for the x- of left side panel, x-of right side panel
             and y axes of the ARPES data.
         dark_bg (bool): If true, the frame and font color changes to white, default False.
@@ -197,13 +199,13 @@ def plot_movie_and_evolution(  # noqa: PLR0913
         ).transpose(..., time_dim)
     else:
         assert isinstance(evolution_at[1], tuple)
-        start, width = evolution_at[1]
+        start, half_width = evolution_at[1]
         evolution_data = (
             data.sel(
                 {
                     evolution_at[0]: slice(
-                        start - width,
-                        start + width,
+                        start - half_width,
+                        start + half_width,
                     ),
                 },
             )

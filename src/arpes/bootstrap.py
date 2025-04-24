@@ -1,4 +1,4 @@
-"""Utilities for s bootstraps, particularly useful for ToF experiments.
+"""Utilities for statistical bootstraps, particularly useful for ToF experiments.
 
 Bootstraps can be tricky to apply correctly. Ensure you understand their
 appropriateness for your data before using them. ToF-ARPES analyzers have
