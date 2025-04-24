@@ -9,6 +9,8 @@ from lmfit.lineshapes import lorentzian
 from scipy.ndimage import gaussian_filter
 from scipy.special import erfc
 
+from arpes.constants import MAX_EXP_ARG
+
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
@@ -18,9 +20,24 @@ __all__ = (
     "fermi_dirac",
     "fermi_dirac_affine",
     "gstep",
-    "gstep_stdev",
     "gstepb",
+    "gstepb_mult_lorentzian",
 )
+
+
+def fermi_dirac(
+    x: NDArray[np.float64],
+    center: float = 0,
+    width: float = 0.05,
+    scale: float = 1,
+) -> NDArray[np.float64]:
+    r"""Fermi edge, with somewhat arbitrary normalization.
+
+    :math:`\frac{scale}{\exp\left(\frac{x-center}{width} +1\right)}`
+    """
+    x_diff = np.clip((x - center) / width, -MAX_EXP_ARG, MAX_EXP_ARG)
+
+    return scale / (1 + np.exp(x_diff))
 
 
 def affine_broadened_fd(  # noqa: PLR0913
@@ -41,29 +58,20 @@ def affine_broadened_fd(  # noqa: PLR0913
         const_bkg: constant background.
         lin_slope: linear (affine) background slope.
     """
-    dx = x - center
     x_scaling = x[1] - x[0]
-    fermi = 1 / (np.exp(dx / width) + 1)
     return np.asarray(
         gaussian_filter(
-            (const_bkg + lin_slope * dx) * fermi,
+            fermi_dirac_affine(
+                x=x,
+                center=center,
+                width=width,
+                lin_slope=lin_slope,
+                const_bkg=const_bkg,
+            ),
             sigma=sigma / x_scaling,
         ),
         dtype=np.float64,
     )
-
-
-def fermi_dirac(
-    x: NDArray[np.float64],
-    center: float = 0,
-    width: float = 0.05,
-    scale: float = 1,
-) -> NDArray[np.float64]:
-    r"""Fermi edge, with somewhat arbitrary normalization.
-
-    :math:`\frac{scale}{\exp\left(\frac{x-center}{width} +1\right)}`
-    """
-    return scale / (np.exp((x - center) / width) + 1)
 
 
 def gstepb(  # noqa: PLR0913
@@ -74,7 +82,7 @@ def gstepb(  # noqa: PLR0913
     lin_slope: float = 0,
     const_bkg: float = 0,
 ) -> NDArray[np.float64]:
-    """Fermi function convoled with a Gaussian together with affine background.
+    """Complementary error function as a approximate of the Fermi function convoled with a Gaussian.
 
     This accurately represents low temperature steps where thermal broadening is
     less substantial than instrumental resolution.
@@ -90,8 +98,7 @@ def gstepb(  # noqa: PLR0913
     Returns:
         The step edge.
     """
-    dx = x - center
-    return const_bkg + lin_slope * np.min(dx, 0) + gstep(x, center, width, erf_amp)
+    return (const_bkg + lin_slope * (x - center)) * gstep(x, center, width, erf_amp)
 
 
 def gstep(
@@ -113,8 +120,7 @@ def gstep(
     Returns:
         The step edge.
     """
-    dx = x - center
-    return erf_amp * erfc(dx / width) / 2
+    return erf_amp * erfc((x - center) / width) / 2
 
 
 def band_edge_bkg(  # noqa: PLR0913
@@ -131,10 +137,12 @@ def band_edge_bkg(  # noqa: PLR0913
 
     Todo: Reconsidering the Need.
     """
-    return (lorentzian(x, gamma, lor_center, amplitude) + lin_slope * x + const_bkg) * fermi_dirac(
-        x,
-        center,
-        width,
+    return (
+        lorentzian(x, gamma, lor_center, amplitude) + (lin_slope * x + const_bkg)
+    ) * fermi_dirac(
+        x=x,
+        center=center,
+        width=width,
     )
 
 
@@ -146,22 +154,23 @@ def fermi_dirac_affine(
     const_bkg: float = 1,
 ) -> NDArray[np.float64]:
     """Fermi step edge with a linear background above the Fermi level."""
-    return (const_bkg + lin_slope * x) / (np.exp((x - center) / width) + 1)
+    return (const_bkg + lin_slope * (x - center)) * fermi_dirac(x=x, center=center, width=width)
 
 
-def gstep_stdev(
+def gstepb_mult_lorentzian(  # noqa: PLR0913
     x: NDArray[np.float64],
     center: float = 0,
-    sigma: float = 1,
+    width: float = 1,
     erf_amp: float = 1,
+    lin_slope: float = 0,
+    const_bkg: float = 0,
+    gamma: float = 1,
+    lorcenter: float = 0,
 ) -> NDArray[np.float64]:
-    """Fermi function convolved with a Gaussian.
-
-    Args:
-        x: value to evaluate fit at
-        center: center of the step
-        sigma: width of the step
-        erf_amp: height of the step
-    """
-    dx = x - center
-    return erf_amp * 0.5 * erfc(np.sqrt(2) * dx / sigma)
+    """A Lorentzian multiplied by a gstepb background."""
+    return gstepb(x, center, width, erf_amp, lin_slope, const_bkg) * lorentzian(
+        x=x,
+        sigma=gamma,
+        center=lorcenter,
+        amplitude=1,
+    )

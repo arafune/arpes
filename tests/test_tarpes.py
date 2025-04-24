@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 import xarray as xr
@@ -13,6 +14,7 @@ from arpes.analysis import tarpes
 from arpes.plotting.movie import (
     _replace_after_col,
     _replace_after_row,
+    plot_movie,
     plot_movie_and_evolution,
 )
 
@@ -161,3 +163,160 @@ def test_plot_movie_and_evolution_snapshot(sample_data: xr.DataArray):
 def test_plot_movie_and_evolution_FuncAnimation(sample_data: xr.DataArray):
     result = plot_movie_and_evolution(sample_data, evolution_at=("phi", 0.0), out=...)
     assert isinstance(result, FuncAnimation)
+
+
+@pytest.fixture
+def another_sample_data():
+    """Fixture to create sample ARPES data."""
+    time = np.linspace(0, 10, 5)  # 5 time points
+    x = np.linspace(-5, 5, 50)  # 50 x points
+    y = np.linspace(-5, 5, 50)  # 50 y points
+    data = np.random.random((50, 50, 5))  # Random 3D data
+    return xr.DataArray(
+        data,
+        dims=["eV", "phi", "delay"],
+        coords={"eV": y, "phi": x, "delay": time},
+        attrs={"subtracted": False},
+    )
+
+
+def test_plot_movie_and_evolution_html(another_sample_data: xr.DataArray):
+    """Test that the function returns an HTML object."""
+    result = plot_movie_and_evolution(
+        data=another_sample_data,
+        out=None,  # Return HTML
+    )
+    from IPython.core.display import HTML
+
+    assert isinstance(result, HTML)
+
+
+def test_plot_movie_and_evolution_funcanimation(another_sample_data: xr.DataArray):
+    """Test that the function returns a FuncAnimation object."""
+    result = plot_movie_and_evolution(
+        data=another_sample_data,
+        out=...,  # Return FuncAnimation
+    )
+    assert isinstance(result, FuncAnimation)
+
+
+def test_plot_movie_and_evolution_figure(another_sample_data: xr.DataArray):
+    """Test that the function returns a Figure object."""
+    result = plot_movie_and_evolution(
+        data=another_sample_data,
+        out=0.0,  # Return snapshot as Figure
+    )
+    assert isinstance(result, Figure)
+
+
+def test_plot_movie_and_evolution_save(tmp_path: Path, another_sample_data: xr.DataArray):
+    """Test that the function saves the animation to a file."""
+    output_path = tmp_path / "test_animation.mp4"
+    result = plot_movie_and_evolution(
+        data=another_sample_data,
+        out=output_path,  # Save animation
+    )
+    assert isinstance(result, Path)
+    assert result.exists()
+
+
+def test_plot_movie_and_evolution_missing_attrs(another_sample_data: xr.DataArray):
+    """Test that the function handles missing attributes gracefully."""
+    del another_sample_data.attrs["subtracted"]
+    result = plot_movie_and_evolution(data=another_sample_data, out=None)
+    from IPython.core.display import HTML
+
+    assert isinstance(result, HTML)
+
+
+def test_plot_movie_and_evolution_empty_data():
+    """Test that the function raises an error for empty data."""
+    empty_data = xr.DataArray(
+        np.empty((0, 0, 0)),
+        dims=["eV", "phi", "delay"],
+        coords={"eV": [], "phi": [], "delay": []},
+    )
+    with pytest.raises(KeyError, match="\"not all values found in index 'phi'\""):
+        plot_movie_and_evolution(data=empty_data, out=None)
+
+
+def test_plot_movie_and_evolution_custom_fig_ax(another_sample_data: xr.DataArray):
+    """Test that the function works with custom figure and axes."""
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
+    result = plot_movie_and_evolution(data=another_sample_data, fig_ax=(fig, ax), out=None)
+    from IPython.core.display import HTML
+
+    assert isinstance(result, HTML)
+
+
+def test_plot_movie_and_evolution_with_labels(another_sample_data: xr.DataArray):
+    """Test that the function correctly applies custom labels."""
+    labels = ("X-axis Label", "Time-axis Label", "Y-axis Label")
+    result = plot_movie_and_evolution(
+        data=another_sample_data,
+        labels=labels,
+        out=None,  # Return HTML
+    )
+    from IPython.core.display import HTML
+
+    assert isinstance(result, HTML)
+
+    # Verify that the labels are correctly applied
+    fig = plt.gcf()
+    ax = fig.axes
+    assert len(ax) == 3
+    assert ax[0].get_xlabel() == labels[0]
+    assert ax[0].get_ylabel() == labels[2]
+    assert ax[1].get_xlabel() == labels[1]
+
+
+def test_plot_movie_and_evolution_is_subtracted_true(another_sample_data: xr.DataArray):
+    """Test when data.S.is_subtracted is True."""
+    another_sample_data.attrs["subtracted"] = True
+    result = plot_movie_and_evolution(
+        data=another_sample_data,
+        out=None,  # Return HTML
+    )
+    from IPython.core.display import HTML
+
+    assert isinstance(result, HTML)
+
+    # Verify that the colormap and vmin/vmax are set correctly
+    fig = plt.gcf()
+    ax = fig.axes
+    assert len(ax) == 3
+    for artist in ax[0].collections + ax[1].collections:
+        assert artist.get_cmap().name == "RdBu_r"
+        assert artist.get_clim()[0] < 0  # vmin
+        assert artist.get_clim()[1] > 0  # vmax
+
+
+def test_plot_movie_and_evolution_is_subtracted_true_with_labels(another_sample_data: xr.DataArray):
+    """Test when data.S.is_subtracted is True and labels are provided."""
+    another_sample_data.attrs["subtracted"] = True
+    labels = ("Custom X-axis", "Custom Y-axis")
+    result = plot_movie(
+        data=another_sample_data,
+        labels=labels,
+        out=None,  # Return HTML
+    )
+    from IPython.core.display import HTML
+
+    assert isinstance(result, HTML)
+
+    # Verify that the colormap and vmin/vmax are set correctly
+    fig = plt.gcf()
+    ax = fig.axes
+    assert len(ax) == 2
+
+    for artist in ax[0].collections:
+        assert artist.get_cmap().name == "RdBu_r"
+        clim = artist.get_clim()
+        assert clim[0] < 0  # vmin
+        assert clim[1] > 0  # vmax
+
+    # Verify that the labels are correctly applied
+    assert ax[0].get_xlabel() == labels[0]
+    assert ax[0].get_ylabel() == labels[1]

@@ -47,8 +47,8 @@ __all__ = ("plot_movie", "plot_movie_and_evolution")
 def output_animation(  # noqa: PLR0913
     anim: FuncAnimation,
     data: xr.DataArray,
-    update_func: Callable[[int], Iterable[Artist]],
-    fig: Figure,
+    update_func: Callable[[int], Iterable[Artist]] | None = None,
+    fig: Figure | None = None,
     time_dim: str = "delay",
     out: str | Path | float | EllipsisType | None = None,
 ) -> Path | HTML | Figure | FuncAnimation:
@@ -71,25 +71,70 @@ def output_animation(  # noqa: PLR0913
             representation if out is None, the figure object if a specific frame is requested, or
             the animation object if out is Ellipsis.
     """
+    if out is Ellipsis:
+        return anim
+
     if isinstance(out, str | Path):
         logger.debug(msg=f"path_for_plot is {path_for_plot(out)}")
         anim.save(str(path_for_plot(out)))
         return path_for_plot(out)
 
+    assert update_func is not None
+    assert fig is not None
     if isinstance(out, Number):
         index: int = data.indexes[time_dim].get_indexer([out], method="nearest")[0]
         update_func(index)
         fig.canvas.draw()
         return fig
 
-    if out is Ellipsis:
-        return anim
-
     return HTML(anim.to_html5_video())  # HTML(anim.to_jshtml())
 
 
+def _initialize_figure_and_axes(
+    fig_ax: tuple[Figure | None, NDArray[np.object_] | None] | None,
+    figsize: tuple[float, float],
+    width_ratio: tuple[float, float],
+) -> tuple[Figure, NDArray[np.object_]]:
+    """Initialize the figure and axes for the plot."""
+    fig, ax = fig_ax or plt.subplots(
+        nrows=1,
+        ncols=2,
+        figsize=figsize,
+        width_ratios=width_ratio,
+    )
+    assert ax is not None
+    assert isinstance(ax[0], Axes)
+    assert isinstance(ax[1], Axes)
+    assert isinstance(fig, Figure)
+    return fig, ax
+
+
+def _configure_axes_and_labels(
+    ax: NDArray[np.object_],
+    arpes_data: xr.DataArray,
+    evolution_data: xr.DataArray,
+    labels: tuple[str, str, str] | None,
+) -> None:
+    """Configure axes and labels for the plot."""
+    if labels:
+        ax[0].set_xlabel(labels[0])
+        ax[0].set_ylabel(labels[2])
+    else:
+        ax[0].set_xlabel(str(arpes_data.dims[1]))
+        ax[0].set_ylabel(str(arpes_data.dims[0]))
+
+    if labels:
+        ax[1].set_xlabel(labels[1])
+    else:
+        ax[1].set_xlabel(str(evolution_data.dims[1]))
+
+    if evolution_data.dims[0] == arpes_data.dims[0]:
+        ax[1].yaxis.set_ticks([])
+    ax[1].set_ylabel("")
+
+
 @save_plot_provenance
-def plot_movie_and_evolution(  # noqa: PLR0913, PLR0915
+def plot_movie_and_evolution(  # noqa: PLR0913
     data: xr.DataArray,
     time_dim: str = "delay",
     interval_ms: float = 100,
@@ -98,6 +143,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913, PLR0915
     figsize: tuple[float, float] | None = None,
     width_ratio: tuple[float, float] | None = None,
     evolution_at: tuple[str, float] | tuple[str, tuple[float, float]] = ("phi", 0.0),
+    labels: tuple[str, str, str] | None = None,
     *,
     dark_bg: bool = False,
     **kwargs: Unpack[PColorMeshKwargs],
@@ -120,7 +166,9 @@ def plot_movie_and_evolution(  # noqa: PLR0913, PLR0915
         width_ratio (tuple[float, float]): Width ratio of ARPES data and Time evolution data.
         evolution_at (tuple[str, float] | tuple[str, tuple[float, float]): Position for time
             evolution data, and the value.  if when the latter is tuple of two floats, the first
-            value is the center value and the second value is the radius of the range.
+            value is the center value and the second value is the half-width of the range.
+        labels (tuple[str, str, str]): Labels for the x- of left side panel, x-of right side panel
+            and y axes of the ARPES data.
         dark_bg (bool): If true, the frame and font color changes to white, default False.
         kwargs: Additional keyword arguments for `pcolormesh`
 
@@ -133,18 +181,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913, PLR0915
     width_ratio = width_ratio or (1.0, 4.4)
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
 
-    fig, ax = fig_ax or plt.subplots(
-        nrows=1,
-        ncols=2,
-        figsize=figsize,
-        width_ratios=width_ratio,
-    )
-
-    assert ax is not None
-    assert isinstance(ax[0], Axes)
-    assert isinstance(ax[1], Axes)
-    assert isinstance(fig, Figure)
-    assert isinstance(data, xr.DataArray)
+    fig, ax = _initialize_figure_and_axes(fig_ax, figsize, width_ratio)
     assert data.ndim == TWO_DIMENSION + 1
 
     kwargs.setdefault(
@@ -155,11 +192,6 @@ def plot_movie_and_evolution(  # noqa: PLR0913, PLR0915
         ),
     )
 
-    kwargs.setdefault("vmax", data.max().item())
-    kwargs.setdefault("vmin", data.min().item())
-    assert "vmax" in kwargs
-    assert "vmin" in kwargs
-
     if isinstance(evolution_at[1], Number):
         evolution_data: xr.DataArray = data.sel(
             {evolution_at[0]: evolution_at[1]},
@@ -167,13 +199,13 @@ def plot_movie_and_evolution(  # noqa: PLR0913, PLR0915
         ).transpose(..., time_dim)
     else:
         assert isinstance(evolution_at[1], tuple)
-        start, width = evolution_at[1]
+        start, half_width = evolution_at[1]
         evolution_data = (
             data.sel(
                 {
                     evolution_at[0]: slice(
-                        start - width,
-                        start + width,
+                        start - half_width,
+                        start + half_width,
                     ),
                 },
             )
@@ -183,15 +215,19 @@ def plot_movie_and_evolution(  # noqa: PLR0913, PLR0915
 
     if data.S.is_subtracted:
         kwargs["cmap"] = "RdBu_r"
-        kwargs["vmax"] = np.max([np.abs(kwargs["vmin"]), np.abs(kwargs["vmax"])])
+        kwargs["vmax"] = np.max(
+            [
+                np.abs(kwargs.get("vmin", data.min().item())),
+                np.abs(kwargs.get("vmax", data.max().item())),
+            ],
+        )
         kwargs["vmin"] = -kwargs["vmax"]
-
+    kwargs["animated"] = True
     arpes_data = data.isel({time_dim: 0})
     arpes_mesh: QuadMesh = ax[0].pcolormesh(
         arpes_data.coords[arpes_data.dims[1]].values,
         arpes_data.coords[arpes_data.dims[0]].values,
         arpes_data.values,
-        animated=True,
         **kwargs,
     )
 
@@ -199,17 +235,10 @@ def plot_movie_and_evolution(  # noqa: PLR0913, PLR0915
         evolution_data.coords[evolution_data.dims[1]].values,
         evolution_data.coords[evolution_data.dims[0]].values,
         evolution_data.values,
-        animated=True,
         **kwargs,
     )
 
-    ax[0].set_xlabel(str(arpes_data.dims[1]))
-    ax[0].set_ylabel(str(arpes_data.dims[0]))
-
-    ax[1].set_xlabel(str(evolution_data.dims[1]))
-    if evolution_data.dims[0] == arpes_data.dims[0]:
-        ax[1].yaxis.set_ticks([])
-    ax[1].set_ylabel("")
+    _configure_axes_and_labels(ax, arpes_data, evolution_data, labels)
 
     cbar: Colorbar = fig.colorbar(evolution_mesh, ax=ax[1])
 
@@ -263,6 +292,7 @@ def plot_movie(  # noqa: PLR0913
     fig_ax: tuple[Figure | None, Axes | None] | None = None,
     out: str | Path | float | EllipsisType | None = None,
     figsize: tuple[float, float] | None = None,
+    labels: tuple[str, str] | None = None,
     *,
     dark_bg: bool = False,
     **kwargs: Unpack[PColorMeshKwargs],
@@ -282,6 +312,7 @@ def plot_movie(  # noqa: PLR0913
             the HTML object to display the animation.  and if ... is set, return the
             FuncAnimation object itself.  Default is None.
         figsize (tuple[float, float]): Size of the movie figure, optional.
+        labels (tuple[str, str]): The label for x- and y-axis. (optional)
         dark_bg (bool): If true, the frame and font color changes to white, default False.
         kwargs: Additional keyword arguments for `pcolormesh`.
 
@@ -311,15 +342,15 @@ def plot_movie(  # noqa: PLR0913
         ),
     )
 
-    kwargs.setdefault("vmax", data.max().item())
-    kwargs.setdefault("vmin", data.min().item())
-    assert "vmax" in kwargs
-    assert "vmin" in kwargs
     if data.S.is_subtracted:
         kwargs["cmap"] = "RdBu_r"
-        kwargs["vmax"] = np.max([np.abs(kwargs["vmin"]), np.abs(kwargs["vmax"])])
+        kwargs["vmax"] = np.max(
+            [
+                np.abs(kwargs.get("vmin", data.min().item())),
+                np.abs(kwargs.get("vmax", data.max().item())),
+            ],
+        )
         kwargs["vmin"] = -kwargs["vmax"]
-
     arpes_data = data.isel({time_dim: 0})
     arpes_mesh: QuadMesh = ax.pcolormesh(
         arpes_data.coords[arpes_data.dims[1]].values,
@@ -327,9 +358,13 @@ def plot_movie(  # noqa: PLR0913
         arpes_data.values,
         **kwargs,
     )
+    if labels:
+        ax.set_xlabel(labels[0])
+        ax.set_ylabel(labels[1])
+    else:
+        ax.set_xlabel(str(arpes_data.dims[1]))
+        ax.set_ylabel(str(arpes_data.dims[0]))
 
-    ax.set_xlabel(str(arpes_data.dims[1]))
-    ax.set_ylabel(str(arpes_data.dims[0]))
     arpes_mesh.set_animated(True)
 
     cbar = fig.colorbar(arpes_mesh, ax=ax)

@@ -18,7 +18,6 @@ from scipy.spatial import distance
 import arpes.utilities.math
 from arpes.constants import HBAR_SQ_EV_PER_ELECTRON_MASS_ANGSTROM_SQ, TWO_DIMENSION
 from arpes.debug import setup_logger
-from arpes.fits import broadcast_model
 from arpes.models.band import Band
 from arpes.provenance import update_provenance
 from arpes.utilities.conversion.forward import convert_coordinates_to_kspace_forward
@@ -82,12 +81,8 @@ def fit_for_effective_mass(
     mom_dim = next(
         dim for dim in ["kp", "kx", "ky", "kz", "phi", "beta", "theta"] if dim in data.dims
     )
-    fit_results = broadcast_model(
-        model_cls=[LorentzianModel, LinearModel],
-        data=data,
-        broadcast_dims=mom_dim,
-        **fit_kwargs,
-    )
+    model = LorentzianModel() + LinearModel()
+    fit_results = data.S.modelfit(coords="eV", model=model, **fit_kwargs)
     if mom_dim in {"phi", "beta", "theta"}:
         forward = convert_coordinates_to_kspace_forward(data)
         assert isinstance(forward, xr.Dataset)
@@ -100,7 +95,7 @@ def fit_for_effective_mass(
         quad_fit = QuadraticModel().fit(eVs, x=np.array(kps))
 
         return HBAR_SQ_EV_PER_ELECTRON_MASS_ANGSTROM_SQ / (2 * quad_fit.params["a"].value)
-    quad_fit = QuadraticModel().guess_fit(fit_results.modelfit_results.F.p("a_center"))
+    quad_fit = QuadraticModel().fit(fit_results.modelfit_results.F.p("a_center"))
     return HBAR_SQ_EV_PER_ELECTRON_MASS_ANGSTROM_SQ / (2 * quad_fit.params["a"].value)
 
 
@@ -448,7 +443,6 @@ def fit_patterned_bands(  # noqa: PLR0913
     template = arr.sum(fit_direction)
     band_results = template.G.with_values(
         np.ndarray(shape=template.values.shape, dtype=object),
-        keep_attrs=True,
     )
 
     total_slices = np.prod([len(arr.coords[d]) for d in free_directions])

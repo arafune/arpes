@@ -1,28 +1,26 @@
 """Utilities related to treatment of coordinate axes."""
 
-from __future__ import annotations
-
 import copy
 import functools
+from collections.abc import Callable, Sequence
 from logging import DEBUG, INFO
-from typing import TYPE_CHECKING
+from typing import Any, cast
 
 import numpy as np
 import xarray as xr
+from numpy.typing import NDArray
 from scipy.ndimage import geometric_transform
 
+from arpes._typing import (
+    DataType,
+    XrTypes,
+    is_homogeneous_dataarray_list,
+    is_homogeneous_dataset_list,
+)
 from arpes.debug import setup_logger
 from arpes.provenance import Provenance, provenance, update_provenance
 from arpes.utilities import lift_dataarray_to_generic
 from arpes.utilities.normalize import normalize_to_spectrum
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from _typeshed import Incomplete
-    from numpy.typing import NDArray
-
-    from arpes._typing import DataType, XrTypes
 
 __all__ = (
     "dim_normalizer",
@@ -40,7 +38,7 @@ logger = setup_logger(__name__, LOGLEVEL)
 
 
 @update_provenance("Build new DataArray/Dataset with an additional dimension")
-def vstack_data(arr_list: list[DataType], new_dim: str) -> DataType:
+def vstack_data(arr_list: Sequence[DataType], new_dim: str) -> DataType:
     """Build a new DataArray | Dataset with an additional dimension.
 
     Args:
@@ -56,7 +54,11 @@ def vstack_data(arr_list: list[DataType], new_dim: str) -> DataType:
         assert all(new_dim in data.coords for data in arr_list)
     else:
         arr_list = [data.assign_coords({new_dim: data.attrs[new_dim]}) for data in arr_list]
-    return xr.concat(objs=arr_list, dim=new_dim)
+    assert is_homogeneous_dataarray_list(arr_list) or is_homogeneous_dataset_list(arr_list)
+    concatenated_data: DataType = cast("DataType", xr.concat(arr_list, dim=new_dim))
+    if new_dim in concatenated_data.attrs:
+        del concatenated_data.attrs[new_dim]
+    return concatenated_data
 
 
 @update_provenance("Sort Axis")
@@ -135,7 +137,10 @@ def normalize_dim(
     dims = [dim_or_dims] if isinstance(dim_or_dims, str) else dim_or_dims
     assert isinstance(dims, list)
 
-    summed_arr = arr.fillna(arr.mean()).sum([d for d in arr.dims if d not in dims])
+    summed_arr = arr.fillna(arr.mean()).sum(
+        [d for d in arr.dims if d not in dims],
+        keep_attrs=True,
+    )
     normalized_arr = arr / (summed_arr / np.prod(summed_arr.shape))
 
     to_return = xr.DataArray(normalized_arr.values, arr.coords, tuple(arr.dims), attrs=arr.attrs)
@@ -190,7 +195,7 @@ def dim_normalizer(
 
 
 def transform_dataarray_axis(  # noqa: PLR0913
-    func: Callable[[xr.DataArray | xr.Dataset, str], Incomplete],
+    func: Callable[[xr.DataArray | xr.Dataset, str], Any],
     old_and_new_axis_names: tuple[str, str],
     new_axis: NDArray[np.float64] | xr.DataArray,
     dataset: xr.Dataset,

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Unpack
 import lmfit as lf
 import numpy as np
 import xarray as xr
-from lmfit.lineshapes import gaussian, lorentzian
+from lmfit.lineshapes import gaussian
 from lmfit.models import Model, update_param_vals
 from scipy import stats
 
@@ -17,8 +17,8 @@ from .functional_forms import (
     affine_broadened_fd,
     band_edge_bkg,
     fermi_dirac,
-    gstep_stdev,
     gstepb,
+    gstepb_mult_lorentzian,
 )
 
 if TYPE_CHECKING:
@@ -35,7 +35,6 @@ __all__ = (
     "FermiLorentzianModel",
     "GStepBModel",
     "GStepBStandardModel",
-    "GStepBStdevModel",
 )
 
 
@@ -120,31 +119,12 @@ class FermiLorentzianModel(Model):
     Todo: Reconsidering the NEED & Lorentzian height.
     """
 
-    @staticmethod
-    def gstepb_mult_lorentzian(  # noqa: PLR0913
-        x: NDArray[np.float64],
-        center: float = 0,
-        width: float = 1,
-        erf_amp: float = 1,
-        lin_slope: float = 0,
-        const_bkg: float = 0,
-        gamma: float = 1,
-        lorcenter: float = 0,
-    ) -> NDArray[np.float64]:
-        """A Lorentzian multiplied by a gstepb background."""
-        return gstepb(x, center, width, erf_amp, lin_slope, const_bkg) * lorentzian(
-            x,
-            gamma,
-            lorcenter,
-            1,
-        )
-
     def __init__(self, **kwargs: Unpack[ModelArgs]) -> None:
         """Defer to lmfit for initialization."""
         kwargs.setdefault("prefix", "")
         kwargs.setdefault("independent_vars", ["x"])
         kwargs.setdefault("nan_policy", "raise")
-        super().__init__(self.gstepb_mult_lorentzian, **kwargs)
+        super().__init__(gstepb_mult_lorentzian, **kwargs)
 
         self.set_param_hint("erf_amp", min=0.0)
         self.set_param_hint("width", min=0)
@@ -190,7 +170,7 @@ class FermiDiracModel(Model):
 
     .. math::
 
-    \frac{scale}{\exp\left(\frac{x-center}{width}  +1\right)}
+    \frac{scale}{\exp\left(\frac{x-center}{width}  +1 \right)}
     """
 
     def __init__(self, **kwargs: Unpack[ModelArgs]) -> None:
@@ -214,7 +194,11 @@ class FermiDiracModel(Model):
 
         ymax = max(data)
         xmin, xmax = min(x), max(x)
-        pars = self.make_params(scale=ymax, center=(xmax - xmin) / 2.0, width=(xmax - xmin) / 10)
+        pars = self.make_params(
+            scale=ymax,
+            center=(xmax - xmin) / 2.0,
+            width=(xmax - xmin) / 10,
+        )
 
         return update_param_vals(pars, self.prefix, **kwargs)
 
@@ -226,7 +210,7 @@ class GStepBModel(Model):
     r"""A model for fitting Fermi functions with a linear background.
 
     .. math::
-        f(x; center, width, A, a, b)= b+a (x-center) +
+        f(x; center, width, A, a, b)= (b+a (x-center))
         \frac{A}{2}*\mathrm{erfc}\left(\frac{\sqrt{4ln(2)} (x-center)}{width}\right)
 
     where the parameter `erp_amp` corresponds `A`, `lin_slope` to `a`, and `const_bkg` to `b`.
@@ -385,71 +369,6 @@ class BandEdgeBGModel(Model):
         pars[f"{self.prefix}width"].set(0.02)
 
         return update_param_vals(pars, self.prefix, **kwargs)
-
-
-class GStepBStdevModel(Model):
-    """A model for fitting Fermi functions with a linear background."""
-
-    @staticmethod
-    def gstepb_stdev(  # noqa: PLR0913
-        x: NDArray[np.float64],
-        center: float = 0,
-        sigma: float = 1,
-        erf_amp: float = 1,
-        lin_slope: float = 0,
-        const_bkg: float = 0,
-    ) -> NDArray[np.float64]:
-        """Fermi function convolved with a Gaussian together with affine background.
-
-        Args:
-            x: value to evaluate function at
-            center: center of the step
-            sigma: width of the step
-            erf_amp: height of the step
-            lin_slope: linear background slope
-            const_bkg: constant background
-        """
-        dx = x - center
-        return const_bkg + lin_slope * np.min(dx, 0) + gstep_stdev(x, center, sigma, erf_amp)
-
-    def __init__(self, **kwargs: Unpack[ModelArgs]) -> None:
-        """Defer to lmfit for initialization."""
-        kwargs.setdefault("prefix", "")
-        kwargs.setdefault("independent_vars", ["x"])
-        kwargs.setdefault("nan_policy", "raise")
-        super().__init__(self.gstepb_stdev, **kwargs)
-
-        self.set_param_hint("erf_amp", min=0.0)
-        self.set_param_hint("sigma", min=0)
-        self.set_param_hint("lin_slope", min=-10, max=10)
-        self.set_param_hint("const_bkg", min=-50, max=50)
-
-    def guess(
-        self,
-        data: XrTypes | NDArray[np.float64],
-        x: NDArray[np.float64] | xr.DataArray,
-        **kwargs: Incomplete,
-    ) -> lf.Parameters:
-        """Estimate initial model parameter values from data."""
-        if isinstance(x, xr.DataArray):
-            x = x.values
-
-        pars = self.make_params()
-
-        pars[f"{self.prefix}center"].set(value=0)
-        pars[f"{self.prefix}lin_slope"].set(value=0)
-        pars[f"{self.prefix}const_bkg"].set(value=data.min())
-
-        pars[f"{self.prefix}sigma"].set(0.02)
-        pars[f"{self.prefix}erf_amp"].set(value=data.mean() - data.min())
-
-        return update_param_vals(pars, self.prefix, **kwargs)
-
-    __init__.__doc__ = (
-        "Fermi-Dirac distribution function with a linear background model"
-        + lf.models.COMMON_INIT_DOC
-    )
-    guess.__doc__ = lf.models.COMMON_GUESS_DOC
 
 
 class GStepBStandardModel(Model):

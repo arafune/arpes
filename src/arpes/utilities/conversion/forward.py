@@ -393,11 +393,7 @@ def convert_coordinates(
     )
 
     if will_collapse:
-        if np.sum(kx**2) > np.sum(ky**2):
-            sign = kx / np.sqrt(kx**2 + 1e-8)
-        else:
-            sign = ky / np.sqrt(ky**2 + 1e-8)
-
+        sign = np.sign(kx) if np.sum(kx**2) > np.sum(ky**2) else np.sign(ky)
         kp = sign * np.sqrt(kx**2 + ky**2)
         data_vars = {"kp": (old_dims, np.squeeze(kp)), "kz": (old_dims, np.squeeze(kz))}
     else:
@@ -571,10 +567,11 @@ def _broadcast_by_dim_location(
     ):
         return np.ones(target_shape) * data
     # else we are dealing with an actual array
-    the_slice: list[None | slice] = [None] * len(target_shape)
+    the_slice: list[slice | None] = [None] * len(target_shape)
     assert dim_location is not None
     the_slice[dim_location] = slice(None, None, None)
-    return np.asarray(data)[the_slice]
+    the_slice = [np.newaxis if s is None else s for s in the_slice]
+    return np.asarray(data)[tuple(the_slice)]
 
     # some notes on angle conversion:
     # BL4 conventions

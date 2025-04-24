@@ -51,8 +51,6 @@ if TYPE_CHECKING:
     from matplotlib.widgets import AxesWidget, Button, TextBox
     from numpy.typing import ArrayLike, NDArray
 
-from xarray.core.common import DataWithCoords
-
 __all__ = [
     "ANGLE",
     "EMISSION_ANGLE",
@@ -71,10 +69,12 @@ __all__ = [
     "WorkSpaceType",
     "XrTypes",
     "flatten_literals",
+    "is_homogeneous_dataarray_list",
+    "is_homogeneous_dataset_list",
 ]
 
 
-DataType = TypeVar("DataType", bound=DataWithCoords)
+DataType = TypeVar("DataType", xr.DataArray, xr.Dataset)
 NormalizableDataType: TypeAlias = DataType | str | uuid.UUID
 
 XrTypes: TypeAlias = xr.DataArray | xr.Dataset
@@ -163,9 +163,26 @@ def is_dict_kspacecoords(
         TypeGuard[KspaceCoords]: True if the dictionary contains k-space coordinates,
         False otherwise.
     """
-    if all(key in {"eV", "kp", "kx", "ky", "kz"} for key in a_dict):
-        return all(isinstance(v, np.ndarray) for v in a_dict.values())
-    return False
+    if not a_dict:
+        return False
+    return all(
+        key in {"eV", "kp", "kx", "ky", "kz"} and isinstance(a_dict[str(key)], np.ndarray)
+        for key in a_dict
+    )
+
+
+def is_homogeneous_dataarray_list(
+    arr_list: Sequence[XrTypes] | Sequence[DataType],
+) -> TypeGuard[Sequence[xr.DataArray]]:
+    """Check if all elemetns in the list are of type xr.DataArray."""
+    return all(isinstance(arr, xr.DataArray) for arr in arr_list)
+
+
+def is_homogeneous_dataset_list(
+    arr_list: Sequence[XrTypes] | Sequence[DataType],
+) -> TypeGuard[Sequence[xr.Dataset]]:
+    """Check if all elemetns in the list are of type xr.Dataset."""
+    return all(isinstance(arr, xr.Dataset) for arr in arr_list)
 
 
 class _InteractiveConfigSettings(TypedDict, total=False):
@@ -242,7 +259,7 @@ class AnalyzerInfo(TypedDict, total=False):
     analyzer_name: str
     lens_mode: str | None
     lens_mode_name: str | None
-    acquisition_mode: str
+    acquisition_mode: str | None
     pass_energy: float
     slit_shape: str | None
     slit_width: float
@@ -311,15 +328,15 @@ class _BeamLineInfo(TypedDict, total=False):
     undulator_info: Incomplete
     repetition_rate: float
     beam_current: float
-    entrance_slit: float | str
-    exit_slit: float | str
+    entrance_slit: float | str | None
+    exit_slit: float | str | None
     monochromator_info: dict[str, float]
 
 
 class BeamLineSettings(TypedDict, total=False):
-    exit_slit: float | str
-    entrance_slit: float | str
-    hv: float
+    exit_slit: float | str | None
+    entrance_slit: float | str | None
+    hv: float | xr.DataArray
     grating: str | None
 
 
@@ -346,8 +363,8 @@ class SampleInfo(TypedDict, total=False):
 
 
 class ScanInfo(TypedDict, total=False):
-    time: str
-    date: str
+    time: str | None
+    date: str | None
     spectrum_type: SpectrumType
     type: str | None
     experimenter: str | None

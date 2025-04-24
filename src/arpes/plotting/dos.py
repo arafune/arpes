@@ -178,7 +178,7 @@ def plot_dos(
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     assert isinstance(data, xr.DataArray)
     assert data.ndim == TWO_DIMENSION
-    dos = data.S.sum_other(["eV"])
+    dos = data.S.sum_other(["eV"], keep_attrs=True)
     kwargs.setdefault(
         "norm",
         Normalize(vmin=data.min().item(), vmax=data.max().item()),

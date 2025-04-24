@@ -38,7 +38,7 @@ import contextlib
 import copy
 import itertools
 import warnings
-from collections import Counter, OrderedDict
+from collections import OrderedDict
 from logging import DEBUG, INFO
 from pathlib import Path
 from typing import (
@@ -68,11 +68,11 @@ from ._typing import (
     MPLPlotKwargs,
     ReduceMethod,
     SpectrumType,
-    flatten_literals,
 )
 from .analysis import param_getter, param_stderr_getter
 from .constants import TWO_DIMENSION
 from .correction import coords, intensity_map
+from .correction.angle_unit import switched_angle_unit
 from .debug import setup_logger
 from .models.band import MultifitBand
 from .plotting.dispersion import (
@@ -174,46 +174,6 @@ class ARPESAngleProperty:
             for data_var in self._obj.data_vars.values():
                 if "eV" in data_var.dims:
                     data_var.attrs["angle_unit"] = angle_unit
-
-    def switch_angle_unit(self) -> None:
-        """Switch angle unit (radians <-> degrees).
-
-        Change the value of angle related objects/variables in attrs and coords
-        """
-        angle_unit = self.angle_unit.lower()
-        if angle_unit.startswith("rad"):
-            self.radian_to_degree()
-        elif angle_unit.startswith("deg"):
-            self.degree_to_radian()
-        else:
-            msg = 'The angle_unit must be "Radians" or "Degrees"'
-            raise TypeError(msg)
-
-    def radian_to_degree(self) -> None:
-        """Switch angle unit from Radians to Degrees."""
-        self.angle_unit = "Degrees"
-        for angle in flatten_literals(ANGLE):
-            if angle in self._obj.attrs:
-                self._obj.attrs[angle] = np.rad2deg(self._obj.attrs.get(angle, np.nan))
-            if angle + "_offset" in self._obj.attrs:
-                self._obj.attrs[angle + "_offset"] = np.rad2deg(
-                    self._obj.attrs.get(angle + "_offset", np.nan),
-                )
-            if angle in self._obj.coords:
-                self._obj.coords[angle] = np.rad2deg(self._obj.coords[angle])
-
-    def degree_to_radian(self) -> None:
-        """Switch angle unit from Degrees and Radians."""
-        self.angle_unit = "Radians"
-        for angle in flatten_literals(ANGLE):
-            if angle in self._obj.attrs:
-                self._obj.attrs[angle] = np.deg2rad(self._obj.attrs.get(angle, np.nan))
-            if angle + "_offset" in self._obj.attrs:
-                self._obj.attrs[angle + "_offset"] = np.deg2rad(
-                    self._obj.attrs.get(angle + "_offset", np.nan),
-                )
-            if angle in self._obj.coords:
-                self._obj.coords[angle] = np.deg2rad(self._obj.coords[angle])
 
     def lookup_coord(self, name: str) -> xr.DataArray | float:
         """Return the coordinates, if not return np.nan."""
@@ -784,14 +744,19 @@ class ARPESOffsetProperty(ARPESAngleProperty):
         raise RuntimeError(msg)
 
     @property
-    def logical_offsets(self) -> dict[str, float | xr.DataArray]:
+    def logical_offsets(self) -> dict[str, float | xr.DataArray]:  # pragma: no cover
         """The logical offsets of the sample position.
 
         Returns:
             dict object of long_[x, y, z] + physical_long_[x, y, z]
 
         Todo:
-            Test
+            Consering if this is really suitable way?
+                * While this variable used just in MAESTRO.py which I haven't used, to keep
+                  consistensy with other plugins the following change seems to be reasonable.
+                    * coords["long_x"] should be coosrds["x"] ?
+                    * coords["physical_long_x"] seems to be just x_offset.
+
         """
         assert isinstance(self._obj, xr.DataArray | xr.Dataset)
         if "long_x" not in self._obj.coords:
@@ -1466,6 +1431,25 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
         self._obj: xr.DataArray = xarray_obj
         assert isinstance(self._obj, xr.DataArray)
 
+    def switched_angle_unit(self) -> xr.DataArray:
+        """Return the identical data but the angle unit is converted.
+
+        Change the value of angle related objects/variables in attrs and coords
+
+        Returns:
+            xr.DataArray:The DataArray in which angle units are converted.
+        """
+        return switched_angle_unit(self._obj)
+
+    def switch_angle_unit(self) -> None:
+        """Switch angle unit (radians <-> degrees) in place.
+
+        Change the value of angle related objects/variables in attrs and coords
+        """
+        array = switched_angle_unit(self._obj)
+        self._obj.attrs = array.attrs
+        self._obj.coords.update(array.coords)
+
     def corrected_coords(
         self,
         correction_types: CoordsOffset | Sequence[CoordsOffset],
@@ -1858,7 +1842,11 @@ class GenericAccessorBase:
             The stride of each dimension
         """
         indexed_strides: list[float] = [
-            _check_equal_spacing(self._obj.coords[dim], dim) for dim in self._obj.dims
+            coords.is_equally_spaced(
+                self._obj.coords[dim],
+                dim,
+            )
+            for dim in self._obj.dims
         ]
 
         dim_names: list[str] | tuple[Hashable, ...] = tuple(self._obj.dims)
@@ -1909,30 +1897,6 @@ class GenericAccessorBase:
             ],
         )
         return self._obj.isel({coordinate_name: mask})
-
-
-def _check_equal_spacing(coords: xr.DataArray, dim_name: Hashable, **kwargs: Incomplete) -> float:
-    """Helper function to check the spacing is equal.
-
-    If not, the most frequent space is returned with warning message.
-
-    Args:
-        coords (xr.DataArray): xr.DataArray coords to be checked.
-        dim_name (str): dimension name.
-        **kwargs: kwargs for np.allclose (atol, rtol, equal_nan, ...)
-
-    Returns:
-        float: the value of spacing.
-    """
-    diffs = np.diff(coords)
-    if np.allclose(diffs, diffs[0], **kwargs):
-        return diffs[0]
-
-    most_common, _ = Counter(diffs).most_common(1)[0]
-    msg = f"Coordinate {dim_name} is not perfectly equally spaced. "
-    msg += f"Use the most common interval {most_common}."
-    warnings.warn(msg, UserWarning, stacklevel=2)
-    return most_common
 
 
 @xr.register_dataset_accessor("G")
@@ -2560,7 +2524,7 @@ class ARPESFitToolsAccessor:
         two_sigma: bool
         figsize: tuple[float, float]
 
-    def plot_param(self, param_name: str, **kwargs: Unpack[_PlotParamKwargs]) -> None:
+    def plot_param(self, param_name: str, **kwargs: Unpack[_PlotParamKwargs]) -> Axes:
         """Creates a scatter plot of a parameter from a multidimensional curve fit.
 
         Args:
@@ -2568,7 +2532,7 @@ class ARPESFitToolsAccessor:
             kwargs: Passed to plotting routines to provide user control
                 figsize=, color=, markersize=,
         """
-        plot_parameter(self._obj, param_name, **kwargs)
+        return plot_parameter(self._obj, param_name, **kwargs)
 
     def param_as_dataset(self, param_name: str) -> xr.Dataset:
         """Maps from `lmfit.ModelResult` to a Dict parameter summary.
@@ -2811,7 +2775,7 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
             Attributes from the parent dataset are assigned onto the selected
             array as a convenience.
 
-        ToDo: Need test
+        Todo: Need test
         """
         if "spectrum" in self._obj.data_vars:
             return self._obj.spectrum
@@ -2969,21 +2933,25 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
             else:
                 data.attrs["energy_notation"] = "Binding"
 
-    def radian_to_degree(self) -> None:
-        """Switch angle unit in from Radians to Degrees."""
-        super().radian_to_degree()
-        self.angle_unit = "Degrees"
-        for data in self._obj.data_vars.values():
-            data.S.radian_to_degree()
-            data.S.angle_unit = "Radians"
+    def switched_angle_unit(self) -> xr.Dataset:
+        """Return the identical data but the angle unit is converted.
 
-    def degree_to_radian(self) -> None:
-        """Switch angle unit in from Degrees and Radians."""
-        super().degree_to_radian()
-        self.angle_unit = "Radians"
-        for data in self._obj.data_vars.values():
-            data.S.degree_to_radian()
-            data.S.angle_unit = "Degrees"
+        Change the value of angle related objects/variables in attrs and coords
+
+        Returns:
+            xr.Dataset: The Dataset in which angle units are converted.
+        """
+        data = switched_angle_unit(self._obj)
+        for spectral_name, spectral_array in data.data_vars.items():
+            data[spectral_name] = switched_angle_unit(spectral_array)
+        return data
+
+    def switch_angle_unit(self) -> None:
+        """Switch angle unit in place.
+
+        Change the value of angle related objects/variables in attrs and coords
+        """
+        self._obj = copy.deepcopy(switched_angle_unit(self._obj))
 
     def __init__(self, xarray_obj: xr.Dataset) -> None:
         """Initialization hook for xarray.

@@ -20,11 +20,10 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-
 __all__ = ["ConvertKpKz", "ConvertKpKzV0", "ConvertKxKyKz"]
 
 
-@numba.njit(parallel=True, cache=True)
+@numba.njit(parallel=True)
 def _kspace_to_hv(
     kp: NDArray[np.float64],
     kz: NDArray[np.float64],
@@ -40,20 +39,16 @@ def _kspace_to_hv(
         hv[i] = HV_CONVERSION * (kp[i] ** 2 + kz[i] ** 2) + energy_shift[i * shift_ratio]
 
 
-@numba.njit(parallel=True, cache=True)
+@numba.njit(parallel=True)
 def _kp_to_polar(
     kinetic_energy: NDArray[np.float64],
     kp: NDArray[np.float64],
     phi: NDArray[np.float64],
-    inner_potential: float,
     angle_offset: float,
 ) -> None:
     """Efficiently performs the inverse coordinate transform phi(hv, kp)."""
     for i in numba.prange(len(kp)):
-        phi[i] = (
-            np.arcsin(kp[i] / (K_INV_ANGSTROM * np.sqrt(kinetic_energy[i] + inner_potential)))
-            + angle_offset
-        )
+        phi[i] = np.arcsin(kp[i] / (K_INV_ANGSTROM * np.sqrt(kinetic_energy[i]))) + angle_offset
 
 
 class ConvertKpKzV0(CoordinateConverter):
@@ -197,7 +192,6 @@ class ConvertKpKz(CoordinateConverter):
             kinetic_energy,
             kp,
             phi=self.phi,
-            inner_potential=self.arr.S.inner_potential,
             angle_offset=self.arr.S.phi_offset,
         )
         if isinstance(self.calibration, DetectorCalibration):

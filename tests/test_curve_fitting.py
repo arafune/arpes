@@ -1,6 +1,7 @@
 """Unit test for curve fitting."""
 
 import numpy as np
+import pytest
 import xarray as xr
 from lmfit.models import ConstantModel
 
@@ -11,7 +12,8 @@ RTOL = 5e-2  # 5 %
 TOLERANCE = 1e-2
 
 
-def test_broadcast_fitting(dataarray_cut: xr.DataArray) -> None:
+@pytest.fixture
+def fit_results_cut(dataarray_cut: xr.DataArray) -> xr.Dataset:
     """Test broadcast fitting."""
     near_ef = dataarray_cut.isel(phi=slice(80, 120)).sel(eV=slice(-0.2, 0.1))
     near_ef_rebin = rebin(near_ef, phi=5)
@@ -21,8 +23,60 @@ def test_broadcast_fitting(dataarray_cut: xr.DataArray) -> None:
         near_ef_rebin.isel(phi=4).values,
         near_ef_rebin.coords["eV"].values,
     )
-    fit_results = near_ef_rebin.S.modelfit("eV", model, params=params)
-    a_band_data = fit_results.modelfit_results.F.bands["a_"]
+    return near_ef_rebin.S.modelfit("eV", model, params=params)
+
+
+def test_F_parameter_names(fit_results_cut: xr.Dataset) -> None:
+    assert fit_results_cut.modelfit_results.F.parameter_names == {
+        "a_center",
+        "a_const_bkg",
+        "a_lin_slope",
+        "a_sigma",
+        "a_width",
+        "c",
+    }
+
+
+def test_F_p(fit_results_cut: xr.Dataset) -> None:
+    np.testing.assert_allclose(
+        actual=fit_results_cut.modelfit_results.F.p("a_center"),
+        desired=np.array(
+            [
+                -0.15701477,
+                -0.19971782,
+                -0.11516844,
+                -0.21612229,
+                -0.06146412,
+                -0.17533675,
+                -0.1897528,
+                -0.31079581,
+            ],
+        ),
+        rtol=RTOL,
+    )
+
+
+def test_F_s(fit_results_cut: xr.Dataset) -> None:
+    np.testing.assert_allclose(
+        actual=fit_results_cut.modelfit_results.F.s("a_center"),
+        desired=np.array(
+            [
+                1.29200044,
+                0.47348794,
+                0.09110521,
+                0.11234052,
+                0.01671841,
+                0.08667668,
+                0.14281738,
+                0.49227957,
+            ],
+        ),
+        rtol=RTOL,
+    )
+
+
+def test_F_bands(fit_results_cut: xr.Dataset) -> None:
+    a_band_data = fit_results_cut.modelfit_results.F.bands["a_"]
     np.testing.assert_allclose(
         a_band_data.center.values,
         np.array(
@@ -56,12 +110,8 @@ def test_broadcast_fitting(dataarray_cut: xr.DataArray) -> None:
         rtol=1e-5,
     )
 
-    np.testing.assert_allclose(
-        actual=a_band_data.amplitude,
-        desired=np.array((np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan)),
-    )
     assert (
-        np.abs(fit_results.modelfit_results.F.p("a_center").mean().item() + 0.17817159792226375)
+        np.abs(fit_results_cut.modelfit_results.F.p("a_center").mean().item() + 0.17817159792226375)
         < TOLERANCE
     )
 

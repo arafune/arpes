@@ -10,6 +10,7 @@ import xarray as xr
 
 from arpes.debug import setup_logger
 from arpes.preparation import normalize_dim
+from arpes.preparation.axis_preparation import vstack_data
 from arpes.provenance import update_provenance
 from arpes.utilities import normalize_to_spectrum
 
@@ -118,10 +119,10 @@ def build_crosscorrelation(
         cross_correlations.append(
             spectrum_arr.assign_coords({"delay": delay_time}).expand_dims("delay"),
         )
-    cross_correlations.sort(key=lambda x: x.coords["delay"].values.item())
-    cross_correlation: xr.DataArray = xr.concat(cross_correlations, dim="delay")
-    del cross_correlation.attrs[delayline_dim]
-    return cross_correlation
+    return vstack_data(
+        sorted(cross_correlations, key=lambda x: x.coords["delay"].values.item()),
+        new_dim="delay",
+    )
 
 
 @update_provenance("Normalized subtraction map")

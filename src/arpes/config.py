@@ -297,7 +297,7 @@ class UseTex:
         ToDo: TEST
         """
         self.saved_context["text.usetex"] = mpl.rcParams["text.usetex"]
-        self.saved_context["SETTINGS.use_tex"] = SETTINGS.get("use_tex", False)
+        self.saved_context["use_tex"] = SETTINGS.get("use_tex", False)
         # temporarily set the TeX configuration to the requested one
         use_tex(rc_text_should_use=self.use_tex)
 
@@ -343,11 +343,14 @@ def setup_logging() -> None:
         from IPython.core.interactiveshell import InteractiveShell
 
         ipython = get_ipython()
+
     except ImportError:
+        ipython = None
         return
 
-    if not CONFIG["ENABLE_LOGGING"]:
+    if not ipython or not CONFIG["ENABLE_LOGGING"]:
         logger.debug(f'CONFIG["ENABLE_LOGGING"]: {CONFIG["ENABLE_LOGGING"]}')
+        logger.debug("It might be marimo.")
         return
 
     if isinstance(ipython, InteractiveShell) and ipython.logfile:
@@ -355,18 +358,15 @@ def setup_logging() -> None:
         CONFIG["LOGGING_FILE"] = ipython.logfile
         logger.debug(f'CONFIG["LOGGING_FILE"]: {CONFIG["LOGGING_FILE"]}')
 
-    try:
-        if not CONFIG["LOGGING_STARTED"]:
-            CONFIG["LOGGING_STARTED"] = True
-            from .utilities.jupyter import generate_logfile_path
+    if not CONFIG["LOGGING_STARTED"]:
+        CONFIG["LOGGING_STARTED"] = True
+        from .utilities.jupyter import generate_logfile_path
 
-            log_path = generate_logfile_path()
-            log_path.parent.mkdir(exist_ok=True)
-            if isinstance(ipython, InteractiveShell):
-                ipython.run_line_magic("logstart", str(log_path))
-            CONFIG["LOGGING_FILE"] = log_path
-    except AttributeError:
-        logger.exception("Attribute Error occurs.  Check module loading for IPypthon")
+        log_path = generate_logfile_path()
+        log_path.parent.mkdir(exist_ok=True)
+        if isinstance(ipython, InteractiveShell):
+            ipython.run_line_magic("logstart", str(log_path))
+        CONFIG["LOGGING_FILE"] = log_path
 
 
 logger.debug("setup_logging")

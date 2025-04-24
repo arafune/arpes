@@ -39,6 +39,17 @@ dependencies = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build]
+include = [
+  "LICENSE",
+  "CONTRIBUTING.md",
+  "README.rst",
+  "resources/*.fits",
+  "docs/*.md",
+  "docs/*.png",
+  "arpes/example_data/*.fits",
+  "arpes/example_data/*.nc",
+]
 
 [tool.uv]
 managed = true
@@ -151,7 +162,7 @@ convention = "google"
 "src/arpes/endstations/igor_utils.py" = ["S605"]
 "legacy_files/*" = ["ALL"]
 
-[tool.ruff.flake8-annotations]
+[tool.ruff.lint.flake8-annotations]
 allow-star-arg-any = true
 
 [tool.ruff.format]
@@ -166,6 +177,9 @@ skip-magic-trailing-comma = false
 
 [tool.mypy]
 ignore_missing_imports = true
+disable_error_code = ["attr-defined"]
+
+python_version = "3.12"
 
 exclude = [
   "ALG_spin_ToF\\.py",
@@ -185,6 +199,15 @@ exclude = [
   "^src/arpes/deep_learning/.*\\.py$",
 ]
 
+[[tool.mypy.overrides]]
+module = "numba"
+ignore_missing_imports = true
+disable_error_code = ["attr-defined"]
+
+[[tool.mypy.overrides]]
+module = "numba.*"
+ignore_missing_imports = true
+disable_error_code = ["attr-defined"]
 
 [tool.black]
 line-length = 100
@@ -194,12 +217,8 @@ name = "cz_emoji"
 version = "0.0.1"
 tag_format = "$version"
 
-
 [tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = "src"
-addopts = "--cov=arpes --cov-report html"
-env = ["NUMBA_DISABLE_JIT=1"]
+env = ["NUMBA_DISABLE_JIT=1", "NUMBA_CACHE_DIR = /dev/null"]
 norecursedirs = [
   ".git",
   "__pycache__",
@@ -216,7 +235,22 @@ norecursedirs = [
 
 [tool.coverage.run]
 source = ['arpes']
-omit = ["tests/*", "src/arpes/deep_learning/*"]
+omit = [
+  "tests/*",
+  "src/arpes/deep_learning/*",
+  "src/arpes/endstations/plugin/ALG*",
+  "src/arpes/endstations/plugin/ANTARES.py",
+  "src/arpes/endstations/plugin/BL10_SARPES.py",
+  "src/arpes/endstations/plugin/Elettra_spectromicroscopy.py",
+  "src/arpes/endstations/plugin/HERS.py",
+  "src/arpes/endstations/plugin/MAESTRO.py",
+  "src/arpes/endstations/plugin/MBS.py",
+  "src/arpes/endstations/plugin/SSRF_NSRL.py",
+  "src/arpes/endstations/plugin/STofDLD.py",
+  "src/arpes/endstations/plugin/merlin.py",
+  "src/arpes/endstations/plugin/kaindl.py",
+]
+
 
 [tool.coverage.report]
 exclude_also = [
@@ -232,3 +266,6 @@ exclude_also = [
   "class .*\\bProtocol\\):",
   "@(abc\\.)?abstractmethod",
 ]
+testpaths = ["tests"]
+pythonpath = "src"
+addopts = "--cov=arpes --cov-report html"

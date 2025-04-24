@@ -106,11 +106,13 @@ class ProdigyItx:
                     float(axis_info[1]),
                     float(axis_info[2]),
                     num=pixels,
+                    dtype=np.float64,
                 )
             return np.linspace(
                 float(axis_info[1]),
                 float(axis_info[1]) + float(axis_info[2]) * (pixels - 1),
                 num=pixels,
+                dtype=np.float64,
             )
 
         common_attrs: dict[str, str | float] = {
@@ -351,7 +353,7 @@ def load_sp2(
     if pixels != (0, 0):
         if isinstance(params["X Range"], str):
             e_range = [float(i) for i in re.findall(r"-?[0-9]+\.?[0-9]*", params["X Range"])]
-            coords["eV"] = np.linspace(e_range[0], e_range[1], pixels[1])
+            coords["eV"] = np.linspace(e_range[0], e_range[1], pixels[1], dtype=np.float64)
         if isinstance(params["Y Range"], str):
             a_range = [float(i) for i in re.findall(r"-?[0-9]+\.?[0-9]*", params["Y Range"])]
             corrected_angles = _correct_angle_region(a_range[0], a_range[1], pixels[0])

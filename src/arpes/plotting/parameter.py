@@ -64,7 +64,6 @@ def plot_parameter(  # noqa: PLR0913
     e_width = None
     if "fmt" not in kwargs:
         kwargs["fmt"] = ""
-    kwargs.setdefault("linewidth", 0)
     if two_sigma:
         _, _, lines = ax.errorbar(
             x + x_shift,

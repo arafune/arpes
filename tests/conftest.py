@@ -118,7 +118,7 @@ def phi_values(near_ef: xr.DataArray) -> xr.DataArray:
 
 
 @pytest.fixture
-def edge(dataarray_map: xr.DataArray) -> xr.DataArray:
+def fitresult_fermi_edge_correction(dataarray_map: xr.DataArray) -> xr.Dataset:
     fmap = dataarray_map
     cut = fmap.sum("theta", keep_attrs=True).sel(eV=slice(-0.2, 0.1), phi=slice(-0.25, 0.3))
     params = AffineBroadenedFD().make_params(
@@ -129,16 +129,20 @@ def edge(dataarray_map: xr.DataArray) -> xr.DataArray:
         lin_slope=0,
     )
     model = AffineBroadenedFD() + ConstantModel()
-    fit_results = cut.S.modelfit(
+    return cut.S.modelfit(
         "eV",
         model=model,
         params=params,
     )
+
+
+@pytest.fixture
+def edge(dataarray_map: xr.DataArray, fitresult_fermi_edge_correction: xr.Dataset) -> xr.DataArray:
     return (
-        fit_results.modelfit_results.F.p("center")
+        fitresult_fermi_edge_correction.modelfit_results.F.p("center")
         .S.modelfit("phi", QuadraticModel())
         .modelfit_results.item()
-        .eval(x=fmap.phi)
+        .eval(x=dataarray_map.phi)
     )
 
 

@@ -24,6 +24,8 @@ import numpy as np
 import scipy.stats
 import xarray as xr
 
+from arpes._typing import DataType
+
 from .analysis.sarpes import to_intensity_polarization
 from .debug import setup_logger
 from .provenance import update_provenance
@@ -39,7 +41,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import AnalysisRegion, DataType
+    from arpes._typing import AnalysisRegion
     from arpes.utilities import DesignatedRegions
 
 __all__ = (
@@ -94,8 +96,8 @@ def estimate_prior_adjustment(
 
     data = data.S.zero_spectrometer_edges().S.region_sel(region)
     values = data.values.ravel()
-    values = values[np.where(values)]
-    return np.std(values) / np.mean(values)
+    non_zero_values = values[values != 0]
+    return np.std(values, dtype=np.float64) / np.mean(non_zero_values)
 
 
 @update_provenance("Resample cycle dimension")
@@ -243,14 +245,17 @@ class Normal(Distribution):
         n_samples: int = Distribution.DEFAULT_N_SAMPLES,
     ) -> NDArray[np.float64]:
         """Draws samples from this distribution."""
-        return scipy.stats.norm.rvs(
-            self.center,
-            scale=self.stderr,
-            size=n_samples,
+        return np.asarray(
+            scipy.stats.norm.rvs(
+                self.center,
+                scale=self.stderr,
+                size=n_samples,
+            ),
+            dtype=np.float64,
         )
 
     @classmethod
-    def from_param(cls: type, model_param: lf.Parameters) -> Incomplete:
+    def from_param(cls: type, model_param: lf.Parameter) -> Incomplete:
         """Generates a Normal from an `lmfit.Parameter`."""
         return cls(center=model_param.value, stderr=model_param.stderr)
 
@@ -389,7 +394,7 @@ def bootstrap(
             [
                 run.assign_coords(bootstrap=i)
                 for i, run in enumerate(runs)
-                if isinstance(run, xr.DataArray | xr.Dataset)
+                if isinstance(run, DataType)
             ],
         )
 

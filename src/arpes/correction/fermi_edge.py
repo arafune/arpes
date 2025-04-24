@@ -13,7 +13,7 @@ from matplotlib.axes import Axes
 from arpes.analysis import fit_fermi_edge
 from arpes.constants import TWO_DIMENSION
 from arpes.correction.intensity_map import shift_by
-from arpes.fits import GStepBModel, broadcast_model
+from arpes.fits import GStepBModel
 from arpes.provenance import Provenance, provenance, update_provenance
 
 if TYPE_CHECKING:
@@ -76,11 +76,12 @@ def find_e_fermi_linear_dos(
     """
     if guess is None:
         guess = edc.eV.values[len(edc.eV) // 2]
+    assert isinstance(guess, float)
 
     edc = edc - np.percentile(edc.values, (20,))[0]
     # Note that xr.Dataset.values is method not instance.
     mask = edc > np.percentile(edc.sel(eV=slice(None, guess)), 20)
-    mod = LinearModel().guess_fit(edc[mask])
+    mod = LinearModel().fit(edc[mask])
 
     chemical_potential = -mod.params["intercept"].value / mod.params["slope"].value
 
@@ -201,18 +202,21 @@ def build_quadratic_fermi_edge_correction(
     else:
         approximate_fermi_level = 0
     sum_axes = exclude_hemisphere_axes(arr.dims)
-    edge_fit = broadcast_model(
-        model_cls=GStepBModel,
-        data=arr.sum(sum_axes).sel(eV=eV_slice),
-        broadcast_dims="phi",
-        params={"center": {"value": approximate_fermi_level}},
+    model = GStepBModel()
+    spectrum = arr.sum(sum_axes, keep_attrs=True).sel(eV=eV_slice)
+    edge_fit = spectrum.S.modelfit(
+        coords="eV",
+        model=model,
+        params={
+            "center": {"value": approximate_fermi_level},
+        },
     )
 
     size_phi = len(arr.coords["phi"])
     not_nanny = (np.logical_not(np.isnan(arr)) * 1).sum("eV") > size_phi * 0.30
     condition = np.logical_and(edge_fit.F.s("center") < fit_limit, not_nanny)
 
-    quadratic_corr = QuadraticModel().guess_fit(edge_fit.F.p("center"), weights=condition * 1)
+    quadratic_corr = QuadraticModel().fit(edge_fit.F.p("center"), weights=condition * 2)
     if plot:
         edge_fit.F.p("center").plot()
         plt.plot(arr.coords["phi"], quadratic_corr.best_fit)
@@ -229,10 +233,13 @@ def build_photon_energy_fermi_edge_correction(
 
     (corrects monochromator miscalibration)
     """
-    return broadcast_model(
-        model_cls=GStepBModel,
-        data=arr.sum(exclude_hv_axes(arr.dims)).sel(eV=slice(-energy_window, energy_window)),
-        broadcast_dims="hv",
+    data = arr.sum(exclude_hv_axes(arr.dims), keep_attrs=True).sel(
+        eV=slice(-energy_window, energy_window),
+    )
+    return data.S.model_fit(
+        coords="eV",
+        model=GStepBModel(),
+        params={"center": {"value": 0}},
     )
 
 
