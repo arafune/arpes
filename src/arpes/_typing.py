@@ -180,7 +180,7 @@ def is_homogeneous_dataarray_list(
 
 def is_homogeneous_dataset_list(
     arr_list: Sequence[XrTypes] | Sequence[DataType],
-) -> TypeGuard[Sequence[xr.DataArray]]:
+) -> TypeGuard[Sequence[xr.Dataset]]:
     """Check if all elemetns in the list are of type xr.Dataset."""
     return all(isinstance(arr, xr.Dataset) for arr in arr_list)
 
