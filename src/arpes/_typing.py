@@ -76,7 +76,7 @@ __all__ = [
 ]
 
 
-DataType = TypeVar("DataType", bound=DataWithCoords)
+DataType = TypeVar("DataType", xr.DataArray | xr.Dataset)
 NormalizableDataType: TypeAlias = DataType | str | uuid.UUID
 
 XrTypes: TypeAlias = xr.DataArray | xr.Dataset
