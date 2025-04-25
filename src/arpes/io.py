@@ -11,35 +11,30 @@ over a network and someone was willing to host a few larger pieces
 of data.
 """
 
-from __future__ import annotations
-
-import pickle
+import json
 import warnings
 from collections.abc import Iterable
 from dataclasses import dataclass
+from functools import singledispatch
 from logging import DEBUG, INFO
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import Any, Literal, TypedDict, Unpack
 
 import numpy as np
 import pandas as pd
 import xarray as xr
 
+from arpes._typing import DataType, XrTypes
+
 from .debug import setup_logger
 from .endstations import ScanDesc, load_scan
 from .example_data.mock import build_mock_tarpes
 
-if TYPE_CHECKING:
-    from _typeshed import Incomplete
-
-    from arpes._typing import XrTypes
-
-
 __all__ = (
-    "easy_pickle",
-    "list_pickles",
+    "load_custom_netcdf",
     "load_data",
     "load_example_data",
+    "save_custom_netcdf",
     "stitch",
 )
 
@@ -52,7 +47,7 @@ logger = setup_logger(__name__, LOGLEVEL)
 def load_data(
     file: str | Path,
     location: str | None = None,
-    **kwargs: Incomplete,
+    **kwargs: Any,
 ) -> xr.Dataset:
     """Loads a piece of data using available plugins. This the user facing API for data loading.
 
@@ -260,71 +255,130 @@ def _df_or_list_to_files(
     return list(df_or_list)
 
 
-def file_for_pickle(name: str) -> Path | str:
-    here = Path()
-    from .config import CONFIG
+class ToNetCDFParams(TypedDict, total=False):
+    """Typed dictionary for the parameters of the to_netcdf function.
 
-    if CONFIG["WORKSPACE"] and "path" in CONFIG["WORKSPACE"]:
-        here = Path(CONFIG["WORKSPACE"]["path"])
-    path = here / "picklejar" / f"{name}.pickle"
-    path.parent.mkdir(exist_ok=True)
-    return str(path)
+    There are many parameters are available, but here only two are defined.
+    """
 
-
-def load_pickle(name: str) -> object:
-    """Loads a workspace local pickle. Inverse to `save_pickle`."""
-    with Path(file_for_pickle(name)).open("rb") as file:
-        return pickle.load(file)  # noqa: S301
+    mode: Literal["w", "a"]
+    engine: Literal["netcdf4", "h5netcdf"]
 
 
-def save_pickle(data: object, name: str) -> None:
-    """Saves a workspace local pickle. Inverse to `load_pickle`."""
-    with Path(file_for_pickle(name)).open("wb") as pickle_file:
-        pickle.dump(data, pickle_file)
-
-
-def easy_pickle(data_or_str: str | object, name: str = "") -> object:
-    """A convenience function around pickling.
-
-    Provides a workspace scoped associative set of named pickles which
-    can be used for
-
-    Examples:
-        Retaining analysis results between sessions.
-
-        Sharing results between workspaces.
-
-        Caching expensive or interim work.
-
-    For reproducibility reasons, you should generally prefer to
-    duplicate anaysis results using common code to prevent stale data
-    dependencies, but there are good reasons to use pickling as well.
-
-    This function knows whether we are pickling or unpickling depending on
-    whether one or two arguments are provided.
+@singledispatch
+def save_custom_netcdf(
+    obj: xr.DataArray | xr.Dataset | xr.DataTree,
+    path: str | Path,
+    **kwargs: Unpack[ToNetCDFParams],
+) -> None:
+    """Save an xarray object (DataArray, Dataset, or DataTree) to a NetCDF file.
 
     Args:
-        data_or_str: If saving, the data to be pickled. If loading, the name of the pickle to load.
-        name: If saving (non-None value), the name to associate. Defaults to None.
+        obj (xr.DataArray | xr.Dataset | xr.DataTree): The xarray object to save.
+        path (str | Path): The file path to write the NetCDF file to.
+        **kwargs: Additional keyword arguments passed to `to_netcdf()`.
 
     Returns:
-        None if name is not None, which indicates that we are saving data.
-        Otherwise, returns the unpickled value associated to `name`.
+        None
     """
-    # we are loading data
-    if isinstance(data_or_str, str) or not name:
-        assert isinstance(data_or_str, str)
-        return load_pickle(data_or_str)
-    # we are saving data
-    assert isinstance(name, str)
-    save_pickle(data_or_str, name)
-    return None
+    del path, kwargs
+    msg = f"Unsupported type: {type(obj)}"
+    raise NotImplementedError(msg)
 
 
-def list_pickles() -> list[str]:
-    """Generates a summary list of (workspace-local) pickled results and data.
+def _jsonify_attrs(obj: DataType) -> DataType:
+    if hasattr(obj, "attrs"):
+        obj.attrs = {"__json__": json.dumps(obj.attrs)}
+    return obj
+
+
+@save_custom_netcdf.register
+def _(
+    obj: xr.DataArray,
+    path: str | Path,
+    **kwargs: Unpack[ToNetCDFParams],
+) -> None:
+    """Save an xarray object (DataArray, Dataset, or DataTree) to a NetCDF file.
+
+    encoding all attrs as JSON strings.
+
+    Args:
+        obj (xr.DataArray | xr.Dataset | xr.DataTree): The xarray object to save.
+        path (str | Path): The file path to write the NetCDF file to.
+        **kwargs: Additional keyword arguments passed to `to_netcdf()`.
 
     Returns:
-        A list of the named pickles, suitable for passing to `easy_pickle`.
+        None
     """
-    return [str(s.stem) for s in Path(file_for_pickle("just-a-pickle")).parent.glob("*.pickle")]
+    _jsonify_attrs(obj).to_netcdf(path, **kwargs)
+
+
+@save_custom_netcdf.register
+def _(
+    obj: xr.Dataset,
+    path: str | Path,
+    **kwargs: Unpack[ToNetCDFParams],
+) -> None:
+    """Save an xarray object (DataArray, Dataset, or DataTree) to a NetCDF file.
+
+    encoding all attrs as JSON strings.
+
+    Args:
+        obj (xr.DataArray | xr.Dataset | xr.DataTree): The xarray object to save.
+        path (str | Path): The file path to write the NetCDF file to.
+        **kwargs: Additional keyword arguments passed to `to_netcdf()`.
+
+    Returns:
+        None
+    """
+    ds_jsonified = xr.Dataset({name: _jsonify_attrs(var) for name, var in obj.data_vars.items()})
+    _jsonify_attrs(ds_jsonified).to_netcdf(path, **kwargs)
+
+
+@save_custom_netcdf.register
+def _(
+    obj: xr.DataTree,
+    path: str | Path,
+    **kwargs: Unpack[ToNetCDFParams],
+) -> None:
+    def jsonify_attrs_dataset(obj: xr.Dataset) -> xr.Dataset:
+        ds_jsonified = xr.Dataset(
+            {name: _jsonify_attrs(var) for name, var in obj.data_vars.items()},
+        )
+        assert isinstance(ds_jsonified, xr.Dataset)
+        return _jsonify_attrs(ds_jsonified)
+
+    new_tree = obj.map_over_datasets(jsonify_attrs_dataset)
+    assert isinstance(new_tree, xr.DataTree)
+    new_tree.to_netcdf(path, **kwargs)
+
+
+def load_custom_netcdf(
+    path: str | Path,
+    **kwargs: Unpack[ToNetCDFParams],
+) -> xr.DataArray | xr.Dataset | xr.DataTree:
+    """Load an xarray object from a NetCDF file and decode all JSON-encoded attrs.
+
+    The object type (DataArray, Dataset, or DataTree) is determined automatically
+
+
+    from the saved metadata.
+
+    Args:
+        path (str | Path): The file path to read the NetCDF file from.
+        **kwargs: Additional keyword arguments passed to the appropriate `open_*` function.
+
+    Returns:
+        xr.DataArray | xr.Dataset | xr.DataTree: The loaded and decoded xarray object.
+    """
+    obj = xr.open_dataset(path, **kwargs)
+
+    # Check and decode attrs if necessary
+    if hasattr(obj, "attrs"):
+        obj.attrs = {k: (json.loads(v) if isinstance(v, str) else v) for k, v in obj.attrs.items()}
+
+    # If it's a DataTree, reconstruct it
+    if isinstance(obj, xr.DataTree):
+        obj = xr.open_datatree(path, **kwargs)
+
+    return obj
