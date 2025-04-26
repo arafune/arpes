@@ -110,7 +110,7 @@ def normalize_by_fermi_distribution(
     np.place(distrib, distrib < 1 / max_gain, 1 / max_gain)
     distrib_arr = xr.DataArray(distrib, {"eV": data.coords["eV"].values}, ["eV"])
 
-    if not instrumental_broadening:
+    if instrumental_broadening:
         distrib_arr = gaussian_filter_arr(distrib_arr, sigma={"eV": instrumental_broadening})
 
     return data / distrib_arr
