@@ -32,3 +32,30 @@ def test_normalize_by_fermi_distribution(dataarray_map: xr.DataArray) -> None:
             ],
         ),
     )
+
+
+def test_normalize_by_fermi_distribution_total_broadening(dataarray_map: xr.DataArray) -> None:
+    cut = dataarray_map.sum("theta", keep_attrs=True).sel(
+        eV=slice(-0.2, 0.2),
+        phi=slice(-0.25, 0.3),
+    )
+    cut_at_0 = cut.sel(phi=0, method="nearest")
+    np.testing.assert_allclose(
+        normalize_by_fermi_distribution(cut_at_0, total_broadening=0.03)[:12],
+        np.array(
+            [
+                207707.21226,
+                207826.179214,
+                205772.205478,
+                204806.277626,
+                205711.498189,
+                208056.485503,
+                206664.307747,
+                207136.756698,
+                209888.552459,
+                212969.879364,
+                214875.002101,
+                217696.089503,
+            ],
+        ),
+    )
