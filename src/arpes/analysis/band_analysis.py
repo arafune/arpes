@@ -15,7 +15,6 @@ import xarray as xr
 from lmfit.models import LinearModel, LorentzianModel, QuadraticModel
 from scipy.spatial import distance
 
-import arpes.utilities.math
 from arpes.constants import HBAR_SQ_EV_PER_ELECTRON_MASS_ANGSTROM_SQ, TWO_DIMENSION
 from arpes.debug import setup_logger
 from arpes.models.band import Band
