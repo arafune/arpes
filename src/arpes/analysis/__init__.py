@@ -22,9 +22,7 @@ from .derivative import (
     minimum_gradient,
 )
 from .filters import (
-    boxcar_filter,
     boxcar_filter_arr,
-    gaussian_filter,
     gaussian_filter_arr,
     savitzky_golay_filter,
 )
