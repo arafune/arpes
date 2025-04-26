@@ -12,23 +12,20 @@ new analysis techniques or working on machine learning based approaches that mus
 be robust to the shortcomings of actual ARPES data.
 """
 
-from __future__ import annotations
-
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import numpy as np
 import scipy
 import scipy.signal as sig
 import xarray as xr
 from numpy.random import default_rng
+from numpy.typing import NDArray
+
+from arpes.fits.fit_models.functional_forms import fermi_dirac
 
 from .constants import K_BOLTZMANN_MEV_KELVIN
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable
-
-    from numpy.typing import NDArray
 
 __all__ = (
     # Composable detector effects, to simulate the real response of
@@ -279,10 +276,6 @@ class SpectralFunction:
         """Summarizes the parameters for the model to JSON."""
         return {"omega": self.omega, "temperature": self.temperature, "k": self.k}
 
-    def fermi_dirac(self, omega: NDArray[np.float64]) -> NDArray[np.float64]:
-        """Calculates the Fermi-Dirac occupation factor at energy values `omega`."""
-        return 1 / (np.exp(omega / (K_BOLTZMANN_MEV_KELVIN * self.temperature)) + 1)
-
     def __init__(
         self,
         k: NDArray[np.float64] | None = None,
@@ -371,7 +364,10 @@ class SpectralFunction:
     def occupied_spectral_function(self) -> xr.DataArray:
         """Calculates the spectral function weighted by the thermal occupation."""
         spectral = self.spectral_function()
-        spectral.values = spectral.values * np.expand_dims(self.fermi_dirac(self.omega), axis=1)
+        spectral.values = spectral.values * np.expand_dims(
+            fermi_dirac(x=self.omega, width=K_BOLTZMANN_MEV_KELVIN * self.temperature),
+            axis=1,
+        )
         return spectral
 
     def spectral_function(self) -> xr.DataArray:
