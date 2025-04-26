@@ -103,9 +103,9 @@ def normalize_by_fermi_distribution(
     assert isinstance(distrib, np.ndarray)
     # don't boost by more than 90th percentile of input, by default
     if not max_gain:
-        max_gain = np.min(
-            np.mean(data.values, dtype=np.float64),
-            np.percentile(data.values, 10),
+        max_gain = min(
+            float(np.mean(data.values, dtype=np.float64)),
+            float(np.percentile(data.values, 10)),
         )
     np.place(distrib, distrib < 1 / max_gain, 1 / max_gain)
     distrib_arr = xr.DataArray(distrib, {"eV": data.coords["eV"].values}, ["eV"])
