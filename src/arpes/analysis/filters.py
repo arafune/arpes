@@ -1,7 +1,6 @@
 """Provides coordinate aware filters and smoothing."""
 
-from __future__ import annotations
-
+from collections.abc import Hashable
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -13,14 +12,10 @@ from arpes.provenance import Provenance, provenance, update_provenance
 from arpes.utilities import normalize_to_spectrum
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Hashable
-
     from numpy.typing import NDArray
 
 __all__ = (
-    "boxcar_filter",
     "boxcar_filter_arr",
-    "gaussian_filter",
     "gaussian_filter_arr",
     "savitzky_golay_filter",
 )
@@ -134,50 +129,6 @@ def boxcar_filter_arr(
 
         provenance(filtered_arr, arr, provenance_context)
     return filtered_arr
-
-
-def gaussian_filter(
-    sigma: dict[Hashable, float | int] | None = None,
-    repeat_n: int = 1,
-) -> Callable[[xr.DataArray], xr.DataArray]:
-    """A partial application of `gaussian_filter_arr`.
-
-    For further derivative analysis functions.
-
-    Args:
-        sigma(dict[str, float|int] | None): Kernel sigma
-        repeat_n(int): Repeats n times.
-
-    Returns:
-        A function which applies the Gaussian filter.
-    """
-
-    def f(arr: xr.DataArray) -> xr.DataArray:
-        return gaussian_filter_arr(arr, sigma, repeat_n)
-
-    return f
-
-
-def boxcar_filter(
-    size: dict[Hashable, int | float] | None = None,
-    repeat_n: int = 1,
-) -> Callable[[xr.DataArray], xr.DataArray]:
-    """A partial application of `boxcar_filter_arr`.
-
-    Output can be passed to derivative analysis functions.
-
-    Args:
-        size(dict[str | int, float]): Kernel size
-        repeat_n(int):Repeats n times.
-
-    Returns:
-        A function which applies the boxcar.
-    """
-
-    def f(arr: xr.DataArray) -> xr.DataArray:
-        return boxcar_filter_arr(arr, size, repeat_n)
-
-    return f
 
 
 @update_provenance("Savitzky Golay Filter")
