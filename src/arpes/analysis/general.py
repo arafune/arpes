@@ -1,28 +1,20 @@
 """Some general purpose analysis routines otherwise defying categorization."""
 
-from __future__ import annotations
-
 from logging import DEBUG, INFO
-from typing import TYPE_CHECKING
 
 import numpy as np
 import xarray as xr
 from lmfit.models import ConstantModel
 
-import arpes.constants
-import arpes.models.band
-import arpes.utilities
-import arpes.utilities.math
+from arpes._typing import DataType, ReduceMethod
+from arpes.constants import K_BOLTZMANN_EV_KELVIN
 from arpes.debug import setup_logger
 from arpes.fits import AffineBroadenedFD
+from arpes.fits.fit_models.functional_forms import fermi_dirac
 from arpes.provenance import update_provenance
 from arpes.utilities import normalize_to_spectrum
-from arpes.utilities.math import fermi_distribution
 
 from .filters import gaussian_filter_arr
-
-if TYPE_CHECKING:
-    from arpes._typing import DataType, ReduceMethod
 
 __all__ = (
     "condense",
@@ -97,14 +89,16 @@ def normalize_by_fermi_distribution(
     """
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     if not total_broadening:
-        distrib = fermi_distribution(
-            data.coords["eV"].values - rigid_shift,
-            total_broadening / arpes.constants.K_BOLTZMANN_EV_KELVIN,
+        distrib = fermi_dirac(
+            x=data.coords["eV"].values,
+            center=rigid_shift,
+            width=total_broadening,
         )
     else:
-        distrib = fermi_distribution(
-            data.coords["eV"].values - rigid_shift,
-            data.S.temp,
+        distrib = fermi_dirac(
+            x=data.coords["eV"].values,
+            center=rigid_shift,
+            width=K_BOLTZMANN_EV_KELVIN * data.S.temp,
         )
     assert isinstance(distrib, np.ndarray)
     # don't boost by more than 90th percentile of input, by default
