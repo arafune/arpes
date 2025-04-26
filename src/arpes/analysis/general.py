@@ -88,7 +88,7 @@ def normalize_by_fermi_distribution(
         Normalized DataArray
     """
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-    if not total_broadening:
+    if total_broadening:
         distrib = fermi_dirac(
             x=data.coords["eV"].values,
             center=rigid_shift,
