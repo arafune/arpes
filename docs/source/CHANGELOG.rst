@@ -18,6 +18,9 @@ primarily indicate new features and documentation.
   * polarization: the meaninng is ambiguous. (This is the "spin" polarization. But who knows?)
     Furthermore this is used only once in sarpes.py.
 
+* Remove gaussian_filter, and boxcar_filter
+  * They are not used.  Use gaussian_filter_arr and boxcar_filter_arr instead.
+
 5.0.0-per3 (2025-04-25)
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
