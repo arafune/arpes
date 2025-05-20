@@ -1,7 +1,6 @@
 """Provides general utility methods that get used during the course of analysis."""
 
 # pyright: reportUnusedImport=false
-from __future__ import annotations
 
 import warnings
 from operator import itemgetter
@@ -15,11 +14,6 @@ from .dict import (
     rename_keys,
 )
 from .funcutils import Debounce, iter_leaves, lift_dataarray_to_generic
-from .math import (
-    fermi_distribution,
-    inv_fermi_distribution,
-    polarization,
-)
 from .normalize import normalize_to_spectrum
 from .region import REGIONS, DesignatedRegions, normalize_region
 from .xarray import (

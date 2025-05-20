@@ -1,11 +1,8 @@
 """Contains very basic spin-ARPES analysis routines."""
 
-from __future__ import annotations
-
 import xarray as xr
 
 from arpes.provenance import update_provenance
-from arpes.utilities.math import polarization
 
 __all__ = (
     "normalize_sarpes_photocurrent",
@@ -98,6 +95,6 @@ def to_intensity_polarization(
     return xr.Dataset(
         {
             "intensity": intensity,
-            "polarization": polarization(data.up, data.down) / sherman_correction,
+            "polarization": ((data.up - data.down) / (data.up + data.down)) / sherman_correction,
         },
     )

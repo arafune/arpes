@@ -15,7 +15,7 @@ import xarray as xr
 from lmfit.models import LinearModel, LorentzianModel, QuadraticModel
 from scipy.spatial import distance
 
-import arpes.utilities.math
+from arpes import models
 from arpes.constants import HBAR_SQ_EV_PER_ELECTRON_MASS_ANGSTROM_SQ, TWO_DIMENSION
 from arpes.debug import setup_logger
 from arpes.models.band import Band
@@ -398,7 +398,7 @@ def fit_patterned_bands(  # noqa: PLR0913
         The returned object contains fitting results, residuals, and normalized residuals.
     """
     if background:
-        from arpes.models.band import BackgroundBand
+        from models.band import BackgroundBand
 
         background = BackgroundBand
 
@@ -573,7 +573,7 @@ def fit_bands(
             initial_fits.update(initial_fit.params)
 
         residual = residual - initial_fit.best_fit
-        if isinstance(band_inst, arpes.models.band.BackgroundBand):
+        if isinstance(band_inst, models.band.BackgroundBand):
             # This is an approximation to simulate a constant background band underneath the data
             # Because backgrounds are added to our model only after the initial sequence of fits.
             # This is by no means the most appropriate way to do this, just one that works

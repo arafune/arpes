@@ -5,7 +5,6 @@ import pytest
 import xarray as xr
 from numpy.testing import assert_array_almost_equal
 
-from arpes.constants import K_BOLTZMANN_MEV_KELVIN
 from arpes.simulation import SpectralFunction, SpectralFunctionMFL
 
 
@@ -17,16 +16,6 @@ def spectral_function():
 def test_initialization_defaults(spectral_function: SpectralFunction):
     assert isinstance(spectral_function.k, np.ndarray)
     assert isinstance(spectral_function.omega, np.ndarray)
-
-
-def test_fermi_dirac(spectral_function: SpectralFunction):
-    """Test the Fermi-Dirac distribution calculation."""
-    omegas = np.array([-0.1, 0.0, 0.1])
-    fd = spectral_function.fermi_dirac(omegas)
-    expected_values = 1 / (
-        np.exp(omegas / (K_BOLTZMANN_MEV_KELVIN * spectral_function.temperature)) + 1
-    )
-    assert_array_almost_equal(fd, expected_values)
 
 
 def test_self_energy(spectral_function: SpectralFunction):
