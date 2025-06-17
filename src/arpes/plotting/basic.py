@@ -61,6 +61,8 @@ def make_overview(
             transform=ax[i].transAxes,
         )
         fancy_labels(ax[i])
+        ax[i].set_title("")
+    fig.tight_layout()
     return fig, ax
 
 
