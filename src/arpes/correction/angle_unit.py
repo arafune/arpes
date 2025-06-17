@@ -1,7 +1,7 @@
 """This module provides functions to manipulate angle unit in coordinates/attributes."""
 
 import numpy as np
-import xarray as xr
+
 from arpes._typing import ANGLE, DataType, flatten_literals
 
 

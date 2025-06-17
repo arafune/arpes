@@ -72,7 +72,7 @@ from ._typing import (
 from .analysis import param_getter, param_stderr_getter
 from .constants import TWO_DIMENSION
 from .correction import coords, intensity_map
-from .correction.angle_unit import switched_angle_unit, switch_angle_unit
+from .correction.angle_unit import switch_angle_unit, switched_angle_unit
 from .debug import setup_logger
 from .models.band import MultifitBand
 from .plotting.dispersion import (
