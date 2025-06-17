@@ -72,7 +72,7 @@ from ._typing import (
 from .analysis import param_getter, param_stderr_getter
 from .constants import TWO_DIMENSION
 from .correction import coords, intensity_map
-from .correction.angle_unit import switched_angle_unit
+from .correction.angle_unit import switched_angle_unit, switch_angle_unit
 from .debug import setup_logger
 from .models.band import MultifitBand
 from .plotting.dispersion import (
@@ -1446,9 +1446,7 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
 
         Change the value of angle related objects/variables in attrs and coords
         """
-        array = switched_angle_unit(self._obj)
-        self._obj.attrs = array.attrs
-        self._obj.coords.update(array.coords)
+        return switch_angle_unit(self._obj)
 
     def corrected_coords(
         self,
@@ -2951,7 +2949,9 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
 
         Change the value of angle related objects/variables in attrs and coords
         """
-        self._obj = copy.deepcopy(switched_angle_unit(self._obj))
+        for data in self._obj.data_vars.values():
+            switch_angle_unit(data)
+        switch_angle_unit(self._obj)
 
     def __init__(self, xarray_obj: xr.Dataset) -> None:
         """Initialization hook for xarray.

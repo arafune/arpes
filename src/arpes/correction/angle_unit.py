@@ -1,12 +1,12 @@
 """This module provides functions to manipulate angle unit in coordinates/attributes."""
 
 import numpy as np
-
+import xarray as xr
 from arpes._typing import ANGLE, DataType, flatten_literals
 
 
 def radian_to_degree(data: DataType) -> DataType:
-    """Switch angle unit from Radians to Degrees."""
+    """Switch angle unit from Radians to Degrees in place."""
     data.attrs["angle_unit"] = "Degrees"
     for angle in flatten_literals(ANGLE):
         if angle in data.attrs:
@@ -21,7 +21,7 @@ def radian_to_degree(data: DataType) -> DataType:
 
 
 def degree_to_radian(data: DataType) -> DataType:
-    """Switch angle unit from Degrees and Radians."""
+    """Switch angle unit from Degrees and Radians in place."""
     data.attrs["angle_unit"] = "Radians"
     for angle in flatten_literals(ANGLE):
         if angle in data.attrs:
@@ -47,10 +47,30 @@ def switched_angle_unit(data: DataType) -> DataType:
     Returns:
         DataType: The angle unit converted data.
     """
-    angle_unit = data.attrs.get("angle_unit", "Radians").lower()
+    data_copy = data.copy(deep=True)
+    angle_unit = data_copy.attrs.get("angle_unit", "Radians").lower()
     if angle_unit.startswith("rad"):
-        return radian_to_degree(data)
+        return radian_to_degree(data_copy)
     if angle_unit.startswith("deg"):
-        return degree_to_radian(data)
+        return degree_to_radian(data_copy)
     msg = 'The angle_unit must be "Radians" or "Degrees"'
     raise TypeError(msg)
+
+
+def switch_angle_unit(data: DataType) -> None:
+    """Switch angle unit in place.
+
+    Change the value of angle related objects/variables in attrs and coords
+
+    Args:
+        data: (DataType): Data in which the angle unit converted.
+
+    Note:
+        When data is Dataset object, the attrs and coords for the Dataset component alone are
+        swicched. (DataArray.attrs and DataArray.coords in data_vars are not changed.)
+    """
+    converted_data = switched_angle_unit(data)
+    data.attrs.clear()
+    data.attrs.update(converted_data.attrs)
+    for coord in converted_data.coords:
+        data.coords[coord] = converted_data.coords[coord]
