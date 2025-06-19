@@ -169,10 +169,12 @@ def _compute_shift_amount(
         assert isinstance(other, np.ndarray)
         if not by_axis:
             if data.ndim == TWO_DIMENSION:
-                by_axis = str(set(data.dims).difference(shift_axis).pop())
+                by_axis = str(set(data.dims).difference({shift_axis}).pop())
+                logger.debug(f"Using {by_axis} as by_axis for shift.")
             else:
                 msg = 'When np.ndarray is used as `other`, "by_axis" is required.'
                 raise TypeError(msg)
+        logger.debug(f"Using {by_axis} as by_axis for shift.")
         assert other.shape[0] == len(data.coords[by_axis]), "Mismatch in coordinate length."
         if shift_coords:
             mean_shift = float(np.mean(other))
