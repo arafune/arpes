@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     import xarray as xr
     from _typeshed import Incomplete
 
-    from arpes.endstations import ScanDesc
+    from arpes._typing import ScanDesc
 __all__ = ("FallbackEndstation",)
 
 LOGLEVELS = (DEBUG, INFO)

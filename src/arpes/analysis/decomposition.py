@@ -7,7 +7,9 @@ from typing import TYPE_CHECKING, Literal, TypedDict, Unpack
 
 import sklearn
 import xarray as xr
-from sklearn.decomposition import FactorAnalysis, FastICA
+from sklearn.decomposition import NMF, PCA, FactorAnalysis, FastICA
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
 from arpes.constants import TWO_DIMENSION
 from arpes.provenance import Provenance, provenance
@@ -125,9 +127,6 @@ def decomposition_along(
     Returns:
         A tuple containing the projected data and the decomposition fit instance.
     """
-    from sklearn.pipeline import make_pipeline
-    from sklearn.preprocessing import StandardScaler
-
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     if len(axes) > 1:
         flattened_data: xr.DataArray = data.stack(fit_axis=axes)
@@ -184,8 +183,6 @@ def pca_along(
     **kwargs: Unpack[PCAParam],
 ) -> tuple[xr.DataArray, sklearn.decomposition.PCA]:
     """Specializes `decomposition_along` with `sklearn.decomposition.PCA`."""
-    from sklearn.decomposition import PCA
-
     return decomposition_along(
         data,
         axes,
@@ -240,8 +237,6 @@ def nmf_along(
     **kwargs: Unpack[NMFParam],
 ) -> tuple[xr.DataArray, sklearn.decomposition.NMF]:
     """Specializes `decomposition_along` with `sklearn.decomposition.NMF`."""
-    from sklearn.decomposition import NMF
-
     return decomposition_along(
         data,
         axes,

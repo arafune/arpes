@@ -13,35 +13,32 @@ of data.
 
 from __future__ import annotations
 
+import copy
 import pickle
 import warnings
 from collections.abc import Iterable
 from dataclasses import dataclass
 from logging import DEBUG, INFO
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import pandas as pd
 import xarray as xr
 
+from .config import CONFIG
 from .debug import setup_logger
-from .endstations import ScanDesc, load_scan
+from .endstations.registry import resolve_endstation
 from .example_data.mock import build_mock_tarpes
+from .provenance import provenance_multiple_parents
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete
 
-    from arpes._typing import XrTypes
+    from arpes._typing import ScanDesc, XrTypes
 
 
-__all__ = (
-    "easy_pickle",
-    "list_pickles",
-    "load_data",
-    "load_example_data",
-    "stitch",
-)
+__all__ = ("easy_pickle", "list_pickles", "load_data", "load_example_data", "load_scan", "stitch")
 
 
 LOGLEVELS = (DEBUG, INFO)
@@ -226,8 +223,6 @@ def stitch(
     concatenated = xr.concat(loaded, dim=built_axis_name)
     if "id" in concatenated.attrs:
         del concatenated.attrs["id"]
-    from .provenance import provenance_multiple_parents
-
     provenance_multiple_parents(
         concatenated,
         loaded,
@@ -262,8 +257,6 @@ def _df_or_list_to_files(
 
 def file_for_pickle(name: str) -> Path | str:
     here = Path()
-    from .config import CONFIG
-
     if CONFIG["WORKSPACE"] and "path" in CONFIG["WORKSPACE"]:
         here = Path(CONFIG["WORKSPACE"]["path"])
     path = here / "picklejar" / f"{name}.pickle"
@@ -328,3 +321,49 @@ def list_pickles() -> list[str]:
         A list of the named pickles, suitable for passing to `easy_pickle`.
     """
     return [str(s.stem) for s in Path(file_for_pickle("just-a-pickle")).parent.glob("*.pickle")]
+
+
+def load_scan(
+    scan_desc: ScanDesc,
+    *,
+    retry: bool = True,
+    **kwargs: Incomplete,
+) -> xr.Dataset:
+    """Resolves a plugin and delegates loading a scan.
+
+    This is used internally by `load_data` and should not be invoked directly
+    by users.
+
+    Determines which data loading class is appropriate for the data,
+    shuffles a bit of metadata, and calls the .load function on the
+    retrieved class to start the data loading process.
+
+    Args:
+        scan_desc: Information identifying the scan, typically the full path.
+        retry: Used to attempt a reload of plugins and subsequent data load attempt.
+        kwargs: pass to the endstation.load(scan_dec, **kwargs)
+
+    Returns:
+        Loaded and normalized ARPES scan data.
+    """
+    note: dict[str, str | float] | ScanDesc = scan_desc.get("note", scan_desc)
+    full_note: ScanDesc = copy.deepcopy(scan_desc)
+    assert isinstance(note, dict)
+    full_note.update(note)
+
+    endstation_cls = resolve_endstation(retry=retry, **full_note)
+    logger.debug(f"Using plugin class {endstation_cls}")
+
+    key: Literal["file", "path"] = "file" if "file" in scan_desc else "path"
+
+    file = scan_desc[key]
+    try:
+        file_number: int = int(str(file))
+        file = endstation_cls.find_first_file(file_number)
+        scan_desc[key] = file
+    except ValueError:
+        pass
+
+    logger.debug(f"Loading {scan_desc}")
+    endstation = endstation_cls()
+    return endstation.load(scan_desc, **kwargs)

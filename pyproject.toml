@@ -27,6 +27,7 @@ dependencies = [
   "jupyter_server>=2.8",
   "hvplot>=0.10",
   "ipywidgets",
+  "adjustText",
   "ipykernel",
   "more-itertools>=10.2.0",
   "igorpy @ git+https://github.com/arafune/igorpy.git",
@@ -155,6 +156,7 @@ convention = "google"
 "MAESTRO.py" = ["ALL"]
 "kaindl.py" = ["ALL"]
 "merlin.py" = ["ALL"]
+"ses_endstation.py" = ["ALL"]
 "nexus_utils.py" = ["ALL"]
 "fits_utils.py" = ["ALL"]
 "tests/*" = ["PLR2004", "ERA001", "SLF001", "ANN201", "D102", "D103"]

@@ -17,6 +17,8 @@ import numpy as np
 from ase.dft.bz import bz_vertices
 from ase.dft.kpoints import bandpath
 
+from arpes.analysis.mask import raw_poly_to_mask
+
 if TYPE_CHECKING:
     from _typeshed import Incomplete
     from ase.cell import Cell
@@ -92,8 +94,6 @@ def build_2dbz_poly(
 
     ToDo:Test
     """
-    from arpes.analysis.mask import raw_poly_to_mask
-
     icell = cell.reciprocal()
     vertices = bz_vertices(icell)
 

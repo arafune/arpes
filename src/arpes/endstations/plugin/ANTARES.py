@@ -12,7 +12,6 @@ import xarray as xr
 
 from arpes.endstations import (
     HemisphericalEndstation,
-    ScanDesc,
     SingleFileEndstation,
     SynchrotronEndstation,
 )
@@ -28,6 +27,8 @@ if TYPE_CHECKING:
 
     from _typeshed import Incomplete
     from numpy.typing import NDArray
+
+    from arpes._typing import ScanDesc
 
 __all__ = ("ANTARESEndstation",)
 

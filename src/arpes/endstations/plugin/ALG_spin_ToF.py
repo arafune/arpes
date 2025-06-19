@@ -7,7 +7,8 @@ import itertools
 import warnings
 from logging import DEBUG, INFO
 from pathlib import Path
-from typing import ClassVar
+
+from typing import TYPE_CHECKING, ClassVar
 
 import h5py
 import numpy as np
@@ -15,11 +16,14 @@ import xarray as xr
 from astropy.io import fits
 
 from arpes.debug import setup_logger
-from arpes.endstations import EndstationBase, ScanDesc, find_clean_coords
+from arpes.endstations import EndstationBase, find_clean_coords
 from arpes.provenance import Provenance, provenance_from_file
 from arpes.utilities import rename_keys
 from arpes._typing import Spectrometer
 from arpes import DATA_PATH
+
+if TYPE_CHECKING:
+    from arpes._typing import ScanDesc
 
 __all__ = ("SpinToFEndstation",)
 

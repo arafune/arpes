@@ -6,11 +6,11 @@ import warnings
 from logging import DEBUG, INFO
 from typing import TYPE_CHECKING, TypeAlias
 
-import matplotlib.cm
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
-from ase.dft.bz import bz_plot
+from ase.dft.bz import bz_plot, bz_vertices
 from matplotlib.axes import Axes
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from scipy.spatial.transform import Rotation
@@ -169,8 +169,6 @@ def plot_plane_to_bz(
         category=DeprecationWarning,
         stacklevel=2,
     )
-    from ase.dft.bz import bz_vertices
-
     if isinstance(plane, str):
         plane_points: list[NDArray[np.float64]] = process_kpath(
             plane,
@@ -266,9 +264,9 @@ def plot_data_to_bz2d(  # noqa: PLR0913
         built_mask = apply_mask_to_coords(raveled, build_2dbz_poly(cell=cell), dims)
         copied[built_mask.T] = np.nan
 
-    cmap = kwargs.get("cmap", matplotlib.colormaps["Blues"])
+    cmap = kwargs.get("cmap", mpl.colormaps["Blues"])
     if isinstance(cmap, str):
-        cmap = matplotlib.colormaps.get_cmap(cmap)
+        cmap = mpl.colormaps.get_cmap(cmap)
 
     cmap.set_bad((1, 1, 1, 0))
 
@@ -310,8 +308,6 @@ def bz2d_segments(
 def twocell_to_bz1(
     cell: Cell,
 ) -> tuple[list[tuple[NDArray[np.float64], NDArray[np.float64]]], Cell, Cell]:
-    from ase.dft.bz import bz_vertices
-
     icell = cell.reciprocal()
     bz1 = bz_vertices(icell, dim=cell.rank)
     return bz1, icell, cell

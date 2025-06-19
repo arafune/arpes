@@ -14,6 +14,7 @@ different projects.
 
 from __future__ import annotations
 
+import importlib
 import json
 import warnings
 from dataclasses import dataclass, field
@@ -242,8 +243,6 @@ def load_plugins() -> None:
     If you need to register a custom plugin you should just call
     `arpes.endstations.add_endstation` directly.
     """
-    import importlib
-
     from .endstations import add_endstation, plugin
 
     skip_modules = {"__pycache__", "__init__"}

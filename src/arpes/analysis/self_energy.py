@@ -8,6 +8,7 @@ import lmfit as lf
 import numpy as np
 import xarray as xr
 from lmfit.models import LinearModel, LorentzianModel
+from skimage.measure import LineModelND, ransac
 
 from arpes.constants import HBAR_PER_EV, METERS_PER_SECOND_PER_EV_ANGSTROM
 
@@ -114,8 +115,6 @@ def estimate_bare_band(
     if bare_band_specification == "linear":
         fitted_model = initial_linear_fit
     elif bare_band_specification == "ransac_linear":
-        from skimage.measure import LineModelND, ransac
-
         min_samples = len(centers.coords[fit_dimension]) // 10
         residual = initial_linear_fit.residual
         assert residual is not None

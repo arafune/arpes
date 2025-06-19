@@ -32,14 +32,14 @@ from zipfile import ZipFile
 import numpy as np
 import xarray as xr
 
-from arpes.endstations import ScanDesc, SingleFileEndstation, SynchrotronEndstation
+from arpes.endstations import SingleFileEndstation, SynchrotronEndstation
 from arpes.load_pxt import read_single_pxt
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy._typing import NDArray
 
-    from arpes._typing import Spectrometer
+    from arpes._typing import ScanDesc, Spectrometer
 
 __all__ = ("NSRLEndstation", "SSRFEndstation")
 

@@ -24,8 +24,7 @@ if TYPE_CHECKING:
     import xarray as xr
     from _typeshed import Incomplete
 
-    from arpes.constants import Spectrometer
-    from arpes.endstations import ScanDesc
+    from arpes.endstations import ScanDesc, Spectrometer
 
 __all__ = ("MAESTROMicroARPESEndstation", "MAESTRONanoARPESEndstation")
 

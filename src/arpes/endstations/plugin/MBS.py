@@ -12,11 +12,13 @@ import xarray as xr
 
 from arpes.constants import TWO_DIMENSION
 from arpes.debug import setup_logger
-from arpes.endstations import HemisphericalEndstation, ScanDesc
+from arpes.endstations import HemisphericalEndstation
 from arpes.utilities import clean_keys
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete
+
+    from arpes._typing import ScanDesc
 
 __all__ = ("MBSEndstation",)
 

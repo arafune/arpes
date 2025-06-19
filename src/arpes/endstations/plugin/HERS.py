@@ -19,7 +19,7 @@ from arpes.utilities import rename_keys
 if TYPE_CHECKING:
     from _typeshed import Incomplete
 
-    from arpes.endstations import ScanDesc
+    from arpes._typing import ScanDesc
 __all__ = ("HERSEndstation",)
 
 

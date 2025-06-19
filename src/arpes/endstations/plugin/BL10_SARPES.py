@@ -9,16 +9,18 @@ import numpy as np
 
 from arpes.endstations import (
     HemisphericalEndstation,
-    ScanDesc,
     SESEndstation,
     SynchrotronEndstation,
 )
+from arpes.load_pxt import find_ses_files_associated, read_single_pxt
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     import xarray as xr
     from _typeshed import Incomplete
+
+    from arpes._typing import ScanDesc
 __all__ = ("BL10012SARPESEndstation",)
 
 
@@ -77,8 +79,6 @@ class BL10012SARPESEndstation(SynchrotronEndstation, HemisphericalEndstation, SE
         **kwargs: Incomplete,
     ) -> xr.Dataset:
         """Loads all regions for a single .pxt frame, and perform per-frame normalization."""
-        from arpes.load_pxt import find_ses_files_associated, read_single_pxt
-
         del kwargs
         if scan_desc is None:
             scan_desc = {}
@@ -119,8 +119,6 @@ class BL10012SARPESEndstation(SynchrotronEndstation, HemisphericalEndstation, SE
         region_path: str | Path = "",
     ) -> xr.Dataset:
         """Loads a single region for multi-region scans."""
-        from arpes.load_pxt import read_single_pxt
-
         name = Path(region_path).stem
         num = name[-3:]
 
