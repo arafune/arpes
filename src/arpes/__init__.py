@@ -6,7 +6,7 @@ from __future__ import annotations
 from pathlib import Path
 
 # Use both version conventions for people's sanity.
-VERSION = "5.0.0-pre2"
+VERSION = "5.0.0-pre4"
 __version__ = VERSION
 
 
