@@ -19,8 +19,7 @@ from arpes.endstations.prodigy_itx import load_itx, load_sp2
 from arpes.provenance import Provenance, provenance_from_file
 
 if TYPE_CHECKING:
-    from arpes._typing import Spectrometer
-    from arpes.endstations import ScanDesc
+    from arpes._typing import ScanDesc, Spectrometer
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]

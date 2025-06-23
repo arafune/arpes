@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from logging import DEBUG, INFO
 from pathlib import Path
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 import h5py
 import numpy as np
@@ -12,9 +12,12 @@ import xarray as xr
 
 from arpes import DATA_PATH
 from arpes.debug import setup_logger
-from arpes.endstations import ScanDesc, SESEndstation
+from arpes.endstations import SESEndstation
 from arpes.load_pxt import read_single_pxt
 from arpes.provenance import Provenance, provenance_from_file
+
+if TYPE_CHECKING:
+    from arpes._typing import ScanDesc
 
 __all__ = ("IgorExportEndstation",)
 

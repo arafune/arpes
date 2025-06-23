@@ -13,7 +13,8 @@ from typing import TYPE_CHECKING, Any
 import matplotlib.pyplot as plt
 import numpy as np
 from ase.cell import Cell
-from ase.dft.bz import bz_plot
+from ase.dft.bz import bz_plot, bz_vertices
+from ase.dft.kpoints import get_special_points
 from ase.lattice import HEX2D
 from scipy.spatial.distance import pdist
 
@@ -140,9 +141,6 @@ def calc_commensurate_moire_cell(
     Returns:
         [TODO:description]
     """
-    from ase.dft.bz import bz_vertices
-    from ase.dft.kpoints import get_special_points
-
     underlayer_direct: Cell = HEX2D(a=underlayer_a).tocell()
     overlayer_direct: Cell = HEX2D(a=overlayer_a).tocell()
 

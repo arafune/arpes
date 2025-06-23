@@ -1,4 +1,23 @@
-"""pyarpes plugin for SpecsLab Prodigy."""
+"""IO support for Prodigy-exported Igor Pro ITX and SP2 files.
+
+This module provides tools to parse, load, and export ARPES spectrum data
+saved in Igor Pro's ITX format (as exported by Prodigy) and SP2 format.
+It enables interoperability between Prodigy exports and pyARPES by providing
+data structures and functions to convert files to and from `xarray.DataArray`.
+
+Main components:
+- `ProdigyItx`: Parser and converter class for Prodigy ITX files.
+- `load_itx`, `export_itx`: Functions to load or save single/multiple ITX spectra.
+- `load_sp2`: Function to load data from older `.sp2` format files.
+- Internal utilities for header parsing, unit correction, and metadata integration.
+
+The output format is compatible with pyARPES, using physical units (e.g. radians),
+and attaches metadata as `attrs` in `xarray` structures.
+
+Typical usage:
+    arr = load_itx("example.itx")
+    export_itx("out.itx", arr)
+"""
 
 from __future__ import annotations
 

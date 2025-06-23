@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 import xarray as xr
 
 from arpes.debug import setup_logger
+from arpes.io import load_data
 
 if TYPE_CHECKING:
     from xarray.core.common import DataWithCoords
@@ -24,8 +25,6 @@ __all__ = ("normalize_to_spectrum",)
 
 def normalize_to_spectrum(data: DataWithCoords | str) -> xr.DataArray:
     """Tries to extract the actual ARPES spectrum from a dataset containing other variables."""
-    from arpes.io import load_data
-
     logger.debug(f"inspect.stack(): {inspect.stack()}")
     if isinstance(data, str):
         msg = "You may use a file for the data as a argument of  "

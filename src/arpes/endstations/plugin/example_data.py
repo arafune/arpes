@@ -16,12 +16,15 @@ import numpy as np
 import xarray as xr
 
 from arpes.debug import setup_logger
-from arpes.endstations import HemisphericalEndstation, ScanDesc, SingleFileEndstation
+from arpes.endstations import HemisphericalEndstation, SingleFileEndstation
 
 if TYPE_CHECKING:
     from pathlib import Path
 
     from _typeshed import Incomplete
+
+    from arpes._typing import ScanDesc
+
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]

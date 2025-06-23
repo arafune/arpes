@@ -11,6 +11,7 @@ from matplotlib.axes import Axes
 from mpl_toolkits.mplot3d import Axes3D
 
 from arpes.constants import TWO_DIMENSION
+from arpes.utilities.conversion.forward import convert_coordinates_to_kspace_forward
 
 from .utils import name_for_dim, unit_for_dim
 
@@ -173,8 +174,6 @@ def annotate_cuts(
         include_text_labels: Whether to include text labels
         kwargs: Defines the coordinates of the cut location
     """
-    from arpes.utilities.conversion.forward import convert_coordinates_to_kspace_forward
-
     converted_coordinates = convert_coordinates_to_kspace_forward(data)
     assert isinstance(converted_coordinates, xr.Dataset)
     assert len(plotted_axes) == TWO_DIMENSION

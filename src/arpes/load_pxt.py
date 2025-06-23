@@ -9,10 +9,12 @@ from logging import DEBUG, INFO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, TypeAlias
 
+import igor.igorpy as igor
 import numpy as np
 import xarray as xr
 
 from .debug import setup_logger
+from .utilities import rename_keys
 from .utilities.string import safe_decode
 
 if TYPE_CHECKING:
@@ -162,8 +164,6 @@ def read_header(header_bytes: bytes) -> dict[str, Any]:
 
         header[first.lower().replace(" ", "_")] = rest
 
-    from .utilities import rename_keys
-
     return rename_keys(
         header,
         {
@@ -229,8 +229,6 @@ def read_experiment(reference_path: Path | str, **kwargs: Incomplete) -> xr.Data
     Returns:
         The loaded dataset with only waves retained..
     """
-    import igor.igorpy as igor
-
     if isinstance(reference_path, Path):
         reference_path = str(reference_path.absolute())
     return igor.load(reference_path, **kwargs)
@@ -238,8 +236,6 @@ def read_experiment(reference_path: Path | str, **kwargs: Incomplete) -> xr.Data
 
 def read_single_ibw(reference_path: Path | str) -> Wave:
     """Uses igor.igorpy to load an .ibw file."""
-    import igor.igorpy as igor
-
     if isinstance(reference_path, Path):
         reference_path = str(reference_path.absolute())
     return igor.load(reference_path)
@@ -253,8 +249,6 @@ def read_single_pxt(
     raw: bool = False,
 ) -> XrTypes:
     """Uses igor.igorpy to load a single .PXT or .PXP file."""
-    import igor.igorpy as igor
-
     if isinstance(reference_path, Path):
         reference_path = str(reference_path.absolute())
     loaded = None

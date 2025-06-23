@@ -13,7 +13,6 @@ import xarray as xr
 from arpes.debug import setup_logger
 from arpes.endstations import (
     HemisphericalEndstation,
-    ScanDesc,
     SESEndstation,
     SynchrotronEndstation,
 )
@@ -23,7 +22,7 @@ if TYPE_CHECKING:
 
     from _typeshed import Incomplete
 
-    from arpes._typing import Spectrometer
+    from arpes._typing import ScanDesc, Spectrometer
 
 __all__ = ("BL403ARPESEndstation",)
 

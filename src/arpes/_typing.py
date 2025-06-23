@@ -64,6 +64,7 @@ __all__ = [
     "Orientation",
     "Plot2DStyle",
     "ReduceMethod",
+    "ScanDesc",
     "Spectrometer",
     "SpectrumType",
     "WorkSpaceType",
@@ -93,6 +94,17 @@ SpectrumType = Literal["cut", "map", "hv_map", "ucut", "spem", "xps"]
 Plot2DStyle = Literal["line", "scatter"]
 
 AnalysisRegion = Literal["copper_prior", "wide_angular", "narrow_angular"]
+
+
+class ScanDesc(TypedDict, total=False):
+    """TypedDict based class for scan_desc."""
+
+    file: str | Path
+    location: str
+    path: str | Path
+    note: dict[str, str | float]  # used as attrs basically.
+    id: int | str
+
 
 LEGENDLOCATION = Literal[
     # Numeric values (0 to 10) are for the backward compatibility.

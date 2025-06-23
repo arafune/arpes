@@ -37,6 +37,7 @@ from . import VERSION
 from ._typing import XrTypes
 from .config import CONFIG
 from .debug import setup_logger
+from .utilities.jupyter import get_recent_history
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Hashable, Sequence
@@ -127,8 +128,6 @@ def provenance_from_file(
         file: The file which provided the data. Should be a path or collection thereof.
         record: An annotation to add.
     """
-    from .utilities.jupyter import get_recent_history
-
     logger.debug("provenance from file")
     if "id" not in child_arr.attrs:
         attach_id(child_arr)
@@ -228,7 +227,6 @@ def save_plot_provenance(plot_fn: Callable[P, R]) -> Callable[P, R]:
     Returns:
         A decorated copy of the input function which additionally saves provenance information.
     """
-    from .utilities.jupyter import get_recent_history
 
     @functools.wraps(plot_fn)
     def func_wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
@@ -294,8 +292,6 @@ def provenance(
         parents: The parent array.
         record: An annotation to add.
     """
-    from .utilities.jupyter import get_recent_history
-
     if isinstance(parents, list):
         assert len(parents) == 1
         parents = parents[0]
@@ -342,8 +338,6 @@ def provenance_multiple_parents(
         parents: The collection of parents.
         record: An annotation to add.
     """
-    from .utilities.jupyter import get_recent_history
-
     if isinstance(parents, xr.Dataset | xr.DataArray):
         parents = [parents]
     if "id" not in child_arr.attrs:

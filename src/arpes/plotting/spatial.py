@@ -11,9 +11,11 @@ import matplotlib.patheffects as path_effects
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
+from adjustText import adjust_text
 from matplotlib import gridspec, patches
 
 from arpes.constants import TWO_DIMENSION
+from arpes.io import load_data
 from arpes.provenance import save_plot_provenance
 from arpes.utilities import normalize_to_spectrum
 from arpes.utilities.xarray import unwrap_xarray_item
@@ -192,9 +194,7 @@ def plot_spatial_reference(  # noqa: PLR0913, C901, PLR0912, PLR0915  # Might be
     fancy_labels(ax)
     plt.tight_layout()
 
-    try:
-        from adjustText import adjust_text
-
+    with contextlib.suppress(NameError):
         adjust_text(
             rendered_annotations,
             ax=ax,
@@ -203,8 +203,6 @@ def plot_spatial_reference(  # noqa: PLR0913, C901, PLR0912, PLR0915  # Might be
             avoid_self=False,
             autoalign="xy",
         )
-    except ImportError:
-        pass
 
     if out:
         plt.savefig(path_for_plot(out), dpi=400)
@@ -222,8 +220,6 @@ def reference_scan_spatial(
 
     Warning: Not work correctly.  (Because S.referenced_scans has been removed.)
     """
-    from arpes.io import load_data
-
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
 
     assert isinstance(data, xr.DataArray)

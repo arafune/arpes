@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 import numpy as np
 
 from arpes.config import ureg
-from arpes.endstations import FITSEndstation, HemisphericalEndstation, ScanDesc
+from arpes.endstations import FITSEndstation, HemisphericalEndstation
 from arpes.laser import electrons_per_pulse
 
 if TYPE_CHECKING:
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
     import xarray as xr
 
-    from arpes._typing import Spectrometer
+    from arpes._typing import ScanDesc, Spectrometer
 
 __all__ = ("ALGMainChamber", "electrons_per_pulse_mira")
 

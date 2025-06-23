@@ -14,7 +14,6 @@ import xarray as xr
 
 from arpes.endstations import (
     HemisphericalEndstation,
-    ScanDesc,
     SingleFileEndstation,
     add_endstation,
 )
@@ -24,8 +23,7 @@ from arpes.provenance import Provenance, provenance_from_file
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from arpes._typing import Spectrometer
-    from arpes.endstations import ScanDesc
+    from arpes._typing import ScanDesc, Spectrometer
 
 
 __all__ = ["DSNP_UMCSEndstation"]

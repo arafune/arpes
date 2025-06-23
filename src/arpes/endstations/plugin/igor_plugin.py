@@ -13,7 +13,6 @@ import xarray as xr
 
 from arpes.debug import setup_logger
 from arpes.endstations import (
-    ScanDesc,
     SingleFileEndstation,
 )
 from arpes.load_pxt import read_single_pxt
@@ -24,7 +23,7 @@ if TYPE_CHECKING:
 
     from _typeshed import Incomplete
 
-    from arpes._typing import Spectrometer
+    from arpes._typing import ScanDesc, Spectrometer
 
 
 __all__ = ("IgorEndstation",)
