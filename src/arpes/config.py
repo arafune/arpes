@@ -45,8 +45,6 @@ __all__ = ("load_plugins", "setup_logging", "update_configuration")
 
 # these are all set by ``update_configuration``
 
-DOCS_BUILD: bool = False
-
 FIGURE_PATH: str | Path | None = None
 DATASET_PATH: str | Path | None = None
 
