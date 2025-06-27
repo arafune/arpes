@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import arpes.config
+import arpes
 
 if TYPE_CHECKING:
     from collections.abc import Iterator

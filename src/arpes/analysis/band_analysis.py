@@ -397,11 +397,6 @@ def fit_patterned_bands(  # noqa: PLR0913
         XrTypes: Either an `xr.DataArray` or an `xr.Dataset` depending on the `dataset` argument.
         The returned object contains fitting results, residuals, and normalized residuals.
     """
-    if background:
-        from models.band import BackgroundBand
-
-        background = BackgroundBand
-
     free_directions = [dim for dim in arr.dims if str(dim) != fit_direction]
 
     def resolve_partial_bands_from_description(  # noqa: PLR0913

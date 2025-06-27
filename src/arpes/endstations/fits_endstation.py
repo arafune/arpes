@@ -34,9 +34,9 @@ import numpy as np
 import xarray as xr
 from astropy.io import fits
 
-from arpes import DATA_PATH
 from arpes.debug import setup_logger
 from arpes.provenance import Provenance, provenance_from_file
+from arpes.setting import DATA_PATH
 from arpes.utilities import rename_keys
 
 from .base import EndstationBase

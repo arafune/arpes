@@ -21,8 +21,8 @@ from tqdm import tqdm as cli_tqdm
 from tqdm.notebook import tqdm as notebook_tqdm
 from traitlets.config import MultipleInstanceError
 
-from arpes.config import CONFIG
 from arpes.debug import setup_logger
+from arpes.setting import CONFIG
 
 if TYPE_CHECKING:
     from collections.abc import Callable

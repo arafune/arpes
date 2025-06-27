@@ -11,13 +11,13 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from arpes import DATA_PATH
+from arpes.setting import DATA_PATH
 from arpes.debug import setup_logger
 from arpes.constants import TWO_DIMENSION
 from arpes.endstations import HemisphericalEndstation, SESEndstation
 
 if TYPE_CHECKING:
-    from arpes.endstations import ScanDesc
+    from arpes.typing import ScanDesc
 
 __all__ = ("KaindlEndstation",)
 

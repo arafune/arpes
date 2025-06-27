@@ -4,13 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, ClassVar
 
-if TYPE_CHECKING:
-    import pint
-
-
 import numpy as np
+import pint
 
-from arpes.config import ureg
 from arpes.endstations import FITSEndstation, HemisphericalEndstation
 from arpes.laser import electrons_per_pulse
 
@@ -106,6 +102,9 @@ class ALGMainChamber(HemisphericalEndstation, FITSEndstation):
             data = data.assign_coords(beta=np.deg2rad(data.beta.values))
 
         return data
+
+
+ureg = pint.UnitRegistry()
 
 
 def electrons_per_pulse_mira(photocurrent: pint.Quantity, division_ratio: int = 1) -> float:

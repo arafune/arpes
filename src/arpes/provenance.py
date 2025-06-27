@@ -33,10 +33,9 @@ from typing import TYPE_CHECKING, ParamSpec, TypedDict, TypeVar
 
 import xarray as xr
 
-from . import VERSION
 from ._typing import XrTypes
-from .config import CONFIG
 from .debug import setup_logger
+from .setting import CONFIG, VERSION
 from .utilities.jupyter import get_recent_history
 
 if TYPE_CHECKING:

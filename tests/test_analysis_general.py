@@ -2,6 +2,7 @@
 
 import numpy as np
 import xarray as xr
+
 from arpes.analysis.general import (
     normalize_by_fermi_distribution,
 )

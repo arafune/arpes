@@ -17,8 +17,8 @@ from logging import DEBUG, INFO
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from arpes import DATA_PATH
 from arpes.debug import setup_logger
+from arpes.setting import DATA_PATH
 
 from .base import EndstationBase
 

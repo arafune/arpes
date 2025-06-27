@@ -14,7 +14,6 @@ different projects.
 
 from __future__ import annotations
 
-import importlib
 import json
 import warnings
 from dataclasses import dataclass, field
@@ -23,13 +22,17 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import matplotlib as mpl
-import pint
+from IPython.core.getipython import get_ipython
+from IPython.core.interactiveshell import InteractiveShell
 
-from . import HAS_LOADED
 from .debug import setup_logger
+from .plugin_loader import load_plugins
+from .setting import CONFIG, DATASET_PATH, SETTINGS
+from .utilities.collections import deep_update
+from .utilities.jupyter import generate_logfile_path
 
 if TYPE_CHECKING:
-    from ._typing import ConfigSettings, ConfigType, WorkSpaceType
+    from ._typing import ConfigSettings, WorkSpaceType
 
 # pylint: disable=global-statement
 
@@ -38,34 +41,21 @@ LOGLEVEL = LOGLEVELS[1]
 logger = setup_logger(__name__, level=LOGLEVEL)
 
 
-ureg = pint.UnitRegistry()
+__all__ = ("initialize", "load_plugins", "setup_logging", "update_configuration")
 
-__all__ = ("load_plugins", "setup_logging", "update_configuration")
-
-
-# these are all set by ``update_configuration``
-
-FIGURE_PATH: str | Path | None = None
-DATASET_PATH: str | Path | None = None
-
-SETTINGS: ConfigSettings = {
-    "interactive": {
-        "main_width": 350,
-        "marginal_width": 150,
-        "palette": "magma",
-    },
-    "use_tex": False,
-}
-
-CONFIG: ConfigType = {
-    "WORKSPACE": {"path": "", "name": ""},
-    "CURRENT_CONTEXT": None,
-    "ENABLE_LOGGING": True,
-    "LOGGING_STARTED": False,
-    "LOGGING_FILE": None,
-}
 
 PLUGINS: set[str] = set()
+
+_HAS_INITIALIZED = False
+
+try:
+    from local_config import *  # noqa: F403
+except ImportError:
+    warnings.warn(
+        "Could not find local configuration file. If you don't "
+        "have one, you can safely ignore this message.",
+        stacklevel=2,
+    )
 
 
 def update_configuration(user_path: Path | str = "") -> None:
@@ -79,10 +69,9 @@ def update_configuration(user_path: Path | str = "") -> None:
         user_path (Path | str): The path to the user configuration module. Defaults to None.
                    If None is provided then this is a noop.
     """
-    global HAS_LOADED, FIGURE_PATH, DATASET_PATH  # noqa: PLW0603
-    if HAS_LOADED and not user_path:
+    global FIGURE_PATH, DATASET_PATH  # noqa: PLW0603
+    if not user_path:
         return
-    HAS_LOADED = True
     try:
         FIGURE_PATH = Path(user_path) / "figures"
         DATASET_PATH = Path(user_path) / "datasets"
@@ -212,52 +201,12 @@ def load_json_configuration(filename: str) -> None:
         CONFIG.update(json.load(config_file))
 
 
-try:
-    from local_config import *  # noqa: F403
-except ImportError:
-    warnings.warn(
-        "Could not find local configuration file. If you don't "
-        "have one, you can safely ignore this message.",
-        stacklevel=2,
-    )
-
-
 def override_settings(new_settings: ConfigSettings) -> None:
     """Deep updates/overrides PyARPES settings.
 
     ToDo: TEST
     """
-    from .utilities.collections import deep_update
-
     deep_update(SETTINGS, new_settings)
-
-
-def load_plugins() -> None:
-    """Registers plugins/data-sources in the endstations.plugin module.
-
-    Finds all classes which represents data loading plugins in the endstations.plugin
-    module and registers them.
-
-    If you need to register a custom plugin you should just call
-    `arpes.endstations.add_endstation` directly.
-    """
-    from .endstations import add_endstation, plugin
-
-    skip_modules = {"__pycache__", "__init__"}
-    plugins_dir = Path(plugin.__file__).parent
-    modules = [
-        str(m) if Path(plugins_dir / m).is_dir() else str(Path(m).stem)
-        for m in Path(plugins_dir).iterdir()
-        if m.stem not in skip_modules
-    ]
-    logger.debug(f"modules are {modules}")
-    for module in modules:
-        try:
-            loaded_module = importlib.import_module(f"arpes.endstations.plugin.{module}")
-            for item in loaded_module.__all__:
-                add_endstation(getattr(loaded_module, item))
-        except (AttributeError, ImportError):
-            pass
 
 
 def is_using_tex() -> bool:
@@ -333,17 +282,7 @@ def setup_logging() -> None:
     substantively if anaysis products better referred to the logged record
     and not merely where they came from in the notebooks.
     """
-    if HAS_LOADED:
-        return
-    try:
-        from IPython.core.getipython import get_ipython
-        from IPython.core.interactiveshell import InteractiveShell
-
-        ipython = get_ipython()
-
-    except ImportError:
-        ipython = None
-        return
+    ipython = get_ipython()
 
     if not ipython or not CONFIG["ENABLE_LOGGING"]:
         logger.debug(f'CONFIG["ENABLE_LOGGING"]: {CONFIG["ENABLE_LOGGING"]}')
@@ -357,7 +296,6 @@ def setup_logging() -> None:
 
     if not CONFIG["LOGGING_STARTED"]:
         CONFIG["LOGGING_STARTED"] = True
-        from .utilities.jupyter import generate_logfile_path
 
         log_path = generate_logfile_path()
         log_path.parent.mkdir(exist_ok=True)
@@ -366,11 +304,15 @@ def setup_logging() -> None:
         CONFIG["LOGGING_FILE"] = log_path
 
 
-logger.debug("setup_logging")
-setup_logging()
-logger.debug("update_configuration")
-update_configuration()
-logger.debug("load_plugins")
-load_plugins()
-logger.debug("load_plugins:done")
-from . import xarray_extensions  # noqa: E402, F401
+def initialize() -> None:
+    """Initialize arpes configuration, logging, and plugin system."""
+    global _HAS_INITIALIZED  # noqa: PLW0603
+    if _HAS_INITIALIZED:
+        return
+    _HAS_INITIALIZED = True
+
+    setup_logging()
+    update_configuration()
+    load_plugins()
+
+    from . import xarray_extensions  # noqa: F401, PLC0415

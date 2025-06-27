@@ -1,7 +1,7 @@
-import pytest
-import xarray as xr
 import numpy as np
-from arpes.utilities.conversion.calibration import build_edge_from_list, DetectorCalibration
+import xarray as xr
+
+from arpes.utilities.conversion.calibration import DetectorCalibration, build_edge_from_list
 
 
 def test_build_edge_from_list():

@@ -10,11 +10,11 @@ import h5py
 import numpy as np
 import xarray as xr
 
-from arpes import DATA_PATH
 from arpes.debug import setup_logger
 from arpes.endstations import SESEndstation
 from arpes.load_pxt import read_single_pxt
 from arpes.provenance import Provenance, provenance_from_file
+from arpes.setting import DATA_PATH
 
 if TYPE_CHECKING:
     from arpes._typing import ScanDesc

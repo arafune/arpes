@@ -16,10 +16,10 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-import arpes.config
 from arpes.constants import TWO_DIMENSION
 from arpes.debug import setup_logger
 from arpes.provenance import save_plot_provenance
+from arpes.setting import SETTINGS
 from arpes.utilities import normalize_to_spectrum
 
 from .utils import color_for_darkbackground, path_for_plot
@@ -186,7 +186,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913
 
     kwargs.setdefault(
         "cmap",
-        arpes.config.SETTINGS.get("interactive", {}).get(
+        SETTINGS.get("interactive", {}).get(
             "palette",
             "viridis",
         ),
@@ -331,12 +331,12 @@ def plot_movie(  # noqa: PLR0913
     assert isinstance(ax, Axes)
     assert isinstance(fig, Figure)
     assert isinstance(data, xr.DataArray)
-    assert isinstance(arpes.config.SETTINGS, dict)
+    assert isinstance(SETTINGS, dict)
     assert data.ndim == TWO_DIMENSION + 1
 
     kwargs.setdefault(
         "cmap",
-        arpes.config.SETTINGS.get("interactive", {}).get(
+        SETTINGS.get("interactive", {}).get(
             "palette",
             "viridis",
         ),

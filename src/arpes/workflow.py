@@ -44,9 +44,10 @@ from typing import TYPE_CHECKING, ParamSpec, TypeVar
 
 import dill
 
-from .config import CONFIG, WorkspaceManager
+from .config import WorkspaceManager
 from .debug import setup_logger
 from .plotting.utils import path_for_plot
+from .setting import CONFIG
 from .utilities.jupyter import get_notebook_name
 
 if TYPE_CHECKING:
@@ -277,7 +278,7 @@ class DataProvider:
             key = ""
 
         publishers = self.publishers
-        print(f'PUBLISHERS FOR {key or "ALL"}')
+        print(f"PUBLISHERS FOR {key or 'ALL'}")
         if not key:
             pprint(dict(publishers))
         else:
@@ -285,7 +286,7 @@ class DataProvider:
 
     def summarize_consumers(self, key: str = "") -> None:
         consumers = self.consumers
-        print(f'CONSUMERS FOR {key or "ALL"}')
+        print(f"CONSUMERS FOR {key or 'ALL'}")
         if not key:
             pprint(dict(consumers))
         else:

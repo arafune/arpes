@@ -1,7 +1,7 @@
-import pytest
 import numpy as np
+import pytest
 import xarray as xr
-from scipy.ndimage import uniform_filter
+
 from src.arpes.analysis.filters import boxcar_filter_arr
 
 

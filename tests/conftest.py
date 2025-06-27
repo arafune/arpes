@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, TypedDict
 import pytest
 from lmfit.models import ConstantModel, LinearModel, LorentzianModel, QuadraticModel
 
-import arpes.config
+import arpes
 import arpes.endstations
 from arpes.fits import AffineBroadenedFD
 from arpes.io import example_data

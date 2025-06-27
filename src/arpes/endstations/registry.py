@@ -20,8 +20,8 @@ import warnings
 from logging import DEBUG, INFO
 from typing import TYPE_CHECKING
 
-from arpes.config import load_plugins
 from arpes.debug import setup_logger
+from arpes.plugin_loader import load_plugins
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete

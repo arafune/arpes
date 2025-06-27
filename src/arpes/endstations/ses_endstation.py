@@ -22,7 +22,7 @@ import h5py
 import numpy as np
 import xarray as xr
 
-from arpes import DATA_PATH
+from arpes.setting import DATA_PATH
 from arpes.debug import setup_logger
 from arpes.load_pxt import find_ses_files_associated, read_single_pxt
 from arpes.provenance import Provenance, provenance_from_file

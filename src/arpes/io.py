@@ -26,11 +26,11 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from .config import CONFIG
 from .debug import setup_logger
 from .endstations.registry import resolve_endstation
 from .example_data.mock import build_mock_tarpes
 from .provenance import provenance_multiple_parents
+from .setting import CONFIG
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete

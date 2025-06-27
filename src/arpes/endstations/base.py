@@ -30,8 +30,8 @@ from typing import TYPE_CHECKING, ClassVar
 import numpy as np
 import xarray as xr
 
-from arpes.config import CONFIG
 from arpes.debug import setup_logger
+from arpes.setting import CONFIG
 from arpes.utilities import rename_keys
 from arpes.utilities.dict import rename_dataarray_attrs
 

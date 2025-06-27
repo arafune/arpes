@@ -20,7 +20,7 @@ from arpes.endstations import EndstationBase, find_clean_coords
 from arpes.provenance import Provenance, provenance_from_file
 from arpes.utilities import rename_keys
 from arpes._typing import Spectrometer
-from arpes import DATA_PATH
+from arpes.setting import DATA_PATH
 
 if TYPE_CHECKING:
     from arpes._typing import ScanDesc

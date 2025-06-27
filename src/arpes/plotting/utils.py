@@ -31,9 +31,10 @@ from titlecase import titlecase
 
 from arpes import VERSION
 from arpes._typing import XrTypes
-from arpes.config import CONFIG, FIGURE_PATH, SETTINGS, attempt_determine_workspace, is_using_tex
+from arpes.config import attempt_determine_workspace, is_using_tex
 from arpes.constants import TWO_DIMENSION
 from arpes.debug import setup_logger
+from arpes.setting import CONFIG, FIGURE_PATH, SETTINGS
 from arpes.utilities import normalize_to_spectrum
 from arpes.utilities.jupyter import get_notebook_name, get_recent_history
 

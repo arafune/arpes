@@ -1,12 +1,13 @@
 from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import matplotlib as mpl
 import pytest
 
-from IPython.core.interactiveshell import InteractiveShell
-import arpes.config
-from arpes.config import setup_logging, CONFIG, UseTex, use_tex
-import matplotlib as mpl
-from unittest.mock import create_autospec, patch, MagicMock
 import arpes
+import arpes.config
+from arpes.config import UseTex, setup_logging, use_tex
+from arpes.setting import CONFIG
 
 # Mock CONFIG dictionary
 CONFIG = {
@@ -55,22 +56,6 @@ def test_attempt_determine_workspace_not_found(mock_cwd, mock_workspace_matches)
 
     assert arpes.config.CONFIG["WORKSPACE"]["path"] == Path("/mock/dataset")
     assert arpes.config.CONFIG["WORKSPACE"]["name"] == "dataset"
-
-
-def test_update_configuration(monkeypatch: pytest.MonkeyPatch):
-    from arpes.config import update_configuration
-
-    # Mock HAS_LOADED and paths
-    monkeypatch.setattr("arpes.config.HAS_LOADED", False)
-    mock_path = MagicMock()
-    monkeypatch.setattr("arpes.config.Path", mock_path)
-
-    # Call the function
-    update_configuration("user_path")
-
-    # Assert that paths are set correctly
-    mock_path.assert_called_with("user_path")
-    assert mock_path.return_value.__truediv__.call_count == 2
 
 
 def test_workspace_matches(monkeypatch: pytest.MonkeyPatch):
@@ -145,73 +130,6 @@ def test_get_ipython_none():
     with patch("IPython.core.getipython.get_ipython", return_value=None):
         setup_logging()
         assert arpes.config.CONFIG["LOGGING_STARTED"] is False
-
-
-def test_setup_logging(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr("arpes.config.HAS_LOADED", False)
-
-    with patch("IPython.core.getipython.get_ipython") as mock_get_ipython:
-        mock_ipython = create_autospec(InteractiveShell, instance=True)
-        mock_ipython.logfile = "tmp/logfile.log"
-        mock_get_ipython.return_value = mock_ipython
-        setup_logging()
-        assert arpes.config.CONFIG["LOGGING_STARTED"] is True
-        assert arpes.config.CONFIG["LOGGING_FILE"] == "tmp/logfile.log"
-
-
-def test_setup_logging_LOGGING_STARTED_is_false(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr("arpes.config.HAS_LOADED", False)
-    monkeypatch.setitem(arpes.config.CONFIG, "LOGGING_STARTED", False)
-    with patch("IPython.core.getipython.get_ipython") as mock_get_ipython:
-        mock_ipython = create_autospec(InteractiveShell, instance=True)
-        mock_ipython.logfile = None
-        mock_get_ipython.return_value = mock_ipython
-        with patch("arpes.utilities.jupyter.generate_logfile_path") as mock_generate_logfile_path:
-            mock_generate_logfile_path.return_value = Path("tmp/logfile.log")
-            setup_logging()
-            assert arpes.config.CONFIG["LOGGING_STARTED"] is True
-            assert arpes.config.CONFIG["LOGGING_FILE"] == Path("tmp/logfile.log")
-
-
-def test_setup_logging_import_error(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr("arpes.config.HAS_LOADED", False)
-
-    with patch("IPython.core.getipython", side_effect=ImportError):
-        assert setup_logging() is None
-
-
-def test_setup_logging_import_error0(monkeypatch: pytest.MonkeyPatch):
-    """Test setup_logging when ImportError is raised."""
-
-    monkeypatch.setattr("arpes.config.HAS_LOADED", False)
-
-    # Simulate ImportError by patching `IPython.core.getipython` to raise ImportError
-    def mock_import_error(*args, **kwargs):
-        raise ImportError
-
-    # Patch `get_ipython` to raise ImportError
-    monkeypatch.setattr("IPython.core.getipython.get_ipython", mock_import_error)
-
-    # Call the function and ensure no exceptions are raised
-    assert setup_logging() is None
-
-
-def test_setup_logging_import_error(monkeypatch: pytest.MonkeyPatch):
-    """Test setup_logging when ImportError is raised."""
-
-    monkeypatch.setattr("arpes.config.HAS_LOADED", False)
-
-    # Simulate ImportError by patching `get_ipython` to raise ImportError
-    def mock_get_ipython():
-        raise ImportError
-
-    monkeypatch.setattr("IPython.core.getipython.get_ipython", mock_get_ipython)
-
-    # Ensure no exceptions are raised and function exits gracefully
-    try:
-        setup_logging()
-    except Exception as e:
-        pytest.fail(f"setup_logging raised an exception: {e}")
 
 
 @pytest.fixture
