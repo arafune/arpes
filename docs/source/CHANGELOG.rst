@@ -21,6 +21,10 @@ primarily indicate new features and documentation.
 * Remove gaussian_filter, and boxcar_filter
   * They are not used.  Use gaussian_filter_arr and boxcar_filter_arr instead.
 
+* Set as Deprecated
+  * stack_dispersion_plot
+  * flat_stack_plot
+
 5.0.0-per3 (2025-04-25)
 ^^^^^^^^^^^^^^^^^^^^^^^^
 

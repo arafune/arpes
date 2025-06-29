@@ -25,7 +25,12 @@ from .movie import plot_movie
 from .parameter import plot_parameter
 from .spatial import plot_spatial_reference, reference_scan_spatial
 from .spin import spin_colored_spectrum, spin_difference_spectrum, spin_polarized_spectrum
-from .stack_plot import flat_stack_plot, offset_scatter_plot, stack_dispersion_plot
+from .stack_plot import (
+    flat_stack_plot,
+    offset_scatter_plot,
+    stack_dispersion_plot,
+    waterfall_dispersion,
+)
 from .utils import (
     fancy_labels,
     remove_colorbars,

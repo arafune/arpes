@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from logging import DEBUG, INFO
 from typing import TYPE_CHECKING, Literal, Unpack
 
@@ -14,8 +15,10 @@ import numpy as np
 import xarray as xr
 from matplotlib.axes import Axes
 from matplotlib.colors import Colormap
+from matplotlib.ticker import FixedLocator, MaxNLocator
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
+from arpes._typing import MPLPlotKwargsBasic
 from arpes.analysis import rebin
 from arpes.constants import TWO_DIMENSION
 from arpes.debug import setup_logger
@@ -30,6 +33,7 @@ from .utils import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from pathlib import Path
 
     from matplotlib.figure import Figure
@@ -40,19 +44,231 @@ if TYPE_CHECKING:
         LEGENDLOCATION,
         ColorbarParam,
         MPLPlotKwargsBasic,
-        Plot2DStyle,
         ReduceMethod,
     )
 __all__ = (
     "flat_stack_plot",
     "offset_scatter_plot",
     "stack_dispersion_plot",
+    "waterfall_dispersion",
 )
 
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
 logger = setup_logger(__name__, LOGLEVEL)
+
+
+@save_plot_provenance
+def waterfall_dispersion(  # noqa: PLR0913
+    data: xr.DataArray,
+    scale_factor: float = 1.0,
+    stack_axis: str = "phi",
+    ax: Axes | None = None,
+    mode: Literal["fill_between", "hide_lines", "line"] = "line",
+    cmap: Colormap | str = "black",
+    figsize: tuple[float, float] = (7, 5),
+    *,
+    reverse: bool = True,
+    **kwargs: Unpack[MPLPlotKwargsBasic],
+) -> tuple[Figure | None, Axes, Axes] | tuple[Figure | None, Axes]:
+    """Plot a waterfall-style dispersion using 2D `xarray.DataArray`.
+
+    Each line profile along one axis is offset vertically according to the values of the stacking
+    axis, allowing visual inspection of variations across slices. A twin y-axis is added on the
+    right to indicate the original values of the stacking coordinate.
+
+    Args:
+        data (xr.DataArray): A 2D DataArray to plot. Must have exactly two dimensions.
+        scale_factor (float, optional): Scaling factor for vertical offset between stacks.
+            Must be positive, if 0 returns the 'flat stack" version. Defaults to 1.0.
+        stack_axis (str, optional): Name of the dimension along which stacking is performed.
+            Defaults to "phi".
+        ax (Axes, optional): Matplotlib Axes object to plot into. If None, a new figure and axes
+            will be created. Defaults to None.
+        mode (Literal["fill_between", "hide_line", "line"], optional):
+            Plotting style for each line:
+                - "line": lines only
+                - "fill_between": area between lines and offset baseline is filled with color
+                - "hide_line": lines are hidden by white fill overlaid
+            Defaults to "line".
+        cmap (Colormap | str, optional): A matplotlib colormap name or single color string to use.
+            Defaults to "black".
+        figsize (tuple[float, float], optional): Figure size (ignored if `ax` is provided).
+            Defaults to (7, 5).
+        reverse (bool, optional): Whether to reverse the stacking direction. Defaults to True.
+        **kwargs: Additional keyword arguments passed to `ax.plot()` and `fill_between()`.
+
+    Returns:
+        tuple[Figure | None, Axes, Axes]:
+        Tuple of the figure (if created), the main axes (left y-axis), and the twin axes
+        (right y-axis).
+
+    Raises:
+        AssertionError: If `data` is not 2D or `scale_factor` is not positive.
+
+    Notes:
+        This waterfall does not have 'nbins' functionality.
+
+        The default style of the label is same as the default output of S.plot.
+        Use the following example, when the label text, especially for the right
+        axis label, is modified.
+
+        .. code-block:: python
+
+            label = ax_right.yaxis.label
+            label.set_text("new label text")
+            label.set_fontsize(12)
+
+        or just
+
+        .. code-block::  python
+            ax_right.yaxis.label.set_text(stack_axis)
+
+    """
+    assert data.ndim == TWO_DIMENSION
+    assert scale_factor >= 0, "scale factor should be positive."
+
+    fig: Figure | None = None
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+
+    stack_axis_values = data.coords[stack_axis].values
+    n_stacks = len(stack_axis_values)
+    bottom_stack = stack_axis_values[-1] if reverse else stack_axis_values[0]
+    _ = set(data.dims)
+    _.remove(stack_axis)
+    plot_axis_name = _.pop()
+    plot_axis = data.coords[plot_axis_name].values
+
+    def laxis_to_right(laxis_value: float) -> float:
+        if reverse:
+            return (scale_factor * bottom_stack - laxis_value) / scale_factor
+        return (scale_factor * bottom_stack + laxis_value) / scale_factor
+
+    def raxis_to_left(raxis_value: float) -> float:
+        return scale_factor * abs(raxis_value - bottom_stack)
+
+    colors: list[tuple[float, float, float, float]] | list[str] = _get_colors(
+        cmap=cmap,
+        n_stacks=n_stacks,
+    )
+
+    alpha = kwargs.get("alpha", 1)
+    for i, stack_axis_value in enumerate(data.G.iter_coords(stack_axis, reverse=reverse)):
+        offset = raxis_to_left(stack_axis_value[stack_axis])
+        y = data.sel(stack_axis_value).values + offset
+        kwargs["alpha"] = 1
+        kwargs["color"] = colors[i]
+        ax.plot(
+            plot_axis,
+            y,
+            zorder=2 * (n_stacks - i) + 1,
+            **kwargs,
+        )
+        if mode == "hide_lines":
+            kwargs["alpha"] = alpha
+            kwargs["color"] = "white"
+            ax.fill_between(
+                plot_axis,
+                y,
+                offset,
+                zorder=2 * (n_stacks - i),
+                **kwargs,
+            )
+            kwargs["color"] = colors[i]
+        if mode == "fill_between":
+            kwargs["alpha"] = alpha
+            kwargs["color"] = colors[i]
+            ax.fill_between(
+                plot_axis,
+                y,
+                offset,
+                zorder=2 * (n_stacks - i),
+                **kwargs,
+            )
+
+    # set default values.
+    if data.name:
+        ax.set_ylabel(str(data.name))
+
+    ax.set_xlabel(str(plot_axis_name))
+    if scale_factor <= 0:
+        return fig, ax
+
+    # Right axis
+    ax_right = _set_right_axis(
+        ax=ax,
+        stack_coords=data.coords[stack_axis],
+        raxis_to_left=raxis_to_left,
+        laxis_to_right=laxis_to_right,
+        reverse=reverse,
+    )
+    return fig, ax, ax_right
+
+
+def _get_colors(
+    cmap: Colormap | str,
+    n_stacks: int,
+) -> list[tuple[float, float, float, float]] | list[str]:
+    if isinstance(cmap, str):
+        try:
+            cmap_ = plt.colormaps[cmap]
+            return [cmap_(i / (n_stacks - 1)) for i in range(n_stacks)]
+        except KeyError:
+            return [cmap for _ in range(n_stacks)]
+    else:  # should be colormaps
+        return [cmap(i / (n_stacks - 1)) for i in range(n_stacks)]
+
+
+def _set_right_axis(
+    ax: Axes,
+    stack_coords: xr.DataArray,
+    raxis_to_left: Callable[[float], float],
+    laxis_to_right: Callable[[float], float],
+    *,
+    reverse: bool,
+) -> Axes:
+    """Add and configure a right-side y-axis that reflects the stacking axis values.
+
+    This function creates a twin y-axis (`ax_right`) for a waterfall-style plot, where each
+    stacked trace is offset vertically but corresponds to a value in the original `stack_axis`.
+    It synchronizes the scaling with the left axis and maps tick positions accordingly.
+
+    Args:
+        ax (Axes): The main matplotlib Axes on the left side.
+        stack_coords (xr.DataArray): The coordinates of the stacking axis.
+        raxis_to_left (Callable[[float], float]): Function to convert a right-axis coordinate
+            to a vertical offset used on the left axis.
+        laxis_to_right (Callable[[float], float]): Function to convert a left-axis y-coordinate
+            to the corresponding stacking value.
+        reverse (bool): Whether the stacking direction is reversed (i.e., from top to bottom).
+
+    Returns:
+        Axes: The configured right-side twin Axes (`ax_right`).
+    """
+    ax_right = ax.twinx()
+    laxis_bottom, laxis_top = ax.get_ylim()
+    ax_right.set_ylim(laxis_to_right(laxis_bottom), laxis_to_right(laxis_top))
+    # right axis ticks
+    stack_axis_values = stack_coords.values
+    stack_axis = str(stack_coords.name)
+    rticks = MaxNLocator(nbins=5, prune="both").tick_values(
+        vmin=np.min(stack_axis_values),
+        vmax=np.max(stack_axis_values),
+    )
+    lticks = [raxis_to_left(raxis_value) for raxis_value in rticks]
+    if reverse:
+        lticks.reverse()
+    ax_right.yaxis.set_major_locator(FixedLocator(rticks))
+    # Tune the right axis label position
+    ax_right.set_ylabel(stack_axis)
+    ylim = ax.get_ylim()
+    ycenter = (min(lticks) + max(lticks)) / 2
+    ycoords = (ycenter - ylim[0]) / (ylim[1] - ylim[0])
+    ax_right.yaxis.set_label_coords(1.07, ycoords)
+
+    return ax_right
 
 
 @save_plot_provenance
@@ -206,7 +422,7 @@ def flat_stack_plot(  # noqa: PLR0913
     *,
     stack_axis: str = "",
     ax: Axes | None = None,
-    mode: Plot2DStyle = "line",
+    mode: Literal["line", "scatter"] = "line",
     fermi_level: float | None = None,
     figsize: tuple[float, float] = (7, 5),
     title: str = "",
@@ -237,6 +453,12 @@ def flat_stack_plot(  # noqa: PLR0913
         ValueError: If there is an issue with the input data.
         NotImplementedError: If a feature is not implemented.
     """
+    warnings.warn(
+        "This method will be deprecated. Use waterfall_dispersion with scaling_facotor=0 instead.",
+        category=DeprecationWarning,
+        stacklevel=2,
+    )
+
     data = _rebinning(
         data,
         stack_axis=stack_axis,
@@ -312,7 +534,7 @@ def stack_dispersion_plot(  # noqa: PLR0913
     out: str | Path = "",
     max_stacks: int = 100,
     scale_factor: float = 0,
-    mode: Plot2DStyle | Literal["fill_between", "hide_line"] = "line",
+    mode: Literal["fill_between", "hide_line", "line"] = "line",
     offset_correction: Literal["zero", "constant", "constant_right"] | None = "zero",
     shift: float = 0,
     negate: bool = False,
@@ -340,6 +562,13 @@ def stack_dispersion_plot(  # noqa: PLR0913
         **kwargs: Passed to ax.plot / fill_between. Can set linewidth etc., here.
             (See _typing/MPLPlotKwagsBasic)
     """
+    warnings.warn(
+        "This method will be deprecated. "
+        " Use waterfall_dispersion instead; its simpler design makes it much easier to use.",
+        category=DeprecationWarning,
+        stacklevel=2,
+    )
+
     data_arr, stack_axis, other_axis = _rebinning(
         data,
         stack_axis=stack_axis,
