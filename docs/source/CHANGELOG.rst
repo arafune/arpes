@@ -24,6 +24,7 @@ primarily indicate new features and documentation.
 * Set as Deprecated
   * stack_dispersion_plot
   * flat_stack_plot
+  * analysis.general.condense
 
 5.0.0-per3 (2025-04-25)
 ^^^^^^^^^^^^^^^^^^^^^^^^

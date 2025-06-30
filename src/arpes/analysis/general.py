@@ -2,6 +2,7 @@
 
 from logging import DEBUG, INFO
 
+import warnings
 import numpy as np
 import xarray as xr
 from lmfit.models import ConstantModel
@@ -158,7 +159,7 @@ def symmetrize_axis(
 
 
 @update_provenance("Condensed array")
-def condense(data: DataType) -> DataType:
+def condense(data: DataType) -> DataType:  # pragma: no cover
     """Clips the data so that only regions where there is substantial weight are included.
 
     In practice this usually means selecting along the ``eV`` axis, although other selections
@@ -170,6 +171,11 @@ def condense(data: DataType) -> DataType:
     Returns:
         The clipped data.
     """
+    warnings.warn(
+        "This method will be deprecated. Don't use it. Instead, use data.sel(eV=slice(0, 0.05))",
+        category=DeprecationWarning,
+        stacklevel=2,
+    )
     if "eV" in data.dims:
         data = data.sel(eV=slice(None, 0.05))
 
