@@ -86,3 +86,9 @@ def test_fill_between_called_in_fill_mode(test_data):
     with patch("matplotlib.axes.Axes.fill_between", autospec=True) as mock_fill:
         _, ax, _ = waterfall_dispersion(test_data, mode="fill_between")
         assert mock_fill.call_count >= len(test_data.coords["phi"])
+
+
+def test_fill_between_called_in_hide_lines(test_data):
+    with patch("matplotlib.axes.Axes.fill_between", autospec=True) as mock_fill:
+        _, ax, _ = waterfall_dispersion(test_data, mode="hide_lines")
+        assert mock_fill.call_count >= len(test_data.coords["phi"])
