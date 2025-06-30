@@ -68,6 +68,7 @@ def waterfall_dispersion(  # noqa: PLR0913
     mode: Literal["fill_between", "hide_lines", "line"] = "line",
     cmap: Colormap | str = "black",
     figsize: tuple[float, float] = (7, 5),
+    prune: Literal["lower", "uppder", "both"] | None = "both",
     *,
     reverse: bool = True,
     **kwargs: Unpack[MPLPlotKwargsBasic],
@@ -92,6 +93,10 @@ def waterfall_dispersion(  # noqa: PLR0913
                 - "fill_between": area between lines and offset baseline is filled with color
                 - "hide_line": lines are hidden by white fill overlaid
             Defaults to "line".
+        prune ({'lower', 'upper', 'both', None}):
+            Remove the 'lower' tick, the 'upper' tick, or ticks on 'both' sides
+            *if they fall exactly on the **right** axis edge*. Default "both"
+        reverse (bool): Whether the stacking direction is reversed (i.e., from top to bottom).
         cmap (Colormap | str, optional): A matplotlib colormap name or single color string to use.
             Defaults to "black".
         figsize (tuple[float, float], optional): Figure size (ignored if `ax` is provided).
@@ -200,8 +205,8 @@ def waterfall_dispersion(  # noqa: PLR0913
     ax_right = _set_right_axis(
         ax=ax,
         stack_coords=data.coords[stack_axis],
-        raxis_to_left=raxis_to_left,
-        laxis_to_right=laxis_to_right,
+        axis_converters=(laxis_to_right, raxis_to_left),
+        prune=prune,
         reverse=reverse,
     )
     return fig, ax, ax_right
@@ -224,8 +229,8 @@ def _get_colors(
 def _set_right_axis(
     ax: Axes,
     stack_coords: xr.DataArray,
-    raxis_to_left: Callable[[float], float],
-    laxis_to_right: Callable[[float], float],
+    axis_converters: tuple[Callable[[float], float], Callable[[float], float]],
+    prune: Literal["lower", "uppder", "both"] | None,
     *,
     reverse: bool,
 ) -> Axes:
@@ -238,10 +243,11 @@ def _set_right_axis(
     Args:
         ax (Axes): The main matplotlib Axes on the left side.
         stack_coords (xr.DataArray): The coordinates of the stacking axis.
-        raxis_to_left (Callable[[float], float]): Function to convert a right-axis coordinate
-            to a vertical offset used on the left axis.
-        laxis_to_right (Callable[[float], float]): Function to convert a left-axis y-coordinate
-            to the corresponding stacking value.
+        axis_converters (tuple[Callable[[float], float], Callable[[float], float]]):
+            Functions to convert a left-axis coordinate to right-axis and vice versa.
+        prune(Literal['lower', 'upper', 'both'] | None):
+            Remove the 'lower' tick, the 'upper' tick, or ticks on 'both' sides
+            *if they fall exactly on the **right** axis edge*, default: None
         reverse (bool): Whether the stacking direction is reversed (i.e., from top to bottom).
 
     Returns:
@@ -249,11 +255,13 @@ def _set_right_axis(
     """
     ax_right = ax.twinx()
     laxis_bottom, laxis_top = ax.get_ylim()
+    laxis_to_right = axis_converters[0]
+    raxis_to_left = axis_converters[1]
     ax_right.set_ylim(laxis_to_right(laxis_bottom), laxis_to_right(laxis_top))
     # right axis ticks
     stack_axis_values = stack_coords.values
     stack_axis = str(stack_coords.name)
-    rticks = MaxNLocator(nbins=5, prune="both").tick_values(
+    rticks = MaxNLocator(nbins=5, prune=prune).tick_values(
         vmin=np.min(stack_axis_values),
         vmax=np.max(stack_axis_values),
     )
