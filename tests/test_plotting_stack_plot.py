@@ -2,13 +2,15 @@
 
 from unittest.mock import patch
 
+import matplotlib.pyplot as plt
 import numpy as np
+from pandas._config.config import is_instance_factory
 import pytest
 import xarray as xr
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from arpes.plotting.stack_plot import waterfall_dispersion
+from arpes.plotting.stack_plot import _get_colors, waterfall_dispersion
 
 
 @pytest.fixture
@@ -27,6 +29,15 @@ def test_data():
         dims=("phi", "eV"),
         name="Photoemission Intensity",
     )
+
+
+def test_get_colors():
+    colors = _get_colors(plt.colormaps["viridis"], 5)
+    assert len(colors) == 5
+    assert isinstance(colors[0][0], np.float64)
+    assert isinstance(colors[0][1], np.float64)
+    assert isinstance(colors[0][2], np.float64)
+    assert isinstance(colors[0][3], np.float64)
 
 
 def test_basic_output_structure(test_data):
@@ -58,6 +69,11 @@ def test_plot_modes(test_data):
         assert isinstance(fig, Figure)
         assert isinstance(ax, Axes)
         assert isinstance(ax_right, Axes)
+
+
+def test_plot_with_reverse_falsel(test_data):
+    fig, ax, ax_right = waterfall_dispersion(test_data, reverse=False)
+    assert ax_right.yaxis.get_inverted() == np.False_
 
 
 def test_custom_cmap_string(test_data):
