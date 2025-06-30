@@ -1,8 +1,8 @@
 """Some general purpose analysis routines otherwise defying categorization."""
 
+import warnings
 from logging import DEBUG, INFO
 
-import warnings
 import numpy as np
 import xarray as xr
 from lmfit.models import ConstantModel
