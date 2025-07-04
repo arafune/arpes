@@ -27,7 +27,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import xarray as xr
 
-from arpes.utilities import clean_keys
+from arpes.helper import clean_keys
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray

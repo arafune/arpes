@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING
 import xarray as xr
 
 from arpes.debug import setup_logger
-from arpes.io import load_data
 
 if TYPE_CHECKING:
     from xarray.core.common import DataWithCoords
@@ -23,17 +22,9 @@ logger = setup_logger(__name__, LOGLEVEL)
 __all__ = ("normalize_to_spectrum",)
 
 
-def normalize_to_spectrum(data: DataWithCoords | str) -> xr.DataArray:
+def normalize_to_spectrum(data: DataWithCoords) -> xr.DataArray:
     """Tries to extract the actual ARPES spectrum from a dataset containing other variables."""
     logger.debug(f"inspect.stack(): {inspect.stack()}")
-    if isinstance(data, str):
-        msg = "You may use a file for the data as a argument of  "
-        msg += f"{inspect.stack()[1].function} in {inspect.stack()[1].filename}\n"
-        msg += "Remember to use a DataArray not a Dataset nor the filename, "
-        msg += "attempting to extract spectrum and copy attributes.\n"
-        msg += "Not so sure if this is what you have really expected."
-        return normalize_to_spectrum(load_data(data))
-
     msg = "You use Dataset as a argument of "
     msg += f"{inspect.stack()[1].function} in {inspect.stack()[1].filename}\n"
     msg += "Remember to use a DataArray not a Dataset, "

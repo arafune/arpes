@@ -1,6 +1,6 @@
 """Unit test for string.py."""
 
-from arpes.utilities.string import safe_decode
+from arpes.helper.string import safe_decode
 
 
 def test_safe_decode():

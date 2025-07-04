@@ -2,7 +2,7 @@
 
 import pytest
 
-from arpes.utilities import clean_keys, deep_update
+from arpes.helper import clean_keys, deep_update
 
 
 def test_cldean_keys() -> None:

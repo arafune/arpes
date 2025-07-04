@@ -11,6 +11,7 @@ from lmfit.models import ConstantModel, LinearModel, LorentzianModel, QuadraticM
 
 import arpes
 import arpes.endstations
+from arpes.configuration.manager import config_manager
 from arpes.fits import AffineBroadenedFD
 from arpes.io import example_data
 from tests.utils import cache_loader
@@ -198,7 +199,7 @@ def sandbox_configuration() -> Iterator[Sandbox]:
             "path": resources_dir / "datasets" / name,
             "name": name,
         }
-        arpes.config.CONFIG["WORKSPACE"] = workspace
+        config_manager.config["WORKSPACE"] = workspace
 
     def load(path: str) -> xr.DataArray | xr.Dataset:
         assert path in SCAN_FIXTURE_LOCATIONS
@@ -209,12 +210,14 @@ def sandbox_configuration() -> Iterator[Sandbox]:
             location=SCAN_FIXTURE_LOCATIONS[path],
         )
 
-    arpes.config.update_configuration(user_path=resources_dir)
+    config_manager.figure_path = Path(resources_dir) / "figures"
+    config_manager.dataset_path = Path(resources_dir) / "datasets"
     sandbox = Sandbox(
         with_workspace=set_workspace,
         load=load,
     )
-    arpes.config.load_plugins()
+    arpes.plugin_loader.load_plugins()
     yield sandbox
-    arpes.config.CONFIG["WORKSPACE"] = None
+    config_manager.config["WORKSPACE"] = None
+    # arpes.config.CONFIG["WORKSPACE"] = None
     arpes.endstations._ENDSTATION_ALIASES = {}

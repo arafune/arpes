@@ -28,9 +28,9 @@ from arpes._typing import DataType
 
 from .analysis.sarpes import to_intensity_polarization
 from .debug import setup_logger
+from .helper.jupyter import get_tqdm
 from .provenance import update_provenance
 from .utilities import lift_dataarray_to_generic
-from .utilities.jupyter import get_tqdm
 from .utilities.normalize import normalize_to_spectrum
 from .utilities.region import normalize_region
 

@@ -13,8 +13,8 @@ from astropy.io import fits
 
 from arpes.endstations import HemisphericalEndstation, SynchrotronEndstation, find_clean_coords
 from arpes.provenance import Provenance, provenance_from_file
-from arpes.setting import DATA_PATH
-from arpes.utilities import rename_keys
+from arpes.configuration.interface import get_data_path
+from arpes.helper import rename_keys
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete
@@ -62,8 +62,9 @@ class HERSEndstation(
 
         data_loc = Path(scan_desc.get("path", scan_desc.get("file", "")))
         if not data_loc.is_absolute():
-            assert DATA_PATH is not None
-            data_loc = Path(DATA_PATH) / data_loc
+            data_path = get_data_path()
+            assert data_path is not None
+            data_loc = Path(data_path) / data_loc
 
         hdulist = fits.open(data_loc)
 

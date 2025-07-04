@@ -34,10 +34,10 @@ import numpy as np
 import xarray as xr
 from astropy.io import fits
 
+from arpes.configuration.manager import config_manager
 from arpes.debug import setup_logger
+from arpes.helper.dict import rename_keys
 from arpes.provenance import Provenance, provenance_from_file
-from arpes.setting import DATA_PATH
-from arpes.utilities import rename_keys
 
 from .base import EndstationBase
 from .fits_utils import find_clean_coords
@@ -116,7 +116,7 @@ class FITSEndstation(EndstationBase):
         This function resolves the file location(s) based on the provided `scan_desc` dictionary.
         It looks for the "path" or "file" key in the `scan_desc` to determine the file location.
         If the file does not exist at the provided location, it will attempt to find it in the
-        `DATA_PATH` directory. If the file is still not found, a `RuntimeError` is raised.
+        `config_manager.data_path` directory. If the file is still not found, a `RuntimeError` is raised.
 
         Args:
             scan_desc (ScanDesc | None): A dictionary containing scan metadata.
@@ -128,7 +128,7 @@ class FITSEndstation(EndstationBase):
         Raises:
             ValueError: If `scan_desc` is not provided or is `None`.
             RuntimeError: If the file cannot be found at the specified location or in the
-                `DATA_PATH` directory.
+                `config_manager.data_path` directory.
         """
         if scan_desc is None:
             msg = "Must pass dictionary as file scan_desc to all endstation loading code."
@@ -137,9 +137,10 @@ class FITSEndstation(EndstationBase):
             )
         original_data_loc = scan_desc.get("path", scan_desc.get("file"))
         assert original_data_loc
+        data_path = config_manager.data_path
         if not Path(original_data_loc).exists():
-            if DATA_PATH is not None:
-                original_data_loc = Path(DATA_PATH) / original_data_loc
+            if data_path is not None:
+                original_data_loc = Path(data_path) / original_data_loc
             else:
                 msg = "File not found"
                 raise RuntimeError(msg)

@@ -18,9 +18,9 @@ from astropy.io import fits
 from arpes.debug import setup_logger
 from arpes.endstations import EndstationBase, find_clean_coords
 from arpes.provenance import Provenance, provenance_from_file
-from arpes.utilities import rename_keys
+from arpes.helper import rename_keys
 from arpes._typing import Spectrometer
-from arpes.setting import DATA_PATH
+from arpes.configuration.interface import get_data_path
 
 if TYPE_CHECKING:
     from arpes._typing import ScanDesc
@@ -105,9 +105,10 @@ class SpinToFEndstation(EndstationBase):
         if scan_desc is None:
             scan_desc = {}
         data_loc = Path(scan_desc.get("path", scan_desc.get("file", "")))
+        data_path = get_data_path()
         if not data_loc.is_absolute():
-            assert DATA_PATH is not None
-            data_loc = Path(DATA_PATH) / data_loc
+            assert data_path is not None
+            data_loc = Path(data_path) / data_loc
 
         f = h5py.File(data_loc, "r")
 
@@ -140,9 +141,10 @@ class SpinToFEndstation(EndstationBase):
             scan_desc: [TODO:description]
         """
         data_loc = Path(scan_desc.get("path", scan_desc.get("file", "")))
+        data_path = get_data_path()
         if not data_loc.exists():
-            assert DATA_PATH is not None
-            data_loc = Path(DATA_PATH) / data_loc
+            assert data_path is not None
+            data_loc = Path(data_path) / data_loc
 
         hdulist = fits.open(data_loc)
 

@@ -13,7 +13,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Literal,
-    Required,
     TypeAlias,
     TypedDict,
     TypeGuard,
@@ -57,7 +56,6 @@ __all__ = [
     "LEGENDLOCATION",
     "MOMENTUM",
     "AnalyzerInfo",
-    "ConfigType",
     "CoordsOffset",
     "DataType",
     "NormalizableDataType",
@@ -197,13 +195,13 @@ def is_homogeneous_dataset_list(
     return all(isinstance(arr, xr.Dataset) for arr in arr_list)
 
 
-class _InteractiveConfigSettings(TypedDict, total=False):
+class _InteractiveConfigSettings(TypedDict, total=True):
     main_width: float
     marginal_width: float
     palette: str | Colormap
 
 
-class ConfigSettings(TypedDict, total=False):
+class ConfigSettings(TypedDict, total=True):
     """TypedDict for arpes.SETTINGS."""
 
     interactive: _InteractiveConfigSettings
@@ -232,16 +230,6 @@ class CurrentContext(TypedDict, total=False):
     axis_button: Button
     axis_X_input: TextBox
     axis_Y_input: TextBox
-
-
-class ConfigType(TypedDict, total=False):
-    """TypedDict for arpes.CONFIG."""
-
-    WORKSPACE: Required[WorkSpaceType]
-    CURRENT_CONTEXT: CurrentContext | None  # see widgets.py
-    ENABLE_LOGGING: Required[bool]
-    LOGGING_STARTED: Required[bool]
-    LOGGING_FILE: Required[str | Path | None]
 
 
 #

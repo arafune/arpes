@@ -12,7 +12,7 @@ from logging import DEBUG, INFO
 from typing import TYPE_CHECKING, Literal, TypeVar
 
 from arpes.debug import setup_logger
-from arpes.utilities.jupyter import get_tqdm
+from arpes.helper.jupyter import get_tqdm
 
 if TYPE_CHECKING:
     import lmfit

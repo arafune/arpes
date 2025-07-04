@@ -25,11 +25,11 @@ To run:
 
 import warnings
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from arpes.endstations.plugin.fallback import FallbackEndstation, AUTOLOAD_WARNING
+from arpes.endstations.plugin.fallback import AUTOLOAD_WARNING, FallbackEndstation
 
 
 @pytest.fixture

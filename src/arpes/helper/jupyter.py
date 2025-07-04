@@ -22,7 +22,6 @@ from tqdm.notebook import tqdm as notebook_tqdm
 from traitlets.config import MultipleInstanceError
 
 from arpes.debug import setup_logger
-from arpes.setting import CONFIG
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -179,11 +178,14 @@ def get_recent_history(n_items: int = 10) -> list[str]:
 
 def get_recent_logs(n_bytes: int = 1000) -> list[str]:
     """Fetches a recent chunk of user logs. Used to populate a context on provenance outputs."""
+    from arpes.configuration.interface import get_logging_file, get_logging_started  # noqa: PLC0415
+
     try:
         ipython = get_ipython()
         assert isinstance(ipython, InteractiveShell)
-        if CONFIG["LOGGING_STARTED"]:
-            logging_file = CONFIG["LOGGING_FILE"]
+        logging_started = get_logging_started()
+        if logging_started:
+            logging_file = get_logging_file()
             assert isinstance(logging_file, str | Path)
             with Path(logging_file).open("rb") as file:
                 try:

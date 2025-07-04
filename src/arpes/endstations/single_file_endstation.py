@@ -17,8 +17,8 @@ from logging import DEBUG, INFO
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from arpes.configuration.interface import get_data_path
 from arpes.debug import setup_logger
-from arpes.setting import DATA_PATH
 
 from .base import EndstationBase
 
@@ -50,8 +50,9 @@ class SingleFileEndstation(EndstationBase):
         original_data_loc = scan_desc.get("path", scan_desc.get("file"))
         assert original_data_loc
         if not Path(original_data_loc).exists():
-            if DATA_PATH is not None:
-                original_data_loc = Path(DATA_PATH) / original_data_loc
+            data_path = get_data_path()
+            if data_path is not None:
+                original_data_loc = Path(data_path) / original_data_loc
             else:
                 msg = "File not found"
                 raise RuntimeError(msg)

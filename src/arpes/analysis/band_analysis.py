@@ -18,10 +18,10 @@ from scipy.spatial import distance
 from arpes import models
 from arpes.constants import HBAR_SQ_EV_PER_ELECTRON_MASS_ANGSTROM_SQ, TWO_DIMENSION
 from arpes.debug import setup_logger
+from arpes.helper.jupyter import get_tqdm
 from arpes.models.band import Band
 from arpes.provenance import update_provenance
 from arpes.utilities.conversion.forward import convert_coordinates_to_kspace_forward
-from arpes.utilities.jupyter import get_tqdm
 
 if TYPE_CHECKING:
     from collections.abc import Hashable, Iterator

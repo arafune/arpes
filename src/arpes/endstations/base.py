@@ -30,10 +30,10 @@ from typing import TYPE_CHECKING, ClassVar
 import numpy as np
 import xarray as xr
 
+from arpes.configuration.interface import get_workspace_path
 from arpes.debug import setup_logger
-from arpes.setting import CONFIG
-from arpes.utilities import rename_keys
-from arpes.utilities.dict import rename_dataarray_attrs
+from arpes.helper import rename_keys
+from arpes.utilities.xarray import rename_dataarray_attrs
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
@@ -188,9 +188,8 @@ class EndstationBase:
             "return the file name from the arbitrary number in your own endstation plugin class.",
             stacklevel=2,
         )
-        workspace = CONFIG["WORKSPACE"]
-        assert "path" in workspace
-        workspace_path = Path(workspace["path"]) / "data" if workspace else Path()
+
+        workspace_path = get_workspace_path()
         base_dir: Path = workspace_path
         dir_options: list[Path] = [base_dir / option for option in cls._SEARCH_DIRECTORIES]
 

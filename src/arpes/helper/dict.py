@@ -5,11 +5,8 @@ from __future__ import annotations
 import re
 from typing import Any, TypeVar
 
-from .xarray import lift_dataarray_attrs
-
 __all__ = (
     "clean_keys",
-    "rename_dataarray_attrs",
     "rename_keys",
 )
 
@@ -65,6 +62,3 @@ def clean_keys(d: dict[str, T]) -> dict[str, T]:
         return k.replace("__", "_")
 
     return dict(zip([clean_single_key(k) for k in d], d.values(), strict=True))
-
-
-rename_dataarray_attrs = lift_dataarray_attrs(rename_keys)

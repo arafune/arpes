@@ -26,11 +26,11 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
+from .configuration.interface import get_workspace_path
 from .debug import setup_logger
 from .endstations.registry import resolve_endstation
 from .example_data.mock import build_mock_tarpes
 from .provenance import provenance_multiple_parents
-from .setting import CONFIG
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete
@@ -257,8 +257,8 @@ def _df_or_list_to_files(
 
 def file_for_pickle(name: str) -> Path | str:
     here = Path()
-    if CONFIG["WORKSPACE"] and "path" in CONFIG["WORKSPACE"]:
-        here = Path(CONFIG["WORKSPACE"]["path"])
+    if get_workspace_path():
+        here = Path(get_workspace_path())
     path = here / "picklejar" / f"{name}.pickle"
     path.parent.mkdir(exist_ok=True)
     return str(path)

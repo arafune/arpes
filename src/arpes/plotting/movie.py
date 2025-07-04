@@ -16,10 +16,10 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
+from arpes.configuration.interface import get_config_manager
 from arpes.constants import TWO_DIMENSION
 from arpes.debug import setup_logger
 from arpes.provenance import save_plot_provenance
-from arpes.setting import SETTINGS
 from arpes.utilities import normalize_to_spectrum
 
 from .utils import color_for_darkbackground, path_for_plot
@@ -175,6 +175,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913
     Returns:
         Path | HTML: The path to the saved animation or the animation object itself.
     """
+    config_manager = get_config_manager()
     backend = mpl.get_backend()
     mpl.use("Agg")
     figsize = figsize or (9.0, 5.0)
@@ -186,7 +187,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913
 
     kwargs.setdefault(
         "cmap",
-        SETTINGS.get("interactive", {}).get(
+        config_manager.settings.get("interactive", {}).get(
             "palette",
             "viridis",
         ),
@@ -322,6 +323,7 @@ def plot_movie(  # noqa: PLR0913
     Raises:
         TypeError: If the argument types are incorrect.
     """
+    config_manager = get_config_manager()
     backend = mpl.get_backend()
     mpl.use("Agg")
 
@@ -331,12 +333,11 @@ def plot_movie(  # noqa: PLR0913
     assert isinstance(ax, Axes)
     assert isinstance(fig, Figure)
     assert isinstance(data, xr.DataArray)
-    assert isinstance(SETTINGS, dict)
     assert data.ndim == TWO_DIMENSION + 1
 
     kwargs.setdefault(
         "cmap",
-        SETTINGS.get("interactive", {}).get(
+        config_manager.settings.get("interactive", {}).get(
             "palette",
             "viridis",
         ),

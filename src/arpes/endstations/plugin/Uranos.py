@@ -26,8 +26,8 @@ from arpes.endstations import (
     SynchrotronEndstation,
     add_endstation,
 )
+from arpes.helper import clean_keys
 from arpes.load_pxt import read_single_pxt
-from arpes.utilities import clean_keys
 
 if TYPE_CHECKING:
     from numpy._typing import NDArray

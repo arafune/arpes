@@ -11,13 +11,13 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from arpes.setting import DATA_PATH
+from arpes.configuration.interface import get_data_path
 from arpes.debug import setup_logger
 from arpes.constants import TWO_DIMENSION
 from arpes.endstations import HemisphericalEndstation, SESEndstation
 
 if TYPE_CHECKING:
-    from arpes.typing import ScanDesc
+    from arpes._typing import ScanDesc
 
 __all__ = ("KaindlEndstation",)
 
@@ -124,8 +124,9 @@ class KaindlEndstation(HemisphericalEndstation, SESEndstation):
         assert original_data_loc != ""
         p = Path(original_data_loc)
         if not p.exists():
-            if DATA_PATH is not None:
-                original_data_loc = Path(DATA_PATH) / original_data_loc
+            data_path = get_data_path()
+            if data_path is not None:
+                original_data_loc = Path(data_path) / original_data_loc
             else:
                 msg = "File not found"
                 raise RuntimeError(msg)

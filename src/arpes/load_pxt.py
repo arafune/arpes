@@ -14,8 +14,7 @@ import numpy as np
 import xarray as xr
 
 from .debug import setup_logger
-from .utilities import rename_keys
-from .utilities.string import safe_decode
+from .helper import rename_keys, safe_decode
 
 if TYPE_CHECKING:
     from collections.abc import Hashable

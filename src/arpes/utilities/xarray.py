@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any, Concatenate, ParamSpec, TypeVar
 import xarray as xr
 
 from arpes.debug import setup_logger
+from arpes.helper.dict import rename_keys
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -24,6 +25,7 @@ __all__ = (
     "lift_dataarray",
     "lift_dataarray_attrs",
     "lift_datavar_attrs",
+    "rename_dataarray_attrs",
     "unwrap_xarray_dict",
     "unwrap_xarray_item",
 )
@@ -209,3 +211,6 @@ def lift_datavar_attrs(
         return xr.Dataset(new_vars, data.coords, new_root_attrs)
 
     return g
+
+
+rename_dataarray_attrs = lift_dataarray_attrs(rename_keys)
