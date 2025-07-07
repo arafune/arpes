@@ -221,3 +221,79 @@ def test_workspace_properties(tmp_path, monkeypatch):
     cm.detect_workspace()
     assert isinstance(cm.workspace_path, Path)
     assert isinstance(cm.workspace_name, str)
+
+
+def test_exit_workspace(monkeypatch, tmp_path):
+    """Test resetting workspace using exit_workspace()."""
+    (tmp_path / "data").mkdir()
+    monkeypatch.chdir(tmp_path)
+    cm = ConfigManager()
+    cm.exit_workspace()
+    assert cm.workspace_path == tmp_path
+
+
+def test_is_workspace_variants(tmp_path):
+    """Test workspace detection with 'Data' instead of 'data'."""
+    (tmp_path / "Data").mkdir()
+    cm = ConfigManager()
+    assert cm._is_workspace(tmp_path) is True
+
+
+def test_is_using_tex():
+    """Test is_using_tex() reflects matplotlib state."""
+    cm = ConfigManager()
+    cm.use_tex(enable=True)
+    assert cm.is_using_tex() is True
+    cm.use_tex(enable=False)
+    assert cm.is_using_tex() is False
+
+
+def test_update_config_from_json_full(tmp_path):
+    """Test update_config_from_json with actual Path.open usage."""
+    cm = ConfigManager()
+    config_dict = {"LOGGING_STARTED": True}
+    json_path = tmp_path / "cfg.json"
+    with json_path.open("w", encoding="utf-8") as f:
+        json.dump(config_dict, f)
+    cm.update_config_from_json(str(json_path))
+    assert cm.config["LOGGING_STARTED"] is True
+
+
+def test_set_workspace(tmp_path):
+    """Test manually setting workspace updates all paths correctly."""
+    base = tmp_path / "newspace"
+    base.mkdir()
+    cm = ConfigManager()
+    cm.set_workspace(base)
+    assert cm.workspace_path == base
+    assert cm.data_path == base / "data"
+    assert cm.dataset_path == base / "datasets"
+    assert cm.figure_path == base / "figures"
+
+
+def test_enter_workspace_success(monkeypatch, tmp_path):
+    """Test entering an existing workspace after detecting it."""
+    base = tmp_path / "mainspace"
+    base.mkdir()
+    (base / "data").mkdir()
+    monkeypatch.chdir(base)
+    cm = ConfigManager()
+    cm.detect_workspace()  # set WORKSPACE
+    sibling = base.parent / "otherspace"
+    sibling.mkdir()
+    (sibling / "data").mkdir()
+    cm.enter_workspace("otherspace")
+    assert cm.workspace_name == "otherspace"
+    assert cm.workspace_path == sibling
+
+
+def test_detect_workspace_fallback(tmp_path, monkeypatch):
+    """Test detect_workspace fallback when no valid workspace found."""
+    dummy_root = tmp_path / "nonspace"
+    dummy_root.mkdir()
+    monkeypatch.chdir(dummy_root)
+    cm = ConfigManager()
+    cm.detect_workspace()
+    # fallback: should return cwd as workspace
+    assert cm.workspace_path == dummy_root
+    assert cm.workspace_name == "nonspace"
