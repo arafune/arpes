@@ -16,7 +16,7 @@ import numpy as np
 import torch
 from torch.utils.data.dataset import Dataset, Subset
 
-from arpes.utilities.jupyter import get_tqdm
+from arpes.helper.jupyter import get_tqdm
 
 if TYPE_CHECKING:
     import pytorch_lightning as pl
