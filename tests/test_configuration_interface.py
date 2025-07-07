@@ -3,12 +3,13 @@
 #
 
 from pathlib import Path
-import arpes.configuration.interface as interface
+
+from arpes.configuration import interface
 
 
 def test_get_workspace_path():
     """Return the absolute path to the current workspace directory."""
-    assert interface.get_workspace_path() == Path(".")
+    assert interface.get_workspace_path() == Path()
 
 
 def test_get_workspace_name():

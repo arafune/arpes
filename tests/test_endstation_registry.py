@@ -17,9 +17,9 @@ and plugin loading behavior is patched where needed to simulate retry behavior.
 
 """
 
-import pytest
 import warnings
-from unittest.mock import patch, MagicMock
+
+import pytest
 
 from arpes.endstations import registry
 from arpes.endstations.plugin.fallback import FallbackEndstation

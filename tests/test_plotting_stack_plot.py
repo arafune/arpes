@@ -4,7 +4,6 @@ from unittest.mock import patch
 
 import matplotlib.pyplot as plt
 import numpy as np
-from pandas._config.config import is_instance_factory
 import pytest
 import xarray as xr
 from matplotlib.axes import Axes

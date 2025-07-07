@@ -25,7 +25,7 @@ To run:
 
 import warnings
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -66,7 +66,7 @@ def test_determine_associated_loader_failure():
     with (
         patch("arpes.endstations.plugin.fallback.load_plugins"),
         patch(
-            "arpes.endstations.plugin.fallback.resolve_endstation", side_effect=Exception("Fail")
+            "arpes.endstations.plugin.fallback.resolve_endstation", side_effect=Exception("Fail"),
         ),
     ):
         with pytest.raises(ValueError, match="failed to find a plugin acceptable"):

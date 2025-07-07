@@ -36,6 +36,7 @@ import json
 import warnings
 from pathlib import Path
 from types import ModuleType
+
 import matplotlib as mpl
 import pytest
 
@@ -181,7 +182,7 @@ def test_initialize_sets_initialized(monkeypatch):
     monkeypatch.setattr(cm, "load_plugins", lambda: cm.config.update({"plugins_loaded": True}))
     monkeypatch.setattr(cm, "load_local_config", lambda: cm.config.update({"local_loaded": True}))
     monkeypatch.setattr(
-        "importlib.import_module", lambda name: cm.config.update({"xarray_loaded": True})
+        "importlib.import_module", lambda name: cm.config.update({"xarray_loaded": True}),
     )
 
     cm.initialize()

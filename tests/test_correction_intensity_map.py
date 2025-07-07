@@ -1,6 +1,6 @@
 import numpy as np
-import xarray as xr
 import pytest
+import xarray as xr
 
 from arpes.correction.intensity_map import shift
 
@@ -24,7 +24,7 @@ def sample_data3D():
 
 def test_shift_with_xrdataarray(sample_data):
     shift_vals = xr.DataArray(
-        np.ones(sample_data.sizes["y"]), coords={"y": sample_data.coords["y"]}, dims=["y"]
+        np.ones(sample_data.sizes["y"]), coords={"y": sample_data.coords["y"]}, dims=["y"],
     )
     out = shift(sample_data, shift_vals, shift_axis="x", shift_coords=False)
     assert isinstance(out, xr.DataArray)
@@ -34,7 +34,7 @@ def test_shift_with_xrdataarray(sample_data):
 
 def test_shift_with_xrdataarray_shift_coords(sample_data):
     shift_vals = xr.DataArray(
-        np.ones(sample_data.sizes["y"]), coords={"y": sample_data.coords["y"]}, dims=["y"]
+        np.ones(sample_data.sizes["y"]), coords={"y": sample_data.coords["y"]}, dims=["y"],
     )
     out = shift(sample_data, shift_vals, shift_axis="x", shift_coords=True)
     assert not np.allclose(out.coords["x"], sample_data.coords["x"])
