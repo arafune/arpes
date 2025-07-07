@@ -89,6 +89,8 @@ omit = [
   "tests/*",
   "src/arpes/deep_learning/*",
   "src/arpes/widgets.py",
+  "src/arpes/endstations/ses_endstation.py",
+  "src/arpes/endstations/fits_endstation.py",
   "src/arpes/endstations/plugin/ALG*",
   "src/arpes/endstations/plugin/ANTARES.py",
   "src/arpes/endstations/plugin/BL10_SARPES.py",
@@ -97,9 +99,10 @@ omit = [
   "src/arpes/endstations/plugin/MAESTRO.py",
   "src/arpes/endstations/plugin/MBS.py",
   "src/arpes/endstations/plugin/SSRF_NSRL.py",
-  "src/arpes/endstations/plugin/STofDLD.py",
+  "src/arpes/endstations/plugin/SToFDLD.py",
   "src/arpes/endstations/plugin/merlin.py",
   "src/arpes/endstations/plugin/kaindl.py",
+  "src/arpes/endstations/plugin/igor_export.py",
 ]
 
 [tool.coverage.report]
