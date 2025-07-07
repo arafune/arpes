@@ -1,3 +1,5 @@
+"""Unit test for helper.jupyter module."""
+
 from datetime import UTC, datetime
 from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
@@ -46,7 +48,10 @@ def test_get_tqdm_cli_environment():
 @patch("arpes.helper.jupyter.urllib.request.urlopen")
 @patch("arpes.helper.jupyter.json.load")
 def test_get_full_notebook_information_success(
-    mock_json_load, mock_urlopen, mock_list_running_servers, mock_get_connection_file,
+    mock_json_load,
+    mock_urlopen,
+    mock_list_running_servers,
+    mock_get_connection_file,
 ):
     """Test successful retrieval of notebook information."""
     mock_get_connection_file.return_value = "/tmp/kernel-12345.json"
@@ -260,7 +265,9 @@ def test_get_recent_logs_success(
 @patch("arpes.configuration.interface.get_logging_started", return_value=False)
 @patch("arpes.configuration.interface.get_logging_file")
 def test_get_recent_logs_logging_not_started(
-    mock_get_logging_file, mock_get_logging_started, mock_get_ipython,
+    mock_get_logging_file,
+    mock_get_logging_started,
+    mock_get_ipython,
 ):
     """Test get_recent_logs when logging is not started."""
     mock_get_ipython.return_value = MagicMock(spec=InteractiveShell)
@@ -284,7 +291,9 @@ def test_get_recent_logs_no_ipython(mock_get_logging_started, mock_get_ipython):
     return_value=None,
 )  # Simulate get_logging_file returning None or invalid type
 def test_get_recent_logs_invalid_logging_file(
-    mock_get_logging_file, mock_get_logging_started, mock_get_ipython,
+    mock_get_logging_file,
+    mock_get_logging_started,
+    mock_get_ipython,
 ):
     """Test get_recent_logs when logging file is invalid."""
     mock_get_ipython.return_value = MagicMock(spec=InteractiveShell)

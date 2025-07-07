@@ -81,16 +81,41 @@ allow-direct-references = true
 [tool.hatch.build.targets.wheel]
 packages = ["src/arpes"]
 
-[tool.coverge.run]
+[tool.coverage.run]
+branch = true
+source = ['arpes']
 omit = [
   "src/arpes/plotting/*",
   "tests/*",
   "src/arpes/deep_learning/*",
   "src/arpes/widgets.py",
+  "src/arpes/endstations/plugin/ALG*",
+  "src/arpes/endstations/plugin/ANTARES.py",
+  "src/arpes/endstations/plugin/BL10_SARPES.py",
+  "src/arpes/endstations/plugin/Elettra_spectromicroscopy.py",
+  "src/arpes/endstations/plugin/HERS.py",
+  "src/arpes/endstations/plugin/MAESTRO.py",
+  "src/arpes/endstations/plugin/MBS.py",
+  "src/arpes/endstations/plugin/SSRF_NSRL.py",
+  "src/arpes/endstations/plugin/STofDLD.py",
+  "src/arpes/endstations/plugin/merlin.py",
+  "src/arpes/endstations/plugin/kaindl.py",
 ]
 
-[tool.coverge.report]
+[tool.coverage.report]
 exclude_lines = ["raise NotImplementedError", "pragma: no cover"]
+exclude_also = [
+  "def __repr__",
+  "def _repr_html_.*",
+  "if self.debug:",
+  "if settings.DEBUG",
+  "raise AssertionError",
+  "if 0:",
+  "if __name__ == .__main__.:",
+  "^if TYPE_CHECKING:",
+  "class .*\\bProtocol\\):",
+  "@(abc\\.)?abstractmethod",
+]
 
 [tool.pyright]
 exclude = [
@@ -235,39 +260,6 @@ norecursedirs = [
   "docs",
 ]
 
-[tool.coverage.run]
-source = ['arpes']
-omit = [
-  "tests/*",
-  "src/arpes/deep_learning/*",
-  "src/arpes/endstations/plugin/ALG*",
-  "src/arpes/endstations/plugin/ANTARES.py",
-  "src/arpes/endstations/plugin/BL10_SARPES.py",
-  "src/arpes/endstations/plugin/Elettra_spectromicroscopy.py",
-  "src/arpes/endstations/plugin/HERS.py",
-  "src/arpes/endstations/plugin/MAESTRO.py",
-  "src/arpes/endstations/plugin/MBS.py",
-  "src/arpes/endstations/plugin/SSRF_NSRL.py",
-  "src/arpes/endstations/plugin/STofDLD.py",
-  "src/arpes/endstations/plugin/merlin.py",
-  "src/arpes/endstations/plugin/kaindl.py",
-]
-
-
-[tool.coverage.report]
-exclude_also = [
-  "def __repr__",
-  "def _repr_html_.*",
-  "if self.debug:",
-  "if settings.DEBUG",
-  "raise AssertionError",
-  "raise NotImplementedError",
-  "if 0:",
-  "if __name__ == .__main__.:",
-  "^if TYPE_CHECKING:",
-  "class .*\\bProtocol\\):",
-  "@(abc\\.)?abstractmethod",
-]
 testpaths = ["tests"]
 pythonpath = "src"
 addopts = "--cov=arpes --cov-report html"
