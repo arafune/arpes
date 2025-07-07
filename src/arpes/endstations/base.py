@@ -168,7 +168,7 @@ class EndstationBase:
     def find_first_file(
         cls: type[EndstationBase],
         file_number: int,
-    ) -> Path:
+    ) -> Path:  # pragma no cover
         """Attempts to find file associated to the scan given the user provided path or scan number.
 
         This is mostly done by regex matching over available options.

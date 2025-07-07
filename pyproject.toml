@@ -99,7 +99,7 @@ omit = [
   "src/arpes/endstations/plugin/MAESTRO.py",
   "src/arpes/endstations/plugin/MBS.py",
   "src/arpes/endstations/plugin/SSRF_NSRL.py",
-  "src/arpes/endstations/plugin/SToFDLD.py",
+  "src/arpes/endstations/plugin/SToF_DLD.py",
   "src/arpes/endstations/plugin/merlin.py",
   "src/arpes/endstations/plugin/kaindl.py",
   "src/arpes/endstations/plugin/igor_export.py",
