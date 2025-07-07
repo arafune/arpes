@@ -116,7 +116,8 @@ class FITSEndstation(EndstationBase):
         This function resolves the file location(s) based on the provided `scan_desc` dictionary.
         It looks for the "path" or "file" key in the `scan_desc` to determine the file location.
         If the file does not exist at the provided location, it will attempt to find it in the
-        `config_manager.data_path` directory. If the file is still not found, a `RuntimeError` is raised.
+        `config_manager.data_path` directory. If the file is still not found, a `RuntimeError` is
+        raised.
 
         Args:
             scan_desc (ScanDesc | None): A dictionary containing scan metadata.

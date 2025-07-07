@@ -127,7 +127,7 @@ def get_logging_started() -> bool:
     return bool(get_config_manager().config.get("LOGGING_STARTED", False))
 
 
-def get_config_value(key: str, default: Any = None) -> Any:
+def get_config_value(key: str, default: Any = None) -> Any:  # noqa: ANN401
     """Get a value from the top-level config dictionary.
 
     Args:
@@ -140,7 +140,7 @@ def get_config_value(key: str, default: Any = None) -> Any:
     return get_config_manager().config.get(key, default)
 
 
-def get_settings_value(key: str, default: Any = None) -> Any:
+def get_settings_value(key: str, default: Any = None) -> Any:  # noqa: ANN401
     """Get a value from the top-level settings dictionary.
 
     Args:

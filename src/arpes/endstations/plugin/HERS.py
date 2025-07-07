@@ -11,10 +11,10 @@ import numpy as np
 import xarray as xr
 from astropy.io import fits
 
-from arpes.endstations import HemisphericalEndstation, SynchrotronEndstation, find_clean_coords
-from arpes.provenance import Provenance, provenance_from_file
 from arpes.configuration.interface import get_data_path
+from arpes.endstations import HemisphericalEndstation, SynchrotronEndstation, find_clean_coords
 from arpes.helper import rename_keys
+from arpes.provenance import Provenance, provenance_from_file
 
 if TYPE_CHECKING:
     from _typeshed import Incomplete
