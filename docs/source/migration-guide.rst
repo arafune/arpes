@@ -4,7 +4,16 @@ Migration Guide
 Migrating to PyARPES v5.0
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The most prominent difference from the prvious version of pyarpes is dropping `broadcast_model` for fitting.
+Now, you can start pyarpes with a simple import statement:
+
+.. code-block:: python
+
+  import arpes
+
+and old way (import arpes.config) is outdated.
+
+There are very many cahnges in API, from 3.0 to 5.0 (see CHANGELOG), the most prominent difference
+from the prvious version of pyarpes is dropping `broadcast_model` for fitting.
 Instead, use xarray-lmfit for curve fitting.
 
 In the previous version, `broadcast_mode` is used like that:
@@ -59,8 +68,6 @@ In the current version, the return of S.modelfit depends on the type. (Note that
 * data -> modelfit_data  (or spectrum_modelfit_results, more accuratly  [var]_modelfit_results)
 * residual  is not stored, but "modelfit_best_fit" is stored.  So residual can be easily got from modelfit_data - modelfit_best_fit
 * norm_residual is not stored, but norm_residual can be easily got from (modelfit_data - modelfit_best_fit)/modelfit_data
-
-
 
 
 Migrating to PyARPES v3
