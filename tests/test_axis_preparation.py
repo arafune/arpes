@@ -4,7 +4,103 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from arpes.preparation.axis_preparation import normalize_dim, vstack_data
+from arpes.preparation.axis_preparation import (
+    vstack_data,
+    sort_axis,
+    flip_axis,
+    normalize_dim,
+    normalize_total,
+    dim_normalizer,
+    transform_dataarray_axis,
+)
+
+
+# --- Fixtures ---
+
+
+@pytest.fixture
+def sample_array():
+    coords = {"x": np.linspace(0, 4, 5), "y": np.linspace(0, 2, 3)}
+    data = np.random.rand(3, 5)
+    return xr.DataArray(data, coords=coords, dims=["y", "x"], attrs={"id": "sample"})
+
+
+@pytest.fixture
+def sample_dataset(sample_array):
+    return xr.Dataset({"intensity": sample_array})
+
+
+# --- Tests ---
+
+
+def test_sort_axis(sample_array):
+    reversed_data = sample_array.sel(x=slice(None, None, -1))
+    sorted_data = sort_axis(reversed_data, "x")
+    assert np.all(sorted_data.x.values == np.sort(sample_array.x.values))
+    assert sorted_data.shape == sample_array.shape
+
+
+def test_flip_axis(sample_array):
+    flipped = flip_axis(sample_array, "x")
+    assert np.allclose(flipped.x.values, sample_array.x.values[::-1])
+    assert np.allclose(flipped.values, np.flip(sample_array.values, axis=1))
+
+
+def test_flip_axis_only_coords(sample_array):
+    flipped = flip_axis(sample_array, "x", flip_data=False)
+    assert np.allclose(flipped.values, sample_array.values)
+    assert np.allclose(flipped.x.values, sample_array.x.values[::-1])
+
+
+@pytest.mark.skip
+def test_normalize_dim(sample_array):
+    normed = normalize_dim(sample_array, "x")
+    avg = normed.sum(dim="y").mean().item()
+    assert np.isclose(avg, 1, rtol=1e-5)
+
+
+@pytest.mark.skip
+def test_dim_normalizer_function(sample_array):
+    norm_fn = dim_normalizer("x")
+    result = norm_fn(sample_array)
+    assert "x" in result.dims
+    assert np.isclose(result.sum(["y"]).mean().item(), 1, rtol=1e-5)
+
+
+def test_normalize_total(sample_array):
+    total = 1_000_000
+    result = normalize_total(sample_array, total_intensity=total)
+    assert np.isclose(result.sum(), total, rtol=1e-4)
+
+
+def test_vstack_data_attrs():
+    arrs = [
+        xr.DataArray(
+            np.full((2, 2), fill_value=i),
+            coords={"x": [0, 1], "y": [0, 1]},
+            dims=["y", "x"],
+            attrs={"z": i},
+        )
+        for i in range(3)
+    ]
+    result = vstack_data(arrs, "z")
+    assert "z" in result.dims
+    assert result.shape[0] == 3
+    assert not "z" in result.attrs
+
+
+def test_vstack_data_coords():
+    arrs = [
+        xr.DataArray(
+            np.full((2, 2), fill_value=i),
+            coords={"x": [0, 1], "y": [0, 1], "z": i},
+            dims=["y", "x"],
+        )
+        for i in range(3)
+    ]
+    result = vstack_data(arrs, "z")
+    assert "z" in result.dims
+    assert result.shape[0] == 3
 
 
 def test_normalize_dim_single_dim():
@@ -88,3 +184,24 @@ def test_vstack_data_remove_new_dim_from_attrs():
     result = vstack_data([data1, data2], "new_dim")
     # Assert "new_dim" is removed from attrs
     assert "new_dim" not in result.attrs
+
+
+@pytest.mark.skip
+def test_transform_dataarray_axis(sample_dataset):
+    def identity_transform(arr: xr.DataArray, axis: int):
+        # return original coordinate index values (for testing)
+        return np.indices(arr.shape)[axis]
+
+    new_axis = np.linspace(-1, 1, sample_dataset.dims["x"])
+    new_ds = transform_dataarray_axis(
+        func=identity_transform,
+        old_and_new_axis_names=("x", "kx"),
+        new_axis=new_axis,
+        dataset=sample_dataset,
+        prep_name=lambda name: f"{name}_kx",
+        remove_old=True,
+    )
+
+    assert "kx" in new_ds.coords
+    assert "intensity_kx" in new_ds.data_vars
+    assert "x" not in new_ds.dims
