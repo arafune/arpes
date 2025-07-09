@@ -1,6 +1,6 @@
 """You can customize an equivalent file in order to control PyARPES behavior."""
 
-SETTINGS = {
+SETTINGS_OVERRIDES = {
     "interactive": {
         "main_width": 600,
         "marginal_width": 300,
@@ -9,7 +9,7 @@ SETTINGS = {
     "use_tex": True,
 }
 
-CONFIG = {
+CONFIG_OVERRIDES = {
     "WORKSPACE": {},
     "CURRENT_CONTEXT": None,
     "ENABLE_LOGGING": True,
