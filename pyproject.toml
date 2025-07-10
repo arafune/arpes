@@ -85,7 +85,6 @@ packages = ["src/arpes"]
 branch = true
 source = ['arpes']
 omit = [
-  "src/arpes/plotting/*",
   "tests/*",
   "src/arpes/deep_learning/*",
   "src/arpes/widgets.py",

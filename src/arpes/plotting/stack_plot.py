@@ -425,7 +425,7 @@ def _set_default_kwargs(
 
 
 @save_plot_provenance
-def flat_stack_plot(  # noqa: PLR0913
+def flat_stack_plot(  # noqa: PLR0913 #pragma: no cover
     data: xr.DataArray,
     *,
     stack_axis: str = "",
@@ -534,7 +534,7 @@ def flat_stack_plot(  # noqa: PLR0913
 
 
 @save_plot_provenance
-def stack_dispersion_plot(  # noqa: PLR0913
+def stack_dispersion_plot(  # noqa: PLR0913  # pragma: no cover
     data: xr.DataArray,
     *,
     stack_axis: str = "",

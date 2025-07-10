@@ -220,4 +220,4 @@ def sandbox_configuration() -> Iterator[Sandbox]:
     yield sandbox
     config_manager.config["WORKSPACE"] = None
     # arpes.config.CONFIG["WORKSPACE"] = None
-    arpes.endstations._ENDSTATION_ALIASES = {}
+    arpes.endstations.registry._ENDSTATION_ALIASES = {}
