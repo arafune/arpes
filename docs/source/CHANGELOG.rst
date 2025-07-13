@@ -9,6 +9,14 @@ Primary (X.-.-) version numbers are used to denote backwards
 incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
+
+5.0.0-per5 (2025-XX-XX)
+^^^^^^^^^^^^^^^^^^^^^^^^
+* Internal change
+  * Introduce ConfigManager to manage the configuration, instead of many global variables.
+
+* Set as Deprecated
+
 5.0.0-per4 (2025-07-01)
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
