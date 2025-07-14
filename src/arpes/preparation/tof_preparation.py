@@ -54,7 +54,7 @@ def convert_to_kinetic_energy(
 
     timing: NDArray[np.float64] = dataarray.coords["time"].values
     assert timing[1] > timing[0]
-    t_min, t_max = np.min(timing), np.max(timing)
+    t_min, t_max = timing.min().item(), timing.max().item()
 
     # Prep arrays
     d_energy = kinetic_energy_axis[1] - kinetic_energy_axis[0]
@@ -73,8 +73,8 @@ def convert_to_kinetic_energy(
         t_S = energy_to_time(c, E - d_energy / 2)
 
         # clamp
-        t_L = min(t_L, t_max)
-        t_S = max(t_min, t_S)
+        t_L = np.minimum(t_L, t_max)
+        t_S = np.maximum(t_min, t_S)
 
         # with some math we could back calculate the index, but we don't need to
         t_L_idx = np.searchsorted(timing, t_L)
