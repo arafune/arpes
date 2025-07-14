@@ -14,7 +14,7 @@ from collections.abc import Callable, Hashable, Iterable, Iterator, Sequence
 from datetime import UTC
 from logging import DEBUG, INFO
 from pathlib import Path
-from typing import TYPE_CHECKING, Unpack
+from typing import TYPE_CHECKING, Protocol, Unpack, runtime_checkable
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -57,6 +57,7 @@ if TYPE_CHECKING:
         XrTypes,
     )
     from arpes.provenance import Provenance
+    from arpes.xarray_extensions import ARPESDataArrayAccessor
 
 __all__ = (
     "AnchoredHScaleBar",
@@ -97,6 +98,11 @@ __all__ = (
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
 logger = setup_logger(__name__, LOGLEVEL)
+
+
+@runtime_checkable
+class HasSAccessor(Protocol):
+    S: ARPESDataArrayAccessor
 
 
 @contextlib.contextmanager
@@ -1155,6 +1161,7 @@ def label_for_dim(
         }
         if isinstance(data, xr.Dataset | xr.DataArray):
             assert isinstance(data, xr.Dataset | xr.DataArray)
+            assert isinstance(data, HasSAccessor)
             if data.S.energy_notation == "Final":
                 raw_dim_names["eV"] = r"Final State Energy ( eV )"
             else:
@@ -1183,6 +1190,7 @@ def label_for_dim(
             "spectrum": "Intensity ( arb. )",
         }
         if isinstance(data, xr.DataArray | xr.Dataset):
+            assert isinstance(data, HasSAccessor)
             if data.S.energy_notation == "Final":
                 raw_dim_names["eV"] = "Final State Energy ( eV )"
             else:
