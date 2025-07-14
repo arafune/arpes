@@ -124,6 +124,15 @@ class ConfigManager:
         load_plugins()
 
     def use_tex(self, *, enable: bool = False) -> None:
+        """Enables or disables TeX rendering in matplotlib and updates settings.
+
+        Does not attempt to perform any detection of an existing LaTeX installation and as a result,
+        using this inappropriately can cause matplotlib to generate errors when you try to run
+        standard plots.
+
+        Args:
+            enable: Whether to enable TeX.Defaults to False.
+        """
         """Enables or disables TeX rendering in matplotlib and updates settings."""
         mpl.rcParams["text.usetex"] = enable
         self.settings["use_tex"] = enable

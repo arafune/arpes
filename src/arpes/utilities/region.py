@@ -427,7 +427,7 @@ def meso_effective_selector(data: xr.DataArray) -> slice:
 
     """
     energy_edge = find_spectrum_energy_edges(data)
-    return slice(np.max(energy_edge) - 0.3, np.max(energy_edge) - 0.1)
+    return slice(energy_edge.max().item() - 0.3, energy_edge.max().item - 0.1)
 
 
 def region_sel(
