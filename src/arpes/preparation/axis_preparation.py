@@ -4,7 +4,7 @@ import copy
 import functools
 from collections.abc import Callable, Sequence
 from logging import DEBUG, INFO
-from typing import Any, cast
+from typing import Any, Protocol, cast
 
 import numpy as np
 import xarray as xr
@@ -194,8 +194,19 @@ def dim_normalizer(
     return normalize
 
 
+class AxisCallable(Protocol):
+    def __call__(
+        self,
+        array: xr.DataArray | xr.Dataset,
+        /,
+        *args: Any,
+        axis: int,
+        **kwargs: Any,
+    ) -> NDArray[np.float64]: ...
+
+
 def transform_dataarray_axis(  # noqa: PLR0913
-    func: Callable[[xr.DataArray | xr.Dataset, str], Any],
+    func: AxisCallable,
     old_and_new_axis_names: tuple[str, str],
     new_axis: NDArray[np.float64] | xr.DataArray,
     dataset: xr.Dataset,
