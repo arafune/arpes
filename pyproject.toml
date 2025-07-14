@@ -232,6 +232,7 @@ exclude = [
   # might be included in the future, though
   "widgets\\.py",
   "^src/arpes/deep_learning/.*\\.py$",
+  "^src/arpes/preparation/tof_preparation\\.py$",
 ]
 
 [[tool.mypy.overrides]]

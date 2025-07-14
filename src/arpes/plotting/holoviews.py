@@ -1,9 +1,25 @@
-"""Provides a holoviews based implementation of ImageTool."""
+"""Provides a Holoviews-based implementation of ARPES image inspection and manipulation tools.
+
+This module defines interactive visualization tools based on Holoviews for use in ARPES data
+analysis workflows. It supports tasks such as:
+
+- Concatenating two ARPES datasets along the polar angle (`phi`)
+- Interactive profile viewing of 2D datasets
+- Inspection of fitted model results alongside residuals
+
+All visualizations are designed to work with `xarray.DataArray` or `xarray.Dataset` and are
+rendered via the `bokeh` backend of Holoviews.
+
+Dependencies:
+    - holoviews
+    - numpy
+    - xarray
+"""
 
 from __future__ import annotations
 
 from logging import DEBUG, INFO
-from typing import TYPE_CHECKING, Unpack
+from typing import TYPE_CHECKING, Unpack, cast
 
 import holoviews as hv
 import numpy as np
@@ -19,7 +35,6 @@ if TYPE_CHECKING:
     from holoviews.streams import PointerX, PointerY
 
     from arpes._typing import ProfileViewParam
-
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
 logger = setup_logger(__name__, LOGLEVEL)
@@ -28,20 +43,69 @@ hv.extension("bokeh")
 
 
 def _fix_xarray_to_fit_with_holoview(dataarray: xr.DataArray) -> xr.DataArray:
-    """Helper function to overcome the problem (#6327) in holoview.
+    """Sanitize xarray object for Holoviews plotting.
+
+    Removes non-dimension coordinates and reassigns only the dimensional ones to ensure
+    compatibility with Holoviews' plotting logic (e.g., for `Image` or `QuadMesh`).
 
     Args:
-        dataarray (xr.DataArray): input Dataarray
+        dataarray(xr.DataArray): Input data to be sanitized for Holoviews.
 
-    Returns:
-        xr.DataArray, whose coordinates is regularly ordered determined by dataarray.dims.
+    Returns: xr.DataArray
+        Cleaned data array with only dimension-coordinates.
     """
     for coord_name in dataarray.coords:
         if coord_name not in dataarray.dims:
             dataarray = dataarray.drop_vars(str(coord_name))
-    return dataarray.assign_coords(
-        coords={dim_name: dataarray.coords[dim_name] for dim_name in dataarray.dims},
-    )
+    return dataarray.assign_coords({dim: dataarray.coords[dim] for dim in dataarray.dims})
+
+
+def _default_plot_kwargs(**kwargs: Unpack[ProfileViewParam]) -> ProfileViewParam:
+    """Set default plotting keyword arguments.
+
+    Args:
+        **kwargs: Optional plotting parameters such as width, height, etc.
+
+    Returns: dict
+        Updated keyword arguments with defaults filled in.
+    """
+    kwargs.setdefault("width", 300)
+    kwargs.setdefault("height", 300)
+    kwargs.setdefault("cmap", "viridis")
+    kwargs.setdefault("log", False)
+    return cast("ProfileViewParam", kwargs)
+
+
+def _get_image_options(
+    *,
+    log: bool,
+    cmap: str,
+    width: int,
+    height: int,
+    clim: tuple[float, float] | None = None,
+) -> dict:
+    """Construct Holoviews .opts dictionary for plotting images.
+
+    Args:
+        log(bool): Whether to use log scaling on z-axis.
+        cmap  (str): Colormap to use.
+        width(int): Width of the plot in pixels.
+        height(int): Height of the plot in pixels.
+        clim(tuple[float, float] | None): Color limit range for z-axis.
+
+    Returns: dict
+        Dictionary of options for Holoviews plotting.
+    """
+    return {
+        "width": width,
+        "height": height,
+        "logz": log,
+        "cmap": cmap,
+        "clim": clim,
+        "active_tools": ["box_zoom"],
+        "default_tools": ["save", "box_zoom", "reset", "hover"],
+        "framewise": True,
+    }
 
 
 def concat_along_phi_ui(
@@ -49,21 +113,23 @@ def concat_along_phi_ui(
     dataarray_b: xr.DataArray,
     **kwargs: Unpack[ProfileViewParam],
 ) -> hv.util.Dynamic:
-    """UI for determining the appropriate parameters for the `concat_along_phi` function.
+    """Creates an interactive UI to visualize concatenation along the phi axis.
+
+    Allows the user to dynamically adjust the occupation ratio and enhancement
+    factor to visualize how two ARPES datasets can be combined along the phi axis.
 
     Args:
-        dataarray_a (xr.DataArray): First ARPES data array.
-        dataarray_b (xr.DataArray): Second ARPES data array.
-        use_quadmesh (bool): If True, uses `hv.QuadMesh` instead of `hv.Image`.
-            `hv.Image` is generally sufficient, but if the coordinates are irregularly spaced,
-            `hv.QuadMesh` provides more accurate mapping, though at a slower performance.
-        kwargs: Additional options for `hv.Image` or `hv.QuadMesh`
-            (e.g., `width`, `height`, `cmap`, `log`).
+        dataarray_a (xr.DataArray): First ARPES dataset
+        dataarray_b (xr.DataArray): Second ARPES dataset
+        **kwargs: Additional keyword arguments for visualization settings.
+            Supported keys include:
+            - width (int): Plot width in pixels.
+            - height (int): Plot height in pixels.
+            - cmap (str): Colormap name.
+            - log (bool): Whether to use log scaling on z-axis.
 
     Returns:
-        hv.util.Dynamic: A dynamic map (UI) to adjust the parameters of `concat_along_phi`
-            interactively.
-
+        holoviews.DynamicMap: A Holoviews DynamicMap with interactive sliders.
     """
     dataarray_a = _fix_xarray_to_fit_with_holoview(dataarray_a)
     dataarray_b = _fix_xarray_to_fit_with_holoview(dataarray_b)
@@ -107,14 +173,24 @@ def profile_view(
     use_quadmesh: bool = False,
     **kwargs: Unpack[ProfileViewParam],
 ) -> AdjointLayout:
-    """Show Profile view interactively.
+    """Generates an interactive 2D profile view with cross-sectional analysis.
+
+    Enables pointer-based inspection of a 2D ARPES dataset along both axes,
+    showing intensity profiles intersecting at the pointer location.
 
     Args:
-        dataarray: An AREPS data.
-        use_quadmesh (bool): If true, use hv.QuadMesh instead of hv.Image.
-            In most case, hv.Image is sufficient. However, if the coords is irregulaly spaced,
-            hv.QuadMesh would be more accurate mapping, but slow.
-        kwargs: Options for hv.Image/hv.QuadMesh (width, height, cmap, log)
+        dataarray (xr.DataArray): 2D ARPES dataset.
+        use_quadmesh (bool, optional): If True, uses Holoviews QuadMesh instead of Image.
+            Useful for irregular coordinate grids. Defaults to False.
+        **kwargs: Additional keyword arguments for visualization.
+            - width (int): Image width in pixels.
+            - height (int): Image height in pixels.
+            - cmap (str): Colormap name.
+            - log (bool): Whether to use log scale for intensity.
+            - profile_view_height (int): Size of the profile views.
+
+    Returns:
+        holoviews.AdjointLayout: Combined Holoviews layout with image and profile views.
 
     Todo:
     There are some issues.
@@ -122,7 +198,6 @@ def profile_view(
     * 2024/07/08: On Jupyterlab on safari, it may not work correctly.
     * 2024/07/10: Incompatibility between bokeh and matplotlib about which is "x-" axis about
       plotting xarray data.
-
     """
     kwargs.setdefault("width", 300)
     kwargs.setdefault("height", 300)
@@ -204,23 +279,28 @@ def fit_inspection(
     use_quadmesh: bool = False,
     **kwargs: Unpack[ProfileViewParam],
 ) -> AdjointLayout:
-    """Fit results inspector.
+    """Displays interactive visualization of fitted ARPES data with residuals.
 
-    This function generates a set of plots to inspect the fit results of ARPES data. The main plot
-    shows the measured ARPES data along with the fit and residuals. Additionally, a dynamic profile
-    view is provided to inspect specific cuts of the data along with the corresponding fit and
-    residual profiles. The plots are interactive and allow for zooming and panning.
+    This function creates a panel for inspecting model fitting results in ARPES data,
+    showing the experimental data, best-fit model, and residuals. A vertical slice view
+    enables interactive inspection across energy or momentum axes.
 
     Args:
-        dataset (xr.Dataset): The input dataset containing ARPES data, fit, and residual variables.
-        spectral_name: the name of spectrum in the original Dataset. Default to "spectrum".
-        use_quadmesh (bool): If True, uses `hv.QuadMesh` instead of `hv.Image` for plotting.
-            `hv.QuadMesh` is more accurate for irregularly spaced coordinates but may be slower.
-        kwargs: Additional arguments passed to the plot options, such as plot size, colormap, and
-            logarithmic scaling.
+        dataset (xr.Dataset): xarray Dataset containing at least modelfit_data and
+            modelfit_best_fit.
+        spectral_name (str, optional): Prefix for spectral variables, e.g., 'spectrum'.
+            Defaults to "spectrum".
+        use_quadmesh (bool, optional): If True, use Holoviews QuadMesh for plotting.
+            Useful for non-uniform coordinate spacing. Defaults to False.
+        **kwargs: Visualization options.
+            - width (int): Image width in pixels.
+            - height (int): Image height in pixels.
+            - cmap (str): Colormap.
+            - log (bool): Use logarithmic z-axis.
+            - profile_view_height (int): Height/width of profile views.
 
     Returns:
-        AdjointLayout: A holoviews AdjointLayout object containing the interactive plots.
+        holoviews.AdjointLayout: Layout with data image, vline, fit and residual profiles.
     """
     kwargs.setdefault("width", 300)
     kwargs.setdefault("height", 300)

@@ -26,7 +26,6 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
 
     from arpes.fits import ModelArgs
-
 __all__ = (
     "AffineBroadenedFD",
     "BandEdgeBGModel",
@@ -139,16 +138,9 @@ class FermiLorentzianModel(Model):
         **kwargs: Incomplete,
     ) -> lf.Parameters:
         """Estimate initial model parameter values from data."""
-        if isinstance(data, XrTypes):
-            ymin = data.min().item()
-            ymean = data.mean()
-        else:
-            ymin = min(data)
-            ymean = np.mean(data)
-        if isinstance(x, xr.DataArray):
-            xmin, xmax = x.min().item(), x.max().item()
-        else:
-            xmin, xmax = np.min(x), np.max(x)
+        ymin = data.min().item()
+        ymean = data.mean().item()
+        xmin, xmax = x.min().item(), x.max().item()
         pars = self.make_params(center=(xmax + xmin) / 2.0, erf_amp=(ymean - ymin))
 
         pars[f"{self.prefix}lorcenter"].set(value=0)
@@ -192,8 +184,8 @@ class FermiDiracModel(Model):
         if isinstance(x, xr.DataArray):
             x = x.values
 
-        ymax = max(data)
-        xmin, xmax = min(x), max(x)
+        ymax = data.max().item()
+        xmin, xmax = x.min().item(), x.max().item()
         pars = self.make_params(
             scale=ymax,
             center=(xmax - xmin) / 2.0,
@@ -280,7 +272,7 @@ class BandEdgeBModel(Model):
         pars = self.make_params()
 
         if x is not None:
-            slope = stats.linregress(x, data)[0]
+            slope = stats.linregress(x, data).slope.item()
             pars[f"{self.prefix}lor_center"].set(value=x[np.argmax(data - slope * x)])
         else:
             pars[f"{self.prefix}lor_center"].set(value=-0.2)
@@ -354,7 +346,7 @@ class BandEdgeBGModel(Model):
         pars = self.make_params()
 
         if x is not None:
-            slope = stats.linregress(x, data)[0]
+            slope = stats.linregress(x, data).slope.item()
             pars[f"{self.prefix}lor_center"].set(value=x[np.argmax(data - slope * x)])
         else:
             pars[f"{self.prefix}lor_center"].set(value=-0.2)
