@@ -347,8 +347,8 @@ def provenance_multiple_parents(
     child_arr.attrs["provenance"] = {
         "record": record,
         "jupyter_context": get_recent_history(5),
-        "parent_id": [p.attrs["id"] for p in parents],
-        "parents_provenance": [p.attrs["provenance"] for p in parents],
+        "parent_id": [p.attrs.get("id") for p in parents],
+        "parents_provenance": [p.attrs.get("provenance") for p in parents],
         "time": datetime.datetime.now(UTC).isoformat(),
         "version": VERSION,
     }

@@ -90,7 +90,12 @@ def concat_along_phi(
     return concat_array
 
 
-def _combine_id(id_a: int | tuple[int, ...], id_b: int | tuple[int]) -> tuple[int, ...]:
+def _combine_id(
+    id_a: int | str | tuple[int, ...] | tuple[str, ...],
+    id_b: int | str | tuple[int, ...] | tuple[str, ...],
+) -> tuple[int | str, ...]:
+    if isinstance(id_a, str) or isinstance(id_b, str):
+        return (id_a, id_b)
     if isinstance(id_a, int) and isinstance(id_b, int):
         return tuple(sorted([id_a, id_b]))
     if isinstance(id_a, tuple) and isinstance(id_b, int):

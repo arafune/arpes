@@ -66,17 +66,21 @@ The simplest way to do this is to cite the paper describing the package in Softw
         keywords = {ARPES, NanoARPES, Pump-probe ARPES, Photoemission, Python, Qt, Jupyter},
         abstract = {},
     }
+ 
+And, if you have used the revised version of PyARPES, please cite the following paper:
 
 
 Installation
 ============
 
-PyARPES (>= V.4.0) can be installed from source.   Python version 3.11 or newer is strongly recommmended.
+PyARPES (>= V.4.0) is installed from source.   Python version 3.11 or newer is strongly recommmended.
 
 The current version has been largely revised from the original version which are in PyPI and conda site.
-Unfortunately, I don't have the right the upload the current version to these site, and I would not like to take over it from the original author.
+Unfortunately, I don't have the right the upload the current version to these site,
+and I have not taken it over from the original author. (I have tried it to send PR to the original author.).
 
-The main purpose of revision of the package is to make this be reliable for us. Actually, the original version outputs the wrong results in many
+The main purpose of revision of the package is to make this be reliable for us.
+Actually, the original version outputs the wrong results in many
 case, especially for angle-momentum conversion.
 
 Thus, the current package can be installed only through the github.

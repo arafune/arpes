@@ -164,7 +164,13 @@ def concat_along_phi_ui(
         callback=concate_along_phi_view,
         kdims=["ratio", "magnification"],
     )
-    return dmap.redim.values(ratio=np.linspace(0, 1, 201), magnification=np.linspace(0, 2, 201))
+    return dmap.redim.values(
+        ratio=np.linspace(0, 1, 201),
+        magnification=np.linspace(0, 2, 201),
+    ).redim.default(
+        ratio=0,
+        magnification=1,
+    )
 
 
 def profile_view(
