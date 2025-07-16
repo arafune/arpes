@@ -25,7 +25,7 @@ def test_plot_dos_returns_figure():
     assert len(axes) == 2
 
 
-def test_plot_dos_saves_file(tmp_path):
+def test_plot_dos_saves_file(tmp_path: Path):
     arr = xr.DataArray(
         np.random.default_rng().random((10, 10)),
         dims=("eV", "k"),
@@ -55,6 +55,7 @@ def test_plot_with_provided_core_levels(xps_map: xr.Dataset):
     with patch.object(ax, "axvline") as mock_axvline:
         result = plot_core_levels(
             data=xps_spectrum,
+            core_levels=[-32.0, -40.0, -33],
             ax=ax,
             out="",
             alpha=0.6,
@@ -62,7 +63,7 @@ def test_plot_with_provided_core_levels(xps_map: xr.Dataset):
         assert isinstance(result, tuple)
         assert result[0] is None
         assert isinstance(result[1], Axes)
-        assert mock_axvline.call_count == 2
+        assert mock_axvline.call_count == 3
 
 
 def test_plot_without_ax(xps_map: xr.Dataset):
