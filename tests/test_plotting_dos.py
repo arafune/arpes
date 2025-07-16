@@ -78,3 +78,20 @@ def test_plot_without_ax(xps_map: xr.Dataset):
         result = plot_core_levels(data=xps_spectrum, ax=None)
         mock_ax.axvline.assert_called_once_with(-32.0, ymin=0.1, ymax=0.25, color="red", ls="-")
         assert result == (mock_fig, mock_ax)
+
+
+def test_plot_core_levels_with_file_output(xps_map: xr.Dataset):
+    xps_spectrum = xps_map.spectrum.sum(["x", "y"], keep_attrs=True)
+    with (
+        patch("arpes.plotting.dos.approximate_core_levels", return_value=[42.0]),
+        patch("arpes.plotting.dos.savefig") as mock_savefig,
+        patch(
+            "arpes.plotting.dos.path_for_plot",
+            return_value=Path("test_output.png"),
+        ) as mock_path,
+    ):
+        result = plot_core_levels(data=xps_spectrum, out="test_output.png", ax=None)
+
+        mock_savefig.assert_called_once_with("test_output.png", dpi=400)
+        mock_path.assert_called_once_with("test_output.png")
+        assert isinstance(result, Path)
