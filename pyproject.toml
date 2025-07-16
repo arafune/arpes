@@ -108,6 +108,8 @@ omit = [
   "src/arpes/endstations/plugin/merlin.py",
   "src/arpes/endstations/plugin/kaindl.py",
   "src/arpes/endstations/plugin/igor_export.py",
+  #
+  "src/arpes/preparation/tof_preparation.py",
 ]
 
 [tool.coverage.report]
