@@ -53,8 +53,45 @@ class SmoothingApp:
                         step=0.1,
                         value=1.0,
                     ),
+                    "iteration": pn.widgets.IntSlider(
+                        value=1,
+                        start=1,
+                        end=10,
+                        step=1,
+                        name="Iterations",
+                    ),
                 },
             ),
-            "Savitzky-Golay": (self.savitzky_golay_smoothing, {"window_length": 5, "polyorder": 2}),
-            "Uniform": (self.uniform_smoothing, {"size": 3}),
+            "Savitzky-Golay": (
+                self.savitzky_golay_smoothing,
+                {
+                    "window_length": pn.widgets.IntSlider(
+                        value=5,
+                        start=1,
+                        step=2,
+                        end=20,
+                        name="widdow_length",
+                    ),
+                    "polyorder": pn.widgets.IntSlider(
+                        value=2,
+                        start=1,
+                        end=20,
+                        step=1,
+                        name="polyorder",
+                    ),
+                },
+            ),
+            "Uniform": (
+                self.uniform_smoothing,
+                {
+                    "size": pn.widgets.IntSlider(value=3, start=1, end=20),
+                    "iteration": pn.widgets.IntSlider(
+                        value=1,
+                        start=1,
+                        end=10,
+                        step=1,
+                        name="Iterations",
+                    ),
+                },
+            ),
         }
