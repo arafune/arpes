@@ -23,7 +23,7 @@ import numpy as np
 import panel as pn
 import xarray as xr
 from holoviews import AdjointLayout, DynamicMap, Image, QuadMesh
-from holoviews.operation import regrid
+from holoviews.operation.datashader import regrid
 
 from arpes.debug import setup_logger
 from ._helper import default_plot_kwargs, fix_xarray_to_fit_with_holoview, get_image_options
@@ -132,6 +132,14 @@ class SmoothingApp:
         kwargs = self._get_current_params()
         self.output = func(self.data, **kwargs)
         self._update_plot()
+
+    def panel(self) -> pn.layout.Panel:
+        """Return the Panel layout for the smoothing application.
+
+        Returns:
+            pn.layout.Pane: The Panel layout containing the widgets and output plot.
+        """
+        return self.panel_layout
 
     def _update_plot(self) -> None:
         """Update the HoloViews plot with the current (smoothed) data."""
