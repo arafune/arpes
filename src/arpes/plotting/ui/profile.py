@@ -28,7 +28,7 @@ from arpes.constants import TWO_DIMENSION
 from arpes.debug import setup_logger
 from arpes.utilities.normalize import normalize_to_spectrum
 
-from ._helper import default_plot_kwargs, fix_xarray_to_fit_with_holoview
+from ._helper import default_plot_kwargs, fix_xarray_to_fit_with_holoview, get_image_options
 
 if TYPE_CHECKING:
     from holoviews.streams import PointerX, PointerY
@@ -86,7 +86,7 @@ def profile_view(
     dataarray = (
         dataarray if isinstance(dataarray, xr.DataArray) else normalize_to_spectrum(dataarray)
     )
-    plot_lim: tuple[None | np.float64, np.float64] = (
+    plot_lim: tuple[None | float, float] = (
         (second_weakest_intensity * 0.1, dataarray.max().item() * 10)
         if kwargs["log"]
         else (None, dataarray.max().item() * 1.1)
@@ -99,15 +99,13 @@ def profile_view(
         lambda y: hv.HLine(y=y or max_coords[dataarray.dims[1]]),
         streams=[posy],
     )
-    image_options = {
-        "width": kwargs["width"],
-        "height": kwargs["height"],
-        "logz": kwargs["log"],
-        "cmap": kwargs["cmap"],
-        "clim": plot_lim,
-        "active_tools": ["box_zoom"],
-        "default_tools": ["save", "box_zoom", "reset", "hover"],
-    }
+    image_options = get_image_options(
+        log=kwargs["log"],
+        cmap=kwargs["cmap"],
+        width=kwargs["width"],
+        height=kwargs["height"],
+        clim=plot_lim,
+    )
     if use_quadmesh:
         img: QuadMesh | Image = hv.QuadMesh(dataarray).opts(**image_options)
     else:

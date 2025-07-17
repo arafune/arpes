@@ -25,7 +25,7 @@ from holoviews import AdjointLayout, DynamicMap, Image, QuadMesh
 
 from arpes.debug import setup_logger
 
-from ._helper import default_plot_kwargs, fix_xarray_to_fit_with_holoview
+from ._helper import default_plot_kwargs, fix_xarray_to_fit_with_holoview, get_image_options
 
 if TYPE_CHECKING:
     import xarray as xr
@@ -104,16 +104,13 @@ def fit_inspection(
         lambda x: hv.VLine(x=x or max_coords[arpes_measured.dims[0]]),
         streams=[posx],
     )
-    image_options = {
-        "width": kwargs["width"],
-        "height": kwargs["height"],
-        "logz": kwargs["log"],
-        "cmap": kwargs["cmap"],
-        "clim": plot_lim,
-        "active_tools": ["box_zoom"],
-        "default_tools": ["save", "box_zoom", "reset", "hover"],
-        "framewise": True,
-    }
+    image_options = get_image_options(
+        log=kwargs["log"],
+        cmap=kwargs["cmap"],
+        width=kwargs["width"],
+        height=kwargs["height"],
+        clim=plot_lim,
+    )
     if use_quadmesh:
         img: QuadMesh | Image = hv.QuadMesh(arpes_measured).opts(**image_options)
     else:

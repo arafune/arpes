@@ -28,7 +28,7 @@ from holoviews import DynamicMap
 from arpes.debug import setup_logger
 from arpes.utilities.combine import concat_along_phi
 
-from ._helper import default_plot_kwargs, fix_xarray_to_fit_with_holoview
+from ._helper import default_plot_kwargs, fix_xarray_to_fit_with_holoview, get_image_options
 
 if TYPE_CHECKING:
     import xarray as xr
@@ -79,14 +79,13 @@ def concat_along_phi_ui(
             occupation_ratio=ratio,
             enhance_a=magnification,
         )
-        image_options = {
-            "width": kwargs["width"],
-            "height": kwargs["height"],
-            "logz": kwargs["log"],
-            "cmap": kwargs["cmap"],
-            "active_tools": ["box_zoom"],
-            "default_tools": ["save", "box_zoom", "reset", "hover"],
-        }
+
+        image_options = get_image_options(
+            log=kwargs["log"],
+            cmap=kwargs["cmap"],
+            width=kwargs["width"],
+            height=kwargs["height"],
+        )
         return hv.QuadMesh(data=concatenated_data).opts(
             **image_options,
         )
