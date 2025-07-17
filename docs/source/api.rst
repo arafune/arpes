@@ -473,9 +473,9 @@ Interactive Utilities: holoviews Based
 .. autosummary::
    :toctree: generated/
 
-   holoviews.concat_along_phi_ui
-   holoviews.profile_view
-   holoviews.fit_inspection
+   ui.concat_along_phi_ui
+   ui.profile_view
+   ui.fit_inspection
 
 General Utilities/Matplotlib Quality of Life
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
