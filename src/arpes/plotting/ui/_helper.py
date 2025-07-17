@@ -71,13 +71,15 @@ def get_image_options(
     Returns: dict
         Dictionary of options for Holoviews plotting.
     """
-    return {
+    image_options = {
         "width": width,
         "height": height,
         "logz": log,
         "cmap": cmap,
-        "clim": clim,
         "active_tools": ["box_zoom"],
         "default_tools": ["save", "box_zoom", "reset", "hover"],
         "framewise": True,
     }
+    if clim:
+        image_options["clim"] = clim
+    return image_options
