@@ -137,6 +137,8 @@ def savitzky_golay_filter(
     window_length: int = 3,
     polyorder: int = 2,
     deriv: int = 0,
+    mode: str = "interp",
+    cval: float = 0.0,
     dim: Hashable = "",
 ) -> xr.DataArray:
     """Implements a Savitzky Golay filter with given window size.
@@ -148,6 +150,8 @@ def savitzky_golay_filter(
         window_length: Number of points in the window that the filter uses locally.
         polyorder: The polynomial order used in the convolution.
         deriv: the order of the derivative to compute (default = 0 means only smoothing)
+        mode (str): Mode for savgol_filter (default: "interp").
+        cval (float): Constant value used if mode == 'constant'.
         dim (str): The dimension along which the filter is to be applied
 
     Returns:
@@ -155,12 +159,18 @@ def savitzky_golay_filter(
     """
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     axis = data.dims.index(dim) if dim else -1
+    coords_diffs = data.coords[dim]
+    assert np.allclose(coords_diffs, coords_diffs[0], rtol=1e-5, atol=1e-6), (
+        "The coordinates must be equally spaced. Consider to use interpolation."
+    )
     return data.G.with_values(
         savgol_filter(
             data,
             window_length=window_length,
             polyorder=polyorder,
             deriv=deriv,
+            mode=mode,
+            cval=cval,
             axis=axis,
         ),
     )

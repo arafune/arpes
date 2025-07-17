@@ -38,7 +38,7 @@ LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
 logger = setup_logger(__name__, LOGLEVEL)
 
-hv.extension("bokeh")
+hv.extension("bokeh", logo=False)
 
 
 def profile_view(

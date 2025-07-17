@@ -4,8 +4,6 @@ This module defines interactive visualization tools based on Holoviews for use i
 analysis workflows. It supports tasks such as:
 
 - Concatenating two ARPES datasets along the polar angle (`phi`)
-- Interactive profile viewing of 2D datasets
-- Inspection of fitted model results alongside residuals
 
 All visualizations are designed to work with `xarray.DataArray` or `xarray.Dataset` and are
 rendered via the `bokeh` backend of Holoviews.
@@ -39,7 +37,7 @@ LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
 logger = setup_logger(__name__, LOGLEVEL)
 
-hv.extension("bokeh")
+hv.extension("bokeh", logo=False)
 
 
 def concat_along_phi_ui(
