@@ -132,7 +132,7 @@ def boxcar_filter_arr(
 
 
 @update_provenance("Savitzky Golay Filter")
-def savitzky_golay_filter(
+def savitzky_golay_filter(  # noqa: PLR0913
     data: xr.DataArray,
     window_length: int = 3,
     polyorder: int = 2,
@@ -159,9 +159,11 @@ def savitzky_golay_filter(
     """
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     axis = data.dims.index(dim) if dim else -1
-    coords_diffs = data.coords[dim]
+    if not dim:
+        dim = data.dims[0]
+    coords_diffs = np.diff(data.coords[dim])
     assert np.allclose(coords_diffs, coords_diffs[0], rtol=1e-5, atol=1e-6), (
-        "The coordinates must be equally spaced. Consider to use interpolation."
+        f"The coordinates must be equally spaced. Consider to use interpolation. f{coords_diffs}"
     )
     return data.G.with_values(
         savgol_filter(
