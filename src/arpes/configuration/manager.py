@@ -7,6 +7,7 @@ import json
 import sys
 import warnings
 from dataclasses import dataclass, field
+from logging import DEBUG, INFO
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -22,6 +23,8 @@ from arpes.plugin_loader import load_plugins
 if TYPE_CHECKING:
     from importlib.abc import Loader
 
+LOGLEVELS = (DEBUG, INFO)
+LOGLEVEL = LOGLEVELS[1]
 logger = setup_logger(__name__)
 
 
@@ -70,6 +73,7 @@ class ConfigManager:
             - Safe to call multiple times; subsequent calls do nothing unless `force=True`.
         """
         if self.config.get("_initialized", False) and not force:
+            logger.debug("ConfigManager already initialized; skipping re-initialization.")
             return
         self.config["_initialized"] = True
         self.setup_logging()

@@ -22,13 +22,24 @@ Usage:
 This pattern maintains modularity, testability, and ease of interactive use.
 """
 
-from pathlib import Path
-from typing import Any
+from __future__ import annotations
+
+from logging import DEBUG, INFO
+from typing import TYPE_CHECKING, Any
 
 from arpes.configuration.manager import ConfigManager, should_initialize_automatically
+from arpes.debug import setup_logger
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # Internal singleton instance holder
 _config_manager_instance: ConfigManager | None = None
+
+
+LOGLEVELS = (DEBUG, INFO)
+LOGLEVEL = LOGLEVELS[1]
+logger = setup_logger(__name__, LOGLEVEL)
 
 
 def get_config_manager() -> ConfigManager:
@@ -47,9 +58,12 @@ def get_config_manager() -> ConfigManager:
         - For Jupyter and marimo, initialization is automatic.
     """
     global _config_manager_instance  # noqa: PLW0603
+    logger.debug("Accessing global ConfigManager instance")
+    logger.debug(f"_config_manager_instance: {_config_manager_instance}")
     if _config_manager_instance is None:
         _config_manager_instance = ConfigManager()
         if should_initialize_automatically():
+            logger.debug("is jupyter or is_marimo")
             _config_manager_instance.initialize()
     return _config_manager_instance
 

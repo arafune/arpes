@@ -20,14 +20,19 @@ from typing import TYPE_CHECKING
 
 import holoviews as hv
 import panel as pn
-import xarray as xr
+from holoviews.operation.datashader import regrid
 
+from arpes.analysis import boxcar_filter_arr, gaussian_filter_arr
+from arpes.analysis.filters import savgol_filter_multi
 from arpes.constants import TWO_DIMENSION
 from arpes.debug import setup_logger
+
+from .base import BaseUI
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Hashable
 
+    import xarray as xr
     from param.parameterized import Event
 
 LOGLEVELS = (DEBUG, INFO)
@@ -38,26 +43,10 @@ hv.extension("bokeh", logo=False)
 pn.extension()
 
 
-class SmoothingApp:
+class SmoothingApp(BaseUI):
     """An interactive smoothing UI for xarray DataArray using Panel and HoloViews."""
 
-    def __init__(
-        self,
-        data: xr.DataArray,
-        output_var_name: str = "smoothed",
-    ) -> None:
-        """Initialize the SmoothingApp.
-
-        Args:
-            data (xr.DataArray): The input data array to be smoothed.
-            output_var_name (str): Variable name used to store the smoothed xr.DataArray.
-        """
-        assert len(data.dims) <= TWO_DIMENSION
-        self.data: xr.DataArray = data
-        self.output_var_name = output_var_name
-        self.output = data.copy()
-        self.output_var_name = self.output_var_name
-
+    def _build(self) -> None:
         self.smoothing_funcs: dict[
             str,
             tuple[
@@ -68,15 +57,15 @@ class SmoothingApp:
             "None": (lambda x: x, {}),
             "Gaussian": (
                 self._gaussian_smoothing,
-                _gaussian_slider(data),
+                _gaussian_slider(self.data),
             ),
             "Savitzky-Golay": (
                 self._savitzky_golay_smoothing,
-                _savgol_slider(data),
+                _savgol_slider(self.data),
             ),
             "Boxcar": (
                 self._boxcar_smoothing,
-                _boxcar_slider(data),
+                _boxcar_slider(self.data),
             ),
         }
 
@@ -94,14 +83,19 @@ class SmoothingApp:
         self._update_param_widgets()
         self.smoothing_select.param.watch(self._update_param_widgets, "value")
 
+        self.output_name = pn.widgets.TextInput(name="Output Name", placeholder="e.g., smoothed1")
         self.output_pane = pn.pane.HoloViews(height=400)
         self.widgets_panel = pn.Column(
             self.smoothing_select,
             self.param_widgets_box,
+            self.output_name,
             self.output_button,
         )
+        self.layout = pn.Row(
+            self.output_pane,
+            self.widgets_panel,
+        )
 
-        self.panel_layout = pn.Row(self.widgets_panel, self.output_pane)
         self._update_plot()
 
     def _get_current_params(self) -> dict[str, float | int]:
@@ -110,7 +104,7 @@ class SmoothingApp:
         Returns:
             dict[str, Any]: Parameter names and their current values.
         """
-        func, param_widgets = self.smoothing_funcs[str(self.smoothing_select.value)]
+        _, param_widgets = self.smoothing_funcs[str(self.smoothing_select.value)]
         return {name: widget.value for name, widget in param_widgets.items()}
 
     def _update_param_widgets(self, *_: Event) -> None:
@@ -120,9 +114,12 @@ class SmoothingApp:
 
     def _on_apply(self, _: Event) -> None:
         """Callback when Apply button is clicked. Applies the selected filter."""
-        func, __ = self.smoothing_funcs[self.smoothing_select.value]
+        func, __ = self.smoothing_funcs[str(self.smoothing_select.value)]
         kwargs = self._get_current_params()
         self.output = func(self.data, **kwargs)
+        name = self.output_name.value
+        if name:
+            self.named_output[name] = self.output
         self._update_plot()
 
     def panel(self) -> pn.layout.Panel:
@@ -131,22 +128,61 @@ class SmoothingApp:
         Returns:
             pn.layout.Pane: The Panel layout containing the widgets and output plot.
         """
-        return self.panel_layout
+        return self.layout
 
     def _update_plot(self) -> None:
         """Update the HoloViews plot with the current (smoothed) data."""
+        plot_data = self.output
+        if plot_data.ndim == 1:
+            curve = hv.Curve(plot_data, kdims=[plot_data.dims[0]])
+            self.output_pane.object = curve.opts(height=400)
+        elif plot_data.ndim == TWO_DIMENSION:
+            img = hv.Image(
+                (
+                    plot_data.coords[plot_data.dims[1]],
+                    plot_data.coords[plot_data.dims[0]],
+                    plot_data.values,
+                ),
+            )
+            self.output_pane.object = regrid(img).opts(
+                cmap="viridis",
+                colorbar=True,
+                height=400,
+                width=450,
+                xlabel=plot_data.dims[1],
+                ylabel=plot_data.dims[0],
+            )
 
-    def _gaussian_smoothing(self, data: xr.DataArray, **kwargs) -> xr.DataArray:
-        pass
+    def _gaussian_smoothing(self, data: xr.DataArray, **kwargs: float) -> xr.DataArray:
+        iteration = kwargs.pop("iteration", 1)
+        return gaussian_filter_arr(
+            arr=data,
+            sigma=kwargs,
+            iteration_n=iteration,
+        )
 
-    def _savitzky_golay_smoothing(self, data: xr.DataArray, **kwargs) -> xr.DataArray:
-        pass
+    def _savitzky_golay_smoothing(self, data: xr.DataArray, **kwargs: float) -> xr.DataArray:
+        axis_params = {}
+        for k, v in kwargs.items():
+            param_name, axis_name = k.rsplit("_", 1)
+            if axis_name not in axis_params:
+                axis_params[axis_name] = [1, 0]
+            if param_name == "window_length":
+                axis_params[axis_name][0] = int(v)
+            else:  # polyorder
+                axis_params[axis_name][1] = int(v)
+        return savgol_filter_multi(data, axis_params=axis_params)
 
-    def _boxcar_smoothing(self, data: xr.DataArray, **kwargs) -> xr.DataArray:
-        pass
+    def _boxcar_smoothing(self, data: xr.DataArray, **kwargs: float) -> xr.DataArray:
+        iteration = int(kwargs.pop("iteration", 1))
+        return boxcar_filter_arr(
+            arr=data,
+            size=kwargs,
+            iteration_n=iteration,
+        )
 
 
-def _generation_iteration_slider() -> dict[Hashable, pn.widgets.Widget]:
+def _iteration_slider() -> dict[Hashable, pn.widgets.Widget]:
     """Generate a dictionary of iteration sliders.
 
     Returns:
@@ -172,14 +208,14 @@ def _gaussian_slider(data: xr.DataArray) -> dict[Hashable, pn.widgets.Widget]:
     Returns:
         dict[str, pn.widgets.Widget]: A dictionary of slider widgets.
     """
-    sliders = _generation_iteration_slider()
+    sliders = _iteration_slider()
     for dim in data.dims:
         sliders[dim] = pn.widgets.FloatSlider(
             name=f"Sigma {dim}",
-            start=0.1,
-            end=10.0,
-            step=0.1,
-            value=1.0,
+            start=0,
+            end=3.0,
+            step=0.001,
+            value=0.1,
         )
     return sliders
 
@@ -193,14 +229,14 @@ def _boxcar_slider(data: xr.DataArray) -> dict[Hashable, pn.widgets.Widget]:
     Returns:
         dict[str, pn.widgets.Widget]: A dictionary of slider widgets.
     """
-    sliders = _generation_iteration_slider()
+    sliders = _iteration_slider()
     for dim in data.dims:
         sliders[dim] = pn.widgets.FloatSlider(
             name=f"Kernel Size {dim}",
-            start=0.1,
-            end=10.0,
-            step=0.1,
-            value=1.0,
+            start=0.0,
+            end=3.0,
+            step=0.001,
+            value=0.1,
         )
     return sliders
 
@@ -225,9 +261,9 @@ def _savgol_slider(data: xr.DataArray) -> dict[Hashable, pn.widgets.Widget]:
         )
         sliders[f"polyorder_{dim}"] = pn.widgets.IntSlider(
             name=f"Polyorder {dim}",
-            start=1,
-            end=20,
+            start=0,
+            end=6,
             step=1,
-            value=2,
+            value=1,
         )
     return sliders

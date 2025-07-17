@@ -60,7 +60,7 @@ class TestCurvature:
     def test_curvature1d(self, dataarray_cut2: xr.DataArray) -> None:
         """Test for curvature1d."""
         curvature1d_ = curvature1d(
-            arr=gaussian_filter_arr(arr=dataarray_cut2, sigma={"eV": 0.01}, repeat_n=5),
+            arr=gaussian_filter_arr(arr=dataarray_cut2, sigma={"eV": 0.01}, iteration_n=5),
             dim="eV",
             alpha=0.1,
         )
@@ -86,7 +86,7 @@ class TestCurvature:
     def test_curvature2d(self, dataarray_cut2: xr.DataArray) -> None:
         """Test for curvature2d."""
         curvature2d_ = curvature2d(
-            gaussian_filter_arr(arr=dataarray_cut2, sigma={"eV": 0.01, "phi": 0.01}, repeat_n=5),
+            gaussian_filter_arr(arr=dataarray_cut2, sigma={"eV": 0.01, "phi": 0.01}, iteration_n=5),
             dims=("phi", "eV"),
             alpha=0.1,
         )
@@ -112,7 +112,7 @@ class TestCurvature:
     def test_minimum_gradient(self, dataarray_cut2: xr.DataArray) -> None:
         """Test for minimum_gradient."""
         minimum_gradient_ = minimum_gradient(
-            gaussian_filter_arr(arr=dataarray_cut2, sigma={"eV": 0.01, "phi": 0.01}, repeat_n=3),
+            gaussian_filter_arr(arr=dataarray_cut2, sigma={"eV": 0.01, "phi": 0.01}, iteration_n=3),
         )
         assert minimum_gradient_.S.is_differentiated
         np.testing.assert_allclose(

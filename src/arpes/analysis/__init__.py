@@ -24,6 +24,7 @@ from .derivative import (
 from .filters import (
     boxcar_filter_arr,
     gaussian_filter_arr,
+    savgol_filter_multi,
     savitzky_golay_filter,
 )
 from .gap import determine_broadened_fermi_distribution, normalize_by_fermi_dirac, symmetrize
