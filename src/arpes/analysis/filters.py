@@ -86,7 +86,8 @@ def boxcar_filter_arr(
         arr: ARPES data
         size: Kernel size, specified in terms of axis units (if use_pixel is False).
               An axis that is not specified will have a kernel width of `default_size` in
-              index units.
+              index units.  If set 0 as the size, the kernel size is set to 1 in index units, which
+              means no filtering.
         repeat_n: Repeats n times.
         default_size: Changes the default kernel width for axes not
             specified in `sigma`. Changing this parameter and leaving
@@ -101,17 +102,20 @@ def boxcar_filter_arr(
     assert isinstance(arr, xr.DataArray)
     if size is None:
         size = {}
+
     if use_pixel:
         integered_size: dict[Hashable, int] = {k: int(v) for k, v in size.items()}
     else:
         integered_size = {
             k: int(v / (arr.coords[k][1] - arr.coords[k][0])) for k, v in size.items()
         }
+
     for dim in arr.dims:
-        if dim not in integered_size:
+        if dim not in integered_size or integered_size[str(dim)] == 0:
             integered_size[str(dim)] = default_size
     widths_pixel: tuple[int, ...] = tuple([integered_size[str(k)] for k in arr.dims])
     array_values: NDArray[np.float64] = np.nan_to_num(arr.values, nan=0.0, copy=True)
+
     for _ in range(repeat_n):
         array_values = ndimage.uniform_filter(
             input=array_values,
@@ -147,7 +151,7 @@ def savitzky_golay_filter(  # noqa: PLR0913
 
     Args:
         data (xr.DataArray): Input data.
-        window_length: Number of points in the window that the filter uses locally.
+        window_length: Number of points in the window that the filter uses locally (must be odd).
         polyorder: The polynomial order used in the convolution.
         deriv: the order of the derivative to compute (default = 0 means only smoothing)
         mode (str): Mode for savgol_filter (default: "interp").
