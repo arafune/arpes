@@ -28,7 +28,7 @@ def test_boxcar_filter_arr_with_physical_units(sample_data: xr.DataArray):
 
 def test_boxcar_filter_arr_repeat(sample_data: xr.DataArray):
     size = {"x": 3, "y": 5}
-    result = boxcar_filter_arr(sample_data, size=size, repeat_n=2, use_pixel=True)
+    result = boxcar_filter_arr(sample_data, size=size, iteration_n=2, use_pixel=True)
     assert isinstance(result, xr.DataArray)
     assert result.shape == sample_data.shape
 
@@ -40,7 +40,7 @@ def test_boxcar_filter_arr():
     arr = xr.DataArray(data, coords=coords, dims=["x", "y"])
 
     # Apply the filter
-    filtered = boxcar_filter_arr(arr, size={"x": 2, "y": 2}, repeat_n=1)
+    filtered = boxcar_filter_arr(arr, size={"x": 2, "y": 2}, iteration_n=1)
 
     # Assert the output shape is the same
     assert filtered.shape == arr.shape
@@ -61,7 +61,7 @@ def test_boxcar_filter_arr_no_size():
     arr = xr.DataArray(data, coords=coords, dims=["x", "y"])
 
     # Call the function without providing size
-    filtered = boxcar_filter_arr(arr, size=None, repeat_n=1)
+    filtered = boxcar_filter_arr(arr, size=None, iteration_n=1)
 
     # Assert the output shape is the same
     assert filtered.shape == arr.shape
@@ -74,7 +74,7 @@ def test_boxcar_filter_arr_missing_dim_in_size():
     arr = xr.DataArray(data, coords=coords, dims=["x", "y"])
 
     # Provide size missing one dimension
-    filtered = boxcar_filter_arr(arr, size={"x": 2}, repeat_n=1)
+    filtered = boxcar_filter_arr(arr, size={"x": 2}, iteration_n=1)
 
     # Assert the output shape is the same
     assert filtered.shape == arr.shape
@@ -87,7 +87,7 @@ def test_boxcar_filter_arr_with_id_attr():
     arr = xr.DataArray(data, coords=coords, dims=["x", "y"], attrs={"id": "test_id"})
 
     # Apply the filter
-    filtered = boxcar_filter_arr(arr, size={"x": 2, "y": 2}, repeat_n=1)
+    filtered = boxcar_filter_arr(arr, size={"x": 2, "y": 2}, iteration_n=1)
 
     # Assert provenance context is added (if applicable)
     assert filtered.attrs.get("id") != "test_id"
