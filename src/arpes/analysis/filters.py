@@ -24,7 +24,7 @@ __all__ = (
 def gaussian_filter_arr(
     arr: xr.DataArray,
     sigma: dict[Hashable, float | int] | None = None,
-    repeat_n: int = 1,
+    iteration_n: int = 1,
     *,
     default_size: int = 1,
     use_pixel: bool = False,
@@ -36,7 +36,7 @@ def gaussian_filter_arr(
         sigma (dict[Hashable, int]): Kernel sigma, specified in terms of axis units.
           (if use_pixel is False).
           An axis that is not specified will have a kernel width of `default_size` in index units.
-        repeat_n: Repeats n times.
+        iteration_n: Repeats n times.
         default_size: Changes the default kernel width for axes not specified in `sigma`.
           Changing this parameter and leaving `sigma` as None allows you to smooth with an
           even-width kernel in index-coordinates.
@@ -56,7 +56,7 @@ def gaussian_filter_arr(
             sigma_pixel[dim] = default_size
     widths_pixel: tuple[int, ...] = tuple(sigma_pixel[k] for k in arr.dims)
     values = arr.values
-    for _ in range(repeat_n):
+    for _ in range(iteration_n):
         values = ndimage.gaussian_filter(values, widths_pixel)
     filtered_arr = xr.DataArray(values, arr.coords, arr.dims, attrs=arr.attrs)
     if "id" in filtered_arr.attrs:
@@ -75,7 +75,7 @@ def gaussian_filter_arr(
 def boxcar_filter_arr(
     arr: xr.DataArray,
     size: dict[Hashable, float] | None = None,
-    repeat_n: int = 1,
+    iteration_n: int = 1,
     default_size: int = 1,
     *,
     use_pixel: bool = False,
@@ -88,7 +88,7 @@ def boxcar_filter_arr(
               An axis that is not specified will have a kernel width of `default_size` in
               index units.  If set 0 as the size, the kernel size is set to 1 in index units, which
               means no filtering.
-        repeat_n: Repeats n times.
+        iteration_n: Repeats n times.
         default_size: Changes the default kernel width for axes not
             specified in `sigma`. Changing this parameter and leaving
             `sigma` as None allows you to smooth with an even-width
@@ -116,7 +116,7 @@ def boxcar_filter_arr(
     widths_pixel: tuple[int, ...] = tuple([integered_size[str(k)] for k in arr.dims])
     array_values: NDArray[np.float64] = np.nan_to_num(arr.values, nan=0.0, copy=True)
 
-    for _ in range(repeat_n):
+    for _ in range(iteration_n):
         array_values = ndimage.uniform_filter(
             input=array_values,
             size=widths_pixel,

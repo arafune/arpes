@@ -16,6 +16,9 @@ primarily indicate new features and documentation.
   * Introduce ConfigManager to manage the configuration, instead of many global variables.
   * Split functions in plotting/holoviews.py into several files in ui/
 
+* argment name change
+  * repeat_n -> iteration_n in gaussian_filter_arr and boxcar_filter_arr
+
 * Set as Deprecated
 
 5.0.0-per4 (2025-07-01)
