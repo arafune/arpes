@@ -9,32 +9,29 @@ Dependencies:
     - panel
     - holoviews
     - xarray
-    - arpes.analysis gaussian_filter_arr, arpes.analysis.savitzky_golay_filter, arpes.analysis.boxcar_filter_arr
+    - arpes.analysis gaussian_filter_arr, savitzky_golay_filter, boxcar_filter_arr
 
 """
 
 from __future__ import annotations
 
 from logging import DEBUG, INFO
-from typing import TYPE_CHECKING, Unpack
+from typing import TYPE_CHECKING
 
 import holoviews as hv
-import numpy as np
 import panel as pn
 import xarray as xr
-from holoviews import AdjointLayout, DynamicMap, Image, QuadMesh
-from holoviews.operation.datashader import regrid
-
-from arpes.debug import setup_logger
-from ._helper import default_plot_kwargs, fix_xarray_to_fit_with_holoview, get_image_options
 
 from arpes.constants import TWO_DIMENSION
+from arpes.debug import setup_logger
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Hashable
 
+    from param.parameterized import Event
+
 LOGLEVELS = (DEBUG, INFO)
-LOGLEVEL = LOGLEVELS[1]
+LOGLEVEL = LOGLEVELS[0]
 logger = setup_logger(__name__, LOGLEVEL)
 
 hv.extension("bokeh", logo=False)
@@ -107,28 +104,23 @@ class SmoothingApp:
         self.panel_layout = pn.Row(self.widgets_panel, self.output_pane)
         self._update_plot()
 
-    def _get_current_params(self) -> dict[str, Any]:
-        """
-        Retrieve current values from parameter widgets.
+    def _get_current_params(self) -> dict[str, float | int]:
+        """Retrieve current values from parameter widgets.
 
         Returns:
             dict[str, Any]: Parameter names and their current values.
         """
-        func, param_widgets = self.smoothing_funcs[self.smoothing_select.value]
+        func, param_widgets = self.smoothing_funcs[str(self.smoothing_select.value)]
         return {name: widget.value for name, widget in param_widgets.items()}
 
-    def _update_param_widgets(self, *_) -> None:
-        """
-        Update the parameter widgets based on the selected smoothing function.
-        """
-        _, param_widgets = self.smoothing_funcs[self.smoothing_select.value]
+    def _update_param_widgets(self, *_: Event) -> None:
+        """Update the parameter widgets based on the selected smoothing function."""
+        _, param_widgets = self.smoothing_funcs[str(self.smoothing_select.value)]
         self.param_widgets_box.objects = list(param_widgets.values())
 
-    def _on_apply(self, _):
-        """
-        Callback when Apply button is clicked. Applies the selected filter.
-        """
-        func, _ = self.smoothing_funcs[self.smoothing_select.value]
+    def _on_apply(self, _: Event) -> None:
+        """Callback when Apply button is clicked. Applies the selected filter."""
+        func, __ = self.smoothing_funcs[self.smoothing_select.value]
         kwargs = self._get_current_params()
         self.output = func(self.data, **kwargs)
         self._update_plot()
@@ -143,7 +135,6 @@ class SmoothingApp:
 
     def _update_plot(self) -> None:
         """Update the HoloViews plot with the current (smoothed) data."""
-        pass
 
     def _gaussian_smoothing(self, data: xr.DataArray, **kwargs) -> xr.DataArray:
         pass
@@ -223,7 +214,7 @@ def _savgol_slider(data: xr.DataArray) -> dict[Hashable, pn.widgets.Widget]:
     Returns:
         dict[str, pn.widgets.Widget]: A dictionary of slider widgets.
     """
-    sliders = {}
+    sliders: dict[Hashable, pn.widgets.Widget] = {}
     for dim in data.dims:
         sliders[f"window_length_{dim}"] = pn.widgets.IntSlider(
             name=f"Window Length {dim}",
