@@ -84,7 +84,7 @@ from .plotting.dispersion import (
     scan_var_reference_plot,
 )
 from .plotting.fermi_edge import fermi_edge_reference
-from .plotting.holoviews import fit_inspection, profile_view
+from .plotting import fit_inspection, profile_view
 from .plotting.movie import plot_movie
 from .plotting.parameter import plot_parameter
 from .plotting.spatial import reference_scan_spatial

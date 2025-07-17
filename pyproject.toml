@@ -85,7 +85,6 @@ packages = ["src/arpes"]
 branch = true
 source = ['arpes']
 omit = [
-  "tests/*",
   "src/arpes/plotting/false_color.py",
   "src/arpes/plotting/spin.py",
   "src/arpes/plotting/dispersion.py",
@@ -93,7 +92,6 @@ omit = [
   "src/arpes/plotting/fermi_surface.py",
   "src/arpes/plotting/bz",
   "src/arpes/deep_learning/*",
-  "src/arpes/widgets.py",
   "src/arpes/endstations/ses_endstation.py",
   "src/arpes/endstations/fits_endstation.py",
   "src/arpes/endstations/plugin/ALG*",

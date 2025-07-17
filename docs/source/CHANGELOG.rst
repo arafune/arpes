@@ -14,6 +14,7 @@ primarily indicate new features and documentation.
 ^^^^^^^^^^^^^^^^^^^^^^^^
 * Internal change
   * Introduce ConfigManager to manage the configuration, instead of many global variables.
+  * Split functions in plotting/holoviews.py into several files in ui/
 
 * Set as Deprecated
 
