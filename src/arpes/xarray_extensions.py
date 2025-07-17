@@ -75,6 +75,7 @@ from .correction import coords, intensity_map
 from .correction.angle_unit import switch_angle_unit, switched_angle_unit
 from .debug import setup_logger
 from .models.band import MultifitBand
+from .plotting import fit_inspection, profile_view
 from .plotting.dispersion import (
     LabeledFermiSurfaceParam,
     fancy_dispersion,
@@ -84,7 +85,6 @@ from .plotting.dispersion import (
     scan_var_reference_plot,
 )
 from .plotting.fermi_edge import fermi_edge_reference
-from .plotting import fit_inspection, profile_view
 from .plotting.movie import plot_movie
 from .plotting.parameter import plot_parameter
 from .plotting.spatial import reference_scan_spatial
