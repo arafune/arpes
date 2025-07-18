@@ -82,30 +82,42 @@ class SmoothingApp(BaseUI):
             ),
         )
 
-        self.param_widgets_box = pn.Column()
-        self.output_button = pn.widgets.Button(name="Apply", button_type="primary")
-        self.output_button.on_click(self._on_apply)
-
-        self._update_param_widgets()
-        self.smoothing_select.param.watch(self._update_param_widgets, "value")
-
-        self.output_name = pn.widgets.TextInput(name="Output Name", placeholder="e.g., smoothed1")
+        self.output_name = pn.widgets.TextInput(
+            name="Output Name",
+            placeholder="e.g., smoothed1",
+        )
         self.output_pane = pn.pane.HoloViews(
             height=self.pane_kwargs["height"],
             width=self.pane_kwargs["width"],
         )
+
+        self._update_plot()
+
+        self.param_widgets_box = pn.Column()
+        self.output_button = pn.widgets.Button(
+            name="Apply",
+            button_type="primary",
+        )
+        self.output_button.on_click(self._on_apply)
+
+        self._update_smooth_param_widgets()
+
+        self.smoothing_select.param.watch(
+            self._update_smooth_param_widgets,
+            "value",
+        )
+
         self.widgets_panel = pn.Column(
             self.smoothing_select,
             self.param_widgets_box,
             self.output_name,
             self.output_button,
         )
+
         self.layout = pn.Row(
             self.output_pane,
             self.widgets_panel,
         )
-
-        self._update_plot()
 
     def _get_current_params(self) -> dict[str, float | int]:
         """Retrieve current values from parameter widgets.
@@ -116,7 +128,7 @@ class SmoothingApp(BaseUI):
         _, param_widgets = self.smoothing_funcs[str(self.smoothing_select.value)]
         return {name: widget.value for name, widget in param_widgets.items()}
 
-    def _update_param_widgets(self, *_: Event) -> None:
+    def _update_smooth_param_widgets(self, *_: Event) -> None:
         """Update the parameter widgets based on the selected smoothing function."""
         _, param_widgets = self.smoothing_funcs[str(self.smoothing_select.value)]
         self.param_widgets_box.objects = list(param_widgets.values())
@@ -195,6 +207,9 @@ class SmoothingApp(BaseUI):
             size=size,
             iteration_n=iteration,
         )
+
+
+# --------- Helper Functions ---------#
 
 
 def _iteration_slider() -> dict[Hashable, pn.widgets.Widget]:
