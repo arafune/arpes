@@ -16,7 +16,7 @@ Dependencies:
 from __future__ import annotations
 
 from logging import DEBUG, INFO
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import holoviews as hv
 import panel as pn
@@ -168,10 +168,11 @@ class SmoothingApp(BaseUI):
 
     def _gaussian_smoothing(self, data: xr.DataArray, **kwargs: float) -> xr.DataArray:
         iteration = kwargs.pop("iteration", 1)
+        sigma = cast("dict[Hashable, float]", kwargs)
         return gaussian_filter_arr(
             arr=data,
-            sigma=kwargs,
-            iteration_n=iteration,
+            sigma=sigma,
+            iteration_n=int(iteration),
         )
 
     def _savitzky_golay_smoothing(self, data: xr.DataArray, **kwargs: float) -> xr.DataArray:
@@ -188,9 +189,10 @@ class SmoothingApp(BaseUI):
 
     def _boxcar_smoothing(self, data: xr.DataArray, **kwargs: float) -> xr.DataArray:
         iteration = int(kwargs.pop("iteration", 1))
+        size = cast("dict[Hashable, float]", kwargs)
         return boxcar_filter_arr(
             arr=data,
-            size=kwargs,
+            size=size,
             iteration_n=iteration,
         )
 
