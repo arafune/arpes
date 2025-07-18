@@ -111,7 +111,6 @@ class BaseUI(ABC):
 
         self.output_pane = pn.pane.HoloViews(height=400)
         self.widgets_panel = pn.Column()
-        self._build()
 
     @abstractmethod
     def _build(self) -> None:

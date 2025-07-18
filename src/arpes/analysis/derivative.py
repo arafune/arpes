@@ -12,7 +12,7 @@ from arpes.provenance import Provenance, provenance, update_provenance
 from arpes.utilities import normalize_to_spectrum
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Hashable
 
     from numpy.typing import NDArray
 
@@ -155,7 +155,7 @@ def _gradient_modulus(
 @update_provenance("Maximum Curvature 1D")
 def curvature1d(
     arr: xr.DataArray,
-    dim: str = "",
+    dim: Hashable = "",
     alpha: float = 0.1,
     smooth_fn: Callable[[xr.DataArray], xr.DataArray] | None = None,
 ) -> xr.DataArray:
@@ -185,7 +185,7 @@ def curvature1d(
     filterd_arr = arr.G.with_values((d2_arr / denominator).values)
 
     if "id" in arr.attrs:
-        filterd_arr.attrs["id"] = arr.attrs["id"] + "_CV"
+        filterd_arr.attrs["id"] = str(arr.attrs["id"]) + "_CV"
         provenance_context: Provenance = {
             "what": "Maximum Curvature",
             "by": "1D",
@@ -198,7 +198,7 @@ def curvature1d(
 @update_provenance("Maximum Curvature 2D")
 def curvature2d(
     arr: xr.DataArray,
-    dims: tuple[str, str] = ("phi", "eV"),
+    dims: tuple[Hashable, Hashable] = ("phi", "eV"),
     alpha: float = 0.1,
     weight2d: float = 1,
     smooth_fn: Callable[[xr.DataArray], xr.DataArray] | None = None,
@@ -270,7 +270,7 @@ def curvature2d(
 @update_provenance("Derivative")
 def dn_along_axis(
     arr: xr.DataArray,
-    dim: str = "",
+    dim: Hashable = "",
     smooth_fn: Callable[[xr.DataArray], xr.DataArray] | None = None,
     *,
     order: int = 2,

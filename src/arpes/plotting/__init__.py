@@ -30,7 +30,7 @@ from .stack_plot import (
     stack_dispersion_plot,
     waterfall_dispersion,
 )
-from .ui import SmoothingApp, concat_along_phi_ui, fit_inspection, profile_view
+from .ui import DifferentiateApp, SmoothingApp, concat_along_phi_ui, fit_inspection, profile_view
 from .utils import (
     fancy_labels,
     remove_colorbars,
