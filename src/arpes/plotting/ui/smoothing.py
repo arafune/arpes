@@ -16,7 +16,7 @@ Dependencies:
 from __future__ import annotations
 
 from logging import DEBUG, INFO
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Unpack
 
 import holoviews as hv
 import panel as pn
@@ -26,6 +26,7 @@ from arpes.analysis import boxcar_filter_arr, gaussian_filter_arr
 from arpes.analysis.filters import savgol_filter_multi
 from arpes.constants import TWO_DIMENSION
 from arpes.debug import setup_logger
+from ._helper import get_image_options
 
 from .base import BaseUI
 
@@ -34,6 +35,8 @@ if TYPE_CHECKING:
 
     import xarray as xr
     from param.parameterized import Event
+
+    from arpes._typing import ProfileViewParam
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[0]
@@ -45,6 +48,17 @@ pn.extension()
 
 class SmoothingApp(BaseUI):
     """An interactive smoothing UI for xarray DataArray using Panel and HoloViews."""
+
+    def __init__(self, data: xr.DataArray, **kwargs: Unpack[ProfileViewParam]) -> None:
+        """Initialize the SmoothingApp with data and optional parameters.
+
+        Args:
+            data (xr.DataArray): Input data to be smoothed.
+            **kwargs: Additional parameters for the UI, such as plot options.
+        """
+        super().__init__(data, **kwargs)
+        self.pane_kwargs["height"] = 400
+        self.pane_kwargs["width"] = 450
 
     def _build(self) -> None:
         self.smoothing_funcs: dict[
@@ -84,7 +98,10 @@ class SmoothingApp(BaseUI):
         self.smoothing_select.param.watch(self._update_param_widgets, "value")
 
         self.output_name = pn.widgets.TextInput(name="Output Name", placeholder="e.g., smoothed1")
-        self.output_pane = pn.pane.HoloViews(height=400)
+        self.output_pane = pn.pane.HoloViews(
+            height=self.pane_kwargs["height"],
+            width=self.pane_kwargs["width"],
+        )
         self.widgets_panel = pn.Column(
             self.smoothing_select,
             self.param_widgets_box,
@@ -133,10 +150,21 @@ class SmoothingApp(BaseUI):
     def _update_plot(self) -> None:
         """Update the HoloViews plot with the current (smoothed) data."""
         plot_data = self.output
+
         if plot_data.ndim == 1:
             curve = hv.Curve(plot_data, kdims=[plot_data.dims[0]])
-            self.output_pane.object = curve.opts(height=400)
+            self.output_pane.object = curve.opts(height=self.pane_kwargs["height"])
         elif plot_data.ndim == TWO_DIMENSION:
+            image_options = get_image_options(
+                log=self.pane_kwargs["log"],
+                cmap=self.pane_kwargs["cmap"],
+                width=self.pane_kwargs["width"],
+                height=self.pane_kwargs["height"],
+            )
+            image_options["xlabel"] = plot_data.dims[1]
+            image_options["ylabel"] = plot_data.dims[0]
+            image_options["colorbar"] = True
+
             img = hv.Image(
                 (
                     plot_data.coords[plot_data.dims[1]],
@@ -144,14 +172,7 @@ class SmoothingApp(BaseUI):
                     plot_data.values,
                 ),
             )
-            self.output_pane.object = regrid(img).opts(
-                cmap="viridis",
-                colorbar=True,
-                height=400,
-                width=450,
-                xlabel=plot_data.dims[1],
-                ylabel=plot_data.dims[0],
-            )
+            self.output_pane.object = regrid(img).opts(**image_options)
 
     def _gaussian_smoothing(self, data: xr.DataArray, **kwargs: float) -> xr.DataArray:
         iteration = kwargs.pop("iteration", 1)
