@@ -216,6 +216,7 @@ class SmoothingApp(BaseUI):
                 axis_params[axis_name][0] = int(v)
             else:  # polyorder
                 axis_params[axis_name][1] = int(v)
+        axis_params = {k: tuple(v) for k, v in axis_params.items()}
         return savgol_filter_multi(data, axis_params=axis_params)
 
     def _boxcar_smoothing(self, data: xr.DataArray, **kwargs: float) -> xr.DataArray:
@@ -394,6 +395,7 @@ def _max_curvature_1d_slider(data: xr.DataArray) -> dict[Hashable, pn.widgets.Wi
             start=0.0,
             end=1,
             step=0.0001,
+            format="0.0000",
         ),
     }
 
@@ -411,6 +413,7 @@ def _max_curvature_2d_slider() -> dict[Hashable, pn.widgets.Widget]:
             start=0.0,
             end=1,
             step=0.0001,
+            format="0.0000",
         ),
         "weight_2D": pn.widgets.FloatSlider(
             name="Weight 2D",
@@ -456,6 +459,7 @@ def _gaussian_slider(data: xr.DataArray) -> dict[Hashable, pn.widgets.Widget]:
             end=3.0,
             step=0.001,
             value=0.1,
+            format="0.000",
         )
     return sliders
 
@@ -477,6 +481,7 @@ def _boxcar_slider(data: xr.DataArray) -> dict[Hashable, pn.widgets.Widget]:
             end=3.0,
             step=0.001,
             value=0.1,
+            format="0.000",
         )
     return sliders
 

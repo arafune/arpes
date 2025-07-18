@@ -30,8 +30,7 @@ primarily indicate new features and documentation.
 * Remove math.py
   * fermi_distribution in math.py, which is already used in fit_models.functional_forms
   * The definition of inv_fermi_distribution has not  been required.
-  * polarization: the meaning is ambiguous. (This is the "spin" polarization. But who knows?)
-    Furthermore, this is used only once in sarpes.py.
+  * polarization: the meaning is ambiguous. (This is the "spin" polarization. But who knows?). Furthermore, this is used only once in sarpes.py.
 
 * Remove gaussian_filter, and boxcar_filter
   * They are not used.  Use gaussian_filter_arr and boxcar_filter_arr instead.
@@ -114,7 +113,7 @@ Changed
 * Remove utilities/transfer.py because it's essentially empty.
 * Remove cut_nan_coords. Use dropna like that:
   for cname in da.coords:
-    da = da.dropna(dim=cname, how="any")
+      da = da.dropna(dim=cname, how="any")
 
 * Move utilities/convert/trapezoid.py -> correction/trapezoid.py
 

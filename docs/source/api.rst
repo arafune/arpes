@@ -58,7 +58,6 @@ The `.F` accessor:
 The .S accessor
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
 .. autoclass::   arpes.xarray_extensions.ARPESAngleProperty
    :members:
    :exclude_members: _*, __*
@@ -477,6 +476,8 @@ Interactive Utilities: holoviews Based
    ui.concat_along_phi_ui
    ui.profile_view
    ui.fit_inspection
+   ui.smoothing.SmoothingApp
+   ui.smoothing.DifferentiateApp
 
 General Utilities/Matplotlib Quality of Life
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

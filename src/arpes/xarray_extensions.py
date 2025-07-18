@@ -754,6 +754,7 @@ class ARPESOffsetProperty(ARPESAngleProperty):
             Consering if this is really suitable way?
                 * While this variable used just in MAESTRO.py which I haven't used, to keep
                   consistensy with other plugins the following change seems to be reasonable.
+
                     * coords["long_x"] should be coosrds["x"] ?
                     * coords["physical_long_x"] seems to be just x_offset.
 

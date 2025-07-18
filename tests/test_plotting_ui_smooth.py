@@ -3,11 +3,13 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 import holoviews as hv
+import numpy as np
 import panel as pn
 import pytest
 import xarray as xr
 
-from arpes.plotting import SmoothingApp
+import arpes.xarray_extensions
+from arpes.plotting import DifferentiateApp, SmoothingApp
 from arpes.plotting.ui.smoothing import (
     _boxcar_slider,
     _gaussian_slider,
@@ -55,18 +57,21 @@ def setup_logger(name, level):
 
 
 # Fixtures for common test data
+
+
 @pytest.fixture
 def sample_data_1d():
-    return xr.DataArray([1.0, 2.0, 3.0, 4.0, 5.0], dims=["energy"])
+    x = np.linspace(0, 10, 100)
+    data = xr.DataArray(np.sin(x), dims=["x"], coords={"x": x})
+    return data
 
 
 @pytest.fixture
 def sample_data_2d():
-    return xr.DataArray(
-        [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]],
-        coords={"energy": [10, 20, 30], "angle": [1, 2, 3]},
-        dims=["energy", "angle"],
-    )
+    x = np.linspace(0, 10, 50)
+    y = np.linspace(0, 5, 25)
+    data = np.outer(np.sin(x), np.cos(y))
+    return xr.DataArray(data, dims=["x", "y"], coords={"x": x, "y": y})
 
 
 # Patching external modules for unit tests
@@ -101,7 +106,8 @@ def mock_arpes_modules():
 @pytest.fixture(autouse=True)
 def mock_holoviews_regrid():
     with patch(
-        "holoviews.operation.datashader.regrid", new=MagicMock(side_effect=lambda x: x)
+        "holoviews.operation.datashader.regrid",
+        new=MagicMock(side_effect=lambda x: x),
     ) as mock_regrid:
         yield mock_regrid
 
@@ -184,7 +190,7 @@ class TestSmoothingApp:
                 widget.value = 2
 
         params = app._get_current_params()
-        assert params["energy"] == 0.5
+        assert params["x"] == 0.1
         assert params["iteration"] == 2
 
     def test_on_apply_none_filter(self, sample_data_1d):
@@ -264,7 +270,7 @@ class TestSmoothingApp:
         app = SmoothingApp(sample_data_1d)
         app._update_plot()
         assert isinstance(app.output_pane.object, hv.Curve)
-        assert app.output_pane.object.kdims[0].name == "energy"
+        assert app.output_pane.object.kdims[0].name == "x"
 
     @pytest.mark.skip
     def test_update_plot_2d(self, sample_data_2d, mock_holoviews_regrid):
@@ -331,3 +337,94 @@ class TestSmoothingHelperFunctions:
         assert "polyorder_energy" in sliders_2d
         assert "window_length_angle" in sliders_2d
         assert "polyorder_angle" in sliders_2d
+
+
+def test_smoothing_app_construction(sample_data_2d):
+    app = SmoothingApp(sample_data_2d)
+    assert isinstance(app.layout, pn.layout.Panel)
+    assert app.smoothing_select.name == "Smoothing Function"
+    assert app.output_pane.object is not None
+
+
+@pytest.mark.parametrize("method", ["Gaussian", "Boxcar"])
+def test_smoothing_methods(sample_data_2d, method):
+    app = SmoothingApp(sample_data_2d)
+    app.smoothing_select.value = method
+    for w in app.param_widgets_box.objects:
+        if isinstance(w, pn.widgets.IntSlider):
+            w.value = 3
+        elif isinstance(w, pn.widgets.FloatSlider):
+            w.value = 4
+    app.output_name.value = f"smoothed_{method}"
+    app._on_apply(None)
+    assert app.output.shape == sample_data_2d.shape
+    assert f"smoothed_{method}" in app.named_output
+
+
+def test_smoothing_app_panel_output(sample_data_2d):
+    app = SmoothingApp(sample_data_2d)
+    panel = app.panel()
+    assert isinstance(panel, pn.layout.Panel)
+
+
+def test_differentiate_app_with_derivative(sample_data_1d):
+    app = DifferentiateApp(sample_data_1d)
+    app.smoothing_select.value = "None"
+    app.derivation_select.value = "Derivative"
+    for w in app.derivative_param_widgets_box.objects:
+        if isinstance(w, pn.widgets.Select):
+            w.value = sample_data_1d.dims[0]
+        elif isinstance(w, pn.widgets.IntSlider):
+            w.value = 1
+    app.output_name.value = "diff_derivative"
+    app._on_apply(None)
+    assert app.output.shape == sample_data_1d.shape
+    assert "diff_derivative" in app.named_output
+
+
+@pytest.mark.parametrize(
+    "method", ["Maximum curvature (1D)", "Maximum curvature (2D)", "Minimum Gradient"]
+)
+def test_differentiate_app_methods(sample_data_2d, method):
+    app = DifferentiateApp(sample_data_2d)
+    app.smoothing_select.value = "None"
+    app.derivation_select.value = method
+
+    for w in app.derivative_param_widgets_box.objects:
+        if isinstance(w, pn.widgets.Select):
+            w.value = sample_data_2d.dims[0]
+        elif isinstance(w, pn.widgets.IntSlider):
+            w.value = 1
+        elif isinstance(w, pn.widgets.FloatSlider):
+            w.value = 0.1
+
+    app.output_name.value = f"diff_{method}"
+    app._on_apply(None)
+    assert app.output.shape == sample_data_2d.shape
+    assert f"diff_{method}" in app.named_output
+
+
+def test_slider_functions(sample_data_2d):
+    from arpes.plotting.ui.smoothing import (
+        _derivative_slider,
+        _gaussian_slider,
+        _boxcar_slider,
+        _savgol_slider,
+        _max_curvature_1d_slider,
+        _max_curvature_2d_slider,
+    )
+
+    for func in [
+        _derivative_slider,
+        _gaussian_slider,
+        _boxcar_slider,
+        _savgol_slider,
+        _max_curvature_1d_slider,
+    ]:
+        sliders = func(sample_data_2d)
+        assert isinstance(sliders, dict)
+        assert all(isinstance(w, pn.widgets.Widget) for w in sliders.values())
+
+    sliders_2d = _max_curvature_2d_slider()
+    assert isinstance(sliders_2d, dict)
+    assert all(isinstance(w, pn.widgets.Widget) for w in sliders_2d.values())
