@@ -189,7 +189,7 @@ def savgol_filter_multi(
     deriv: int = 0,
     mode: str = "interp",
     cval: float = 0.0,
-    **kwargs,
+    **kwargs: float,
 ) -> xr.DataArray:
     """Apply Savitzky-Golay filter to an xarray.DataArray along multiple dimensions.
 
