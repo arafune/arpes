@@ -118,7 +118,7 @@ class TestSmoothingApp:
         assert isinstance(app.output_name, pn.widgets.TextInput)
         assert isinstance(app.output_pane, pn.pane.HoloViews)
         assert isinstance(app.widgets_panel, pn.Column)
-        assert isinstance(app.panel_layout, pn.Row)
+        assert isinstance(app.layout, pn.Row)
         assert app.output_pane.object is not None  # Check if plot was updated
 
     def test_init_2d_data(self, sample_data_2d):
