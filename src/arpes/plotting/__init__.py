@@ -32,6 +32,7 @@ from .stack_plot import (
 )
 from .ui import (
     DifferentiateApp,
+    ProfileApp,
     SmoothingApp,
     TailorApp,
     concat_along_phi_ui,

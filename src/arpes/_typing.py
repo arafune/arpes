@@ -791,3 +791,4 @@ class ProfileViewParam(TypedDict):
     cmap: str
     log: bool
     profile_view_height: int
+    colorbar: bool

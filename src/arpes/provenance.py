@@ -100,7 +100,7 @@ class Provenance(_Provenance, total=False):
     data: list[Provenance]
 
 
-def attach_id(data: XrTypes) -> None:
+def attach_id(data: XrTypes) -> str | int | tuple:
     """Ensures that an ID is attached to a piece of data, if it does not already exist.
 
     IDs are generated at the time of identification in an analysis notebook. Sometimes a piece of
@@ -108,9 +108,13 @@ def attach_id(data: XrTypes) -> None:
 
     Args:
         data: The data to attach an ID to.
+
+    Returns:
+        str | int | tuple: The ID of the data, which is guaranteed to be present in `data.attrs`.
     """
     if "id" not in data.attrs:
         data.attrs["id"] = str(uuid.uuid1())
+    return data.attrs["id"]
 
 
 def provenance_from_file(

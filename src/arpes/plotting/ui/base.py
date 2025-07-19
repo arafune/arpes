@@ -30,6 +30,8 @@ from ._helper import default_plot_kwargs
 if TYPE_CHECKING:
     from arpes._typing import ProfileViewParam
 
+    from panel.layout import Panel
+
 
 class BaseUI(ABC):
     """Base class for user interface components in ARPES data analysis tools.
@@ -137,7 +139,7 @@ class BaseUI(ABC):
         msg = "Subclasses must implement this method."
         raise NotImplementedError(msg)
 
-    def panel(self) -> pn.layout.Panel:
+    def panel(self) -> Panel:
         """Return the Panel layout for the smoothing application.
 
         Returns:

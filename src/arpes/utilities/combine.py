@@ -7,7 +7,7 @@ from logging import DEBUG, INFO
 import xarray as xr
 
 from arpes.debug import setup_logger
-from arpes.provenance import Provenance, provenance_multiple_parents
+from arpes.provenance import Provenance, attach_id, provenance_multiple_parents
 
 __all__ = ("concat_along_phi",)
 
@@ -37,8 +37,8 @@ def concat_along_phi(
     assert isinstance(arr_b, xr.DataArray)
     if occupation_ratio is not None:
         assert 0 <= occupation_ratio <= 1, "occupation_ratio should be between 0 and 1 (or None)."
-    id_arr_a = arr_a.attrs["id"]
-    id_arr_b = arr_b.attrs["id"]
+    id_arr_a = attach_id(arr_a)
+    id_arr_b = attach_id(arr_b)
     arr_a = arr_a.G.with_values(arr_a.values * enhance_a)
     id_add = _combine_id(id_arr_a, id_arr_b)
     if occupation_ratio is None:

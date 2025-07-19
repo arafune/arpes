@@ -75,7 +75,7 @@ from .correction import coords, intensity_map
 from .correction.angle_unit import switch_angle_unit, switched_angle_unit
 from .debug import setup_logger
 from .models.band import MultifitBand
-from .plotting import fit_inspection, profile_view
+from .plotting import ProfileApp, fit_inspection
 from .plotting.dispersion import (
     LabeledFermiSurfaceParam,
     fancy_dispersion,
@@ -111,6 +111,7 @@ if TYPE_CHECKING:
     from matplotlib.axes import Axes
     from matplotlib.figure import Figure
     from numpy.typing import DTypeLike, NDArray
+    from panel.layout import Panel
 
     from ._typing import (
         AnalyzerInfo,
@@ -1497,9 +1498,9 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
         with plt.rc_context(rc={"text.usetex": False}):
             self._obj.plot(*args, **kwargs)
 
-    def show(self, **kwargs: Unpack[ProfileViewParam]) -> AdjointLayout:
+    def show(self, **kwargs: Unpack[ProfileViewParam]) -> Panel:
         """Show holoviews based plot."""
-        return profile_view(self._obj, **kwargs)
+        return ProfileApp(self._obj, **kwargs).panel()
 
     def fs_plot(
         self: Self,
