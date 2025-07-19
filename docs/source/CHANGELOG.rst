@@ -10,7 +10,7 @@ incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
 
-5.0.0-per5 (2025-XX-XX)
+5.0.0-per5 (2025-7-19)
 ^^^^^^^^^^^^^^^^^^^^^^^^
 * Internal change
   * Introduce ConfigManager to manage the configuration, instead of many global variables.
@@ -18,8 +18,6 @@ primarily indicate new features and documentation.
 
 * argument name change
   * repeat_n -> iteration_n in gaussian_filter_arr and boxcar_filter_arr
-
-* Set as Deprecated
 
 * Add new class for interactive analysis
   * SmoothApp, DifferentiateApp
