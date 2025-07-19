@@ -9,6 +9,9 @@ Primary (X.-.-) version numbers are used to denote backwards
 incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
+5.0.0 (2025-XX-XX)
+^^^^^^^^^^^^^^^^^^^^^^^^
+
 
 5.0.0-per5 (2025-7-19)
 ^^^^^^^^^^^^^^^^^^^^^^^^
