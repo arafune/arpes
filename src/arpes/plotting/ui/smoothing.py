@@ -431,6 +431,7 @@ def _max_curvature_2d_slider() -> dict[Hashable, pn.widgets.Widget]:
             end=10.0,
             step=0.001,
             value=1.0,
+            format="0.000",
         ),
     }
 
