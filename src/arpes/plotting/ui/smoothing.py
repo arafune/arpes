@@ -135,7 +135,11 @@ class SmoothingApp(BaseUI):
 
         self.layout = pn.Row(
             self.output_pane,
-            self.widgets_panel,
+            pn.Column(
+                self.widgets_panel,
+                pn.layout.Divider(),
+                self.message_pane,
+            ),
         )
 
     def _get_current_params(self) -> dict[str, float | int]:
@@ -161,14 +165,6 @@ class SmoothingApp(BaseUI):
         if name:
             self.named_output[name] = self.output
         self._update_plot()
-
-    def panel(self) -> pn.layout.Panel:
-        """Return the Panel layout for the smoothing application.
-
-        Returns:
-            pn.layout.Pane: The Panel layout containing the widgets and output plot.
-        """
-        return self.layout
 
     def _update_plot(self) -> None:
         """Update the HoloViews plot with the current (smoothed) data."""
@@ -207,16 +203,23 @@ class SmoothingApp(BaseUI):
         )
 
     def _savitzky_golay_smoothing(self, data: xr.DataArray, **kwargs: float) -> xr.DataArray:
-        axis_params = {}
+        axis_params: dict[Hashable, tuple[int, int]] = {}
         for k, v in kwargs.items():
             param_name, axis_name = k.rsplit("_", 1)
             if axis_name not in axis_params:
-                axis_params[axis_name] = [1, 0]
+                axis_params[axis_name] = (1, 0)
             if param_name == "window_length":
-                axis_params[axis_name][0] = int(v)
+                axis_params[axis_name] = (int(v), axis_params[axis_name][1])
             else:  # polyorder
-                axis_params[axis_name][1] = int(v)
+                axis_params[axis_name] = (axis_params[axis_name][0], int(v))
         axis_params = {k: tuple(v) for k, v in axis_params.items()}
+        for v in axis_params.values():
+            if v[0] % 2 == 0:
+                self.log_message("❌ Window length must be odd for Savitzky-Golay filter.\n")
+                return data
+            if v[0] < v[1]:
+                self.log_message("❌ Polyorder must be less than window_length.\n")
+                return data
         return savgol_filter_multi(data, axis_params=axis_params)
 
     def _boxcar_smoothing(self, data: xr.DataArray, **kwargs: float) -> xr.DataArray:
@@ -297,7 +300,11 @@ class DifferentiateApp(SmoothingApp):
 
         self.layout = pn.Row(
             self.output_pane,
-            self.widgets_panel,
+            pn.Column(
+                self.widgets_panel,
+                pn.layout.Divider(),
+                self.message_pane,
+            ),
         )
 
     def _update_derivative_param_widgets(self, *_: Event) -> None:
@@ -342,6 +349,9 @@ class DifferentiateApp(SmoothingApp):
 
     def _maximum_curvature_2d(self, data: xr.DataArray, **kwargs: int) -> xr.DataArray:
         dims = cast("tuple[Hashable, Hashable]", kwargs.get("dims", data.dims))
+        if kwargs.get("weight_2D", 1.0) == 0:
+            self.log_message("❌ weight 2D must not be 0\n")
+            return data
         return curvature2d(
             data,
             dims=dims,

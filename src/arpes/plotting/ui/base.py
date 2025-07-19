@@ -16,6 +16,7 @@ Classes:
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections import deque
 from typing import TYPE_CHECKING, Unpack
 
 import panel as pn
@@ -112,6 +113,14 @@ class BaseUI(ABC):
         self.output_pane = pn.pane.HoloViews(height=400)
         self.widgets_panel = pn.Column()
 
+        self.message_log = deque(maxlen=4)
+        self.message_pane = pn.pane.Markdown(
+            "",
+            sizing_mode="stretch_width",
+        )
+
+        self.layout = pn.Row()
+
     @abstractmethod
     def _build(self) -> None:
         """Abstract method to build the user interface.
@@ -120,3 +129,16 @@ class BaseUI(ABC):
         """
         msg = "Subclasses must implement this method."
         raise NotImplementedError(msg)
+
+    def panel(self) -> pn.layout.Panel:
+        """Return the Panel layout for the smoothing application.
+
+        Returns:
+            pn.layout.Pane: The Panel layout containing the widgets and output plot.
+        """
+        return self.layout
+
+    def log_message(self, message: str) -> None:
+        """Append a message to the log and update the message pane."""
+        self.message_log.append(message)
+        self.message_pane.object = "\n".join(self.message_log)
