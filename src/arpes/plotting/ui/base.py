@@ -79,6 +79,7 @@ class BaseUI(ABC):
     def __init__(
         self,
         data: xr.DataArray,
+        data_b: xr.DataArray | None = None,
         **kwargs: Unpack[ProfileViewParam],
     ) -> None:
         """Initializes the base user interface for ARPES data analysis.
@@ -91,6 +92,9 @@ class BaseUI(ABC):
             data (xr.DataArray): Input data to be visualized and processed.
                 If not an instance of `xr.DataArray`, it will be normalized
                 using `normalize_to_spectrum`.
+            data_b (xr.DataArray, optional): Secondary data array for comparison or additional
+                processing. This is optional and can be used for tools that require two datasets.
+                If provided, it should also be an `xr.DataArray`.
             **kwargs: Additional keyword arguments defined by `ProfileViewParam`.
                 These are not used directly in the base class but are available
                 for subclasses to consume.
@@ -109,6 +113,9 @@ class BaseUI(ABC):
         self.data: xr.DataArray = data
         self.output = data.copy()
         self.named_output: dict[str, xr.DataArray] = {}
+
+        if data_b is not None:
+            self.data_b = data_b
 
         self.output_pane = pn.pane.HoloViews(height=400)
         self.widgets_panel = pn.Column()
