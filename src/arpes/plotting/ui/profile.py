@@ -171,13 +171,11 @@ def profile_view(
     assert isinstance(posx, PointerX)
     assert isinstance(posy, PointerY)
 
-    second_weakest_intensity = np.partition(np.unique(data.values.flatten()), 1)[1]
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
 
-    plot_lim: tuple[None | float, float] = (
-        (second_weakest_intensity * 0.1, data.max().item() * 10)
-        if kwargs["log"]
-        else (None, data.max().item() * 1.1)
+    plot_lim = _get_plot_lim(
+        data,
+        log=kwargs["log"],
     )
 
     vline: DynamicMap = DynamicMap(
@@ -204,7 +202,7 @@ def profile_view(
     profile_x = hv.DynamicMap(
         callback=lambda x: hv.Curve(
             data.sel(
-                **{str(data.dims[0]): x},
+                {str(data.dims[0]): x},
                 method="nearest",
             ),
         ),
@@ -218,7 +216,7 @@ def profile_view(
     profile_y = hv.DynamicMap(
         callback=lambda y: hv.Curve(
             data.sel(
-                **{str(data.dims[1]): y},
+                {str(data.dims[1]): y},
                 method="nearest",
             ),
         ),
@@ -230,3 +228,62 @@ def profile_view(
     )
 
     return img * hline * vline << profile_x << profile_y
+
+
+def _make_profile_curve(
+    dataarray: xr.DataArray,
+    dim: str,
+    stream: PointerX | PointerY,
+    orientation: str,
+    plot_lim: tuple[float | None, float],
+    profile_size: int,
+    log: bool,
+) -> DynamicMap:
+    """Generate a dynamic cross-sectional profile curve from a 2D DataArray.
+
+    Args:
+        dataarray (xr.DataArray): The ARPES dataset to extract profiles from.
+        dim (str): Dimension along which the profile is taken ('kx' or 'E', etc.).
+        stream (PointerX | PointerY): Holoviews pointer stream for interactive tracking.
+        orientation (str): Either 'x' or 'y', determines if the plot controls width or height.
+        plot_lim (tuple[float | None, float]): Limits for the y-axis (intensity).
+        profile_size (int): Width or height of the profile plot in pixels.
+        log (bool): Whether to apply logarithmic scale to the x-axis.
+
+    Returns:
+        holoviews.DynamicMap: Interactive 1D profile plot updated with pointer movement.
+    """
+
+    def callback(v: float) -> hv.Curve:
+        return hv.Curve(dataarray.sel({dim: v}, method="nearest"))
+
+    opts: dict[str, Any] = {
+        "ylim": plot_lim,
+        "logx": log,
+    }
+    if orientation == "x":
+        opts["width"] = profile_size
+    else:
+        opts["height"] = profile_size
+
+    return hv.DynamicMap(callback, streams=[stream]).opts(**opts)
+
+
+def _get_plot_lim(dataarray: xr.DataArray, *, log: bool) -> tuple[float | None, float]:
+    """Compute appropriate color scale limits for ARPES intensity image.
+
+    Args:
+        dataarray (xr.DataArray): The 2D dataset to be plotted.
+        log (bool): Whether to use logarithmic color scaling.
+
+    Returns:
+        tuple[float | None, float]: Color scale limits (clim) for plotting.
+            - If `log` is True: returns (second_min * 0.1, max_val * 10)
+            - If `log` is False: returns (None, max_val * 1.1)
+    """
+    flat_vals = dataarray.values.flatten()
+    second_min = np.partition(np.unique(flat_vals), 1)[1]
+    max_val = dataarray.max().item()
+    if log:
+        return (second_min * 0.1, max_val * 10)
+    return (None, max_val * 1.1)
