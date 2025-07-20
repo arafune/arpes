@@ -119,7 +119,7 @@ class BaseUI(ABC):
         if data_b is not None:
             self.data_b = data_b
 
-        self.output_pane = pn.pane.HoloViews(height=400)
+        self.output_pane = pn.pane.HoloViews()
         self.widgets_panel = pn.Column()
 
         self.message_log = deque(maxlen=4)
