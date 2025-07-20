@@ -21,23 +21,17 @@ from typing import TYPE_CHECKING, Unpack
 
 import holoviews as hv
 import panel as pn
-import xarray as xr
-from holoviews import AdjointLayout, DynamicMap, Image, QuadMesh
+from holoviews import AdjointLayout
 from holoviews.streams import PointerX, PointerY
 
-from arpes.constants import TWO_DIMENSION
 from arpes.debug import setup_logger
-from arpes.utilities.normalize import normalize_to_spectrum
 
-from ._helper import (
-    default_plot_kwargs,
-    fix_xarray_to_fit_with_holoview,
-    get_image_options,
-    get_plot_lim,
-)
-from .base import BaseUI
+from ._helper import default_plot_kwargs, get_plot_lim
+from .base import BaseUI, image_with_pointer, profile_curve
 
 if TYPE_CHECKING:
+    import xarray as xr
+
     from arpes._typing import ProfileViewParam
 
 LOGLEVELS = (DEBUG, INFO)
@@ -96,11 +90,10 @@ class ProfileApp(BaseUI):
 
         self._update_plot()
 
-        self.layout = pn.Row(
+        self.layout = pn.Column(
             self.output_pane,
-            pn.Column(
-                pn.panel(self.coord_display),
-            ),
+            pn.layout.Divider(),
+            pn.panel(self.coord_display),
         )
 
     def _show_coords(self, x: float, y: float) -> str:
@@ -165,70 +158,36 @@ def profile_view(
     kwargs = default_plot_kwargs(**kwargs)
     kwargs.setdefault("profile_view_height", 100)
 
-    assert data.ndim == TWO_DIMENSION
-    data = fix_xarray_to_fit_with_holoview(data)
     max_coords = data.G.argmax_coords()
-
     posx = posx if posx else PointerX(x=max_coords[data.dims[0]])
     posy = posy if posy else PointerY(y=max_coords[data.dims[1]])
 
-    assert isinstance(posx, PointerX)
-    assert isinstance(posy, PointerY)
+    plot_lim = get_plot_lim(data, log=kwargs["log"])
 
-    data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
+    img = image_with_pointer(
+        data=data,
+        use_quadmesh=use_quadmesh,
+        posx=posx,
+        posy=posy,
+        **kwargs,
+    )
 
-    plot_lim = get_plot_lim(
-        data,
+    profile_x = profile_curve(
+        data=data,
+        stream=posx,
+        orientation="x",
+        plot_lim=plot_lim,
+        profile_size=kwargs["profile_view_height"],
         log=kwargs["log"],
     )
 
-    vline: DynamicMap = DynamicMap(
-        lambda x: hv.VLine(x=x or max_coords[data.dims[0]]),
-        streams=[posx],
-    )
-    hline: DynamicMap = DynamicMap(
-        lambda y: hv.HLine(y=y or max_coords[data.dims[1]]),
-        streams=[posy],
-    )
-
-    image_options = get_image_options(
+    profile_y = profile_curve(
+        data=data,
+        stream=posy,
+        orientation="y",
+        plot_lim=plot_lim,
+        profile_size=kwargs["profile_view_height"],
         log=kwargs["log"],
-        cmap=kwargs["cmap"],
-        width=kwargs["width"],
-        height=kwargs["height"],
-        clim=plot_lim,
-    )
-    if use_quadmesh:
-        img: QuadMesh | Image = QuadMesh(data).opts(**image_options)
-    else:
-        img = Image(data).opts(**image_options)
-
-    profile_x = hv.DynamicMap(
-        callback=lambda x: hv.Curve(
-            data.sel(
-                {str(data.dims[0]): x},
-                method="nearest",
-            ),
-        ),
-        streams=[posx],
-    ).opts(
-        ylim=plot_lim,
-        width=kwargs["profile_view_height"],
-        logx=kwargs["log"],
     )
 
-    profile_y = hv.DynamicMap(
-        callback=lambda y: hv.Curve(
-            data.sel(
-                {str(data.dims[1]): y},
-                method="nearest",
-            ),
-        ),
-        streams=[posy],
-    ).opts(
-        ylim=plot_lim,
-        height=kwargs["profile_view_height"],
-        logx=kwargs["log"],
-    )
-
-    return img * hline * vline << profile_x << profile_y
+    return img << profile_x << profile_y

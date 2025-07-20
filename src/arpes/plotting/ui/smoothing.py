@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Unpack, cast
 import holoviews as hv
 import panel as pn
 from holoviews.operation.datashader import regrid
+from holoviews.streams import PointerX, PointerY
 
 from arpes.analysis import (
     boxcar_filter_arr,
@@ -34,8 +35,8 @@ from arpes.analysis.filters import savgol_filter_multi
 from arpes.constants import TWO_DIMENSION
 from arpes.debug import setup_logger
 
-from ._helper import get_image_options
-from .base import BaseUI
+from ._helper import get_image_options, get_plot_lim, fix_xarray_to_fit_with_holoview
+from .base import BaseUI, image_with_pointer, profile_curve
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Hashable
@@ -65,12 +66,17 @@ class SmoothingApp(BaseUI):
         """
         super().__init__(data, **kwargs)
 
+        max_coords = data.G.argmax_coords()
+        self.posx = PointerX(x=max_coords[data.dims[0]])
+        self.posy = PointerY(y=max_coords[data.dims[1]])
+
         self._build()
 
     def _build(self) -> None:
         self.pane_kwargs["height"] = 400
         self.pane_kwargs["width"] = 450
         self.pane_kwargs.setdefault("colorbar", True)
+        self.pane_kwargs.setdefault("profile_view_height", 130)
 
         self.smoothing_funcs: dict[
             str,
@@ -104,10 +110,6 @@ class SmoothingApp(BaseUI):
         self.output_name = pn.widgets.TextInput(
             name="Output Name",
             placeholder="e.g., smoothed1",
-        )
-        self.output_pane = pn.pane.HoloViews(
-            height=self.pane_kwargs["height"],
-            width=self.pane_kwargs["width"],
         )
 
         self._update_plot()
@@ -168,30 +170,80 @@ class SmoothingApp(BaseUI):
 
     def _update_plot(self) -> None:
         """Update the HoloViews plot with the current (smoothed) data."""
-        plot_data = self.output
+        plot_data = fix_xarray_to_fit_with_holoview(self.output)
+        plot_data_orig = fix_xarray_to_fit_with_holoview(self.data)
 
         if plot_data.ndim == 1:
             curve = hv.Curve(plot_data, kdims=[plot_data.dims[0]])
             self.output_pane.object = curve.opts(height=self.pane_kwargs["height"])
         elif plot_data.ndim == TWO_DIMENSION:
+            max_coords = plot_data.G.argmax_coords()
+            self.posx = PointerX(x=max_coords[plot_data.dims[0]])
+            self.posy = PointerY(y=max_coords[plot_data.dims[1]])
+
             image_options = get_image_options(
                 log=self.pane_kwargs["log"],
                 cmap=self.pane_kwargs["cmap"],
                 width=self.pane_kwargs["width"],
                 height=self.pane_kwargs["height"],
             )
-            image_options["xlabel"] = plot_data.dims[1]
-            image_options["ylabel"] = plot_data.dims[0]
             image_options["colorbar"] = self.pane_kwargs["colorbar"]
 
-            img = hv.Image(
-                (
-                    plot_data.coords[plot_data.dims[1]],
-                    plot_data.coords[plot_data.dims[0]],
-                    plot_data.values,
-                ),
+            plot_lim = get_plot_lim(plot_data_orig, log=self.pane_kwargs["log"])
+
+            img = image_with_pointer(
+                data=plot_data,
+                use_quadmesh=True,
+                posx=self.posx,
+                posy=self.posy,
+                **self.pane_kwargs,
             )
-            self.output_pane.object = regrid(img).opts(**image_options)
+
+            profile_x_smoothed = profile_curve(
+                data=plot_data,
+                stream=self.posx,
+                orientation="x",
+                plot_lim=plot_lim,
+                profile_size=self.pane_kwargs["profile_view_height"],
+                log=self.pane_kwargs["log"],
+            )
+
+            profile_y_smoothed = profile_curve(
+                data=plot_data,
+                stream=self.posy,
+                orientation="y",
+                plot_lim=plot_lim,
+                profile_size=self.pane_kwargs["profile_view_height"],
+                log=self.pane_kwargs["log"],
+            )
+
+            profile_x_original = profile_curve(
+                data=plot_data_orig,
+                stream=self.posx,
+                orientation="x",
+                plot_lim=plot_lim,
+                profile_size=self.pane_kwargs["profile_view_height"],
+                line_color="black",
+                line_width=1,
+                log=self.pane_kwargs["log"],
+            )
+
+            profile_y_original = profile_curve(
+                data=plot_data_orig,
+                stream=self.posy,
+                orientation="y",
+                plot_lim=plot_lim,
+                profile_size=self.pane_kwargs["profile_view_height"],
+                line_color="black",
+                line_width=1,
+                log=self.pane_kwargs["log"],
+            )
+
+            self.output_pane.object = (
+                img
+                << (profile_x_original * profile_x_smoothed)
+                << (profile_y_original * profile_y_smoothed)
+            )
 
     def _gaussian_smoothing(self, data: xr.DataArray, **kwargs: float) -> xr.DataArray:
         iteration = kwargs.pop("iteration", 1)
@@ -329,6 +381,33 @@ class DifferentiateApp(SmoothingApp):
         if name:
             self.named_output[name] = self.output
         self._update_plot()
+
+    def _update_plot(self) -> None:
+        """Update the HoloViews plot with the current (smoothed) data."""
+        plot_data = self.output
+
+        if plot_data.ndim == 1:
+            curve = hv.Curve(plot_data, kdims=[plot_data.dims[0]])
+            self.output_pane.object = curve.opts(height=self.pane_kwargs["height"])
+        elif plot_data.ndim == TWO_DIMENSION:
+            image_options = get_image_options(
+                log=self.pane_kwargs["log"],
+                cmap=self.pane_kwargs["cmap"],
+                width=self.pane_kwargs["width"],
+                height=self.pane_kwargs["height"],
+            )
+            image_options["xlabel"] = plot_data.dims[1]
+            image_options["ylabel"] = plot_data.dims[0]
+            image_options["colorbar"] = self.pane_kwargs["colorbar"]
+
+            img = hv.Image(
+                (
+                    plot_data.coords[plot_data.dims[1]],
+                    plot_data.coords[plot_data.dims[0]],
+                    plot_data.values,
+                ),
+            )
+            self.output_pane.object = regrid(img).opts(**image_options)
 
     def _get_current_derivative_params(self) -> dict[str, float | int | str]:
         """Retrieve current values from parameter widgets.
@@ -511,7 +590,7 @@ def _savgol_slider(data: xr.DataArray) -> dict[Hashable, pn.widgets.Widget]:
         sliders[f"window_length_{dim}"] = pn.widgets.IntSlider(
             name=f"Window Length {dim}",
             start=1,
-            end=20,
+            end=25,
             step=2,
             value=5,
         )
