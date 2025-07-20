@@ -28,9 +28,9 @@ from arpes.utilities.normalize import normalize_to_spectrum
 from ._helper import default_plot_kwargs
 
 if TYPE_CHECKING:
-    from arpes._typing import ProfileViewParam
-
     from panel.layout import Panel
+
+    from arpes._typing import ProfileViewParam
 
 
 class BaseUI(ABC):

@@ -90,6 +90,7 @@ def fit_inspection(
 
     max_coords = arpes_measured.G.argmax_coords()
     posx = hv.streams.PointerX(x=max_coords[arpes_measured.dims[0]])
+
     second_weakest_intensity = np.partition(np.unique(arpes_measured.values.flatten()), 1)[1]
     max_height = np.max((fit.max().item(), arpes_measured.max().item()))
     max_residual_abs = np.max((np.abs(residual.min().item()), np.abs(residual.max().item())))
@@ -133,7 +134,7 @@ def fit_inspection(
     profile_fit = hv.DynamicMap(
         callback=lambda x: hv.Curve(
             fit.sel(
-                **{str(arpes_measured.dims[0]): x},
+                {str(arpes_measured.dims[0]): x},
                 method="nearest",
             ),
         ),
@@ -142,7 +143,7 @@ def fit_inspection(
     profile_residual = hv.DynamicMap(
         callback=lambda x: hv.Curve(
             residual.sel(
-                **{str(arpes_measured.dims[0]): x},
+                {str(arpes_measured.dims[0]): x},
                 method="nearest",
             ),
         ),
