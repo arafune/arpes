@@ -25,7 +25,12 @@ from holoviews import AdjointLayout, DynamicMap, Image, QuadMesh
 
 from arpes.debug import setup_logger
 
-from ._helper import default_plot_kwargs, fix_xarray_to_fit_with_holoview, get_image_options
+from ._helper import (
+    default_plot_kwargs,
+    fix_xarray_to_fit_with_holoview,
+    get_image_options,
+    get_plot_lim,
+)
 
 if TYPE_CHECKING:
     import xarray as xr
@@ -91,16 +96,11 @@ def fit_inspection(
     max_coords = arpes_measured.G.argmax_coords()
     posx = hv.streams.PointerX(x=max_coords[arpes_measured.dims[0]])
 
-    second_weakest_intensity = np.partition(np.unique(arpes_measured.values.flatten()), 1)[1]
-    max_height = np.max((fit.max().item(), arpes_measured.max().item()))
     max_residual_abs = np.max((np.abs(residual.min().item()), np.abs(residual.max().item())))
     plotlim_residual = (-max_residual_abs * 1.1, max_residual_abs * 1.1)
 
-    plot_lim: tuple[None | np.float64, np.float64] = (
-        (second_weakest_intensity * 0.1, arpes_measured.max().item() * 10)
-        if kwargs["log"]
-        else (None, max_height * 1.1)
-    )
+    plot_lim = get_plot_lim(arpes_measured, log=kwargs["log"])
+
     vline: DynamicMap = hv.DynamicMap(
         lambda x: hv.VLine(x=x or max_coords[arpes_measured.dims[0]]),
         streams=[posx],
