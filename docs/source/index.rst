@@ -2,9 +2,19 @@ PyARPES corrected (V5)
 =======================
 
 **V5 Release: Non maintainer update**
-This release introduces extensive refactoring and feature development aimed at long-term maintainability and usability. A major focus has been on reducing global state by introducing a centralized ConfigManager, modularizing the UI with Holoviews-based interactive apps, and deprecating unused or ambiguous components. Functionality has been restructured to align better with modern Python tools and community practices (e.g., xarray-lmfit instead of custom model broadcasting). Version 5 drops several legacy methods and models, simplifies internal APIs, and favors explicitness and modularity.
+This release introduces extensive refactoring and feature development aimed at long-term maintainability and usability.
+A major focus has been on reducing global state by introducing a centralized ConfigManager, modularizing the UI with Holoviews-based interactive apps, and deprecating unused or ambiguous components.
+Functionality has been restructured to align better with modern Python tools and community practices (e.g., xarray-lmfit instead of custom model broadcasting).
+Version 5 drops several legacy methods and models, simplifies internal APIs, and favors explicitness and modularity.
 
-All Qt-based functionality has been completely removed. Instead, a new UI framework based on Holoviews and Panel is provided. This not only offers compatibility with the previous interactive tools but also enables fully self-contained analysis workflows within modern environments like JupyterLab or Marimo. Compared to seemingly elegant but brittle Qt applications, this approach yields a far more robust, reproducible, and user-friendly experience, especially for data analysis in collaborative and publication-ready settings.
+I used to say, "I still feel that the current package is not very user-friendly for less experienced Python users.
+I recommend using Igor for analysis, especially for students."
+However, considering that Igor will no longer support macOS, I've reconsidered my stance.
+I now believe that having a GUI is important—not only for others, but also for myself.
+All Qt-based functionality has been completely removed.
+Instead, a new UI framework based on Holoviews and Panel is provided.
+This not only offers compatibility with the previous interactive tools but also enables fully self-contained analysis workflows within modern environments like JupyterLab or Marimo. 
+Compared to seemingly elegant but brittle Qt applications, this approach yields a far more robust, reproducible, and user-friendly experience, especially for data analysis in collaborative and publication-ready settings.
 
 This update is not backward compatible in many places, but provides a cleaner, more maintainable foundation for further development and real ARPES data analysis.
 
@@ -22,7 +32,7 @@ Thus,  I have decided to drop the Conda-related support. Instead,
 I strongly recommend to use "uv".
 
 While I have added many type hints in the codes to improve usability and maintainability,
-I still feel that the current package is not very user-friencdly for less experienced Python users.
+I still feel that the current package is not very user-friendly for less experienced Python users.
 I recommend igor to analyze, especially for students.
 
 
