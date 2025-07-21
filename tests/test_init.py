@@ -7,7 +7,6 @@ from unittest.mock import patch
 
 def test_manual_initialize_calls_get_config_manager():
     """Test that `arpes.initialize()` calls `get_config_manager()`."""
-
     if "arpes" in sys.modules:
         del sys.modules["arpes"]
 

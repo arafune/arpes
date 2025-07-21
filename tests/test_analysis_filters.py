@@ -2,9 +2,7 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from src.arpes.analysis.filters import boxcar_filter_arr, savitzky_golay_filter, savgol_filter_multi
-import arpes
-import arpes.xarray_extensions
+from src.arpes.analysis.filters import boxcar_filter_arr, savgol_filter_multi, savitzky_golay_filter
 
 
 @pytest.fixture

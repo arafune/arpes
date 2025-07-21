@@ -249,6 +249,8 @@ def profile_curve(  # noqa: PLR0913
             width or height.
         plot_lim (tuple[float | None, float]): Limits for the y-axis (intensity).
         profile_size (int): Width or height of the profile plot in pixels.
+        line_color (str): Color of the profile line.
+        line_width (int): Width of the profile line.
         log (bool): Whether to apply logarithmic scale to the x-axis.
 
     Returns:

@@ -35,7 +35,7 @@ from arpes.analysis.filters import savgol_filter_multi
 from arpes.constants import TWO_DIMENSION
 from arpes.debug import setup_logger
 
-from ._helper import get_image_options, get_plot_lim, fix_xarray_to_fit_with_holoview
+from ._helper import fix_xarray_to_fit_with_holoview, get_image_options, get_plot_lim
 from .base import BaseUI, image_with_pointer, profile_curve
 
 if TYPE_CHECKING:

@@ -1,5 +1,4 @@
-"""
-Unit tests for the gradient fill plotting functions in `decoration.py`.
+"""Unit tests for the gradient fill plotting functions in `decoration.py`.
 
 This test suite verifies the behavior of `h_gradient_fill` and `v_gradient_fill`
 functions which produce horizontal and vertical gradient-filled regions in a matplotlib Axes.

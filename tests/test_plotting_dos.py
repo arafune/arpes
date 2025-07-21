@@ -5,13 +5,11 @@ from unittest.mock import MagicMock, patch
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pytest
 import xarray as xr
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
 from arpes.plotting.dos import plot_core_levels, plot_dos
-import arpes.xarray_extensions
 
 
 def test_plot_dos_returns_figure():

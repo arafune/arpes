@@ -5,15 +5,14 @@ import pytest
 import xarray as xr
 
 from arpes.preparation.axis_preparation import (
-    vstack_data,
-    sort_axis,
+    dim_normalizer,
     flip_axis,
     normalize_dim,
     normalize_total,
-    dim_normalizer,
+    sort_axis,
     transform_dataarray_axis,
+    vstack_data,
 )
-
 
 # --- Fixtures ---
 
@@ -86,7 +85,7 @@ def test_vstack_data_attrs():
     result = vstack_data(arrs, "z")
     assert "z" in result.dims
     assert result.shape[0] == 3
-    assert not "z" in result.attrs
+    assert "z" not in result.attrs
 
 
 def test_vstack_data_coords():

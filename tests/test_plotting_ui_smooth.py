@@ -8,7 +8,6 @@ import panel as pn
 import pytest
 import xarray as xr
 
-import arpes.xarray_extensions
 from arpes.plotting import DifferentiateApp, SmoothingApp
 from arpes.plotting.ui.smoothing import (
     _boxcar_slider,
@@ -383,7 +382,7 @@ def test_differentiate_app_with_derivative(sample_data_1d):
 
 
 @pytest.mark.parametrize(
-    "method", ["Maximum curvature (1D)", "Maximum curvature (2D)", "Minimum Gradient"]
+    "method", ["Maximum curvature (1D)", "Maximum curvature (2D)", "Minimum Gradient"],
 )
 def test_differentiate_app_methods(sample_data_2d, method):
     app = DifferentiateApp(sample_data_2d)
@@ -406,12 +405,12 @@ def test_differentiate_app_methods(sample_data_2d, method):
 
 def test_slider_functions(sample_data_2d):
     from arpes.plotting.ui.smoothing import (
+        _boxcar_slider,
         _derivative_slider,
         _gaussian_slider,
-        _boxcar_slider,
-        _savgol_slider,
         _max_curvature_1d_slider,
         _max_curvature_2d_slider,
+        _savgol_slider,
     )
 
     for func in [

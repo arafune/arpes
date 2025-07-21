@@ -1,10 +1,9 @@
-import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
 
-from arpes.endstations.single_file_endstation import SingleFileEndstation
+import pytest
 
 from arpes.endstations import single_file_endstation
+from arpes.endstations.single_file_endstation import SingleFileEndstation
 
 
 class DummyEndstation(SingleFileEndstation):

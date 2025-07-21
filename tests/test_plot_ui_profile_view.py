@@ -1,4 +1,3 @@
-import holoviews as hv
 import numpy as np
 import pytest
 import xarray as xr
@@ -6,7 +5,6 @@ from holoviews.core.layout import AdjointLayout
 from holoviews.streams import PointerX, PointerY
 
 from arpes.plotting.ui.profile import ProfileApp, profile_view
-import arpes.xarray_extensions
 
 
 @pytest.fixture

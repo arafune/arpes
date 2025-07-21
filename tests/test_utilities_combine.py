@@ -14,13 +14,11 @@ Test cases include:
 All tests assume that the `.G.with_values()` accessor is implemented.
 """
 
-from unittest.mock import patch
 
 import numpy as np
 import pytest
 import xarray as xr
 
-import arpes.xarray_extensions
 from arpes.utilities.combine import concat_along_phi
 
 

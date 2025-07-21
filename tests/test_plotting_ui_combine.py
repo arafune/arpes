@@ -1,4 +1,4 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import panel as pn
@@ -7,7 +7,6 @@ import xarray as xr
 from holoviews.element import QuadMesh
 
 from arpes.plotting.ui.combine import TailorApp
-import arpes.xarray_extensions
 
 pn.extension()
 

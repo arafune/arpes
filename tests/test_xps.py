@@ -3,7 +3,6 @@
 import numpy as np
 import xarray as xr
 
-import arpes.xarray_extensions
 from arpes.analysis.xps import approximate_core_levels
 
 

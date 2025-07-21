@@ -5,7 +5,6 @@ from pathlib import Path
 import pytest
 import xarray as xr
 
-import arpes.xarray_extensions
 from arpes import io
 from arpes.io import load_example_data
 

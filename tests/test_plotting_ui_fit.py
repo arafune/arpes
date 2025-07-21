@@ -4,7 +4,6 @@ import pytest
 import xarray as xr
 
 from arpes.plotting.ui.fit import fit_inspection
-import arpes.xarray_extensions
 
 
 @pytest.fixture
@@ -61,7 +60,7 @@ def test_fit_inspection_with_spectral_prefix(simple_dataset):
         {
             "modelfit_data": "spectrum_modelfit_data",
             "modelfit_best_fit": "spectrummodelfit_best_fit",
-        }
+        },
     )
     layout = fit_inspection(
         ds,
