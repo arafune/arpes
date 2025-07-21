@@ -30,12 +30,13 @@ from arpes.analysis import (
     dn_along_axis,
     gaussian_filter_arr,
     minimum_gradient,
-    savitzky_golay_filter,
     savgol_filter_multi,
+    savitzky_golay_filter,
 )
 from arpes.constants import TWO_DIMENSION
 from arpes.debug import setup_logger
 from arpes.preparation import normalize_max
+
 from ._helper import fix_xarray_to_fit_with_holoview, get_image_options, get_plot_lim
 from .base import BaseUI, image_with_pointer, profile_curve
 
