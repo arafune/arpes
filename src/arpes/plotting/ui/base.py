@@ -220,7 +220,6 @@ def image_with_pointer(
     )
     image_options["xlabel"] = data.dims[0]
     image_options["ylabel"] = data.dims[1]
-
     if use_quadmesh:
         img: QuadMesh | Image = QuadMesh(data).opts(**image_options)
     else:

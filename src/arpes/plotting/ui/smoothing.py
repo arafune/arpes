@@ -193,13 +193,12 @@ class SmoothingApp(BaseUI):
             image_options["colorbar"] = self.pane_kwargs["colorbar"]
 
             plot_lim = get_plot_lim(plot_data_orig, log=self.pane_kwargs["log"])
-
             img = image_with_pointer(
                 data=plot_data,
                 use_quadmesh=True,
                 posx=self.posx,
                 posy=self.posy,
-                **self.pane_kwargs,
+                **image_options,
             )
 
             profile_x_smoothed = profile_curve(
@@ -390,7 +389,7 @@ class DifferentiateApp(SmoothingApp):
             self.named_output[name] = self.output
         self._update_plot()
 
-    def _update_plot(self) -> None:
+    def _update_plot0(self) -> None:
         """Update the HoloViews plot with the current (smoothed) data."""
         plot_data = self.output
 

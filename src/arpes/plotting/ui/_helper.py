@@ -78,8 +78,8 @@ def get_image_options(
         "height": height,
         "logz": log,
         "cmap": cmap,
-        "active_tools": ["box_zoom"],
-        "default_tools": ["save", "box_zoom", "reset", "hover"],
+        "default_tools": [],
+        "tools": ["save", "box_zoom", "pan", "wheel_zoom", "reset", "hover"],
         "framewise": True,
     }
     if clim:
@@ -97,11 +97,11 @@ def get_plot_lim(data: xr.DataArray, *, log: bool) -> tuple[float | None, float]
     Returns:
         tuple[float | None, float]: Color scale limits (clim) for plotting.
             - If `log` is True: returns (second_min * 0.1, max_val * 10)
-            - If `log` is False: returns (None, max_val * 1.1)
+            - If `log` is False: returns (None, max_val * 1.05)
     """
     flat_vals = data.values.flatten()
     second_min = np.partition(np.unique(flat_vals), 1)[1]
     max_val = data.max().item()
     if log:
         return (second_min * 0.1, max_val * 10)
-    return (None, max_val * 1.1)
+    return (None, max_val * 1.05)
