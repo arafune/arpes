@@ -5,6 +5,7 @@ from holoviews.core.layout import AdjointLayout
 from holoviews.streams import PointerX, PointerY
 
 from arpes.plotting.ui.profile import ProfileApp, profile_view
+import arpes.xarray_extensions  # noqa: ANN001
 
 
 @pytest.fixture

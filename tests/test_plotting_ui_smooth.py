@@ -15,6 +15,7 @@ from arpes.plotting.ui.smoothing import (
     _iteration_slider,
     _savgol_slider,
 )
+import arpes.xarray_extensions
 
 # Assuming your SmoothingApp and helper functions are in a file named 'smoothing_app_module.py'
 # from smoothing_app_module import SmoothingApp, _gaussian_slider, _boxcar_slider, _savgol_slider, _iteration_slider
@@ -382,7 +383,8 @@ def test_differentiate_app_with_derivative(sample_data_1d):
 
 
 @pytest.mark.parametrize(
-    "method", ["Maximum curvature (1D)", "Maximum curvature (2D)", "Minimum Gradient"],
+    "method",
+    ["Maximum curvature (1D)", "Maximum curvature (2D)", "Minimum Gradient"],
 )
 def test_differentiate_app_methods(sample_data_2d, method):
     app = DifferentiateApp(sample_data_2d)

@@ -68,7 +68,8 @@ class SmoothingApp(BaseUI):
 
         max_coords = data.G.argmax_coords()
         self.posx = PointerX(x=max_coords[data.dims[0]])
-        self.posy = PointerY(y=max_coords[data.dims[1]])
+        if data.ndim == TWO_DIMENSION:
+            self.posy = PointerY(y=max_coords[data.dims[1]])
 
         self._build()
 
