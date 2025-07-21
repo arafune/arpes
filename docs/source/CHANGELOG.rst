@@ -11,7 +11,7 @@ primarily indicate new features and documentation.
 
 5.0.0 (2025-XX-XX)
 ^^^^^^^^^^^^^^^^^^^^^^^^
-
+* Add class for interactive analysis (ProfileApp, TaylorApp, ProfileApp)
 
 5.0.0-per5 (2025-7-19)
 ^^^^^^^^^^^^^^^^^^^^^^^^

@@ -158,6 +158,43 @@ def normalize_dim(
     return to_return
 
 
+@update_provenance("Normalize maximum intensity")
+def normalize_max(
+    data: XrTypes,
+    *,
+    absolute: bool = False,
+    keep_attrs: bool = True,
+    max_value: float = 1.0,
+) -> xr.DataArray:
+    """Normalize data so that the maximum intensity is unitity.
+
+    Args:
+        data (xr.DataArray | xr.Dataset): Input data.
+        absolute (bool): If True, nomrmalized by absolute intensity.
+        keep_attrs (bool): If True, keep attributes of the input data.
+        max_value (float): The value to which the maximum intensity is normalized.
+
+    Returns:
+        xr.DataArray
+    """
+    data = normalize_to_spectrum(data)
+    values = data.values
+    if absolute:
+        values = values / np.abs(values).max().item()
+        data = data.G.with_values(
+            values * max_value,
+            keep_attrs=keep_attrs,
+        )
+    else:
+        values = values / values.max().item()
+        data = data.G.with_values(
+            values * max_value,
+            keep_attrs=keep_attrs,
+        )
+    assert isinstance(data, xr.DataArray)
+    return data
+
+
 @update_provenance("Normalize total spectrum intensity")
 def normalize_total(data: XrTypes, *, total_intensity: float = 1000000) -> xr.DataArray:
     """Normalizes data so that the total intensity is 1000000 (a bit arbitrary).

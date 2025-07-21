@@ -4,10 +4,12 @@ import numpy as np
 import pytest
 import xarray as xr
 
+import arpes.xarray_extensions  # noqa: F401
 from arpes.preparation.axis_preparation import (
     dim_normalizer,
     flip_axis,
     normalize_dim,
+    normalize_max,
     normalize_total,
     sort_axis,
     transform_dataarray_axis,
@@ -204,3 +206,37 @@ def test_transform_dataarray_axis(sample_dataset):
     assert "kx" in new_ds.coords
     assert "intensity_kx" in new_ds.data_vars
     assert "x" not in new_ds.dims
+
+
+def test_normalize_max_default(dataarray_cut: xr.DataArray):
+    """absolute=False, keep_attrs=True, max_value=1.0."""
+    result = normalize_max(dataarray_cut)
+    expected = 1.0
+    assert result.values.max() == expected
+
+
+def test_normalize_max_with_absolute(dataarray_cut: xr.DataArray):
+    """absolute=True."""
+    dataarray_cut = -dataarray_cut
+    result = normalize_max(dataarray_cut, absolute=True)
+    expected = -1.0
+    assert result.values.min() == expected
+
+
+def test_normalize_max_with_max_value(dataarray_cut: xr.DataArray):
+    """max_value=2.5."""
+    result = normalize_max(dataarray_cut, max_value=2.5)
+    expected = 2.5
+    assert result.values.max() == expected
+
+
+def test_normalize_max_without_attrs(dataarray_cut: xr.DataArray):
+    """keep_attrs=False."""
+    result = normalize_max(dataarray_cut, keep_attrs=False)
+    assert len(result.attrs) == 2
+
+
+def test_normalize_max_return_type(dataarray_cut: xr.DataArray):
+    """xr.DataArray."""
+    result = normalize_max(dataarray_cut)
+    assert isinstance(result, xr.DataArray)

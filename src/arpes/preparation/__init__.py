@@ -7,6 +7,7 @@ from .axis_preparation import (
     dim_normalizer,
     flip_axis,
     normalize_dim,
+    normalize_max,
     normalize_total,
     sort_axis,
     transform_dataarray_axis,

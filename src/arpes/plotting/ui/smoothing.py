@@ -30,11 +30,12 @@ from arpes.analysis import (
     dn_along_axis,
     gaussian_filter_arr,
     minimum_gradient,
+    savitzky_golay_filter,
+    savgol_filter_multi,
 )
-from arpes.analysis.filters import savgol_filter_multi
 from arpes.constants import TWO_DIMENSION
 from arpes.debug import setup_logger
-
+from arpes.preparation import normalize_max
 from ._helper import fix_xarray_to_fit_with_holoview, get_image_options, get_plot_lim
 from .base import BaseUI, image_with_pointer, profile_curve
 
@@ -255,7 +256,7 @@ class SmoothingApp(BaseUI):
             iteration_n=int(iteration),
         )
 
-    def _savitzky_golay_smoothing(self, data: xr.DataArray, **kwargs: float) -> xr.DataArray:
+    def _savitzky_golay_smoothing(self, data: xr.DataArray, **kwargs: int) -> xr.DataArray:
         axis_params: dict[Hashable, tuple[int, int]] = {}
         for k, v in kwargs.items():
             param_name, axis_name = k.rsplit("_", 1)
@@ -300,6 +301,7 @@ class DifferentiateApp(SmoothingApp):
             **kwargs: Additional parameters for the UI, such as pane_kwargs.
         """
         super().__init__(data, **kwargs)
+        self.max_intensity = data.max().item()
 
     def _build(self) -> None:
         """Build the differentiation UI components."""
@@ -315,6 +317,10 @@ class DifferentiateApp(SmoothingApp):
             "Derivative": (
                 self._derivative,
                 _derivative_slider(self.data),
+            ),
+            "Second Derivative by Savitzky-Golay filter": (
+                self._second_derivative_with_SG,
+                _savgol_deriv_slider(self.data),
             ),
             "Maximum curvature (1D)": (
                 self._maximum_curvature_1d,
@@ -423,20 +429,70 @@ class DifferentiateApp(SmoothingApp):
         axis = kwargs.get("axis", data.dims[0])
         return dn_along_axis(data, dim=axis, order=kwargs.get("derivative_order", 1))
 
+    def _second_derivative_with_SG(self, data: xr.DataArray, **kwargs: int) -> xr.DataArray:
+        """Apply second derivative using Savitzky-Golay filter.
+
+        Args:
+            data (xr.DataArray): Input data to be processed.
+            **kwargs: Parameters for the Savitzky-Golay filter.
+
+        Returns:
+            xr.DataArray: The second derivative of the input data.
+        """
+        axis = kwargs.get("axis", data.dims[0])
+        window_length = kwargs.get("window_length", 5)
+        polyorder = kwargs.get("polyorder", 1)
+        if window_length % 2 == 0:
+            self.log_message("❌ Window length must be odd for Savitzky-Golay filter.\n")
+            return data
+        if polyorder <= 1:
+            self.log_message("❌ Polyorder must be larger than 2\n")
+            return data
+        if window_length < polyorder:
+            self.log_message("❌ Polyorder must be less than window_length.\n")
+            return data
+        self.log_message("✅ sign-revered 2nd derivative is used, as it has a phyiscal meaning.\n")
+        filterd = savitzky_golay_filter(
+            data=data,
+            window_length=window_length,
+            polyorder=polyorder,
+            deriv=2,
+            dim=axis,
+        )
+        return -normalize_max(
+            filterd,
+            absolute=True,
+            keep_attrs=True,
+            max_value=self.max_intensity,
+        )
+
     def _maximum_curvature_1d(self, data: xr.DataArray, **kwargs: int) -> xr.DataArray:
         axis = kwargs.get("axis", data.dims[0])
-        return curvature1d(data, dim=axis, alpha=kwargs.get("coefficient a", 0.1))
+
+        self.log_message("✅ sign-revered curvature is used, as it has a phyiscal meaning.\n")
+        return -normalize_max(
+            curvature1d(data, dim=axis, alpha=kwargs.get("coefficient a", 0.1)),
+            absolute=True,
+            keep_attrs=True,
+            max_value=self.max_intensity,
+        )
 
     def _maximum_curvature_2d(self, data: xr.DataArray, **kwargs: int) -> xr.DataArray:
         dims = cast("tuple[Hashable, Hashable]", kwargs.get("dims", data.dims))
         if kwargs.get("weight_2D", 1.0) == 0:
             self.log_message("❌ weight 2D must not be 0\n")
             return data
-        return curvature2d(
-            data,
-            dims=dims,
-            alpha=kwargs.get("coefficient a", 0.1),
-            weight2d=kwargs.get("weight_2D", 1.0),
+        self.log_message("✅ sign-revered curvature is used, as it has a phyiscal meaning.\n")
+        return -normalize_max(
+            curvature2d(
+                data,
+                dims=dims,
+                alpha=kwargs.get("coefficient a", 0.1),
+                weight2d=kwargs.get("weight_2D", 1.0),
+            ),
+            absolute=True,
+            keep_attrs=True,
+            max_value=self.max_intensity,
         )
 
     def _minimum_gradient(self, data: xr.DataArray, **kwargs: int) -> xr.DataArray:
@@ -464,6 +520,34 @@ def _derivative_slider(data: xr.DataArray) -> dict[Hashable, pn.widgets.Widget]:
             start=1,
             end=10,
             step=1,
+        ),
+    }
+
+
+def _savgol_deriv_slider(data: xr.DataArray) -> dict[Hashable, pn.widgets.Widget]:
+    """Generate a dictionary of sliders for Savitzky-Golay derivative.
+
+    Args:
+        data(xr.DataArray): DataArray to be processed.
+
+    Returns:
+        dict[str, pn.widgets.Widget]: A dictionary of slider widgets.
+    """
+    return {
+        "axis": pn.widgets.Select(name="axis", options=list(data.dims)),
+        "window_length": pn.widgets.IntSlider(
+            name="Window Length",
+            start=1,
+            end=25,
+            step=2,
+            value=5,
+        ),
+        "polyorder": pn.widgets.IntSlider(
+            name="Polyorder",
+            start=0,
+            end=6,
+            step=1,
+            value=1,
         ),
     }
 
@@ -547,7 +631,7 @@ def _gaussian_slider(data: xr.DataArray) -> dict[Hashable, pn.widgets.Widget]:
         sliders[dim] = pn.widgets.FloatSlider(
             name=f"Sigma {dim}",
             start=0,
-            end=3.0,
+            end=round(data.G.stride(generic_dim_names=False)[dim].item() * 100, 2),
             step=0.001,
             value=0.1,
             format="0.000",
@@ -569,7 +653,7 @@ def _boxcar_slider(data: xr.DataArray) -> dict[Hashable, pn.widgets.Widget]:
         sliders[dim] = pn.widgets.FloatSlider(
             name=f"Kernel Size {dim}",
             start=0.0,
-            end=3.0,
+            end=round(data.G.stride(generic_dim_names=False)[dim].item() * 100, 2),
             step=0.001,
             value=0.1,
             format="0.000",

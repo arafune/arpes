@@ -24,17 +24,18 @@ __all__ = ("normalize_to_spectrum",)
 
 def normalize_to_spectrum(data: DataWithCoords) -> xr.DataArray:
     """Tries to extract the actual ARPES spectrum from a dataset containing other variables."""
-    logger.debug(f"inspect.stack(): {inspect.stack()}")
-    msg = "You use Dataset as a argument of "
-    msg += f"{inspect.stack()[1].function} in {inspect.stack()[1].filename}\n"
-    msg += "Remember to use a DataArray not a Dataset, "
-    msg += "attempting to extract spectrum and copy attributes.\n"
-    warnings.warn(
-        msg,
-        stacklevel=2,
-    )
-
+    if isinstance(data, xr.DataArray) and data.name == "spectrum":
+        return data
     if isinstance(data, xr.Dataset):
+        logger.debug(f"inspect.stack(): {inspect.stack()}")
+        msg = "You use Dataset as a argument of "
+        msg += f"{inspect.stack()[1].function} in {inspect.stack()[1].filename}\n"
+        msg += "Remember to use a DataArray not a Dataset, "
+        msg += "attempting to extract spectrum and copy attributes.\n"
+        warnings.warn(
+            msg,
+            stacklevel=2,
+        )
         if "up" in data.data_vars:
             assert isinstance(data.up, xr.DataArray)
             return data.up

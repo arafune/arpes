@@ -34,7 +34,7 @@ PyARPES simplifies the analysis and collection of angle-resolved photoemission s
 
 * modern, best practices for data science
 * support for a standard library of ARPES analysis tools mirroring those available in Igor Pro
-* (interactive and extensible analysis tools)
+* interactive and extensible analysis tools, which is not used Qt related libraries.  (All analysis is closed in Jupyter/marimo environment.)
 
 It supports a variety of data formats from synchrotron and laser-ARPES sources including ARPES at the Advanced
 Light Source (ALS), the data produced by Scienta Omicron GmbH's "SES Wrapper", data and experiment files from
