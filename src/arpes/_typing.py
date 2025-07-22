@@ -29,6 +29,7 @@ if TYPE_CHECKING:
 
     from _typeshed import Incomplete
     from matplotlib.artist import Artist
+    from matplotlib.axes import Axes
     from matplotlib.backend_bases import Event
     from matplotlib.colors import Colormap, Normalize
     from matplotlib.figure import Figure
@@ -792,3 +793,32 @@ class ProfileViewParam(TypedDict):
     log: bool
     profile_view_height: int
     colorbar: bool
+
+
+class SliceAlongPathKwags(TypedDict, total=False):
+    axis_name: str
+    resolution: float
+    n_points: int
+    extend_to_edge: bool
+
+
+class PlotParamKwargs(MPLPlotKwargs, total=False):
+    ax: Axes | None
+    shift: float
+    x_shift: float
+    two_sigma: bool
+    figsize: tuple[float, float]
+
+
+class LabeledFermiSurfaceParam(TypedDict, total=False):
+    include_symmetry_points: bool
+    include_bz: bool
+    fermi_energy: float
+    out: str | Path
+
+
+class HvRefScanParam(LabeledFermiSurfaceParam):
+    """Parameter for hf_ref_scan."""
+
+    e_cut: float
+    bkg_subtraction: float

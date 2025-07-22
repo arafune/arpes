@@ -10,33 +10,44 @@ incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
 5.0.0 (2025-XX-XX)
-^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^
 * Add class for interactive analysis (ProfileApp, TaylorApp, ProfileApp)
+
+* Internal change
+
+  * xarray_extensions.py is split into several files in xarray_extensions/ directory.
 
 5.0.0-per5 (2025-7-19)
 ^^^^^^^^^^^^^^^^^^^^^^^^
+
 * Internal change
+
   * Introduce ConfigManager to manage the configuration, instead of many global variables.
   * Split functions in plotting/holoviews.py into several files in ui/
 
 * argument name change
+
   * repeat_n -> iteration_n in gaussian_filter_arr and boxcar_filter_arr
 
 * Add new class for interactive analysis
+
   * SmoothApp, DifferentiateApp
 
 5.0.0-per4 (2025-07-01)
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Remove math.py
+
   * fermi_distribution in math.py, which is already used in fit_models.functional_forms
   * The definition of inv_fermi_distribution has not  been required.
   * polarization: the meaning is ambiguous. (This is the "spin" polarization. But who knows?). Furthermore, this is used only once in sarpes.py.
 
 * Remove gaussian_filter, and boxcar_filter
+
   * They are not used.  Use gaussian_filter_arr and boxcar_filter_arr instead.
 
 * Set as Deprecated
+
   * stack_dispersion_plot
   * flat_stack_plot
   * analysis.general.condense
@@ -51,6 +62,7 @@ primarily indicate new features and documentation.
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Fix problem in kz-conversion.py
+
   - I'm not perfectly sure this fix is right. Need further check.
 
 
@@ -61,13 +73,16 @@ Changed
 ~~~~~~~
 
 * Drop broadcast_model.
+
   - xarray now has a curve_fit function. And a package that extends it to support lmfit has recently appeared on github. (xarray-lmfit) This is a pretty good implementation and easy to use. "Let's use the libraries we can use." I believe it's a good policy, and it is good to have less code to maintain.
   - XModelMixin class is also removed.
 
 * Improve the compatibiltiies with the lmfit.
+
   - Note that some parameter names have been changed.
 
 * Remove
+
   - S.correct_angle_by
   - S.corrected_angle_by
   - S.transpose_to_front
@@ -79,6 +94,7 @@ Changed
   - F.fit_dimensions
 
 * Remove some Model classes
+
   - TwoLorEdgeModel
   - FermiDiracAffGaussModel  (AffineBroadenedFD is same)
   - TwoBandEdgeBModel
@@ -86,11 +102,13 @@ Changed
   - AffineBackgroundModel (This is same as LinearModel in lmfit)
 
 * Remove some functional_forms for fit
+
   - gaussian (Use lmfit)
   - lorentzian (Use lmfit)
   - twolorentzian  (No need)
 
 * Change Parammeter name in fit function
+
   - lin_bkg -> lin_slope
 
 4.2.4 (2025-03-20)
@@ -103,8 +121,10 @@ Changed
 * Remove sum_annotation and mean_annotation in plotting.utils
 * Remove to_arrays in xarray_extensions.py because of too-simple.
 * Remove src/arpes/optics.py
+
   - This should not be included in pyarpes, because it is not closely related to arpes analysis.
 * Remove src/arpes/utilities/image.py
+
   - In certain special situations, this may be a meaningful function. However, as a practical matter, direct reading of image data is not likely to produce meaningful data (data that can be used in a paper).
 * Remove arpes.exceptions: pragmatically, it has not been used. And I don't think the own class for exception is good idea.
 * Remove arg keep_parent_ref in provenance and provenance_multiple_parents
@@ -121,6 +141,7 @@ Changed
 * Change method name: S.swap_angle_unit -> S.switch_angle_unit
 
 * Deprecated
+
   - S.correct_angle_by
   - S.corrected_angle_by
   - S.transpose_to_front
@@ -171,11 +192,13 @@ Changed
 * Remove keep_parent_ref arg 
 
 * Method name change
+
   * S.correct_angle_by -> S.correct_coords [DeprecatedWarning]
   * S.corrected_angle_by -> S.corrected_coords [DeprecatedWarning]
   * S.transpose_to_front -> S.transpose_to_front [DeprecatedWarning]
 
 * Deprecated method 
+
   * transpose_to_front  (Use standard Xarray transform)  [DeprecatedWarning] (#65)
   * transpose_to_back (Use standard Xarray transform)    [DeprecatedWarning] (#65)
 
@@ -187,6 +210,7 @@ Minor
 ~~~~~
 
 * Method name change
+
   These methods are used internally, so most users don't need to care the change.
 
   * S.shift_coords -> shift_meshgrid
@@ -246,17 +270,21 @@ Non-original author update.
 Changed
 ~~~~~~~
 * Required python version >= 3.11
-* Introduce type hints.  
+* Introduce type hints.
+
     - Type annotation sometimes limits the python's flexibility, but for induces the robustness, which is essentially useful for scientific analyais.
     - Because of the same reason, drop the "flexibile" (from a certain view points, it may be pythonic) codes.
 * Drop PyQt5, use PySide6 instead.
 * Drop the Bokeh based functionalities because they are not compatible with the current jupyter. 
+
     - curvature_tool, comparison_tool
     - While some of them might be useful, but at least when I started to use this, the compatibility was broken.  I don't know how these were useful.
 * Remove arpes.all
 * And very many breaking Changes.
+
     * Remove G.extent
     * Remove overlapped_stack_dispersion_plot
+
         - use stack_dispersion_plot_with_appropriate_args
     * Revise the k-conversion.  The original version is correct from the view of the coding, but incorrect from the physics!
     * introduce new attrs, "energy_notation". if not specified, attrs["energy_notation"] = "Binding" is assumed to keep the consistency from the previous version.

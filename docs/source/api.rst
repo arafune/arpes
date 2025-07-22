@@ -58,40 +58,43 @@ The `.F` accessor:
 The .S accessor
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass::   arpes.xarray_extensions.ARPESAngleProperty
-   :members:
-   :exclude_members: _*, __*
-   :show-inheritance:
-
-.. autoclass::   arpes.xarray_extensions.ARPESPhysicalProperty
+.. autoclass::   arpes.xarray_extensions.accessor.property.ARPESAngleProperty
    :members:
    :show-inheritance:
 
-.. autoclass::   arpes.xarray_extensions.ARPESInfoProperty
+.. autoclass::   arpes.xarray_extensions.accessor.property.ARPESPhysicalProperty
    :members:
    :show-inheritance:
 
-.. autoclass::   arpes.xarray_extensions.ARPESProvenanceProperty
+.. autoclass::   arpes.xarray_extensions.accessor.property.ARPESInfoProperty
    :members:
    :show-inheritance:
 
-.. autoclass::   arpes.xarray_extensions.ARPESPropertyBase
+.. autoclass::   arpes.xarray_extensions.accessor.property.ARPESProvenanceProperty
    :members:
    :show-inheritance:
 
-.. autoclass::   arpes.xarray_extensions.ARPESOffsetProperty
+.. autoclass::   arpes.xarray_extensions.accessor.property.ARPESOffsetProperty
    :members:
    :show-inheritance:
 
-.. autoclass::   arpes.xarray_extensions.ARPESDataArrayAccessorBase
+.. autoclass::   arpes.xarray_extensions.accessor.property.ARPESPropertyBase
    :members:
    :show-inheritance:
 
-.. autoclass::   arpes.xarray_extensions.ARPESDataArrayAccessor
+.. autoclass::   arpes.xarray_extensions.accessor.property.ARPESProperty
    :members:
    :show-inheritance:
 
-.. autoclass::   arpes.xarray_extensions.ARPESDatasetAccessor
+.. autoclass::   arpes.xarray_extensions.accessor.base.ARPESDataArrayAccessorBase
+   :members:
+   :show-inheritance:
+
+.. autoclass::   arpes.xarray_extensions.accessor.spectroscopy.ARPESDataArrayAccessor
+   :members:
+   :show-inheritance:
+
+.. autoclass::   arpes.xarray_extensions.accessor.spectroscopy.ARPESDatasetAccessor
    :members:
    :show-inheritance:
 
@@ -103,15 +106,15 @@ The .G accessor
 Available as methods via ``.G`` accessor.
 
 
-.. autoclass::   arpes.xarray_extensions.GenericAccessorBase
+.. autoclass::   arpes.xarray_extensions.accessor.base.GenericAccessorBase
    :members:
    :show-inheritance:
 
-.. autoclass::   arpes.xarray_extensions.GenericDatasetAccessor
+.. autoclass::   arpes.xarray_extensions.accessor.general.GenericDatasetAccessor
    :members:
    :show-inheritance:
 
-.. autoclass::   arpes.xarray_extensions.GenericDataArrayAccessor
+.. autoclass::   arpes.xarray_extensions.accessor.general.GenericDataArrayAccessor
    :members:
    :show-inheritance:
 
@@ -120,11 +123,11 @@ The .F accessor
 
 Available as methods via ``.F`` accessor.
 
-.. autoclass:: arpes.xarray_extensions.ARPESDatasetFitToolAccessor
+.. autoclass:: arpes.xarray_extensions.accessor.fit.ARPESDatasetFitToolAccessor
    :members:
    :show-inheritance:
 
-.. autoclass:: arpes.xarray_extensions.ARPESFitToolsAccessor
+.. autoclass:: arpes.xarray_extensions.accessor.fit.ARPESFitToolsAccessor
    :members:
    :show-inheritance:
    

@@ -41,5 +41,4 @@ HV_CONVERSION = 3.814697265625
 
 TWO_DIMENSION = 2
 
-
 MAX_EXP_ARG = np.log(np.finfo(np.float64).max)

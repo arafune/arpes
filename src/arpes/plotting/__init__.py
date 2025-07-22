@@ -8,7 +8,6 @@ from .bands import plot_with_bands
 from .basic import make_overview, make_reference_plots
 from .decoration import h_gradient_fill, v_gradient_fill
 from .dispersion import (
-    LabeledFermiSurfaceParam,
     cut_dispersion_plot,
     fancy_dispersion,
     hv_reference_scan,
