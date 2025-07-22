@@ -318,8 +318,8 @@ class DifferentiateApp(SmoothingApp):
                 self._derivative,
                 _derivative_slider(self.data),
             ),
-            "Second Derivative by Savitzky-Golay filter": (
-                self._second_derivative_with_SG,
+            "n-th Derivative by Savitzky-Golay filter": (
+                self._n_th_derivative_with_SG,
                 _savgol_deriv_slider(self.data),
             ),
             "Maximum curvature (1D)": (
@@ -429,7 +429,7 @@ class DifferentiateApp(SmoothingApp):
         axis = kwargs.get("axis", data.dims[0])
         return dn_along_axis(data, dim=axis, order=kwargs.get("derivative_order", 1))
 
-    def _second_derivative_with_SG(self, data: xr.DataArray, **kwargs: int) -> xr.DataArray:
+    def _n_th_derivative_with_SG(self, data: xr.DataArray, **kwargs: int) -> xr.DataArray:
         """Apply second derivative using Savitzky-Golay filter.
 
         Args:
@@ -440,13 +440,14 @@ class DifferentiateApp(SmoothingApp):
             xr.DataArray: The second derivative of the input data.
         """
         axis = kwargs.get("axis", data.dims[0])
+        order = kwargs.get("order", 1)
         window_length = kwargs.get("window_length", 5)
         polyorder = kwargs.get("polyorder", 1)
         if window_length % 2 == 0:
             self.log_message("❌ Window length must be odd for Savitzky-Golay filter.\n")
             return data
-        if polyorder <= 1:
-            self.log_message("❌ Polyorder must be larger than 2\n")
+        if polyorder <= order:
+            self.log_message("❌ Polyorder must be larger than Order\n")
             return data
         if window_length < polyorder:
             self.log_message("❌ Polyorder must be less than window_length.\n")
@@ -456,7 +457,7 @@ class DifferentiateApp(SmoothingApp):
             data=data,
             window_length=window_length,
             polyorder=polyorder,
-            deriv=2,
+            deriv=order,
             dim=axis,
         )
         return -normalize_max(
@@ -535,6 +536,7 @@ def _savgol_deriv_slider(data: xr.DataArray) -> dict[Hashable, pn.widgets.Widget
     """
     return {
         "axis": pn.widgets.Select(name="axis", options=list(data.dims)),
+        "order": pn.widgets.IntSlider(value=1, start=1, end=6, step=1, name="Order"),
         "window_length": pn.widgets.IntSlider(
             name="Window Length",
             start=1,

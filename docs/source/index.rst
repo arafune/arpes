@@ -3,8 +3,8 @@ PyARPES corrected (V5)
 
 **V5 Release: Non maintainer update**
 This release introduces extensive refactoring and feature development aimed at long-term maintainability and usability.
-A major focus has been on reducing global state by introducing a centralized ConfigManager, modularizing the UI with Holoviews-based interactive apps, and deprecating unused or ambiguous components.
-Functionality has been restructured to align better with modern Python tools and community practices (e.g., xarray-lmfit instead of custom model broadcasting).
+A major focus has been on reducing global state by introducing a centralized `ConfigManager`, modularizing the UI with Holoviews-based interactive apps, and deprecating unused or ambiguous components.
+Functionality has been restructured to align better with modern Python tools and community practices (e.g., `xarray-lmfit` instead of custom model broadcasting).
 Version 5 drops several legacy methods and models, simplifies internal APIs, and favors explicitness and modularity.
 
 I used to say, "I still feel that the current package is not very user-friendly for less experienced Python users.
