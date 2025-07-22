@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from numpy import ndarray
     from numpy._typing import NDArray
 
-    from arpes._typing import DataType
+    from arpes._typing.base import DataType
 
 __all__ = [
     "Debounce",

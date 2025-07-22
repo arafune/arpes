@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
     from numpy.typing import NDArray
 
-    from arpes._typing import AnalysisRegion
+    from arpes._typing.base import AnalysisRegion
 
 __all__ = ["REGIONS", "DesignatedRegions", "normalize_region"]
 

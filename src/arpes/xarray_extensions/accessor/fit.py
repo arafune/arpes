@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from holoviews import AdjointLayout
     from matplotlib.axes import Axes
 
-    from arpes._typing import (
+    from arpes._typing.plotting import (
         PlotParamKwargs,
         ProfileViewParam,
     )

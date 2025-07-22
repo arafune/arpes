@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
     from _typeshed import Incomplete
 
-    from arpes._typing import ScanDesc, Spectrometer
+    from arpes._typing.attrs_property import ScanDesc, Spectrometer
 
 
 __all__ = ("IgorEndstation",)

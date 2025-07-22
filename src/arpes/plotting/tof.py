@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     import xarray as xr
     from matplotlib.figure import Figure
 
-    from arpes._typing import MPLPlotKwargs, MPLPlotKwargsBasic
+    from arpes._typing.plotting import MPLPlotKwargs, MPLPlotKwargsBasic
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]

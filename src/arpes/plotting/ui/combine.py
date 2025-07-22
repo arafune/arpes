@@ -34,7 +34,7 @@ from ._helper import default_plot_kwargs, fix_xarray_to_fit_with_holoview, get_i
 from .base import BaseUI
 
 if TYPE_CHECKING:
-    from arpes._typing import ProfileViewParam
+    from arpes._typing.plotting import ProfileViewParam
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]

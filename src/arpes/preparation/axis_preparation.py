@@ -11,12 +11,8 @@ import xarray as xr
 from numpy.typing import NDArray
 from scipy.ndimage import geometric_transform
 
-from arpes._typing import (
-    DataType,
-    XrTypes,
-    is_homogeneous_dataarray_list,
-    is_homogeneous_dataset_list,
-)
+from arpes._typing.base import DataType, XrTypes
+from arpes._typing.utils import is_homogeneous_dataarray_list, is_homogeneous_dataset_list
 from arpes.debug import setup_logger
 from arpes.provenance import Provenance, provenance, update_provenance
 from arpes.utilities import lift_dataarray_to_generic

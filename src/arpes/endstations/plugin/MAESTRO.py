@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, ClassVar
 
 import numpy as np
 
-from arpes._typing import XrTypes
+from arpes._typing.base import XrTypes
 from arpes.endstations import (
     FITSEndstation,
     HemisphericalEndstation,
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     import xarray as xr
     from _typeshed import Incomplete
 
-    from arpes.endstations import ScanDesc, Spectrometer
+    from arpes._typing.attrs_property import ScanDesc, Spectrometer
 
 __all__ = ("MAESTROMicroARPESEndstation", "MAESTRONanoARPESEndstation")
 

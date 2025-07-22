@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from PySide6.QtWidgets import QGridLayout, QWidget
 
-    from arpes._typing import XrTypes
+    from arpes._typing.base import XrTypes
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]

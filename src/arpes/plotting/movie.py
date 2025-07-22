@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from matplotlib.text import Text
     from numpy.typing import NDArray
 
-    from arpes._typing import PColorMeshKwargs
+    from arpes._typing.plotting import PColorMeshKwargs
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]

@@ -32,7 +32,6 @@ from typing import TYPE_CHECKING, ParamSpec, TypedDict, TypeVar
 
 import xarray as xr
 
-from ._typing import XrTypes
 from .configuration.interface import get_workspace_name
 from .debug import setup_logger
 from .helper.jupyter import get_recent_history
@@ -44,7 +43,8 @@ if TYPE_CHECKING:
     import numpy as np
     from numpy.typing import NDArray
 
-    from ._typing import CoordsOffset, XrTypes
+    from ._typing.attrs_property import CoordsOffset
+    from ._typing.base import XrTypes
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]

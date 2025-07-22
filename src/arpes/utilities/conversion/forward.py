@@ -20,7 +20,7 @@ import numpy as np
 import xarray as xr
 from numpy.typing import NDArray
 
-from arpes._typing import is_dict_kspacecoords
+from arpes._typing.utils import is_dict_kspacecoords
 from arpes.analysis.filters import gaussian_filter_arr
 from arpes.debug import setup_logger
 from arpes.provenance import update_provenance
@@ -37,7 +37,8 @@ from .core import convert_to_kspace
 if TYPE_CHECKING:
     from collections.abc import Hashable
 
-    from arpes._typing import KspaceCoords, XrTypes
+    from arpes._typing.attrs_property import KspaceCoords
+    from arpes._typing.base import XrTypes
 
 __all__ = (
     "convert_coordinate_forward",

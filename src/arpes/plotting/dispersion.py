@@ -28,7 +28,8 @@ if TYPE_CHECKING:
     from matplotlib.figure import Figure, FigureBase
     from numpy.typing import NDArray
 
-    from arpes._typing import LabeledFermiSurfaceParam, PColorMeshKwargs, XrTypes
+    from arpes._typing.base import XrTypes
+    from arpes._typing.plotting import LabeledFermiSurfaceParam, PColorMeshKwargs
     from arpes.models.band import Band
 
 __all__ = (

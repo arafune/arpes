@@ -30,12 +30,8 @@ if TYPE_CHECKING:
     from matplotlib.figure import Figure
     from numpy.typing import DTypeLike, NDArray
 
-    from arpes._typing import (
-        DataType,
-        PColorMeshKwargs,
-        XrTypes,
-    )
-
+    from arpes._typing.base import DataType, XrTypes
+    from arpes._typing.plotting import PColorMeshKwargs
 from .base import GenericAccessorBase
 
 LOGLEVELS = (DEBUG, INFO)

@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from lmfit.model import ModelResult
     from numpy.typing import NDArray
 
-    from arpes._typing import XrTypes
+    from arpes._typing.base import XrTypes
     from arpes.fits import ParametersArgs
 
 __all__ = (

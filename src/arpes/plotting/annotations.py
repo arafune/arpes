@@ -20,7 +20,9 @@ if TYPE_CHECKING:
 
     from numpy.typing import NDArray
 
-    from arpes._typing import ExperimentInfo, MPLTextParam, XrTypes
+    from arpes._typing.attrs_property import ExperimentInfo
+    from arpes._typing.base import XrTypes
+    from arpes._typing.plotting import MPLTextParam
 
 __all__ = (
     "annotate_cuts",

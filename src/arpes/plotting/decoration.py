@@ -9,7 +9,7 @@ from matplotlib.colors import colorConverter
 from matplotlib.image import AxesImage
 from matplotlib.typing import ColorType
 
-from arpes._typing import IMshowParam
+from arpes._typing.plotting import IMshowParam
 
 __all__ = ("h_gradient_fill", "v_gradient_fill")
 

@@ -20,7 +20,7 @@ import numpy as np
 import xarray as xr
 from xarray.core.coordinates import DataArrayCoordinates, DatasetCoordinates
 
-from arpes._typing import (
+from arpes._typing.base import (
     ANGLE,
     HIGH_SYMMETRY_POINTS,
     SpectrumType,
@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 
     from numpy.typing import NDArray
 
-    from arpes._typing import (
+    from arpes._typing.attrs_property import (
         AnalyzerInfo,
         BeamLineSettings,
         DAQInfo,
@@ -47,8 +47,8 @@ if TYPE_CHECKING:
         LightSourceInfo,
         SampleInfo,
         ScanInfo,
-        XrTypes,
     )
+    from arpes._typing.base import XrTypes
     from arpes.provenance import Provenance
 
 EnergyNotation: TypeAlias = Literal["Binding", "Final"]

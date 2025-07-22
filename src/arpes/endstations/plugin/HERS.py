@@ -19,7 +19,7 @@ from arpes.provenance import Provenance, provenance_from_file
 if TYPE_CHECKING:
     from _typeshed import Incomplete
 
-    from arpes._typing import ScanDesc
+    from arpes._typing.attrs_property import ScanDesc
 __all__ = ("HERSEndstation",)
 
 

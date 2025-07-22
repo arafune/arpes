@@ -11,7 +11,7 @@ from lmfit.lineshapes import gaussian
 from lmfit.models import Model, update_param_vals
 from scipy import stats
 
-from arpes._typing import XrTypes
+from arpes._typing.base import XrTypes
 
 from .functional_forms import (
     affine_broadened_fd,

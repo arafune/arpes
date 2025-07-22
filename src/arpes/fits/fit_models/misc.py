@@ -9,7 +9,7 @@ import numpy as np
 import xarray as xr
 from lmfit.models import Model, update_param_vals
 
-from arpes._typing import XrTypes
+from arpes._typing.base import XrTypes
 
 if TYPE_CHECKING:
     from numpy._typing import NDArray

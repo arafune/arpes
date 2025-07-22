@@ -19,11 +19,11 @@ from arpes.debug import setup_logger
 from arpes.endstations import EndstationBase, find_clean_coords
 from arpes.provenance import Provenance, provenance_from_file
 from arpes.helper import rename_keys
-from arpes._typing import Spectrometer
+from arpes._typing.attrs_property import Spectrometer
 from arpes.configuration.interface import get_data_path
 
 if TYPE_CHECKING:
-    from arpes._typing import ScanDesc
+    from arpes._typing.attrs_property import ScanDesc
 
 __all__ = ("SpinToFEndstation",)
 

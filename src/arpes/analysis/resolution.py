@@ -13,7 +13,7 @@ from arpes.constants import K_BOLTZMANN_MEV_KELVIN
 from arpes.utilities import normalize_to_spectrum
 
 if TYPE_CHECKING:
-    from arpes._typing import XrTypes
+    from arpes._typing.base import XrTypes
 
 __all__ = ("total_resolution_estimate",)
 

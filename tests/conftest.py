@@ -21,7 +21,8 @@ if TYPE_CHECKING:
 
     import xarray as xr
 
-    from arpes._typing import ScanInfo, WorkSpaceType
+    from arpes._typing.attrs_property import ScanInfo
+    from arpes._typing.workspace import WorkSpaceType
 
 
 class Expected(TypedDict, total=False):

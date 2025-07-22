@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Hashable, Sequence
 
     from _typeshed import Incomplete
-    from arpes._typing import DataType
+    from arpes._typing.base import DataType
     from numpy.typing import NDArray
     from pyqtgraph import Point
     from PySide6.QtWidgets import QGridLayout

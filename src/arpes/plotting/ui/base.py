@@ -38,7 +38,7 @@ from ._helper import (
 if TYPE_CHECKING:
     from panel.layout import Panel
 
-    from arpes._typing import ProfileViewParam
+    from arpes._typing.plotting import ProfileViewParam
 
 
 class BaseUI(ABC):

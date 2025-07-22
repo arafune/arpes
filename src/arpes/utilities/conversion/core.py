@@ -53,7 +53,8 @@ if TYPE_CHECKING:
 
     from numpy.typing import NDArray
 
-    from arpes._typing import MOMENTUM, KspaceCoords, XrTypes
+    from arpes._typing.attrs_property import KspaceCoords
+    from arpes._typing.base import MOMENTUM, XrTypes
     from arpes.utilities.conversion.base import CoordinateConverter
     from arpes.utilities.conversion.calibration import DetectorCalibration
 

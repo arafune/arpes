@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 
     from matplotlib.figure import Figure
 
-    from arpes._typing import MPLPlotKwargs, QuadmeshParam
+    from arpes._typing.plotting import MPLPlotKwargs, QuadmeshParam
 
 __all__ = (
     "plot_core_levels",

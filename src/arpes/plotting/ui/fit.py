@@ -35,7 +35,7 @@ from ._helper import (
 if TYPE_CHECKING:
     import xarray as xr
 
-    from arpes._typing import ProfileViewParam
+    from arpes._typing.plotting import ProfileViewParam
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]

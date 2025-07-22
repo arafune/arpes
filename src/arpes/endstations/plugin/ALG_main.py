@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
     import xarray as xr
 
-    from arpes._typing import ScanDesc, Spectrometer
+    from arpes._typing.attrs_property import ScanDesc, Spectrometer
 
 __all__ = ("ALGMainChamber", "electrons_per_pulse_mira")
 

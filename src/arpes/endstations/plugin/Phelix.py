@@ -26,7 +26,7 @@ from arpes.provenance import Provenance, provenance_from_file
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from arpes._typing import ScanDesc, Spectrometer
+    from arpes._typing.attrs_property import ScanDesc, Spectrometer
 
 __all__ = ["PhelixEndstation"]
 

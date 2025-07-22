@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import (
+    from arpes._typing.base import (
         ReduceMethod,
         SelType,
         XrTypes,

@@ -40,7 +40,8 @@ if TYPE_CHECKING:
 
     from _typeshed import Incomplete
 
-    from arpes._typing import DataType, ScanDesc, Spectrometer
+    from arpes._typing.attrs_property import ScanDesc, Spectrometer
+    from arpes._typing.base import DataType
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]

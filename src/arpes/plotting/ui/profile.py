@@ -32,7 +32,7 @@ from .base import BaseUI, image_with_pointer, profile_curve
 if TYPE_CHECKING:
     import xarray as xr
 
-    from arpes._typing import ProfileViewParam
+    from arpes._typing.plotting import ProfileViewParam
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]

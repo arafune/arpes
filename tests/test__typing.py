@@ -1,10 +1,9 @@
 """Unit test for arpes._typing."""
 
-
 import numpy as np
 import pytest
 
-from arpes._typing import is_dict_kspacecoords  # your_module を適宜変更してください
+from arpes._typing.utils import is_dict_kspacecoords
 
 
 @pytest.fixture

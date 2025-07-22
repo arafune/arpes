@@ -7,7 +7,7 @@ import numpy as np
 import xarray as xr
 from lmfit.models import ConstantModel
 
-from arpes._typing import DataType, ReduceMethod
+from arpes._typing.base import DataType, ReduceMethod
 from arpes.constants import K_BOLTZMANN_EV_KELVIN
 from arpes.debug import setup_logger
 from arpes.fits import AffineBroadenedFD

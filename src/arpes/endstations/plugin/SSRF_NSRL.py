@@ -39,7 +39,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy._typing import NDArray
 
-    from arpes._typing import ScanDesc, Spectrometer
+    from arpes._typing.attrs_property import ScanDesc, Spectrometer
 
 __all__ = ("NSRLEndstation", "SSRFEndstation")
 

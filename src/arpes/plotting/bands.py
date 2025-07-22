@@ -18,7 +18,8 @@ if TYPE_CHECKING:
 
     from matplotlib.image import AxesImage
 
-    from arpes._typing import PColorMeshKwargs, XrTypes
+    from arpes._typing.base import XrTypes
+    from arpes._typing.plotting import PColorMeshKwargs
     from arpes.models.band import Band
 
 __all__ = ("plot_with_bands",)

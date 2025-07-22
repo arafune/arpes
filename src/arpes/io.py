@@ -35,7 +35,8 @@ from .provenance import provenance_multiple_parents
 if TYPE_CHECKING:
     from _typeshed import Incomplete
 
-    from arpes._typing import ScanDesc, XrTypes
+    from arpes._typing.attrs_property import ScanDesc
+    from arpes._typing.base import XrTypes
 
 
 __all__ = ("easy_pickle", "list_pickles", "load_data", "load_example_data", "load_scan", "stitch")

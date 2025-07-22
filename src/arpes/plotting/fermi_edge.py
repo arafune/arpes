@@ -20,7 +20,7 @@ from .utils import label_for_dim, path_for_plot
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from arpes._typing import MPLPlotKwargs
+    from arpes._typing.plotting import MPLPlotKwargs
 
 __all__ = ["fermi_edge_reference"]
 

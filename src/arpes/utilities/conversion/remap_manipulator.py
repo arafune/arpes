@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     import xarray as xr
     from numpy.typing import NDArray
 
-    from arpes._typing import DataType
+    from arpes._typing.base import DataType
 
 __all__ = ["remap_coords_to"]
 

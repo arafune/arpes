@@ -2,7 +2,8 @@
 
 import numpy as np
 
-from arpes._typing import ANGLE, DataType, flatten_literals
+from arpes._typing.base import ANGLE, DataType
+from arpes._typing.utils import flatten_literals
 
 
 def radian_to_degree(data: DataType) -> DataType:

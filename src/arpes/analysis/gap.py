@@ -17,7 +17,7 @@ from arpes.utilities import normalize_to_spectrum
 if TYPE_CHECKING:
     from lmfit.model import ModelResult
 
-    from arpes._typing import DataType
+    from arpes._typing.base import DataType
 
 __all__ = ("determine_broadened_fermi_distribution", "normalize_by_fermi_dirac", "symmetrize")
 

@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from ase.cell import Cell
     from numpy.typing import NDArray
 
-    from arpes._typing import DataType, XrTypes
+    from arpes._typing.base import DataType, XrTypes
 
 __all__ = (
     "axis_along",

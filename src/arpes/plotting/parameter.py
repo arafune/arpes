@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     import xarray as xr
     from numpy.typing import NDArray
 
-    from arpes._typing import MPLPlotKwargs
+    from arpes._typing.plotting import MPLPlotKwargs
 
 __all__ = ("plot_parameter",)
 

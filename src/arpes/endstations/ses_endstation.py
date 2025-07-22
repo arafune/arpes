@@ -23,7 +23,6 @@ import numpy as np
 import xarray as xr
 
 from arpes.configuration import get_config_manager
-from arpes.configuration.interface import get_data_path
 from arpes.debug import setup_logger
 from arpes.load_pxt import find_ses_files_associated, read_single_pxt
 from arpes.provenance import Provenance, provenance_from_file
@@ -32,7 +31,7 @@ from .base import EndstationBase
 from .igor_utils import shim_wave_note
 
 if TYPE_CHECKING:
-    from arpes._typing import ScanDesc
+    from arpes._typing.attrs_property import ScanDesc
 
 
 LOGLEVELS = (DEBUG, INFO)

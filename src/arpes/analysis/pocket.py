@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import XrTypes
+    from arpes._typing.base import XrTypes
 
 __all__ = (
     "curves_along_pocket",

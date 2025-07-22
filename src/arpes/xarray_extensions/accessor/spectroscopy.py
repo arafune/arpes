@@ -29,9 +29,7 @@ from arpes.plotting.spatial import reference_scan_spatial
 from .base import ARPESAccessorBase, ARPESDataArrayAccessorBase
 
 if TYPE_CHECKING:
-    from collections.abc import (
-        Sequence,
-    )
+    from collections.abc import Sequence
     from pathlib import Path
 
     from _typeshed import Incomplete
@@ -40,14 +38,13 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
     from panel.layout import Panel
 
-    from arpes._typing import (
-        CoordsOffset,
+    from arpes._typing.attrs_property import CoordsOffset, SpectrumType
+    from arpes._typing.plotting import (
         HvRefScanParam,
         LabeledFermiSurfaceParam,
         MPLPlotKwargs,
         PColorMeshKwargs,
         ProfileViewParam,
-        SpectrumType,
     )
 
 LOGLEVELS = (DEBUG, INFO)

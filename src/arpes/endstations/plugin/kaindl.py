@@ -17,7 +17,7 @@ from arpes.constants import TWO_DIMENSION
 from arpes.endstations import HemisphericalEndstation, SESEndstation
 
 if TYPE_CHECKING:
-    from arpes._typing import ScanDesc
+    from arpes._typing.attrs_property import ScanDesc
 
 __all__ = ("KaindlEndstation",)
 

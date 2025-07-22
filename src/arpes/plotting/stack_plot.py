@@ -18,7 +18,7 @@ from matplotlib.colors import Colormap
 from matplotlib.ticker import FixedLocator, MaxNLocator
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
-from arpes._typing import MPLPlotKwargsBasic
+from arpes._typing.plotting import MPLPlotKwargsBasic
 from arpes.analysis import rebin
 from arpes.constants import TWO_DIMENSION
 from arpes.debug import setup_logger
@@ -40,12 +40,9 @@ if TYPE_CHECKING:
     from matplotlib.typing import ColorType
     from numpy.typing import NDArray
 
-    from arpes._typing import (
-        LEGENDLOCATION,
-        ColorbarParam,
-        MPLPlotKwargsBasic,
-        ReduceMethod,
-    )
+    from arpes._typing.base import ReduceMethod
+    from arpes._typing.plotting import LEGENDLOCATION, ColorbarParam, MPLPlotKwargsBasic
+
 __all__ = (
     "flat_stack_plot",
     "offset_scatter_plot",

@@ -10,9 +10,7 @@ from typing import TYPE_CHECKING, LiteralString, get_args
 import numpy as np
 import xarray as xr
 
-from arpes._typing import (
-    CoordsOffset,
-)
+from arpes._typing.attrs_property import CoordsOffset
 from arpes.debug import setup_logger
 
 if TYPE_CHECKING:

@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
     from numpy.typing import NDArray
 
-    from arpes._typing import DataType, ReduceMethod, XrTypes
+    from arpes._typing.base import DataType, ReduceMethod, XrTypes
 
 __all__ = (
     "fat_sel",

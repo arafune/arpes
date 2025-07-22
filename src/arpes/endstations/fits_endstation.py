@@ -45,7 +45,7 @@ from .fits_utils import find_clean_coords
 if TYPE_CHECKING:
     from _typeshed import Incomplete
 
-    from arpes._typing import ScanDesc
+    from arpes._typing.attrs_property import ScanDesc
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]

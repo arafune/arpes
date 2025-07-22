@@ -37,7 +37,7 @@ if TYPE_CHECKING:
     from matplotlib.figure import Figure
     from numpy.typing import NDArray
 
-    from arpes._typing import DataType
+    from arpes._typing.base import DataType
 
 __all__ = ("plot_spatial_reference", "reference_scan_spatial")
 

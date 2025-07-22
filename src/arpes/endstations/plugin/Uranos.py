@@ -32,7 +32,7 @@ from arpes.load_pxt import read_single_pxt
 if TYPE_CHECKING:
     from numpy._typing import NDArray
 
-    from arpes._typing import ScanDesc, Spectrometer
+    from arpes._typing.attrs_property import ScanDesc, Spectrometer
 
 
 __all__ = ["UranosEndstation"]

@@ -30,7 +30,7 @@ from matplotlib.offsetbox import AnchoredOffsetbox, AuxTransformBox, TextArea, V
 from titlecase import titlecase
 
 from arpes import VERSION
-from arpes._typing import XrTypes
+from arpes._typing.base import XrTypes
 from arpes.config import is_using_tex
 from arpes.configuration.interface import get_config_manager
 from arpes.constants import TWO_DIMENSION
@@ -48,13 +48,12 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
     from xarray.core.common import DataWithCoords
 
-    from arpes._typing import (
+    from arpes._typing.base import Plot2DStyle, XrTypes
+    from arpes._typing.plotting import (
         IMshowParam,
         MPLPlotKwargs,
         PColorMeshKwargs,
-        Plot2DStyle,
         PLTSubplotParam,
-        XrTypes,
     )
     from arpes.provenance import Provenance
     from arpes.xarray_extensions import ARPESDataArrayAccessor

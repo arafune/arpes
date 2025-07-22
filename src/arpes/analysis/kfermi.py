@@ -11,7 +11,7 @@ from lmfit.models import LinearModel
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
-    from arpes._typing import XrTypes
+    from arpes._typing.base import XrTypes
 
 __all__ = ("kfermi_from_mdcs",)
 

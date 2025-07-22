@@ -24,7 +24,7 @@ import numpy as np
 import scipy.stats
 import xarray as xr
 
-from arpes._typing import DataType
+from arpes._typing.base import DataType
 
 from .analysis.sarpes import to_intensity_polarization
 from .debug import setup_logger
@@ -41,7 +41,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing import AnalysisRegion
+    from arpes._typing.base import AnalysisRegion
     from arpes.utilities import DesignatedRegions
 
 __all__ = (

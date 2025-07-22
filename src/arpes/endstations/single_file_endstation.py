@@ -23,7 +23,7 @@ from arpes.debug import setup_logger
 from .base import EndstationBase
 
 if TYPE_CHECKING:
-    from arpes._typing import ScanDesc
+    from arpes._typing.attrs_property import ScanDesc
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
