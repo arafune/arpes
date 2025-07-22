@@ -21,11 +21,14 @@ from typing import (
 )
 
 import numpy as np
+import pandas as pd
 import xarray as xr
+from numpy.typing import NDArray
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Hashable, Sequence
     from pathlib import Path
+    from types import EllipsisType
 
     from _typeshed import Incomplete
     from matplotlib.artist import Artist
@@ -49,7 +52,7 @@ if TYPE_CHECKING:
         MarkEveryType,
     )
     from matplotlib.widgets import AxesWidget, Button, TextBox
-    from numpy.typing import ArrayLike, NDArray
+    from numpy.typing import ArrayLike
 
 __all__ = [
     "ANGLE",
@@ -93,6 +96,23 @@ SpectrumType = Literal["cut", "map", "hv_map", "ucut", "spem", "xps"]
 Plot2DStyle = Literal["line", "scatter"]
 
 AnalysisRegion = Literal["copper_prior", "wide_angular", "narrow_angular"]
+
+SelType = float | str | slice | list[float | str] | NDArray[np.float64]
+
+LocIndexer: dict[
+    Hashable,
+    float
+    | int
+    | str
+    | slice
+    | list[float | int | str]
+    | pd.Index
+    | np.ndarray
+    | xr.DataArray
+    | xr.Variable
+    | None
+    | EllipsisType,
+]
 
 
 class ScanDesc(TypedDict, total=False):

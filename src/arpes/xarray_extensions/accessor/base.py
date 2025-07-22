@@ -1,6 +1,9 @@
-from __future__ import annotations  # noqa: D100
+"""Class for base of ARPES xarray extensions."""
+
+from __future__ import annotations
 
 import itertools
+import warnings
 from logging import DEBUG, INFO
 from typing import (
     TYPE_CHECKING,
@@ -29,8 +32,10 @@ if TYPE_CHECKING:
 
     from arpes._typing import (
         ReduceMethod,
+        SelType,
         XrTypes,
     )
+
 from .property import ARPESProperty
 
 NORMALIZED_DIM_NAMES = ["x", "y", "z", "w"]
@@ -426,10 +431,11 @@ class GenericAccessorBase:
 
     def apply_over(
         self,
-        fn: Callable,
+        fn: Callable[[xr.DataArray | xr.Dataset], XrTypes | NDArray[np.float64]],
         *,
         copy: bool = True,
-        **selections: Incomplete,
+        selections: Mapping[str, SelType] | None = None,
+        **selections_kwargs: SelType,
     ) -> XrTypes:
         """Applies a function to a data region and updates the dataset with the result.
 
@@ -438,6 +444,7 @@ class GenericAccessorBase:
             copy (bool, optional): If True, operates on a deep copy of the data.
                 If False, modifies the data in-place. Defaults to True.
             selections (Incomplete): Keyword arguments specifying the region of the data to select.
+            **selections_kwargs: Selection keys and values as keyword arguments.
 
         Returns:
             XrTypes: The dataset after the function has been applied.
@@ -446,23 +453,27 @@ class GenericAccessorBase:
             - Add tests.
         """
         assert isinstance(self._obj, xr.DataArray | xr.Dataset)
-        data = self._obj
 
-        if copy:
-            data = data.copy(deep=True)
+        data = self._obj.copy(deep=True) if copy else self._obj
 
+        if selections is None:
+            combined_selections: Mapping[str, SelType] = selections_kwargs
+        else:
+            combined_selections = {**(selections or {}), **selections_kwargs}
+
+        selected: xr.DataArray | xr.Dataset = data.sel(**(combined_selections))  # type: ignore[arg-type]
         try:
-            transformed = fn(data.sel(**selections))
+            transformed = fn(selected)
         except TypeError:
-            transformed = fn(data.sel(**selections).values)
+            transformed = fn(selected).values
 
         if isinstance(transformed, xr.DataArray):
             transformed = transformed.values
 
-        data.loc[selections] = transformed
+        data.loc[combined_selections] = transformed
         return data
 
-    def coordinatize(self, as_coordinate_name: str | None = None) -> XrTypes:
+    def coordinatize(self, as_coordinate_name: str | None = None) -> XrTypes:  # pragma: no cover
         """Copies data into a coordinate's data, with an optional renaming.
 
         If you think of an array as a function c => f(c) from coordinates to values at
@@ -482,6 +493,11 @@ class GenericAccessorBase:
         Todo:
             Test
         """
+        warnings.warn(
+            "This method will be deprecated. Don't use it.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
         assert isinstance(self._obj, xr.DataArray | xr.Dataset)
         assert len(self._obj.dims) == 1
 
@@ -509,10 +525,8 @@ class GenericAccessorBase:
             which shows the relationship between pixel position and physical (like "eV" and "phi").
         """
         assert isinstance(self._obj, xr.DataArray | xr.Dataset)
-        if not dim_names:
-            dim_names = tuple(self._obj.dims)
-        if isinstance(dim_names, str):
-            dim_names = [dim_names]
+        dim_names = dim_names if dim_names else tuple(self._obj.dims)
+        dim_names = [dim_names] if isinstance(dim_names, str) else dim_names
         coords_list = [self._obj.coords[d].values for d in dim_names]
         for indices in itertools.product(*[range(len(c)) for c in coords_list]):
             cut_coords = [cs[index] for cs, index in zip(coords_list, indices, strict=True)]
@@ -534,10 +548,8 @@ class GenericAccessorBase:
             Iterator of the physical position like ("eV" and "phi")
             {'phi': -0.2178031280148764, 'eV': 9.002}
         """
-        if not dim_names:
-            dim_names = tuple(self._obj.dims)
-        if isinstance(dim_names, str):
-            dim_names = [dim_names]
+        dim_names = dim_names if dim_names else tuple(self._obj.dims)
+        dim_names = [dim_names] if isinstance(dim_names, str) else dim_names
         the_iterator: Iterator = itertools.product(*[self._obj.coords[d].values for d in dim_names])
         the_iterator = always_reversible(the_iterator) if reverse else the_iterator
         for ts in the_iterator:
