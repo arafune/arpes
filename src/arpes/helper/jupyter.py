@@ -9,7 +9,7 @@ from datetime import UTC
 from logging import DEBUG, INFO
 from os import SEEK_END
 from pathlib import Path
-from typing import TYPE_CHECKING, Required, TypedDict, TypeVar
+from typing import TYPE_CHECKING, TypeVar
 from urllib.error import HTTPError
 
 import ipykernel
@@ -25,6 +25,8 @@ from arpes.debug import setup_logger
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+    from arpes._typing.jupyter_info import NoteBookInfomation
 
 __all__ = (
     "generate_logfile_path",
@@ -59,33 +61,6 @@ def get_tqdm() -> Callable[..., cli_tqdm | notebook_tqdm]:
     if isinstance(shell, ZMQInteractiveShell):
         return notebook_tqdm
     return cli_tqdm
-
-
-class ServerInfo(TypedDict, total=False):
-    base_url: str
-    password: bool
-    pid: int
-    port: int
-    root_dir: str
-    secure: bool
-    sock: str
-    token: str
-    url: str
-    version: str
-
-
-class SessionInfo(TypedDict, total=False):
-    id: str
-    path: str
-    name: str
-    type: str
-    kernel: dict[str, str | int]
-    notebook: Required[dict[str, str]]
-
-
-class NoteBookInfomation(TypedDict, total=True):
-    server: ServerInfo
-    session: SessionInfo
 
 
 def get_full_notebook_information() -> NoteBookInfomation | None:

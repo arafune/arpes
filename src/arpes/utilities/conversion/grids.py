@@ -10,11 +10,15 @@ This process consists of:
 from __future__ import annotations
 
 import itertools
-from typing import TYPE_CHECKING, Literal, TypeGuard
+from typing import TYPE_CHECKING
+
+from arpes._typing.utils import is_dims_match_coordinate_convert
 
 if TYPE_CHECKING:
     from _collections_abc import dict_keys
     from collections.abc import Hashable, Sequence
+
+    from arpes._typing.base import AxisType
 
 __all__ = [
     "determine_axis_type",
@@ -37,9 +41,6 @@ def is_dimension_convertible_to_momentum(dimension_name: str) -> bool:
         bool: True if the dimension name represents the angle (but not alpha) or hv
     """
     return dimension_name in {"phi", "theta", "beta", "chi", "psi", "hv"}
-
-
-AxisType = Literal["angle", "k"]
 
 
 def determine_axis_type(
@@ -97,34 +98,6 @@ def determine_momentum_axes_from_measurement_axes(
         ("hv", "phi", "theta"): ["kx", "ky", "kz"],
         ("hv", "phi", "psi"): ["kx", "ky", "kz"],
     }
-    if _is_dims_match_coordinate_convert(sorted_axis_names):
+    if is_dims_match_coordinate_convert(sorted_axis_names):
         return phi_k_dict[sorted_axis_names]
     return []
-
-
-def _is_dims_match_coordinate_convert(
-    angles: tuple[str, ...],
-) -> TypeGuard[
-    tuple[Literal["phi"]]
-    | tuple[Literal["beta"], Literal["phi"]]
-    | tuple[Literal["phi"], Literal["theta"]]
-    | tuple[Literal["phi"], Literal["psi"]]
-    | tuple[Literal["hv"], Literal["phi"]]
-    | tuple[Literal["beta"], Literal["hv"], Literal["phi"]]
-    | tuple[Literal["hv"], Literal["phi"], Literal["theta"]]
-    | tuple[Literal["hv"], Literal["phi"], Literal["psi"]]
-]:
-    return angles in {
-        ("phi",),
-        ("theta",),
-        ("beta",),
-        ("phi", "theta"),
-        ("phi", "psi"),
-        ("beta", "phi"),
-        ("hv", "phi"),
-        ("hv",),
-        ("beta", "hv", "phi"),
-        ("hv", "phi", "theta"),
-        ("hv", "phi", "psi"),
-        ("chi", "hv", "phi"),
-    }

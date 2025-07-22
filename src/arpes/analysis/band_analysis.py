@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
 
     from arpes._typing.base import XrTypes
-    from arpes.fits import ParametersArgs
+    from arpes._typing.fits import ParametersArgs
 
 __all__ = (
     "fit_bands",

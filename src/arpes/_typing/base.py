@@ -31,6 +31,8 @@ EMISSION_ANGLE = Literal["phi", "psi"]
 ANGLE = Literal["alpha", "beta", "chi", "theta"] | EMISSION_ANGLE
 Orientation = Literal["horizontal", "vertical"]
 
+AxisType = Literal["angle", "k"]
+
 HIGH_SYMMETRY_POINTS = Literal["G", "X", "Y", "M", "K", "S", "A1", "H", "C", "H1"]
 
 SpectrumType = Literal["cut", "map", "hv_map", "ucut", "spem", "xps"]

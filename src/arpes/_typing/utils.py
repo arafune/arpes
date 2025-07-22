@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from typing import (
     TYPE_CHECKING,
+    Literal,
     TypeGuard,
     get_args,
 )
@@ -79,3 +80,31 @@ def is_homogeneous_dataset_list(
 ) -> TypeGuard[Sequence[xr.Dataset]]:
     """Check if all elemetns in the list are of type xr.Dataset."""
     return all(isinstance(arr, xr.Dataset) for arr in arr_list)
+
+
+def is_dims_match_coordinate_convert(
+    angles: tuple[str, ...],
+) -> TypeGuard[
+    tuple[Literal["phi"]]
+    | tuple[Literal["beta"], Literal["phi"]]
+    | tuple[Literal["phi"], Literal["theta"]]
+    | tuple[Literal["phi"], Literal["psi"]]
+    | tuple[Literal["hv"], Literal["phi"]]
+    | tuple[Literal["beta"], Literal["hv"], Literal["phi"]]
+    | tuple[Literal["hv"], Literal["phi"], Literal["theta"]]
+    | tuple[Literal["hv"], Literal["phi"], Literal["psi"]]
+]:
+    return angles in {
+        ("phi",),
+        ("theta",),
+        ("beta",),
+        ("phi", "theta"),
+        ("phi", "psi"),
+        ("beta", "phi"),
+        ("hv", "phi"),
+        ("hv",),
+        ("beta", "hv", "phi"),
+        ("hv", "phi", "theta"),
+        ("hv", "phi", "psi"),
+        ("chi", "hv", "phi"),
+    }
