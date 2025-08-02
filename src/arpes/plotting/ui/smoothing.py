@@ -16,13 +16,14 @@ Dependencies:
 from __future__ import annotations
 
 from logging import DEBUG, INFO
-from typing import TYPE_CHECKING, Unpack, cast
+from typing import TYPE_CHECKING, Any, Unpack, cast
 
 import holoviews as hv
 import panel as pn
 from holoviews.operation.datashader import regrid
 from holoviews.streams import PointerX, PointerY
 
+import arpes.xarray_extensions  # pyright: ignore[reportUnusedImport]  # noqa: F401
 from arpes.analysis import (
     boxcar_filter_arr,
     curvature1d,
@@ -256,7 +257,7 @@ class SmoothingApp(BaseUI):
             iteration_n=int(iteration),
         )
 
-    def _savitzky_golay_smoothing(self, data: xr.DataArray, **kwargs: int) -> xr.DataArray:
+    def _savitzky_golay_smoothing(self, data: xr.DataArray, **kwargs: Any) -> xr.DataArray:
         axis_params: dict[Hashable, tuple[int, int]] = {}
         for k, v in kwargs.items():
             param_name, axis_name = k.rsplit("_", 1)
@@ -264,8 +265,11 @@ class SmoothingApp(BaseUI):
                 axis_params[axis_name] = (1, 0)
             if param_name == "window_length":
                 axis_params[axis_name] = (int(v), axis_params[axis_name][1])
-            else:  # polyorder
+            elif param_name == "polyorder":
                 axis_params[axis_name] = (axis_params[axis_name][0], int(v))
+            else:
+                msg = f"❌ Unknown parameter {param_name} in Savitzky-Golay smoothing.\n"
+                raise ValueError(msg)
         axis_params = {k: tuple(v) for k, v in axis_params.items()}
         for v in axis_params.values():
             if v[0] % 2 == 0:
