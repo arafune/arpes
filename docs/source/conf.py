@@ -2,7 +2,6 @@
 
 # -- Path setup --------------------------------------------------------------
 import os
-from os.path import abspath
 import sys
 
 sys.path.append(os.path.abspath("../src/arpes"))
@@ -15,8 +14,6 @@ os.environ["PYTHONWARNINGS"] = "ignore"
 import datetime
 
 import arpes
-import arpes.config
-from arpes.io import example_data
 
 # -- Project information -----------------------------------------------------
 project = "arpes"

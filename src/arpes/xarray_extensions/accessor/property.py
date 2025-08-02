@@ -787,6 +787,7 @@ class ARPESOffsetProperty(ARPESAngleProperty):
 
         Examples:
             Assuming `ds` is an `xr.Dataset` and `ANGLE.K_PARALLEL` is defined:
+
             >>> ds_accessor = YourAccessorClass(ds)
             >>> ds_accessor.apply_offsets({ANGLE.K_PARALLEL: 0.05, ANGLE.THETA: -0.1})
             >>> ds.attrs['k_parallel_offset']
@@ -819,12 +820,15 @@ class ARPESOffsetProperty(ARPESAngleProperty):
 
         Examples:
             Assuming `ds_accessor` has symmetry points defined:
+
             >>> # Assume ds_accessor.symmetry_points() returns:
             >>> # {HIGH_SYMMETRY_POINTS.GAMMA: {'kx': 0.0, 'ky': 0.0},
             >>> #  HIGH_SYMMETRY_POINTS.X_POINT: {'kx': 1.0, 'ky': 0.0}}
             >>> for point_name, coords in ds_accessor.iter_own_symmetry_points:
             ...     print(f"Symmetry Point: {point_name}, Coordinates: {coords}")
+
             Symmetry Point: Gamma, Coordinates: {'kx': 0.0, 'ky': 0.0}
+
             Symmetry Point: X_Point, Coordinates: {'kx': 1.0, 'ky': 0.0}
         """
         sym_points = self.symmetry_points()
