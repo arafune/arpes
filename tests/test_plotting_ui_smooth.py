@@ -1,14 +1,20 @@
+"""Test smoothing operations stores result in named output and match expected output.
+
+This test sets the output_name widget, triggers the apply action, and
+verifies that the named output is present and correct.
+"""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import areps.xarray_extensions  # noqa: F401
 import holoviews as hv
 import numpy as np
 import panel as pn
 import pytest
 import xarray as xr
 
+import arpes.xarray_extensions  # pyright: ignore[reportUnusedImport]  # noqa: F401
 from arpes.plotting import DifferentiateApp
 from arpes.plotting.ui import smoothing
 from arpes.plotting.ui.smoothing import (
@@ -30,13 +36,17 @@ from arpes.plotting.ui.smoothing import (
 # Mocking arpes.analysis and arpes.utilities for testing purposes
 # In a real scenario, you would import them and mock in tests.
 class MockARPESAnalysis:
+     """Mock class for ARPESAnalysis providing dummy smoothing filter methods for testing."""
     def gaussian_filter_arr(self, arr, sigma, iteration_n):
+        """Simulate a Gaussian filter by scaling array values for testing."""
         return arr.copy(data=arr.values * 0.5)  # Dummy smoothing for test
 
     def savitzky_golay_filter(self, arr, window_length, polyorder):
+        """Simulate a Savitzky-Golay filter by scaling array values for testing."""
         return arr.copy(data=arr.values * 0.6)  # Dummy smoothing for test
 
     def boxcar_filter_arr(self, arr, size, iteration_n):
+        """Simulate a boxcar filter by scaling array values for testing."""
         return arr.copy(data=arr.values * 0.7)  # Dummy smoothing for test
 
 
