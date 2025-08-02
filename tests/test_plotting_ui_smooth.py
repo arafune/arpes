@@ -36,7 +36,8 @@ from arpes.plotting.ui.smoothing import (
 # Mocking arpes.analysis and arpes.utilities for testing purposes
 # In a real scenario, you would import them and mock in tests.
 class MockARPESAnalysis:
-     """Mock class for ARPESAnalysis providing dummy smoothing filter methods for testing."""
+    """Mock class for ARPESAnalysis providing dummy smoothing filter methods for testing."""
+
     def gaussian_filter_arr(self, arr, sigma, iteration_n):
         """Simulate a Gaussian filter by scaling array values for testing."""
         return arr.copy(data=arr.values * 0.5)  # Dummy smoothing for test
@@ -51,6 +52,8 @@ class MockARPESAnalysis:
 
 
 class MockARPESUtilities:
+    """Mock class for ARPESUtilities providing dummy function for testing."""
+
     def normalize_to_spectrum(self, data):
         if isinstance(data, xr.DataArray):
             return data
