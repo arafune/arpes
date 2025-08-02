@@ -14,8 +14,8 @@ import xarray_lmfit
 from arpes.analysis import param_getter, param_stderr_getter
 from arpes.debug import setup_logger
 from arpes.models.band import MultifitBand
-from arpes.plotting import fit_inspection
 from arpes.plotting.parameter import plot_parameter
+from arpes.plotting.ui import fit_inspection
 from arpes.xarray_extensions._helper import safe_error
 
 if TYPE_CHECKING:

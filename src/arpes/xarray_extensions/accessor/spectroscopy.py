@@ -15,7 +15,6 @@ from arpes.constants import TWO_DIMENSION
 from arpes.correction import coords
 from arpes.correction.angle_unit import switch_angle_unit, switched_angle_unit
 from arpes.debug import setup_logger
-from arpes.plotting import ProfileApp
 from arpes.plotting.dispersion import (
     fancy_dispersion,
     hv_reference_scan,
@@ -25,6 +24,7 @@ from arpes.plotting.dispersion import (
 )
 from arpes.plotting.fermi_edge import fermi_edge_reference
 from arpes.plotting.spatial import reference_scan_spatial
+from arpes.plotting.ui import ProfileApp
 
 from .base import ARPESAccessorBase, ARPESDataArrayAccessorBase
 
