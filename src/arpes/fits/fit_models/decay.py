@@ -14,7 +14,7 @@ from arpes._typing.base import XrTypes
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
-    from arpes.fits import ModelArgs
+    from arpes._typing.fits import ModelArgs
 
 __all__ = ("ExponentialDecayCModel", "TwoExponentialDecayCModel")
 
@@ -69,7 +69,7 @@ class ExponentialDecayCModel(Model):
     ) -> lf.Parameters:
         """Estimate initial model parameter values from data."""
         if isinstance(data, XrTypes):
-            data = data.values
+            data = np.asarray(data.values)
         if isinstance(x, xr.DataArray):
             x = x.values
         pars = self.make_params()
@@ -127,9 +127,12 @@ class TwoExponentialDecayCModel(Model):
     def guess(
         self,
         data: NDArray[np.float64] | xr.DataArray,
+        x: NDArray[np.float64] | xr.DataArray,
         **kwargs: float,
     ) -> lf.Parameters:
         """Placeholder for making better heuristic guesses here."""
+        if isinstance(x, xr.DataArray):
+            x = x.values
         pars: lf.Parameters = self.make_params()
 
         pars[f"{self.prefix}tau1"].set(value=0.2)  # 200fs

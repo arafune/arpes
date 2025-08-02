@@ -12,9 +12,9 @@ from lmfit.models import Model, update_param_vals
 from arpes._typing.base import XrTypes
 
 if TYPE_CHECKING:
-    from numpy._typing import NDArray
+    from numpy.typing import NDArray
 
-    from arpes.fits import ModelArgs
+    from arpes._typing.fits import ModelArgs
 
 __all__ = (
     "FermiVelocityRenormalizationModel",
@@ -65,7 +65,7 @@ class FermiVelocityRenormalizationModel(Model):
         if isinstance(x, xr.DataArray):
             x = x.values
         if isinstance(data, XrTypes):
-            data = data.values
+            data = np.asarray(data.values)
         pars = self.make_params()
 
         return update_param_vals(pars, self.prefix, **kwargs)
@@ -125,7 +125,7 @@ class LogRenormalizationModel(Model):
     ) -> lf.Parameters:
         """Placeholder for actually making parameter estimates here."""
         if isinstance(data, XrTypes):
-            data = data.values
+            data = np.asarray(data.values)
         if isinstance(x, xr.DataArray):
             x = x.values
         pars = self.make_params()

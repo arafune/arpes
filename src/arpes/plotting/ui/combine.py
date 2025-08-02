@@ -34,6 +34,8 @@ from ._helper import default_plot_kwargs, fix_xarray_to_fit_with_holoview, get_i
 from .base import BaseUI
 
 if TYPE_CHECKING:
+    from param.parameterized import Event
+
     from arpes._typing.plotting import ProfileViewParam
 
 LOGLEVELS = (DEBUG, INFO)
@@ -140,7 +142,7 @@ class TailorApp(BaseUI):
             ),
         )
 
-    def _on_apply(self, _: pn.widgets.WidgetEvent) -> None:
+    def _on_apply(self, _: Event) -> None:
         """Callback when Output button is clicked."""
         name = self.output_name.value
         if name:
@@ -150,7 +152,7 @@ class TailorApp(BaseUI):
 
     def _toggle_ratio_slider(
         self,
-        event: pn.widgets.WidgetEvent,
+        event: Event,
     ) -> None:
         """Toggle the visibility of the ratio slider based on checkbox state."""
         self.ratio_slider.disabled = event.new
@@ -161,7 +163,7 @@ class TailorApp(BaseUI):
         ratio: float = float(self.ratio_slider.value)
         magnification: float = float(self.magnification_slider.value)
 
-        laminate: bool = self.toggle_laminate_mode.value
+        laminate: bool = bool(self.toggle_laminate_mode.value)
 
         image_options = get_image_options(
             log=self.pane_kwargs["log"],
@@ -194,7 +196,7 @@ class TailorApp(BaseUI):
         )
         self.output_pane.object = img.opts(**image_options)
 
-    def _on_slider_change(self, _: pn.widgets.WidgetEvent) -> None:
+    def _on_slider_change(self, _: Event) -> None:
         """Handles changes in the slider values and updates the output pane."""
         self._update_plot()
 

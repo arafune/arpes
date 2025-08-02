@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes.fits import ModelArgs
+    from arpes._typing.fits import ModelArgs
 __all__ = (
     "AffineBroadenedFD",
     "BandEdgeBGModel",
@@ -301,14 +301,28 @@ class BandEdgeBGModel(Model):
         amplitude: float = 1,
         gamma: float = 0.1,
         lor_center: float = 0,
-        offset: float = 0,
         lin_slope: float = 0,
         const_bkg: float = 0,
     ) -> NDArray[np.float64]:
         """Fitting model for Lorentzian and background multiplied into Fermi dirac distribution."""
         return np.convolve(
-            band_edge_bkg(x, 0, width, amplitude, gamma, lor_center, offset, lin_slope, const_bkg),
-            gaussian(np.linspace(-6, 6, 800), 0, 0.01, 1 / np.sqrt(2 * np.pi * 0.01**2)),
+            np.asarray(
+                band_edge_bkg(
+                    x=x,
+                    center=0,
+                    width=width,
+                    amplitude=amplitude,
+                    gamma=gamma,
+                    lor_center=lor_center,
+                    lin_slope=lin_slope,
+                    const_bkg=const_bkg,
+                ),
+                dtype=float,
+            ),
+            np.asarray(
+                gaussian(np.linspace(-6, 6, 800), 0, 0.01, 1 / np.sqrt(2 * np.pi * 0.01**2)),
+                dtype=float,
+            ),
             mode="same",
         )
 

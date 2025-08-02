@@ -663,7 +663,7 @@ def insert_cut_locator(
     data: XrTypes,
     reference_data: XrTypes,
     ax: Axes,
-    location: dict[str, Incomplete],
+    location: dict[Hashable, Incomplete],
     color: ColorType = "red",
     **kwargs: Incomplete,
 ) -> None:
@@ -933,10 +933,10 @@ def savefig(
             },
         )
 
-    with Path(provenance_path).open("w", encoding="UTF-8") as f:
+    with Path(provenance_path).open("w", encoding="UTF-8") as jsonfile:  # type: ignore[arg-type]  # it's limmitaion of mypy
         json.dump(
             provenance_context,
-            f,
+            jsonfile,
             indent=2,
         )
     plt.savefig(full_path, dpi=dpi, **kwargs)

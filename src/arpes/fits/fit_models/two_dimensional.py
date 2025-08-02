@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes.fits import ModelArgs
+    from arpes._typing.fits import ModelArgs
 
 __all__ = ("EffectiveMassModel", "Gaussian2DModel")
 

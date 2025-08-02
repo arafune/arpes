@@ -14,7 +14,7 @@ from arpes._typing.base import XrTypes
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
-    from arpes.fits import ModelArgs
+    from arpes._typing.fits import ModelArgs
 
 __all__ = ("ParabolicDispersionPhiModel",)
 
@@ -49,7 +49,7 @@ class ParabolicDispersionPhiModel(Model):
     ) -> lf.Parameters:
         """Estimate initial model parameter values from data."""
         if isinstance(data, XrTypes):
-            data = data.values
+            data = np.asarray(data.values)
         if isinstance(x, xr.DataArray):
             x = x.values
         pars = self.make_params()
