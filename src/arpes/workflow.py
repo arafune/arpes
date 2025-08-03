@@ -40,7 +40,6 @@ from collections import defaultdict
 from functools import wraps
 from logging import DEBUG, INFO
 from pathlib import Path
-from pprint import pprint
 from typing import TYPE_CHECKING, ParamSpec, TypeVar
 
 import dill
@@ -284,19 +283,19 @@ class DataProvider:
             key = ""
 
         publishers = self.publishers
-        print(f"PUBLISHERS FOR {key or 'ALL'}")
+        logger.debug(f"PUBLISHERS FOR {key or 'ALL'}")
         if not key:
-            pprint(dict(publishers))
+            logger.info(dict(publishers))
         else:
-            pprint({k: v for k, v in publishers.items() if k == key})
+            logger.info({k: v for k, v in publishers.items() if k == key})
 
     def summarize_consumers(self, key: str = "") -> None:
         consumers = self.consumers
-        print(f"CONSUMERS FOR {key or 'ALL'}")
+        logger.debug(f"CONSUMERS FOR {key or 'ALL'}")
         if not key:
-            pprint(dict(consumers))
+            logger.debug(dict(consumers))
         else:
-            pprint({k: v for k, v in consumers.items() if k in {"*", key}})
+            logger.debug({k: v for k, v in consumers.items() if k in {"*", key}})
 
     @property
     def data_keys(self) -> list[str]:

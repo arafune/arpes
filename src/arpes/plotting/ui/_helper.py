@@ -59,8 +59,8 @@ def get_image_options(
     cmap: str,
     width: int,
     height: int,
-    clim: tuple[float, float] | None = None,
-) -> dict:
+    clim: tuple[float | None, float] | None = None,
+) -> dict[str, bool | str | float | tuple[float | None, float] | None]:
     """Construct Holoviews .opts dictionary for plotting images.
 
     Args:
