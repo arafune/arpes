@@ -155,7 +155,11 @@ class SmoothingApp(BaseUI):
             dict[str, float | int]: Parameter names and their current values.
         """
         _, param_widgets = self.smoothing_funcs[str(self.smoothing_select.value)]
-        return {name: widget.value for name, widget in param_widgets.items()}
+        return {
+            str(name): widget.value
+            for name, widget in param_widgets.items()
+            if isinstance(widget.value, (float, int))
+        }
 
     def _update_smooth_param_widgets(self, *_: Event) -> None:
         """Update the parameter widgets based on the selected smoothing function."""
@@ -258,7 +262,7 @@ class SmoothingApp(BaseUI):
         )
 
     def _savitzky_golay_smoothing(self, data: xr.DataArray, **kwargs: Any) -> xr.DataArray:
-        axis_params: dict[Hashable, tuple[int, int]] = {}
+        axis_params: dict[str, tuple[int, int]] = {}
         for k, v in kwargs.items():
             param_name, axis_name = k.rsplit("_", 1)
             if axis_name not in axis_params:
@@ -270,7 +274,7 @@ class SmoothingApp(BaseUI):
             else:
                 msg = f"❌ Unknown parameter {param_name} in Savitzky-Golay smoothing.\n"
                 raise ValueError(msg)
-        axis_params = {k: tuple(v) for k, v in axis_params.items()}
+        axis_params = {str(k): tuple(v) for k, v in axis_params.items()}
         for v in axis_params.values():
             if v[0] % 2 == 0:
                 self.log_message("❌ Window length must be odd for Savitzky-Golay filter.\n")
@@ -427,7 +431,11 @@ class DifferentiateApp(SmoothingApp):
             dict[str, float | int | str]: Parameter names and their current values.
         """
         _, param_widgets = self.derivative_funcs[str(self.derivation_select.value)]
-        return {k: v.value for k, v in param_widgets.items()}
+        return {
+            str(k): v.value
+            for k, v in param_widgets.items()
+            if isinstance(v.value, (float, int, str))
+        }
 
     def _derivative(self, data: xr.DataArray, **kwargs: int) -> xr.DataArray:
         axis = kwargs.get("axis", data.dims[0])
