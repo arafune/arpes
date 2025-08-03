@@ -1,6 +1,6 @@
 [project]
 name = "arpes"
-version = "5.0.0-pre5"
+version = "5.0.0"
 description = "PyARPES: An analysis framework for multimodal angle-resolved photoemission spectroscopies"
 authors = [
   { name = "Conrad Stansbury", email = "chstan@berkeley.edu" },
