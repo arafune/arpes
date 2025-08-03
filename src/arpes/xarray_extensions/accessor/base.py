@@ -462,12 +462,9 @@ class GenericAccessorBase:
             combined_selections = {**(selections or {}), **selections_kwargs}
 
         selected: xr.DataArray | xr.Dataset = data.sel(**(combined_selections))  # type: ignore[arg-type]
-        try:
-            transformed = fn(selected)
-        except TypeError:
-            transformed = fn(selected).values
+        transformed = fn(selected)
 
-        if isinstance(transformed, xr.DataArray):
+        if isinstance(transformed, xr.DataArray | xr.Dataset):
             transformed = transformed.values
 
         data.loc[combined_selections] = transformed

@@ -32,6 +32,7 @@ and consuming data, and summarizing data dependencies.
 
 from __future__ import annotations
 
+import inspect
 import subprocess
 import sys
 import warnings
@@ -56,7 +57,7 @@ if TYPE_CHECKING:
 
     from _typeshed import Incomplete
 
-    from ._typing import WorkSpaceType
+    from ._typing.workspace import WorkSpaceType
 
 __all__ = (
     "consume_data",
@@ -90,6 +91,10 @@ def with_workspace(f: Callable[P, R]) -> Callable[P, R]:
     Returns:
       Callable[P, R]: The wrapped function that operates within a workspace context.
     """
+    sig = inspect.signature(f)
+    if "workspace" not in sig.parameters:
+        msg = f"Function {f.__name__} must have a 'workspace' parameter."
+        raise TypeError(msg)
 
     @wraps(f)
     def wrapped_with_workspace(
@@ -113,11 +118,11 @@ def with_workspace(f: Callable[P, R]) -> Callable[P, R]:
         Returns:
             R: The result returned by the wrapped function.
         """
-        workspace_name: str = kwargs.pop("workspace_name", "")
+        workspace_name: str = str(kwargs.pop("workspace_name", ""))
         with WorkspaceManager(workspace_name=workspace_name):
             workspace = config_manager.config["WORKSPACE"]
 
-        return f(*args, workspace=workspace, **kwargs)
+        return f(*args, workspace=workspace, **kwargs)  # pyright: ignore[reportCallIssue]  Because the function signature is checked above.
 
     return wrapped_with_workspace
 

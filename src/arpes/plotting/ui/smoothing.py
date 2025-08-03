@@ -163,7 +163,7 @@ class SmoothingApp(BaseUI):
 
     def _update_smooth_param_widgets(self, *_: Event) -> None:
         """Update the parameter widgets based on the selected smoothing function."""
-        _, param_widgets = self.smoothing_funcs[str(self.smoothing_select.value)]
+        __, param_widgets = self.smoothing_funcs[str(self.smoothing_select.value)]
         self.param_widgets_box.objects = list(param_widgets.values())
 
     def _on_apply(self, _: Event) -> None:
@@ -376,7 +376,7 @@ class DifferentiateApp(SmoothingApp):
 
     def _update_derivative_param_widgets(self, *_: Event) -> None:
         """Update the parameter widgets based on the selected smoothing function."""
-        _, param_widgets = self.derivative_funcs[str(self.derivation_select.value)]
+        __, param_widgets = self.derivative_funcs[str(self.derivation_select.value)]
         self.derivative_param_widgets_box.objects = list(param_widgets.values())
 
     def _on_apply(self, _: Event) -> None:
