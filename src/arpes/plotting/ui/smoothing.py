@@ -274,7 +274,6 @@ class SmoothingApp(BaseUI):
             else:
                 msg = f"❌ Unknown parameter {param_name} in Savitzky-Golay smoothing.\n"
                 raise ValueError(msg)
-        axis_params = {str(k): tuple(v) for k, v in axis_params.items()}
         for v in axis_params.values():
             if v[0] % 2 == 0:
                 self.log_message("❌ Window length must be odd for Savitzky-Golay filter.\n")
