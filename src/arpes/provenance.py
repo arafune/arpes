@@ -76,13 +76,13 @@ class Provenance(_Provenance, total=False):
     args: list[Provenance]
     alpha: float  # derivative.curvature
     weight2d: float  # derivative.curvature
-    axis: str  # derivative.dn_along_axis
+    axis: str | Hashable  # derivative.dn_along_axis
     order: int  # derivative.dn_along_axis
     sigma: dict[Hashable, float]  # analysis.filters
     size: dict[Hashable, float]  # analysis.filters
     use_pixel: bool  # analysis.filters
     correction: list[NDArray[np.float64]]  # fermi_edge_correction
-    dims: Sequence[str]
+    dims: Sequence[str | Hashable]
     dim: str
     old_axis: str
     new_axis: str

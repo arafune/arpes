@@ -20,7 +20,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from logging import DEBUG, INFO
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, cast
 
 import numpy as np
 import pandas as pd
@@ -350,7 +350,7 @@ def load_scan(
     note: dict[str, str | float] | ScanDesc = scan_desc.get("note", scan_desc)
     full_note: ScanDesc = copy.deepcopy(scan_desc)
     assert isinstance(note, dict)
-    full_note.update(note)
+    full_note.update(cast("ScanDesc", note))
 
     endstation_cls = resolve_endstation(retry=retry, **full_note)
     logger.debug(f"Using plugin class {endstation_cls}")
