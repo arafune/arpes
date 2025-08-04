@@ -60,7 +60,7 @@ def get_image_options(
     width: int,
     height: int,
     clim: tuple[float | None, float] | None = None,
-) -> dict:
+) -> dict[str, bool | str | float | tuple[float | None, float] | None]:
     """Construct Holoviews .opts dictionary for plotting images.
 
     Args:

@@ -32,6 +32,7 @@ and consuming data, and summarizing data dependencies.
 
 from __future__ import annotations
 
+import inspect
 import subprocess
 import sys
 import warnings
@@ -39,7 +40,6 @@ from collections import defaultdict
 from functools import wraps
 from logging import DEBUG, INFO
 from pathlib import Path
-from pprint import pprint
 from typing import TYPE_CHECKING, ParamSpec, TypeVar
 
 import dill
@@ -56,7 +56,7 @@ if TYPE_CHECKING:
 
     from _typeshed import Incomplete
 
-    from ._typing import WorkSpaceType
+    from ._typing.workspace import WorkSpaceType
 
 __all__ = (
     "consume_data",
@@ -90,6 +90,10 @@ def with_workspace(f: Callable[P, R]) -> Callable[P, R]:
     Returns:
       Callable[P, R]: The wrapped function that operates within a workspace context.
     """
+    sig = inspect.signature(f)
+    if "workspace" not in sig.parameters:
+        msg = f"Function {f.__name__} must have a 'workspace' parameter."
+        raise TypeError(msg)
 
     @wraps(f)
     def wrapped_with_workspace(
@@ -113,11 +117,11 @@ def with_workspace(f: Callable[P, R]) -> Callable[P, R]:
         Returns:
             R: The result returned by the wrapped function.
         """
-        workspace_name: str = kwargs.pop("workspace_name", "")
+        workspace_name: str = str(kwargs.pop("workspace_name", ""))
         with WorkspaceManager(workspace_name=workspace_name):
             workspace = config_manager.config["WORKSPACE"]
 
-        return f(*args, workspace=workspace, **kwargs)
+        return f(*args, workspace=workspace, **kwargs)  # pyright: ignore[reportCallIssue]  Because the function signature is checked above.
 
     return wrapped_with_workspace
 
@@ -279,19 +283,19 @@ class DataProvider:
             key = ""
 
         publishers = self.publishers
-        print(f"PUBLISHERS FOR {key or 'ALL'}")
+        logger.debug(f"PUBLISHERS FOR {key or 'ALL'}")
         if not key:
-            pprint(dict(publishers))
+            logger.info(dict(publishers))
         else:
-            pprint({k: v for k, v in publishers.items() if k == key})
+            logger.info({k: v for k, v in publishers.items() if k == key})
 
     def summarize_consumers(self, key: str = "") -> None:
         consumers = self.consumers
-        print(f"CONSUMERS FOR {key or 'ALL'}")
+        logger.debug(f"CONSUMERS FOR {key or 'ALL'}")
         if not key:
-            pprint(dict(consumers))
+            logger.debug(dict(consumers))
         else:
-            pprint({k: v for k, v in consumers.items() if k in {"*", key}})
+            logger.debug({k: v for k, v in consumers.items() if k in {"*", key}})
 
     @property
     def data_keys(self) -> list[str]:

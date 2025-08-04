@@ -1,6 +1,6 @@
 [project]
 name = "arpes"
-version = "5.0.0-pre5"
+version = "5.0.0"
 description = "PyARPES: An analysis framework for multimodal angle-resolved photoemission spectroscopies"
 authors = [
   { name = "Conrad Stansbury", email = "chstan@berkeley.edu" },
@@ -107,6 +107,12 @@ omit = [
   "src/arpes/endstations/plugin/merlin.py",
   "src/arpes/endstations/plugin/kaindl.py",
   "src/arpes/endstations/plugin/igor_export.py",
+  "src/arpes/_typing/attrs_property.py",
+  "src/arpes/_typing/base.py",
+  "src/arpes/_typing/fits.py",
+  "src/arpes/_typing/jupyter_info.py",
+  "src/arpes/_typing/plotting.py",
+  "src/arpes/_typing/workspace.py",
   #
   "src/arpes/preparation/tof_preparation.py",
 ]
@@ -131,8 +137,8 @@ exclude = [
   "**/ALG_spin_TOF.py",
   "**/fits_utils.py",
   "**/Elettra_spectromicroscopy.py",
-  "**ALG_main.py",
-  "ANTARES.py",
+  "**/ALG_main.py",
+  "**/ANTARES.py",
   "**/MAESTRO.py",
   "**/BL10_SARPES.py",
   "**/SSRF_NSRL.py",
@@ -181,9 +187,9 @@ convention = "google"
 
 
 [tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["F401"]                                              # unused-import
-"src/arpes/workflow.py" = ["T201", "T203"]
-"src/arpes/fits/lmfit_html_repr.py" = ["SLF001"]                      # private member accecced
+"__init__.py" = ["F401"] # unused-import
+#"src/arpes/workflow.py" = ["T201", "T203"]
+#"src/arpes/fits/lmfit_html_repr.py" = ["SLF001"]                      # private member accecced
 "Elettra_spectromicroscopy.py" = ["ALL"]
 "ALG_spin_ToF.py" = ["ALL"]
 "ANTARES.py" = ["ALL"]
