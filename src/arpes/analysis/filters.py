@@ -1,7 +1,7 @@
 """Provides coordinate aware filters and smoothing."""
 
 from collections.abc import Hashable
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import xarray as xr
@@ -142,7 +142,7 @@ def savitzky_golay_filter(  # noqa: PLR0913
     window_length: int = 3,
     polyorder: int = 2,
     deriv: int = 0,
-    mode: str = "interp",
+    mode: Literal["mirror", "constant", "nearest", "wrap", "interp"] = "interp",
     cval: float = 0.0,
     dim: Hashable = "",
 ) -> xr.DataArray:
@@ -187,7 +187,7 @@ def savgol_filter_multi(
     data: xr.DataArray,
     axis_params: dict[str, tuple[int, int]],
     deriv: int = 0,
-    mode: str = "interp",
+    mode: Literal["mirror", "constant", "nearest", "wrap", "interp"] = "interp",
     cval: float = 0.0,
     **kwargs: float,
 ) -> xr.DataArray:

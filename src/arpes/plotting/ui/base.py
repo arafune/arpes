@@ -130,7 +130,7 @@ class BaseUI(ABC):
         self.output_pane = pn.pane.HoloViews()
         self.widgets_panel = pn.Column()
 
-        self.message_log = deque(maxlen=4)
+        self.message_log: deque[str] = deque(maxlen=4)
         self.message_pane = pn.pane.Markdown(
             "",
             sizing_mode="stretch_width",

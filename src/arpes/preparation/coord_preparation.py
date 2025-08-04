@@ -25,14 +25,14 @@ def disambiguate_coordinates(
     This is useful if two regions claim to have an energy axis, but one is a core level
     and so refers to a different energy range.
     """
-    coords_set = collections.defaultdict(list)
+    coords_set: dict[str, list[xr.DataArray]] = collections.defaultdict(list)
     for spectrum in datasets:
         assert isinstance(spectrum, xr.DataArray)
         for c in possibly_clashing_coordinates:
             if c in spectrum.coords:
                 coords_set[c].append(spectrum.coords[c])
 
-    conflicted = []
+    conflicted: list[str] = []
     for c in possibly_clashing_coordinates:
         different_coords = coords_set[c]
         if not different_coords:
@@ -45,7 +45,7 @@ def disambiguate_coordinates(
         )[0]:
             conflicted.append(c)
 
-    after_deconflict = []
+    after_deconflict: list[xr.DataArray] = []
     for spectrum in datasets:
         assert isinstance(spectrum, xr.DataArray)
         spectrum_name = next(iter(spectrum.data_vars.keys()))
