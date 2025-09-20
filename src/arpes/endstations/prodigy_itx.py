@@ -319,10 +319,9 @@ def load_itx(
         itx_data = list(map(str.rstrip, itx_data))
         if itx_data.count("BEGIN") == 1:
             prodigy_itx = ProdigyItx(itx_data)
-            data = prodigy_itx.to_dataarray()
-            for k, v in kwargs.items():
-                data.attrs[k] = v
-            return data
+            return prodigy_itx.to_dataarray(
+                **kwargs,
+            )
         end_index_list = [*find_indices(itx_data, ""), -1]
         slice_list = []
         for i in range(len(end_index_list)):
@@ -332,9 +331,9 @@ def load_itx(
                 slice_list.append(slice(end_index_list[i - 1], end_index_list[i]))
         multi_itx_data = []
         for sl in slice_list:
-            a_itx_data = ProdigyItx(itx_data[sl]).to_dataarray()
-            for k, v in kwargs.items():
-                a_itx_data[k] = v
+            a_itx_data = ProdigyItx(itx_data[sl]).to_dataarray(
+                **kwargs,
+            )
             multi_itx_data.append(a_itx_data)
         return multi_itx_data
 
