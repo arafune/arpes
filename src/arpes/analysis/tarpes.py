@@ -55,18 +55,19 @@ def delaytime_fs(
     )
 
 
-def position_mm_to_delaytime_fs(position_mm: float, delayline_offset_mm: float = 0) -> float:
+def position_mm_to_delaytime_fs(
+    position_mm: float,
+) -> float:
     """Return delay time from the mirror position.
 
     Args:
         position_mm (np.ndarray | float): mirror position
-        delayline_offset_mm (float): mirror position corresponding to the zero delay
 
     Returns: np.ndarray | float
         delay time in fs unit.
 
     """
-    return delaytime_fs(2 * (position_mm - delayline_offset_mm) * 1000)
+    return delaytime_fs(2 * position_mm, "mm")
 
 
 def build_crosscorrelation(
@@ -84,12 +85,11 @@ def build_crosscorrelation(
 
     Args:
         datalist (Sequence[xr.DataArray]):
-            Data series from the cross-correlation experiments. Each data should contain the
-            position or time-delay value in attrs, and not in coords.
+            Data series from the cross-correlation experiments. Each data element should contain the
+            delay line value in attrs[delayline_dim], not in coolrds.
         delayline_dim(str, optional):
-            The dimension name for "delay line", which must be in key of data.attrs
-            When this is the "position" dimension, the unit is assumed to be "mm". If the value has
-            already been converted to "time" dimension, set convert_position_to_time=True
+            The key in data.attrs representing the delay line value (default: "position").
+            When this is "position", the unit is assumed to be mm.
         delayline_origin (float, optional):
             The value corresponding to the delay zero position.  Defaults to 0.
         convert_position_to_time (Callable[[float], float] | None):
@@ -99,6 +99,7 @@ def build_crosscorrelation(
             function is required. If None, the delay line values are used as-is.
 
     Returns: xr.DataArray
+        A stacked data array with an additional "delay" dimension.
     """
     cross_correlations = []
 
@@ -106,22 +107,23 @@ def build_crosscorrelation(
         spectrum_arr = (
             spectrum if isinstance(spectrum, xr.DataArray) else normalize_to_spectrum(spectrum)
         )
+
+        raw_value = float(spectrum_arr.attrs[delayline_dim])
         if convert_position_to_time:
-            delay_time = convert_position_to_time(
-                float(
-                    spectrum_arr.attrs[delayline_dim],
-                ),
-            ) - convert_position_to_time(
+            delay_time = convert_position_to_time(raw_value) - convert_position_to_time(
                 delayline_origin,
             )
         else:
-            delay_time = spectrum_arr.attrs[delayline_dim] - delayline_origin
+            delay_time = raw_value - delayline_origin
+
         cross_correlations.append(
             spectrum_arr.assign_coords({"delay": delay_time}).expand_dims("delay"),
         )
+
     return vstack_data(
-        sorted(cross_correlations, key=lambda x: x.coords["delay"].values.item()),
+        cross_correlations,
         new_dim="delay",
+        sort=True,
     )
 
 

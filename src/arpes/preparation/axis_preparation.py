@@ -34,13 +34,20 @@ logger = setup_logger(__name__, LOGLEVEL)
 
 
 @update_provenance("Build new DataArray/Dataset with an additional dimension")
-def vstack_data(arr_list: Sequence[DataType], new_dim: str) -> DataType:
+def vstack_data(
+    arr_list: Sequence[DataType],
+    new_dim: str,
+    *,
+    sort: bool = False,
+) -> DataType:
     """Build a new DataArray | Dataset with an additional dimension.
 
     Args:
         arr_list (list[xr.Dataset] | list[xr.DataArray]): Source data series, all data must contain
             "new_dim" value in coords or attrs.
         new_dim (str): name of axis as a new dimension
+        sort (bool, optional): If True, sort arr_list by the new_dim coordinate value.
+           Default False.
 
     Returns:
         DataType:  Data with an additional dimension
@@ -50,6 +57,10 @@ def vstack_data(arr_list: Sequence[DataType], new_dim: str) -> DataType:
         assert all(new_dim in data.coords for data in arr_list)
     else:
         arr_list = [data.assign_coords({new_dim: data.attrs[new_dim]}) for data in arr_list]
+
+    if sort:
+        arr_list = sorted(arr_list, key=lambda x: x.coords[new_dim].values.item())
+
     assert is_homogeneous_dataarray_list(arr_list) or is_homogeneous_dataset_list(arr_list)
     concatenated_data: DataType = cast("DataType", xr.concat(arr_list, dim=new_dim))
     if new_dim in concatenated_data.attrs:
