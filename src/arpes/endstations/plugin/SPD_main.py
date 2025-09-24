@@ -15,7 +15,8 @@ from arpes.endstations import (
     SingleFileEndstation,
     add_endstation,
 )
-from arpes.endstations.prodigy_itx import load_itx, load_sp2
+from arpes.endstations.prodigy_itx import load_itx
+from arpes.endstations.prodigy_sp2 import load_sp2
 from arpes.provenance import Provenance, provenance_from_file
 
 if TYPE_CHECKING:
@@ -145,7 +146,11 @@ class SPDEndstation(HemisphericalEndstation, SingleFileEndstation):
         logger.debug(f"provenance_context: {provenance_context}")
         file = Path(frame_path)
         if file.suffix == ".itx":
-            data = load_itx(frame_path, **kwargs)
+            data = load_itx(
+                frame_path,
+                keep_degree=False,
+                **kwargs,
+            )
             if not isinstance(data, list):
                 dataset = xr.Dataset({"spectrum": data}, attrs=data.attrs)
                 provenance_from_file(
@@ -169,7 +174,11 @@ class SPDEndstation(HemisphericalEndstation, SingleFileEndstation):
                 )
             return dataset
         if file.suffix == ".sp2":
-            data = load_sp2(frame_path, **kwargs)
+            data = load_sp2(
+                frame_path,
+                keep_degree=False,
+                **kwargs,
+            )
             dataset = xr.Dataset({"spectrum": data}, attrs=data.attrs)
             provenance_from_file(
                 child_arr=dataset["spectrum"],

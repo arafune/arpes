@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from arpes.endstations.prodigy_itx import ProdigyItx, convert_itx_format, load_sp2
+from arpes.endstations.prodigy_itx import ProdigyItx, convert_itx_format
 
 data_dir = Path(__file__).parent.parent / "src" / "arpes" / "example_data"
 
@@ -17,12 +17,6 @@ def sample_itx() -> ProdigyItx:
     with Path(data_dir / "example_itx_data.itx").open(mode="r") as itx_file:
         itx_data: list[str] = itx_file.readlines()
     return ProdigyItx(itx_data)
-
-
-@pytest.fixture
-def sample_sp2() -> xr.DataArray:
-    """Fixture: produce xr.DataArray."""
-    return load_sp2(data_dir / "GrIr_111_20230410_1.sp2")
 
 
 class TestItx:
@@ -49,18 +43,3 @@ class TestItx:
         list_style = convert_itx_format(dataarray_cut, add_notes=True).split("\n")
         prodigy_itx = ProdigyItx(list_style)
         assert prodigy_itx.pixels == (240, 240)
-
-
-class TestSp2:
-    """Test class for load_sp2 function."""
-
-    def test_parameters(self, sample_sp2: xr.DataArray) -> None:
-        """Test sp2 file parameter.
-
-        [TODO:description]
-
-        Args:
-            sample_sp2: [TODO:description]
-
-        """
-        assert sample_sp2.dims == ("phi", "eV")
