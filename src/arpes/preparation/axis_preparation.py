@@ -1,7 +1,6 @@
 """Utilities related to treatment of coordinate axes."""
 
 import copy
-import functools
 from collections.abc import Callable, Sequence
 from logging import DEBUG, INFO
 from typing import Any, Protocol, cast
@@ -280,7 +279,10 @@ def transform_dataarray_axis(  # noqa: PLR0913
         new_dims = list(dr.dims)
         new_dims[old_axis] = new_axis_name
 
-        def _mapping_func(coords: tuple[float, ...]) -> tuple[float, ...]:
+        def _mapping_func(
+            coords: tuple[float, ...],
+            old_axis: int = old_axis,
+        ) -> tuple[float, ...]:
             """Mapping function for geometric_transform."""
             arr = func(coords, axis=old_axis)
             return tuple(float(x) for x in arr)

@@ -68,7 +68,7 @@ class CutDispersionPlotParam(TypedDict, total=False):
 
 
 @save_plot_provenance
-def cut_dispersion_plot(  # noqa: PLR0913, PLR0915
+def cut_dispersion_plot(  # noqa: PLR0913, PLR0915  # type: ignore[arg-type]
     data: xr.DataArray,
     e_floor: float | None = None,
     ax: Axes3D | None = None,
