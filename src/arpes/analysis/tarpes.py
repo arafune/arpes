@@ -21,7 +21,6 @@ __all__ = (
     "build_crosscorrelation",
     "delaytime_fs",
     "find_t_for_max_intensity",
-    "normalized_relative_change",
     "position_mm_to_delaytime_fs",
     "relative_change",
 )
@@ -125,78 +124,54 @@ def build_crosscorrelation(
     )
 
 
-@update_provenance("Normalized subtraction map")
-def normalized_relative_change(
-    data: xr.DataArray,
-    t0: float | None = None,
-    buffer_fs: float = 300,
-    *,
-    normalize_delay: bool = True,
-) -> xr.DataArray:
-    """Calculates a normalized relative Tr-ARPES change in a delay scan.
-
-    Obtained by normalizing along the pump-probe "delay" axis and then subtracting
-    the mean before t0 data and dividing by the original spectrum.
-
-    Args:
-        data: The input spectrum to be normalized. Should have a "delay" dimension.
-        t0: The t0 for the input array.
-        buffer_fs: How far before t0 to select equilibrium data. Should be at least
-          the temporal resolution in fs.
-        normalize_delay: If true, normalizes data along the "delay" dimension.
-
-    Returns:
-        The normalized data.
-    """
-    spectrum = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-    assert isinstance(spectrum, xr.DataArray)
-    if normalize_delay:
-        spectrum = normalize_dim(spectrum, "delay")
-    subtracted = relative_change(spectrum, t0, buffer_fs, normalize_delay=False)
-    assert isinstance(subtracted, xr.DataArray)
-    normalized: xr.DataArray = subtracted / spectrum
-    normalized.values[np.isinf(normalized.values)] = 0
-    normalized.values[np.isnan(normalized.values)] = 0
-    normalized.attrs["subtracted"] = True
-    return normalized
-
-
-@update_provenance("Created simple subtraction map")
+@update_provenance("Relative change map")
 def relative_change(
     data: xr.DataArray,
     t0: float | None = None,
     buffer_fs: float = 300,
     *,
     normalize_delay: bool = True,
+    divide_by_spectrum: bool = False,
 ) -> xr.DataArray:
-    """Like normalized_relative_change, but only subtracts the before t0 data.
+    """Calculate relative Tr-ARPES change in a delay scan.
+
+    Subtracts the mean of the pre-t0 spectrum. Optionally, the result is
+    divided by the original spectrum.
 
     Args:
-        data: The input spectrum to be normalized. Should have a "delay" dimension.
-        t0: The t0 for the input array.
-        buffer_fs: How far before t0 to select equilibrium data. Should be at least
-          the temporal resolution in fs.
-        normalize_delay: If true, normalizes data along the "delay" dimension.
+        data: Input spectrum. Should have a "delay" dimension.
+        t0: Time-zero (fs). If None, determined automatically.
+        buffer_fs: Width (fs) of pre-t0 region used as equilibrium reference.
+        normalize_delay: If true, normalize along "delay" dimension before processing.
+        divide_by_spectrum: If true, divide subtracted spectrum by the original spectrum
+            (like normalized_relative_change).
 
     Returns:
-        The normalized data.
+        xr.DataArray: Relative (and optionally normalized) change map.
     """
-    data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-    assert isinstance(data, xr.DataArray)
+    # Ensure DataArray + optional delay normalization
+    spectrum = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
+    assert isinstance(spectrum, xr.DataArray)
     if normalize_delay:
-        data = normalize_dim(data, "delay")
+        spectrum = normalize_dim(spectrum, "delay")
 
-    delay_start: float = np.min(data.coords["delay"]).values.item()
-
+    # Determine t0 and pre-t0 region
+    delay_start: float = np.min(spectrum.coords["delay"]).values.item()
     if t0 is None:
-        t0 = find_t_for_max_intensity(data)
+        t0 = find_t_for_max_intensity(spectrum)
     assert t0 is not None
     assert t0 - buffer_fs > delay_start
 
-    before_t0 = data.sel(delay=slice(None, t0 - buffer_fs))
-    relative = data - before_t0.mean("delay", keep_attrs=True)
-    relative.attrs["subtracted"] = True
-    return relative
+    # Subtraction
+    before_t0 = spectrum.sel(delay=slice(None, t0 - buffer_fs))
+    subtracted = spectrum - before_t0.mean("delay", keep_attrs=True)
+
+    # Optional division
+    if divide_by_spectrum:
+        subtracted = subtracted / spectrum
+        subtracted = xr.where(np.isfinite(subtracted), subtracted, 0)
+    subtracted.attrs["subtracted"] = True
+    return subtracted
 
 
 def find_t_for_max_intensity(
@@ -224,5 +199,6 @@ def find_t_for_max_intensity(
     sum_dims.remove("delay")
     sum_dims.remove("eV")
 
-    summed = data.sum(list(sum_dims)).sel(eV=slice(e_bounds[0], e_bounds[1])).mean("eV")
+    e_slice = slice(*e_bounds) if any(e_bounds) else slice(None)
+    summed = data.sum(list(sum_dims)).sel(eV=e_slice).mean("eV")
     return summed.idxmax().item()

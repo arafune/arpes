@@ -8,7 +8,6 @@ data structures and functions to convert files to and from `xarray.DataArray`.
 Main components:
 - `ProdigyItx`: Parser and converter class for Prodigy ITX files.
 - `load_itx`, `export_itx`: Functions to load or save single/multiple ITX spectra.
-- `load_sp2`: Function to load data from older `.sp2` format files.
 - Internal utilities for header parsing, unit correction, and metadata integration.
 
 The output format is compatible with pyARPES, using physical units (e.g. radians),
@@ -21,7 +20,6 @@ Typical usage:
 
 from __future__ import annotations
 
-import re
 from datetime import UTC, datetime
 from logging import DEBUG, INFO
 from pathlib import Path
@@ -32,12 +30,13 @@ import xarray as xr
 
 from arpes.constants import TWO_DIMENSION
 from arpes.debug import setup_logger
+from arpes.endstations._helper.prodigy import angle_unit_to_rad, parse_setscale
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
 Measure_type = Literal["FAT", "SFAT"]
-__all__ = ["export_itx", "load_itx", "load_sp2"]
+__all__ = ["export_itx", "load_itx"]
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
@@ -96,7 +95,7 @@ class ProdigyItx:
                 self.wavename = line.split(maxsplit=1)[-1].strip()[1:-1]
                 continue
             if line.startswith("X SetScale"):
-                tmp = _parse_setscale(line)
+                tmp = parse_setscale(line)
                 self.axis_info[tmp[1]] = (tmp[0], tmp[2], tmp[3], tmp[4])
                 logger.debug(f"self.axis_info[{tmp[1]}]: {self.axis_info[tmp[1]]}")
                 continue
@@ -173,7 +172,7 @@ class ProdigyItx:
             attrs["enegy_unit"] = self.axis_info["y"][3]
         if "d" in self.axis_info:
             attrs["count_unit"] = self.axis_info["d"][3]
-        attrs = _angle_unit_to_rad(attrs)
+        attrs = angle_unit_to_rad(attrs)
         logger.debug(f"dims: {dims}")
         data_array = xr.DataArray(
             data=self.intensity.reshape(_pixel_to_shape(self.pixels)),
@@ -319,10 +318,9 @@ def load_itx(
         itx_data = list(map(str.rstrip, itx_data))
         if itx_data.count("BEGIN") == 1:
             prodigy_itx = ProdigyItx(itx_data)
-            data = prodigy_itx.to_dataarray()
-            for k, v in kwargs.items():
-                data.attrs[k] = v
-            return data
+            return prodigy_itx.to_dataarray(
+                **kwargs,
+            )
         end_index_list = [*find_indices(itx_data, ""), -1]
         slice_list = []
         for i in range(len(end_index_list)):
@@ -332,98 +330,11 @@ def load_itx(
                 slice_list.append(slice(end_index_list[i - 1], end_index_list[i]))
         multi_itx_data = []
         for sl in slice_list:
-            a_itx_data = ProdigyItx(itx_data[sl]).to_dataarray()
-            for k, v in kwargs.items():
-                a_itx_data[k] = v
+            a_itx_data = ProdigyItx(itx_data[sl]).to_dataarray(
+                **kwargs,
+            )
             multi_itx_data.append(a_itx_data)
         return multi_itx_data
-
-
-def load_sp2(
-    path_to_file: Path | str,
-    **kwargs: str | float,
-) -> xr.DataArray:
-    """Load and parse sp2 file.
-
-    Args:
-        path_to_file(Path | str): Path to sp2 file
-        kwargs(str | int | float): Treated as attrs
-
-    Returns:
-        xr.DataArray: pyARPES compatible
-    """
-    params: dict[str, str | float] = {}
-    data: list[float] = []
-    pixels: tuple[int, int] = (0, 0)
-    coords: dict[str, NDArray[np.float64]] = {}
-    with Path(path_to_file).open(encoding="Windows-1252") as sp2file:
-        for line in sp2file:
-            if line.startswith("#"):
-                params = _parse_sp2_comment(line, params)
-            elif line.startswith("P"):
-                pass
-            elif pixels != (0, 0):
-                data.append(float(line))
-            else:
-                pixels = (
-                    int(line.split()[1]),
-                    int(line.split()[0]),
-                )
-    if pixels != (0, 0):
-        if isinstance(params["X Range"], str):
-            e_range = [float(i) for i in re.findall(r"-?[0-9]+\.?[0-9]*", params["X Range"])]
-            coords["eV"] = np.linspace(e_range[0], e_range[1], pixels[1], dtype=np.float64)
-        if isinstance(params["Y Range"], str):
-            a_range = [float(i) for i in re.findall(r"-?[0-9]+\.?[0-9]*", params["Y Range"])]
-            corrected_angles = _correct_angle_region(a_range[0], a_range[1], pixels[0])
-
-            coords["phi"] = np.deg2rad(
-                np.linspace(corrected_angles[0], corrected_angles[1], pixels[0]),
-            )
-    params["spectrum_type"] = "cut"
-    params = _angle_unit_to_rad(params)
-    data_array: xr.DataArray = xr.DataArray(
-        np.array(data).reshape(pixels),
-        coords=coords,
-        dims=["phi", "eV"],
-        attrs=params,
-    )
-    data_array.coords["phi"].attrs["units"] = "Radians"
-    for k, v in kwargs.items():
-        data_array.attrs[k] = v
-    return data_array
-
-
-def _angle_unit_to_rad(params: dict[str, str | float]) -> dict[str, str | float]:
-    """Correct unit angle from degrees to radians in params object.
-
-    Just a helper function.
-    """
-    for angle in ("beta", "chi", "theta", "psi", "phi"):
-        if angle in params:
-            params[angle] = np.deg2rad(params[angle])
-        if angle + "_offset" in params:
-            params[angle + "_offset"] = np.deg2rad(params[angle + "_offset"])
-    return params
-
-
-def _parse_sp2_comment(line: str, params: dict[str, str | float]) -> dict[str, str | float | int]:
-    try:
-        params[line[2:].split("=", maxsplit=1)[0].strip()] = int(
-            line[2:].split("=", maxsplit=1)[1].strip(),
-        )
-    except ValueError:
-        try:
-            params[line[2:].split("=", maxsplit=1)[0].strip()] = float(
-                line[2:].split("=", maxsplit=1)[1].strip(),
-            )
-        except ValueError:
-            params[line[2:].split("=", maxsplit=1)[0].strip()] = (
-                line[2:].split("=", maxsplit=1)[1].strip()
-            )
-    except IndexError:
-        pass
-    return params
 
 
 header_template = """IGOR
@@ -498,31 +409,6 @@ def _build_itx_header(
         param.get("mcp_voltage", param.get("Detector Voltage")),
         param.get("workfunction", param.get("WorkFunction", 4.401)),
     )
-
-
-def _correct_angle_region(
-    angle_min: float,
-    angle_max: float,
-    num_pixel: int,
-) -> tuple[float, float]:
-    """Correct the angle value to fit igor.
-
-    Parameters
-    ----------
-    angle_min: float
-        Minimum angle of emission
-    angle_max: float
-        Maximum angle of emission
-    num_pixel: int
-        The number of pixels for non-energy channels (i.e. angle)
-
-    Returns:
-    -------
-    tuple[float, float]
-        minimum angle value and maximum angle value
-    """
-    diff: float = ((angle_max - angle_min) / num_pixel) / 2
-    return angle_min + diff, angle_max - diff
 
 
 def _parse_itx_head(
@@ -635,35 +521,3 @@ def _parse_user_comment(
         else:
             common_params[item] = True
     return common_params
-
-
-def _parse_setscale(line: str) -> tuple[str, str, float, float, str]:
-    """Parse setscale.
-
-    Args:
-        line(str): line should start with "X SetScale"
-
-    Returns:
-        tuple[str, str, float, float, str]
-    """
-    assert "SetScale" in line
-    flag: str
-    dim: str
-    num1: float
-    num2: float
-    unit: str
-    setscale = line.split(",", maxsplit=5)
-    if "/I" in setscale[0]:
-        flag = "I"
-    elif "/P" in line:
-        flag = "P"
-    else:
-        flag = ""
-    dim = setscale[0][-1]
-    if dim not in {"x", "y", "z", "d", "t"}:
-        msg = "Dimension is not correct"
-        raise RuntimeError(msg)
-    unit = setscale[3].strip()[1:-1]
-    num1 = float(setscale[1])
-    num2 = float(setscale[2])
-    return (flag, dim, num1, num2, unit)

@@ -49,5 +49,5 @@ from .self_energy import (
     quasiparticle_lifetime,
     to_self_energy,
 )
-from .tarpes import build_crosscorrelation, normalized_relative_change, relative_change
+from .tarpes import build_crosscorrelation, relative_change
 from .xps import approximate_core_levels
