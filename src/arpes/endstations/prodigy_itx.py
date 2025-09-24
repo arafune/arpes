@@ -1,7 +1,7 @@
-"""IO support for Prodigy-exported Igor Pro ITX and SP2 files.
+"""IO support for Prodigy-exported Igor Pro ITX.
 
 This module provides tools to parse, load, and export ARPES spectrum data
-saved in Igor Pro's ITX format (as exported by Prodigy) and SP2 format.
+saved in Igor Pro's ITX format (as exported by Prodigy).
 It enables interoperability between Prodigy exports and pyARPES by providing
 data structures and functions to convert files to and from `xarray.DataArray`.
 
@@ -20,6 +20,7 @@ Typical usage:
 
 from __future__ import annotations
 
+import warnings
 from datetime import UTC, datetime
 from logging import DEBUG, INFO
 from pathlib import Path
@@ -30,7 +31,7 @@ import xarray as xr
 
 from arpes.constants import TWO_DIMENSION
 from arpes.debug import setup_logger
-from arpes.endstations._helper.prodigy import angle_unit_to_rad, parse_setscale
+from arpes.endstations._helper.prodigy import angle_unit_to_rad, as_angle, parse_setscale
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
@@ -103,10 +104,17 @@ class ProdigyItx:
         self.intensity = np.array(intensity)
         logger.debug(f"shape of self.intensity: {self.intensity.shape}")
 
-    def to_dataarray(self, **kwargs: str | float) -> xr.DataArray:
+    def to_dataarray(
+        self,
+        *,
+        keep_degree: bool = False,
+        **kwargs: str | float,
+    ) -> xr.DataArray:
         """Export to Xarray.
 
         Args:
+            keep_degree(bool): if True, keep the unit of angle axis(degree).
+                Default to False (convert to radian).
             **kwargs(str | float): Extra arguments. Forward to the attrs of the output xarray.
 
         Returns:
@@ -141,11 +149,12 @@ class ProdigyItx:
         dims: list[str] = []
         # set angle axis
         if "x" in self.axis_info:
-            coords["phi"] = np.deg2rad(
+            coords["phi"] = as_angle(
                 create_coords(
                     axis_info=self.axis_info["x"],
                     pixels=self.pixels[0],
                 ),
+                keep_degree=keep_degree,
             )
             dims.append("phi")
         if "y" in self.axis_info:
@@ -202,6 +211,7 @@ def _pixel_to_shape(pixel: tuple[int, ...]) -> tuple[int, ...]:
 def convert_itx_format(
     arr: xr.DataArray,
     *,
+    keep_degree: bool = False,
     add_notes: bool = False,
 ) -> str:
     """Export pyarpes spectrum data to itx file.
@@ -210,16 +220,27 @@ def convert_itx_format(
 
     Args:
         arr(xr.DataArray):  DataArray to export
+        keep_degree(bool): if True, keep the unit of angle axis(degree).
         add_notes(bool): if True, add some info to notes in wave.(default: False)
 
     Returns:
         str: itx formatted ARPES data
+
+    Warnings:
+        This function will be deprecated in future, because xarray can be exported to HDF format,
+        which is loaded by igor directly.
     """
+    warnings.warn(
+        "This method will be deprecated.",
+        category=DeprecationWarning,
+        stacklevel=2,
+    )
+
     assert isinstance(arr, xr.DataArray)
     if "User Comment" in arr.attrs:
-        arr.attrs["User Comment"] += ";" + _user_comment_from_attrs(arr)
+        arr.attrs["User Comment"] += ";" + _user_comment_from_attrs(arr, keep_degree=keep_degree)
     else:
-        arr.attrs["User Comment"] = _user_comment_from_attrs(arr)
+        arr.attrs["User Comment"] = _user_comment_from_attrs(arr, keep_degree=keep_degree)
     start_energy: float = arr.indexes["eV"][0]
     step_energy: float = arr.indexes["eV"][1] - arr.indexes["eV"][0]
     end_energy: float = arr.indexes["eV"][-1]
@@ -243,8 +264,8 @@ def convert_itx_format(
     for a_intensities in intensities_list:
         itx_str += " ".join(map(str, a_intensities)) + "\n"
     itx_str += "END\n"
-    start_phi_deg: float = np.rad2deg(arr.indexes["phi"][0])
-    end_phi_deg: float = np.rad2deg(arr.indexes["phi"][-1])
+    start_phi_deg: float = as_angle(arr.indexes["phi"][0], keep_degree=keep_degree)  # type: ignore[call-arg]
+    end_phi_deg: float = as_angle(arr.indexes["phi"][-1], keep_degree=keep_degree)  # type: ignore[call-arg]
     itx_str += (
         f"""X SetScale/I x, {start_phi_deg}, {end_phi_deg}, "deg (theta_y)", '{wavename}'\n"""
     )
@@ -279,19 +300,30 @@ def export_itx(
         file_name(str | Path): file name for export
         arr(xr.DataArray): pyarpes DataArray
         add_notes(bool): if True, add some info to notes in wave (default: False)
+
+    Warnings:
+        This function will be deprecated in future, because xarray can be exported to HDF format.
     """
+    warnings.warn(
+        "This method will be deprecated.",
+        category=DeprecationWarning,
+        stacklevel=2,
+    )
     with Path(file_name).open(mode="w", encoding="UTF-8") as itx_file:
         itx_file.write(convert_itx_format(arr, add_notes=add_notes))
 
 
 def load_itx(
     path_to_file: Path | str,
+    *,
+    keep_degree: bool = False,
     **kwargs: str | float,
 ) -> xr.DataArray | list[xr.DataArray]:
     """Load and parse the itx data.
 
     Args:
         path_to_file (Path | str): Path to itx file.
+        keep_degree (bool): if True, keep the unit of angle axis(degree).
         kwargs (str | int | float): Treated as attrs
 
     Returns:
@@ -319,6 +351,7 @@ def load_itx(
         if itx_data.count("BEGIN") == 1:
             prodigy_itx = ProdigyItx(itx_data)
             return prodigy_itx.to_dataarray(
+                keep_degree=keep_degree,
                 **kwargs,
             )
         end_index_list = [*find_indices(itx_data, ""), -1]
@@ -331,6 +364,7 @@ def load_itx(
         multi_itx_data = []
         for sl in slice_list:
             a_itx_data = ProdigyItx(itx_data[sl]).to_dataarray(
+                keep_degree=keep_degree,
                 **kwargs,
             )
             multi_itx_data.append(a_itx_data)
@@ -447,7 +481,11 @@ def _parse_itx_head(
     return common_params
 
 
-def _user_comment_from_attrs(dataarray: xr.DataArray) -> str:
+def _user_comment_from_attrs(
+    dataarray: xr.DataArray,
+    *,
+    keep_degree: bool,
+) -> str:
     key_pos: set[str] = {"x", "y", "z"}
     key_angle: set[str] = {"beta", "chi", "psi"}
     user_comment = ""
@@ -456,7 +494,7 @@ def _user_comment_from_attrs(dataarray: xr.DataArray) -> str:
             logger.debug(f"key: {key}, value: {type(value)} ")
             user_comment += str(key) + ":" + f"{value}" + ";"
         if key in key_angle:
-            user_comment += str(key) + ":" + f"{np.rad2deg(value)};"
+            user_comment += str(key) + ":" + f"{as_angle(value, keep_degree=keep_degree)}"
     return user_comment
 
 

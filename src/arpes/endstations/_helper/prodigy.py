@@ -1,6 +1,11 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
+
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
 
 
 def parse_setscale(line: str) -> tuple[str, str, float, float, str]:
@@ -46,6 +51,16 @@ def angle_unit_to_rad(params: dict[str, str | float]) -> dict[str, str | float]:
         if angle + "_offset" in params:
             params[angle + "_offset"] = np.deg2rad(params[angle + "_offset"])
     return params
+
+
+def as_angle(
+    angle: NDArray[np.float64],
+    *,
+    keep_degree: bool = False,
+) -> NDArray[np.float64]:
+    if keep_degree:
+        return angle
+    return np.deg2rad(angle)
 
 
 def correct_angle_region(
