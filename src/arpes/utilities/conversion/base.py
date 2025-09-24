@@ -101,8 +101,8 @@ class CoordinateConverter:
         """
         # 89 - 91 degrees
         angle_tolerance = 1.0
-        angle_unit = self.arr.S.angle_unit
-        if angle_unit.startswith(("Deg", "deg")):
+        angle_unit = self.arr.S.angle_unit.upper()
+        if angle_unit.startswith("DEG"):
             return float(np.abs(self.arr.S.lookup_offset_coord("alpha") - 90.0)) < angle_tolerance
         return np.abs(self.arr.S.lookup_offset_coord("alpha") - np.pi / 2) < np.deg2rad(
             angle_tolerance,

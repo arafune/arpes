@@ -291,8 +291,18 @@ def transform_dataarray_axis(  # noqa: PLR0913
         new_dims = list(dr.dims)
         new_dims[old_axis] = new_axis_name
 
-        g = functools.partial(func, axis=old_axis)
-        output = geometric_transform(dr.values, g, output_shape=shape, output="f", order=1)
+        def _mapping_func(coords: tuple[float, ...]) -> tuple[float, ...]:
+            """Mapping function for geometric_transform."""
+            arr = func(coords, axis=old_axis)
+            return tuple(float(x) for x in arr)
+
+        output = geometric_transform(
+            input=dr.values,
+            mapping=_mapping_func,
+            output_shape=tuple(shape),
+            output=np.float64,
+            order=1,
+        )
 
         new_coords = dict(dr.coords)
         new_coords.pop(old_axis_name)

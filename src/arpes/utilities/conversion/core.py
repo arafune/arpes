@@ -352,8 +352,8 @@ def convert_to_kspace(  # noqa: PLR0913
     bounds = bounds or {}
     arr = arr if isinstance(arr, xr.DataArray) else normalize_to_spectrum(arr)
     assert isinstance(arr, xr.DataArray)
-
-    if arr.S.angle_unit.startswith("Deg") or arr.S.angle_unit.startswith("deg"):
+    angle_unit = arr.S.angle_unit.upper()
+    if angle_unit.startswith("DEG"):
         arr = arr.S.switched_angle_unit()
     logger.debug(f"bounds (covnert_to_kspace): {bounds}")
     logger.debug(f"keys in coords (convert_to_kspace): {coords.keys()}")
