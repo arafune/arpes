@@ -228,7 +228,6 @@ Time-Resolved ARPES Related
 
    analysis.tarpes.find_t_for_max_intensity
    analysis.tarpes.relative_change
-   analysis.tarpes.normalized_relative_change
    analysis.tarpes.build_crosscorrelation
    analysis.tarpes.delaytime_fs
    analysis.tarpes.position_mm_to_delaytime_fs
