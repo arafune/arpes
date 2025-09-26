@@ -24,8 +24,6 @@ import numpy as np
 import scipy.stats
 import xarray as xr
 
-from arpes._typing.base import DataType
-
 from .analysis.sarpes import to_intensity_polarization
 from .debug import setup_logger
 from .helper.jupyter import get_tqdm
@@ -41,7 +39,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
-    from arpes._typing.base import AnalysisRegion
+    from arpes._typing.base import AnalysisRegion, DataType
     from arpes.utilities import DesignatedRegions
 
 __all__ = (
@@ -102,17 +100,23 @@ def estimate_prior_adjustment(
 
 @update_provenance("Resample cycle dimension")
 @lift_dataarray_to_generic
-def resample_cycle(data: xr.DataArray) -> xr.DataArray:
+def resample_cycle(
+    data: xr.DataArray,
+    prior_adjustment: float = 1,
+) -> xr.DataArray:
     """Perform a non-parametric bootstrap.
 
     Cycle coordinate for statistically independent observations is used.
 
     Args:
         data: The input data.
+        prior_adjustment: A factor to adjust the prior for the Poisson distribution.
+           This argument is set to keep consistency between resample.
 
     Returns:
         Resampled data with selections from the cycle axis.
     """
+    del prior_adjustment
     n_cycles = len(data.cycle)
     which = [random.randint(0, n_cycles - 1) for _ in range(n_cycles)]  # noqa: S311
 
@@ -221,7 +225,11 @@ def bootstrap_counts(
     data_vars[name] = mean
     data_vars[name + "_std"] = std
 
-    return xr.Dataset(data_vars=data_vars, coords=data.coords, attrs=data.attrs.copy())
+    return xr.Dataset(
+        data_vars=data_vars,
+        coords=data.coords,
+        attrs=data.attrs.copy(),
+    )
 
 
 class Distribution:
@@ -307,7 +315,10 @@ def propagate_errors(f: Callable[P, R]) -> Callable[P, R]:
 
 
 @update_provenance("Bootstrap spin detector polarization and intensity")
-def bootstrap_intensity_polarization(data: xr.Dataset, n: int = 100) -> xr.Dataset:
+def bootstrap_intensity_polarization(
+    data: xr.Dataset,
+    n: int = 100,
+) -> xr.Dataset:
     """Builds an estimate of the intensity and polarization from spin-data.
 
     Uses the parametric bootstrap to get uncertainties on the intensity and polarization
@@ -349,6 +360,9 @@ def bootstrap(
         resample_fn = resample
     elif resample_method == "cycle":
         resample_fn = resample_cycle
+    else:
+        msg = f"Unknown resample method: {resample_method}. "
+        raise ValueError(msg)
 
     def bootstrapped(
         *args: Incomplete,
@@ -360,7 +374,7 @@ def bootstrap(
         resample_indices = [
             i
             for i, arg in enumerate(args)
-            if isinstance(arg, xr.DataArray | xr.Dataset) and i not in skip
+            if isinstance(arg, (xr.DataArray, xr.Dataset)) and i not in skip
         ]
 
         runs = []
@@ -390,13 +404,14 @@ def bootstrap(
             run = fn(*new_args, **new_kwargs)
             runs.append(run)
 
-        return xr.concat(
-            [
-                run.assign_coords(bootstrap=i)
-                for i, run in enumerate(runs)
-                if isinstance(run, DataType)
-            ],
-        )
+        if all(isinstance(run, xr.DataArray) for run in runs):
+            arrays = [r.assign_coords(bootstrap=i) for i, r in enumerate(runs)]
+            return xr.concat(arrays, dim="bootstrap")
+        if all(isinstance(run, xr.Dataset) for run in runs):
+            datasets = [r.assign_coords(bootstrap=i) for i, r in enumerate(runs)]
+            return xr.concat(datasets, dim="bootstrap")
+        msg = "Cannot concat mixed DataArray and Dataset"
+        raise TypeError(msg)
 
     return functools.wraps(fn)(bootstrapped)
 
