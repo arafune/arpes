@@ -7,7 +7,18 @@ from arpes._typing.utils import flatten_literals
 
 
 def radian_to_degree(data: DataType) -> DataType:
-    """Switch angle unit from Radians to Degrees in place."""
+    """Return DataArray/Dataset switched angle unit from Radians to Degrees.
+
+    If already angle unit is Degrees, do nothing.
+
+    Args:
+        data (DataType): Data in which the angle unit converted to Degrees.
+
+    Returns:
+        DataType: The angle unit converted data.
+    """
+    if data.S.angle_unit.upper().startswith("DEG"):
+        return data
     data.attrs["angle_unit"] = "Degrees"
     for angle in flatten_literals(ANGLE):
         if angle in data.attrs:
@@ -22,7 +33,18 @@ def radian_to_degree(data: DataType) -> DataType:
 
 
 def degree_to_radian(data: DataType) -> DataType:
-    """Switch angle unit from Degrees and Radians in place."""
+    """Return DataArray/Dataset switched angle unit from Degrees to Radians.
+
+    If already angle unit is Radians, do nothing.
+
+    Args:
+        data (DataType): Data in which the angle unit converted to Radians.
+
+    Returns:
+        DataType: The angle unit converted data.
+    """
+    if data.S.angle_unit.upper().startswith("RAD"):
+        return data
     data.attrs["angle_unit"] = "Radians"
     for angle in flatten_literals(ANGLE):
         if angle in data.attrs:
