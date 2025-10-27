@@ -82,6 +82,21 @@ The simplest way to do this is to cite the paper describing the package in Softw
  
 And, if you have used the revised version of PyARPES, please cite the following paper:
 
+    @article{yg4g-x51r,
+        title = {Probing moir\'e Bloch bands of photoexcited electrons on graphene/Ir(111)},
+        author = {Arafune, Ryuichi and Ishida, Hiroshi and Lin, Chun-Liang and Takagi, Noriaki},
+        journal = {Phys. Rev. B},
+        volume = {112},
+        issue = {16},
+        pages = {L161408},
+        numpages = {6},
+        year = {2025},
+        month = {Oct},
+        publisher = {American Physical Society},
+        doi = {10.1103/yg4g-x51r},
+        url = {https://link.aps.org/doi/10.1103/yg4g-x51r}
+    }
+
 
 Installation
 ============
