@@ -118,7 +118,7 @@ Gettinng started
 ================
 
 See the section on the docs site about
-`contributing <https://arpes.readthedocs.io/contributing>`__ for
+`contributing <https://arpes-v4.readthedocs.io/contributing>`__ for
 information on adding to PyARPES and rebuilding documentation from
 source.
 

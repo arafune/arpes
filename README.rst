@@ -43,8 +43,7 @@ Igor Pro, NeXuS files, and others.
 To learn more about installing and using PyARPES in your analysis or data collection application,
 visit `the documentation site`_.
 
-PyARPES is currently developed by Conrad Stansbury of the Lanzara Group at the University of California, Berkeley.
-
+PyARPES was originally developed by Conrad Stansbury of the Lanzara Group at the University of California, Berkeley.
 
 This release introduces extensive refactoring and feature development aimed at long-term maintainability and usability.
 A major focus has been on reducing global state by introducing a centralized ConfigManager, modularizing the UI with Holoviews-based interactive apps, and deprecating unused or ambiguous components.
