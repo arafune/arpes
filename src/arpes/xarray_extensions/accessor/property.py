@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import contextlib
-from collections import OrderedDict
 from logging import DEBUG, INFO
 from pathlib import Path
 from typing import (
@@ -1152,9 +1151,7 @@ class ARPESProperty(ARPESPropertyBase):
         )
 
     def _repr_html_spectrometer_info(self) -> str:
-        ordered_settings = OrderedDict(self.spectrometer_settings)
-
-        return ARPESProperty.dict_to_html(ordered_settings)
+        return ARPESProperty.dict_to_html(self.spectrometer_settings)
 
     @staticmethod
     def _repr_html_experimental_conditions(conditions: ExperimentInfo) -> str:
