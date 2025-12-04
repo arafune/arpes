@@ -83,10 +83,11 @@ def _vector_diff(
     slice1, slice2 = tuple(slice1), tuple(slice2)
     assert isinstance(slice1, tuple)
     assert isinstance(slice2, tuple)
-    if n > 1:
-        return _vector_diff(arr[slice1] - arr[slice2], delta, n - 1)
-
-    return arr[slice1] - arr[slice2]
+    return (
+        _vector_diff(arr[slice1] - arr[slice2], delta, n - 1)
+        if n > 1
+        else arr[slice1] - arr[slice2]
+    )
 
 
 @update_provenance("Minimum Gradient")
@@ -175,8 +176,7 @@ def curvature1d(
     """
     assert isinstance(arr, xr.DataArray)
     assert alpha > 0
-    if not dim:
-        dim = str(arr.dims[0])
+    dim = dim if dim else str(arr.dims[0])
     smooth_ = _nothing_to_array if smooth_fn is None else smooth_fn
     arr = smooth_(arr)
     d_arr = arr.differentiate(dim)
@@ -230,18 +230,14 @@ def curvature2d(
     assert weight2d != 0
     dx, dy = tuple(float(arr.coords[str(d)][1] - arr.coords[str(d)][0]) for d in arr.dims[:2])
     weight = (dx / dy) ** 2
-    if smooth_fn is not None:
-        arr = smooth_fn(arr)
+    arr = smooth_fn(arr) if smooth_fn is not None else arr
     df = D(x=arr.differentiate(dims[0]), y=arr.differentiate(dims[1]))
     d2f: D2 = D2(
         x=df.x.differentiate(dims[0]),
         y=df.y.differentiate(dims[1]),
         xy=df.x.differentiate(dims[1]),
     )
-    if weight2d > 0:
-        weight *= weight2d
-    else:
-        weight /= abs(weight2d)
+    weight = weight * weight2d if weight2d > 0 else weight / abs(weight2d)
     avg_x = abs(float(df.x.min().values))
     avg_y = abs(float(df.y.min().values))
     avg = max(avg_x**2, weight * avg_y**2)
@@ -300,8 +296,7 @@ def dn_along_axis(
         The nth derivative data.
     """
     assert isinstance(arr, xr.DataArray)
-    if not dim:
-        dim = str(arr.dims[0])
+    dim = dim if dim else str(arr.dims[0])
     smooth_ = _nothing_to_array if smooth_fn is None else smooth_fn
     dn_arr = smooth_(arr)
     for _ in range(order):
