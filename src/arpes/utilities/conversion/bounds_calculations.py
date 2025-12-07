@@ -113,9 +113,8 @@ def euler_to_kx(
     slit_is_vertical: bool = False,
 ) -> NDArray[np.float64]:
     """Calculates kx from the phi/beta Euler angles given the experimental geometry."""
-    if slit_is_vertical:
-        return K_INV_ANGSTROM * np.sqrt(kinetic_energy) * np.sin(beta) * np.cos(phi)
-    return K_INV_ANGSTROM * np.sqrt(kinetic_energy) * np.sin(phi + theta)
+    factor = K_INV_ANGSTROM * np.sqrt(kinetic_energy)
+    return factor * (np.sin(beta) * np.cos(phi) if slit_is_vertical else np.sin(phi + theta))
 
 
 def euler_to_ky(
