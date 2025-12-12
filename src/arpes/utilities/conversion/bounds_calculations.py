@@ -126,13 +126,15 @@ def euler_to_ky(
     slit_is_vertical: bool = False,
 ) -> NDArray[np.float64]:
     """Calculates ky from the phi/beta Euler angles given the experimental geometry."""
-    if slit_is_vertical:
-        return (
-            K_INV_ANGSTROM
-            * np.sqrt(kinetic_energy)
-            * (np.cos(theta) * np.sin(phi) + np.cos(beta) * np.cos(phi) * np.sin(theta))
+    return (
+        K_INV_ANGSTROM
+        * np.sqrt(kinetic_energy)
+        * (
+            np.cos(theta) * np.sin(phi) + np.cos(beta) * np.cos(phi) * np.sin(theta)
+            if slit_is_vertical
+            else (np.cos(phi + theta) * np.sin(beta))
         )
-    return K_INV_ANGSTROM * np.sqrt(kinetic_energy) * (np.cos(phi + theta) * np.sin(beta),)
+    )
 
 
 def euler_to_kz(  # noqa: PLR0913
@@ -145,10 +147,11 @@ def euler_to_kz(  # noqa: PLR0913
     slit_is_vertical: bool = False,
 ) -> NDArray[np.float64]:
     """Calculates kz from the phi/beta Euler angles given the experimental geometry."""
-    if slit_is_vertical:
-        beta_term = -np.sin(theta) * np.sin(phi) + np.cos(theta) * np.cos(beta) * np.cos(phi)
-    else:
-        beta_term = np.cos(phi + theta) * np.cos(beta)
+    beta_term = (
+        -np.sin(theta) * np.sin(phi) + np.cos(theta) * np.cos(beta) * np.cos(phi)
+        if slit_is_vertical
+        else np.cos(phi + theta) * np.cos(beta)
+    )
     return K_INV_ANGSTROM * np.sqrt(kinetic_energy * beta_term**2 + inner_potential)
 
 
