@@ -24,7 +24,6 @@ from matplotlib.axes import Axes
 from matplotlib.cm import ScalarMappable, get_cmap
 from matplotlib.colorbar import Colorbar
 from matplotlib.colors import Colormap
-from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.offsetbox import AnchoredOffsetbox, AuxTransformBox, TextArea, VPacker
 from titlecase import titlecase
@@ -42,6 +41,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from lmfit.model import Model
     from matplotlib.collections import PathCollection
+    from matplotlib.figure import Figure
     from matplotlib.font_manager import FontProperties
     from matplotlib.image import AxesImage
     from matplotlib.typing import ColorType

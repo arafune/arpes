@@ -354,7 +354,7 @@ def plot_movie(  # noqa: PLR0913
 
     arpes_mesh.set_animated(True)
 
-    cbar = fig.colorbar(arpes_mesh, ax=ax)
+    _ = fig.colorbar(arpes_mesh, ax=ax)
 
     title: Text = ax.set_title(f"pump probe delay={data.coords[time_dim].values[0]: >9.3f}")
 
