@@ -48,6 +48,9 @@ class SingleFileEndstation(EndstationBase):
             )
 
         original_data_loc = scan_desc.get("path", scan_desc.get("file"))
+        if original_data_loc is None:
+            msg = "No file path found in scan description."
+            raise ValueError(msg)
         assert original_data_loc
         if not Path(original_data_loc).exists():
             data_path = get_data_path()
