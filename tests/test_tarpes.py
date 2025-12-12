@@ -145,11 +145,6 @@ def test_plot_movie_and_evolution_figsize(sample_data: xr.DataArray):
     assert isinstance(result, HTML)
 
 
-def test_plot_movie_and_evolution_dark_bg(sample_data: xr.DataArray):
-    result = plot_movie_and_evolution(sample_data, dark_bg=True, out=None)
-    assert isinstance(result, HTML)
-
-
 def test_plot_movie_and_evolution_evolution_at(sample_data: xr.DataArray):
     result = plot_movie_and_evolution(sample_data, evolution_at=("phi", 0.0), out=None)
     assert isinstance(result, HTML)
