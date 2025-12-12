@@ -237,6 +237,8 @@ def plot_movie_and_evolution(  # noqa: PLR0913
 
     _configure_axes_and_labels(ax, arpes_data, evolution_data, labels)
 
+    fig.colorbar(arpes_mesh, ax=ax[1])
+
     fig.tight_layout()
 
     def init() -> Iterable[Artist]:
