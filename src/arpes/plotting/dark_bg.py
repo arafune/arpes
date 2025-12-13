@@ -49,7 +49,7 @@ def apply_dark_to_colorbar(
         cbar: Colorbar for dark mode.
         transparent: if True, set figure background to 'none'.
     """
-    if cbar.outline:
+    if cbar.outline.get_visible():
         cbar.outline.set_edgecolor("white")
         if transparent:
             cbar.outline.set_facecolor("none")
@@ -61,9 +61,9 @@ def apply_dark_to_colorbar(
     for label in cbar.ax.get_yticklabels() + cbar.ax.get_yticklabels():
         label.set_color("white")
 
-    if cbar.ax.xaxis.label:
+    if cbar.ax.xaxis.label.get_text():
         cbar.ax.xaxis.label.set_color("white")
-    if cbar.ax.yaxis.label:
+    if cbar.ax.yaxis.label.get_text():
         cbar.ax.yaxis.label.set_color("white")
     if transparent:
         cbar.ax.set_facecolor("none")

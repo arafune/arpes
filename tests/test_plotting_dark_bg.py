@@ -1,14 +1,16 @@
 """Unit test for dark background mode."""
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-import pytest
+from matplotlib.cm import ScalarMappable
 from matplotlib.colorbar import Colorbar
 
 from arpes.plotting.dark_bg import (
     DEFAULT_DARK_MODE,
     apply_dark_to_ax,
     apply_dark_to_colorbar,
+    apply_dark_to_figure,
     dark_background,
     get_dark_mode_params,
 )
@@ -33,6 +35,47 @@ def test_get_dark_mode_params_copy():
     # DEFAULT_DARK_MODE should remain unchanged
 
     assert DEFAULT_DARK_MODE["axes.edgecolor"] == "white"
+
+
+def test_apply_dark_to_colorbar_outline_invisible():
+    fig, ax = plt.subplots()
+    im = ax.imshow([[1, 2], [3, 4]])
+    cbar = fig.colorbar(im)
+
+    cbar.outline.set_visible(False)
+
+    apply_dark_to_colorbar(cbar)
+
+    assert cbar.outline.get_visible() is False
+
+
+def test_apply_dark_to_colorbar_with_xlabel():
+    fig, ax = plt.subplots()
+    im = ax.imshow([[1, 2], [3, 4]])
+    cbar = fig.colorbar(im)
+
+    # ← これが必要
+    cbar.ax.set_xlabel("Intensity")
+
+    apply_dark_to_colorbar(cbar)
+
+    assert cbar.ax.xaxis.label.get_color() == "white"
+
+
+def test_get_dark_mode_params_transparent_true():
+    params = get_dark_mode_params(transparent=True)
+
+    assert params["axes.facecolor"] == "none"
+    assert params["figure.facecolor"] == "none"
+    assert params["savefig.facecolor"] == "none"
+
+
+def test_get_dark_mode_params_transparent_false():
+    params = get_dark_mode_params(transparent=False)
+
+    assert params["axes.facecolor"] == "black"
+    assert params["figure.facecolor"] == "black"
+    assert params["savefig.facecolor"] == "black"
 
 
 def _make_fig_with_colorbar():
@@ -69,7 +112,7 @@ def test_figure_none_uses_gcf():
 
     ax = fig.add_subplot()
     im = ax.imshow([[1, 2], [3, 4]])
-    cbar = fig.colorbar(im)
+    _ = fig.colorbar(im)
 
     with dark_background():
         pass
@@ -153,16 +196,63 @@ def test_apply_dark_to_ax_changes_colors():
     assert ax.yaxis.label.get_color() == "white"
 
 
+def test_apply_dark_to_ax_transparent_true():
+    _, ax = plt.subplots()
+
+    apply_dark_to_ax(ax, transparent=True)
+
+    assert ax.get_facecolor()[3] == 0  # fully transparent
+    for spine in ax.spines.values():
+        assert spine.get_edgecolor() == (1, 1, 1, 1)
+
+
+def test_apply_dark_to_ax_transparent_false():
+    _, ax = plt.subplots()
+
+    apply_dark_to_ax(ax, transparent=False)
+
+    assert ax.get_facecolor()[:3] == (0.0, 0.0, 0.0)  # black
+
+
 def test_apply_dark_to_colorbar_changes_colors():
     """apply_dark_to_colorbar should update outline, ticks, and labels."""
     fig, ax = plt.subplots()
     im = ax.imshow([[1, 2], [3, 4]])
     cbar = fig.colorbar(im)
 
+    cbar.ax.set_ylabel("Intensity")
     apply_dark_to_colorbar(cbar)
 
     assert cbar.outline.get_edgecolor() == (1, 1, 1, 1)
     assert cbar.ax.yaxis.label.get_color() == "white"
+
+
+def _make_colorbar():
+    fig, ax = plt.subplots()
+    sm = ScalarMappable(
+        norm=mpl.colors.Normalize(0, 1),
+        cmap="viridis",
+    )
+    cbar = fig.colorbar(sm, ax=ax)
+    return fig, cbar
+
+
+def test_apply_dark_to_colorbar_transparent_true():
+    _, cbar = _make_colorbar()
+
+    apply_dark_to_colorbar(cbar, transparent=True)
+
+    assert cbar.ax.get_facecolor()[3] == 0  # transparent
+    assert cbar.outline.get_edgecolor() == (1, 1, 1, 1)
+
+
+def test_apply_dark_to_colorbar_transparent_false():
+    _, cbar = _make_colorbar()
+
+    apply_dark_to_colorbar(cbar, transparent=False)
+
+    assert cbar.ax.get_facecolor()[:3] == (0.0, 0.0, 0.0)
+    assert cbar.outline.get_facecolor()[:3] == (0.0, 0.0, 0.0)
 
 
 def test_dark_background_styles_axes_and_colorbars():
@@ -196,3 +286,38 @@ def test_dark_background_transparent_facecolor():
     # Axes facecolor should be transparent (alpha=0)
     ax_fc = ax.get_facecolor()
     assert ax_fc[3] == 0
+
+
+def test_apply_dark_to_figure_transparent_true():
+    fig, ax = plt.subplots()
+    apply_dark_to_figure(fig, transparent=True)
+
+    assert fig.patch.get_facecolor()[3] == 0
+
+
+def test_apply_dark_to_figure_transparent_false():
+    fig, ax = plt.subplots()
+    apply_dark_to_figure(fig, transparent=False)
+
+    assert fig.patch.get_facecolor()[:3] == (0.0, 0.0, 0.0)
+
+
+def test_dark_background_context_transparent_false():
+    fig, ax = plt.subplots()
+
+    with dark_background(fig=fig, transparent=False):
+        pass
+
+    # applied AFTER exiting the context
+    assert fig.patch.get_facecolor()[:3] == (0.0, 0.0, 0.0)
+    assert ax.get_facecolor()[:3] == (0.0, 0.0, 0.0)
+
+
+def test_dark_background_context_transparent_true():
+    fig, ax = plt.subplots()
+
+    with dark_background(fig=fig, transparent=True):
+        pass
+
+    assert fig.patch.get_facecolor()[3] == 0
+    assert ax.get_facecolor()[3] == 0
