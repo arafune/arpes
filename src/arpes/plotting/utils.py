@@ -24,7 +24,6 @@ from matplotlib.axes import Axes
 from matplotlib.cm import ScalarMappable, get_cmap
 from matplotlib.colorbar import Colorbar
 from matplotlib.colors import Colormap
-from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.offsetbox import AnchoredOffsetbox, AuxTransformBox, TextArea, VPacker
 from titlecase import titlecase
@@ -42,6 +41,7 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from lmfit.model import Model
     from matplotlib.collections import PathCollection
+    from matplotlib.figure import Figure
     from matplotlib.font_manager import FontProperties
     from matplotlib.image import AxesImage
     from matplotlib.typing import ColorType
@@ -63,7 +63,6 @@ __all__ = (
     "axis_to_data_units",
     "calculate_aspect_ratio",
     "color_for_darkbackground",
-    "dark_background",
     "data_to_axis_units",
     "daxis_ddata_units",
     "ddata_daxis_units",
@@ -176,29 +175,6 @@ def simple_ax_grid(
     return fig, ax, ax_rest
 
 
-@contextlib.contextmanager
-def dark_background(overrides: dict[str, str] | None = None) -> Iterator[None]:
-    """Context manager for plotting in "dark mode", including Colorbar settings."""
-    default_dark_mode = {
-        "axes.edgecolor": "white",
-        "xtick.color": "white",
-        "ytick.color": "white",
-        "axes.labelcolor": "white",
-        "text.color": "white",
-        "figure.facecolor": "black",
-        "savefig.facecolor": "black",
-        "grid.color": "gray",
-        "colorbar.edgecolor": "white",
-        "colorbar.tick.color": "white",
-        "colorbar.labelcolor": "white",
-    }
-    if overrides:
-        default_dark_mode.update(overrides)
-
-    with plt.rc_context(default_dark_mode):
-        yield
-
-
 def color_for_darkbackground(obj: Colorbar | Axes) -> None:
     """Change color to fit the dark background.
 
@@ -207,7 +183,15 @@ def color_for_darkbackground(obj: Colorbar | Axes) -> None:
 
     Args:
         obj (Colorbar | Axes): The Matplotlib Colorbar or Axes object to adjust.
+
+    Warnings:
+        deprecated
     """
+    warnings.warn(
+        "This function is deprecated, please use dark_background.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     if isinstance(obj, Colorbar):
         obj.ax.yaxis.set_tick_params(color="white")
         obj.ax.yaxis.label.set_color("white")
@@ -746,12 +730,25 @@ def insert_cut_locator(
         pass
 
 
-def get_colorbars(fig: Figure | None = None) -> list[Axes]:
-    """Collects likely colorbars in a figure."""
-    if fig is None:
-        fig = plt.gcf()
-    assert isinstance(fig, Figure)
-    return [ax for ax in fig.axes if ax.get_aspect() == 20]  # noqa: PLR2004
+def get_colorbars(fig: Figure | None = None) -> list[Colorbar]:
+    """Find all Colorbar instances in a Figure."""
+    fig = plt.gcf() if fig is None else fig
+    colorbars: list[Colorbar] = []
+    for ax in fig.get_axes():
+        mappables = list(ax.images) + list(ax.collections)
+        for mappable in mappables:
+            cbar = getattr(mappable, "colorbar", None)
+            if isinstance(cbar, Colorbar):
+                colorbars.append(cbar)
+        cbar = getattr(ax, "colorbar", None)
+        if isinstance(cbar, Colorbar):
+            colorbars.append(cbar)
+        cbar = getattr(ax, "cbar", None)
+        if isinstance(cbar, Colorbar):
+            colorbars.append(cbar)
+
+        colorbars.extend([child for child in ax.get_children() if isinstance(child, Colorbar)])
+    return list({id(cb): cb for cb in colorbars}.values())
 
 
 def remove_colorbars(fig: Figure | None = None) -> None:

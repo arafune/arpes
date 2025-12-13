@@ -23,13 +23,13 @@ jobs:
           - "3.13"
           - "3.14"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install uv
-        uses: eifinger/setup-uv@v3
+        uses: astral-sh/setup-uv@v7
 
       - name: Set up Python
         run: uv python install ${{ matrix.python-version }}
@@ -52,7 +52,7 @@ jobs:
           cd docs
           make html
 
-      - uses: codecov/codecov-action@v4
+      - uses: codecov/codecov-action@v5
         with:
           fail_ci_if_error: true # optional (default = false)
           files: ./coverage.xml

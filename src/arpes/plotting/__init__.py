@@ -6,6 +6,7 @@ from __future__ import annotations
 from .annotations import annotate_cuts, annotate_experimental_conditions, annotate_point
 from .bands import plot_with_bands
 from .basic import make_overview, make_reference_plots
+from .dark_bg import dark_background
 from .decoration import h_gradient_fill, v_gradient_fill
 from .dispersion import (
     cut_dispersion_plot,

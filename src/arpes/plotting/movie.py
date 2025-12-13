@@ -22,7 +22,7 @@ from arpes.debug import setup_logger
 from arpes.provenance import save_plot_provenance
 from arpes.utilities import normalize_to_spectrum
 
-from .utils import color_for_darkbackground, path_for_plot
+from .utils import path_for_plot
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
@@ -30,7 +30,6 @@ if TYPE_CHECKING:
 
     from matplotlib.artist import Artist
     from matplotlib.collections import QuadMesh
-    from matplotlib.colorbar import Colorbar
     from matplotlib.text import Text
     from numpy.typing import NDArray
 
@@ -144,8 +143,6 @@ def plot_movie_and_evolution(  # noqa: PLR0913
     width_ratio: tuple[float, float] | None = None,
     evolution_at: tuple[str, float] | tuple[str, tuple[float, float]] = ("phi", 0.0),
     labels: tuple[str, str, str] | None = None,
-    *,
-    dark_bg: bool = False,
     **kwargs: Unpack[PColorMeshKwargs],
 ) -> Path | HTML | Figure | FuncAnimation:
     """Create an animatied plot of ARPES data with time evolution at certain position.
@@ -169,7 +166,6 @@ def plot_movie_and_evolution(  # noqa: PLR0913
             value is the center value and the second value is the half-width of the range.
         labels (tuple[str, str, str]): Labels for the x- of left side panel, x-of right side panel
             and y axes of the ARPES data.
-        dark_bg (bool): If true, the frame and font color changes to white, default False.
         kwargs: Additional keyword arguments for `pcolormesh`
 
     Returns:
@@ -241,14 +237,9 @@ def plot_movie_and_evolution(  # noqa: PLR0913
 
     _configure_axes_and_labels(ax, arpes_data, evolution_data, labels)
 
-    cbar: Colorbar = fig.colorbar(evolution_mesh, ax=ax[1])
+    fig.colorbar(arpes_mesh, ax=ax[1])
 
     fig.tight_layout()
-
-    if dark_bg:
-        color_for_darkbackground(obj=cbar)
-        color_for_darkbackground(obj=ax[0])
-        color_for_darkbackground(obj=ax[1])
 
     def init() -> Iterable[Artist]:
         return (arpes_mesh, evolution_mesh)
@@ -294,8 +285,6 @@ def plot_movie(  # noqa: PLR0913
     out: str | Path | float | EllipsisType | None = None,
     figsize: tuple[float, float] | None = None,
     labels: tuple[str, str] | None = None,
-    *,
-    dark_bg: bool = False,
     **kwargs: Unpack[PColorMeshKwargs],
 ) -> Path | HTML | Figure | FuncAnimation:
     """Create an animated movie of a 3D dataset using one dimension as "time".
@@ -314,7 +303,6 @@ def plot_movie(  # noqa: PLR0913
             FuncAnimation object itself.  Default is None.
         figsize (tuple[float, float]): Size of the movie figure, optional.
         labels (tuple[str, str]): The label for x- and y-axis. (optional)
-        dark_bg (bool): If true, the frame and font color changes to white, default False.
         kwargs: Additional keyword arguments for `pcolormesh`.
 
     Returns:
@@ -368,13 +356,9 @@ def plot_movie(  # noqa: PLR0913
 
     arpes_mesh.set_animated(True)
 
-    cbar = fig.colorbar(arpes_mesh, ax=ax)
+    _ = fig.colorbar(arpes_mesh, ax=ax)
 
     title: Text = ax.set_title(f"pump probe delay={data.coords[time_dim].values[0]: >9.3f}")
-
-    if dark_bg:
-        color_for_darkbackground(obj=cbar)
-        color_for_darkbackground(obj=ax)
 
     def init() -> Iterable[Artist]:
         return (arpes_mesh,)
