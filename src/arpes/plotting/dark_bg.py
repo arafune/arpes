@@ -38,11 +38,23 @@ DEFAULT_DARK_MODE: dict[RcParamKey, str] = {
 }
 
 
-def apply_dark_to_colorbar(cbar: Colorbar) -> None:
-    """Force colorabar element to dark-mode styling."""
+def apply_dark_to_colorbar(
+    cbar: Colorbar,
+    *,
+    transparent: bool = True,
+) -> None:
+    """Force colorabar element to dark-mode styling.
+
+    Args:
+        cbar: Colorbar for dark mode.
+        transparent: if True, set figure background to 'none'.
+    """
     if cbar.outline:
         cbar.outline.set_edgecolor("white")
-        cbar.outline.set_facecolor("none")
+        if transparent:
+            cbar.outline.set_facecolor("none")
+        else:
+            cbar.outline.set_facecolor("black")
 
     cbar.ax.tick_params(colors="white", which="both")
 
@@ -53,11 +65,27 @@ def apply_dark_to_colorbar(cbar: Colorbar) -> None:
         cbar.ax.xaxis.label.set_color("white")
     if cbar.ax.yaxis.label:
         cbar.ax.yaxis.label.set_color("white")
-    cbar.ax.set_facecolor("none")
+    if transparent:
+        cbar.ax.set_facecolor("none")
+    else:
+        cbar.ax.set_facecolor("black")
 
 
-def apply_dark_to_ax(ax: Axes) -> None:
-    ax.set_facecolor("none")
+def apply_dark_to_ax(
+    ax: Axes,
+    *,
+    transparent: bool = True,
+) -> None:
+    """Apply dark mode to a single Axes.
+
+    Args:
+        ax: Axes for dark mode.
+        transparent: if True, set figure background to 'none'.
+    """
+    if transparent:
+        ax.set_facecolor("none")
+    else:
+        ax.set_facecolor("black")
 
     ax.tick_params(colors="white", which="both")
 
@@ -71,24 +99,46 @@ def apply_dark_to_ax(ax: Axes) -> None:
     ax.yaxis.label.set_color("white")
 
 
-def apply_dark_to_figure(fig: Figure) -> None:
+def apply_dark_to_figure(
+    fig: Figure,
+    *,
+    transparent: bool = True,
+) -> None:
     """Apply dark mode to all Axes and Colorbars in the Figure.
 
     Set the figure background to tranparent "none".
+
+    Args:
+        fig: optional Figure to update Axes and Colorbars for dark mode.
+        transparent: if True, set figure background to 'none'.
     """
-    fig.patch.set_facecolor("none")
+    if transparent:
+        fig.patch.set_facecolor("none")
+    else:
+        fig.patch.set_facecolor("black")
 
     for ax in fig.get_axes():
-        apply_dark_to_ax(ax)
+        apply_dark_to_ax(ax, transparent=transparent)
     for cbar in get_colorbars(fig):
-        apply_dark_to_colorbar(cbar)
+        apply_dark_to_colorbar(cbar, transparent=transparent)
 
 
 def get_dark_mode_params(
     overrides: Mapping[RcParamKey, str] | None = None,
+    *,
+    transparent: bool = True,
 ) -> dict[RcParamKey, str]:
-    """Return a safe copy of the dark-mode rcParams."""
+    """Return a safe copy of the dark-mode rcParams.
+
+    Args:
+        overrides: Optional dict of rcParams to override defaults.
+        transparent: if True, set figure background to 'none'.
+    """
     params = DEFAULT_DARK_MODE.copy()
+    if not transparent:
+        params["axes.facecolor"] = "black"
+        params["figure.facecolor"] = "black"
+        params["savefig.facecolor"] = "black"
     if overrides:
         params.update(overrides)
     return params
@@ -98,6 +148,8 @@ def get_dark_mode_params(
 def dark_background(
     overrides: Mapping[RcParamKey, str] | None = None,
     fig: Figure | None = None,
+    *,
+    transparent: bool = True,
 ) -> Iterator[None]:
     """Apply dark-mode rcParams temporarily.
 
@@ -106,11 +158,12 @@ def dark_background(
     Args:
         overrides: Optional dict of rcParams to override defaults.
         fig: optional Figure to update Axes and Colorbars for dark mode.
+        transparent: if True, set figure background to 'none'.
     """
-    params = get_dark_mode_params(overrides)
+    params = get_dark_mode_params(overrides, transparent=transparent)
     with plt.rc_context(cast("dict[str, object]", params)):
         fig = plt.gcf() if fig is None else fig
 
         yield
 
-        apply_dark_to_figure(fig)
+        apply_dark_to_figure(fig, transparent=transparent)
