@@ -3,11 +3,16 @@ Changelog
 
 Changes are listed with most recent versions at the top.
 
-Dates are in YYYY/MM/DD format.
+Dates are in YYYY-MM-DD format.
 
 Primary (X.-.-) version numbers are used to denote backwards
 incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
+
+5.0.1 (2025-xx-xx)
+^^^^^^^^^^^^^^^^^^
+
+* Tidy-up (about docmentaion)
 
 5.0.0 (2025-10-28)
 ^^^^^^^^^^^^^^^^^^

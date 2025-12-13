@@ -79,16 +79,16 @@ def load_sp2(
         if isinstance(params["Y Range"], str):
             a_range = [float(i) for i in re.findall(r"-?[0-9]+\.?[0-9]*", params["Y Range"])]
             corrected_angles = correct_angle_region(a_range[0], a_range[1], pixels[0])
-            if keep_degree:
-                coords["phi"] = np.linspace(
+            coords["phi"] = (
+                np.linspace(
                     corrected_angles[0],
                     corrected_angles[1],
                     pixels[0],
                 )
-            else:
-                coords["phi"] = np.deg2rad(
-                    np.linspace(corrected_angles[0], corrected_angles[1], pixels[0]),
-                )
+                if keep_degree
+                else np.deg2rad(np.linspace(corrected_angles[0], corrected_angles[1], pixels[0]))
+            )
+
     params["spectrum_type"] = "cut"
     params = angle_unit_to_rad(params)
     data_array: xr.DataArray = xr.DataArray(

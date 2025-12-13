@@ -58,9 +58,7 @@ def as_angle(
     *,
     keep_degree: bool = False,
 ) -> NDArray[np.float64]:
-    if keep_degree:
-        return angle
-    return np.deg2rad(angle)
+    return angle if keep_degree else np.deg2rad(angle)
 
 
 def correct_angle_region(

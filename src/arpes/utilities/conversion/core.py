@@ -498,10 +498,11 @@ def convert_coordinates(
     ordered_transformations = [transforms[str(dim)] for dim in arr.dims]
     transformed_coordinates = [tr(*meshed_coordinates) for tr in ordered_transformations]
 
-    if not isinstance(grid_interpolator, Interpolator):
-        converted_volume = grid_interpolator(np.array(transformed_coordinates).T)
-    else:
-        converted_volume = grid_interpolator(transformed_coordinates)
+    converted_volume = (
+        grid_interpolator(np.array(transformed_coordinates).T)
+        if not isinstance(grid_interpolator, Interpolator)
+        else grid_interpolator(transformed_coordinates)
+    )
 
     # Wrap it all up
     def acceptable_coordinate(c: NDArray[np.float64] | xr.DataArray) -> bool:

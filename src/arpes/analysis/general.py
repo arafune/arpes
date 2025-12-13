@@ -103,16 +103,23 @@ def normalize_by_fermi_distribution(
         )
     assert isinstance(distrib, np.ndarray)
     # don't boost by more than 90th percentile of input, by default
-    if not max_gain:
-        max_gain = min(
+    max_gain = (
+        max_gain
+        if max_gain
+        else min(
             float(np.mean(data.values, dtype=np.float64)),
             float(np.percentile(data.values, 10)),
         )
+    )
+
     np.place(distrib, distrib < 1 / max_gain, 1 / max_gain)
     distrib_arr = xr.DataArray(distrib, {"eV": data.coords["eV"].values}, ["eV"])
 
-    if instrumental_broadening:
-        distrib_arr = gaussian_filter_arr(distrib_arr, sigma={"eV": instrumental_broadening})
+    distrib_arr = (
+        gaussian_filter_arr(distrib_arr, sigma={"eV": instrumental_broadening})
+        if instrumental_broadening
+        else distrib_arr
+    )
 
     return data / distrib_arr
 

@@ -82,8 +82,7 @@ def add_colorbar(
         cmap (str | Colormap): The colormap for the colorbar. If None, the default (viridis) is
             used.
     """
-    if cmap is None:
-        cmap = "viridis"
+    cmap = "viridis" if cmap is None else cmap
     if orientation.startswith("h"):
         axins = inset_axes(
             ax,
