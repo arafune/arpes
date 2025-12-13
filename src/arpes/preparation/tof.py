@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import math
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -132,7 +131,7 @@ def build_KE_coords_to_time_pixel_coords(
         """
         kinetic_energy_pixel = coords[axis]
         kinetic_energy = interpolation_axis[kinetic_energy_pixel]
-        real_timing = math.sqrt(conv / kinetic_energy)
+        real_timing = np.sqrt(conv / kinetic_energy)
         pixel_timing = (real_timing - dataset.attrs["timing_offset"]) / time_res
         coords_list = list(coords)
         coords_list[axis] = pixel_timing
@@ -181,7 +180,7 @@ def build_KE_coords_to_time_coords(
             new tuple of converted coordinates
         """
         kinetic_energy = interpolation_axis[coords[axis]]
-        real_timing = math.sqrt(conv / kinetic_energy)
+        real_timing = np.sqrt(conv / kinetic_energy)
         real_timing = photon_offset - real_timing
         coords_list = list(coords)
         coords_list[axis] = len(timing) - (real_timing - low_offset) / d_timing
@@ -228,7 +227,7 @@ def process_SToF(dataset: xr.Dataset) -> xr.Dataset:
     e_min = dataset.attrs.get("E_min", 1)
     e_max = dataset.attrs.get("E_max", 10)
     de = dataset.attrs.get("dE", 0.01)
-    ke_axis = np.linspace(e_min, e_max, (e_max - e_min) / de)
+    ke_axis = np.linspace(e_min, e_max, int((e_max - e_min) / de))
 
     dataset = transform_dataarray_axis(
         func=build_KE_coords_to_time_coords(dataset, ke_axis),
@@ -258,7 +257,7 @@ def process_DLD(dataset: xr.Dataset) -> xr.Dataset:
     ke_axis = np.linspace(
         e_min,
         dataset.attrs["E_max"],
-        (dataset.attrs["E_max"] - e_min) / dataset.attrs["dE"],
+        int((dataset.attrs["E_max"] - e_min) / dataset.attrs["dE"]),
     )
     return transform_dataarray_axis(
         func=build_KE_coords_to_time_pixel_coords(dataset, ke_axis),
