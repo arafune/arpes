@@ -13,6 +13,7 @@ primarily indicate new features and documentation.
 ^^^^^^^^^^^^^^^^^^
 
 * Tidy-up (about docmentaion)
+* Refactoring dark_background & get_colorbar functions in plotting.utils
 
 5.0.0 (2025-10-28)
 ^^^^^^^^^^^^^^^^^^
