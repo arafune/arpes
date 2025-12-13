@@ -5,7 +5,7 @@ import pytest
 import xarray as xr
 
 import arpes.xarray_extensions  # noqa: F401
-from arpes.preparation.axis_preparation import (
+from arpes.preparation.axis import (
     dim_normalizer,
     flip_axis,
     normalize_dim,

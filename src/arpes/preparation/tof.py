@@ -11,7 +11,7 @@ import xarray as xr
 from arpes.constants import BARE_ELECTRON_MASS
 from arpes.provenance import update_provenance
 
-from .axis_preparation import transform_dataarray_axis
+from .axis import transform_dataarray_axis
 
 if TYPE_CHECKING:
     from collections.abc import Callable

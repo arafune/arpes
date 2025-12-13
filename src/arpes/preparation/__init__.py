@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from .axis_preparation import (
+from .axis import (
     dim_normalizer,
     flip_axis,
     normalize_dim,
@@ -13,9 +13,9 @@ from .axis_preparation import (
     transform_dataarray_axis,
     vstack_data,
 )
-from .coord_preparation import disambiguate_coordinates
-from .hemisphere_preparation import stitch_maps
-from .tof_preparation import (
+from .coord import disambiguate_coordinates
+from .hemisphere import stitch_maps
+from .tof import (
     build_KE_coords_to_time_coords,
     build_KE_coords_to_time_pixel_coords,
     process_DLD,
