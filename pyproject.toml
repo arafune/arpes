@@ -89,7 +89,6 @@ omit = [
   "src/arpes/plotting/false_color.py",
   "src/arpes/plotting/spin.py",
   "src/arpes/plotting/dispersion.py",
-  "src/arpes/plotting/tof.py",
   "src/arpes/plotting/fermi_surface.py",
   "src/arpes/plotting/bz",
   "src/arpes/deep_learning/*",
@@ -114,7 +113,6 @@ omit = [
   "src/arpes/_typing/plotting.py",
   "src/arpes/_typing/workspace.py",
   #
-  "src/arpes/preparation/tof_preparation.py",
 ]
 
 [tool.coverage.report]

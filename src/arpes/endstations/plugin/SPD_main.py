@@ -102,7 +102,7 @@ class SPDEndstation(HemisphericalEndstation, SingleFileEndstation):
         Returns:
             xr.Dataset: pyARPES compatible.
         """
-        scan_desc = {} if scan_desc is None else scan_desc
+        scan_desc = scan_desc or {}
         defaults = {
             "x": np.nan,
             "y": np.nan,
