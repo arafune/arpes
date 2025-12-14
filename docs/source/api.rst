@@ -192,8 +192,8 @@ Axis Methods
    analysis.general.rebin
    analysis.general.symmetrize_axis
    analysis.general.condense
-   preparation.axis_preparation.normalize_dim
-   preparation.axis_preparation.sort_axis
+   preparation.axis.normalize_dim
+   preparation.axis.sort_axis
 
 Experimental Resolution Modeling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

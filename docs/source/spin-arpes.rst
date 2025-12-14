@@ -69,7 +69,7 @@ given an associated :doc:`data loading plugin </writing-plugins>`.
 
    <!--- ![Converting time coordinates to energy](static/convert-time-to-energy.png) -->
 
-Utilities can be found in ``arpes.preparation.tof_preparation``.
+Utilities can be found in ``arpes.preparation.tof``.
 
 **Note about units:** Be aware that the energy coordinates produced by
 conversion from ToF data are the electron kinetic energies. Because

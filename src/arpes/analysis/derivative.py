@@ -62,9 +62,9 @@ def _vector_diff(
     Returns:
         The finite differences along the translation vector provided.
     """
-    if n == 0:
+    if n == 0:  # pragma: no cover
         return arr
-    if n < 0:
+    if n < 0:  # pragma: no cover
         raise ValueError("Order must be non-negative but got " + repr(n))
 
     slice1: list[slice] | tuple[slice, ...] = [slice(None)] * arr.ndim
