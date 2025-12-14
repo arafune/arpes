@@ -13,7 +13,15 @@ primarily indicate new features and documentation.
 ^^^^^^^^^^^^^^^^^^
 
 * Tidy-up (about docmentaion)
+
 * Refactoring dark_background & get_colorbar functions in plotting.utils
+
+* Module name change in preparation
+
+  * axis_preparation → axis
+  * coord_preparation → coord
+  * hemispher_preparation → hemisphere
+  * tof_preparation → tof
 
 5.0.0 (2025-10-28)
 ^^^^^^^^^^^^^^^^^^
