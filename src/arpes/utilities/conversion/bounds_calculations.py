@@ -6,7 +6,6 @@ which is responsible for actually outputting the desired bounds.
 
 from __future__ import annotations
 
-import warnings
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -241,22 +240,14 @@ def calculate_kp_bounds(arr: xr.DataArray) -> tuple[float, float]:
 
     sampled_phi_values = np.array([phi_low, phi_mid, phi_high])
 
-    if arr.S.energy_notation == "Binding":
-        max_kinetic_energy = max(
+    max_kinetic_energy = (
+        max(
             arr.coords["eV"].max().item(),
             arr.S.hv - arr.S.analyzer_work_function,
         )
-    elif arr.S.energy_notation == "Final":
-        max_kinetic_energy = arr.coords["eV"].max().item()
-    else:
-        warnings.warn(
-            "Energy notation is not specified. Assume the Binding energy notatation",
-            stacklevel=2,
-        )
-        max_kinetic_energy = max(
-            arr.coords["eV"].max().item(),
-            arr.S.hv - arr.S.analyzer_work_function,
-        )
+        if arr.S.energy_notation == "Binding"
+        else arr.coords["eV"].max().item()
+    )
     kps = K_INV_ANGSTROM * np.sqrt(max_kinetic_energy) * np.sin(sampled_phi_values) * np.cos(beta)
     return round(np.min(kps), 2), round(np.max(kps), 2)
 
@@ -313,27 +304,22 @@ def calculate_kx_ky_bounds(
             beta_mid,
         ],
     )
-    if arr.S.energy_notation == "Binding":
-        kinetic_energy = max(
+
+    max_kinetic_energy = (
+        max(
             arr.coords["eV"].max().item(),
             arr.S.hv - arr.S.analyzer_work_function,
         )
-    elif arr.S.energy_notation == "Final":
-        kinetic_energy = arr.coords["eV"].max().item()
-    else:
-        warnings.warn(
-            "Energy notation is not specified. Assume the Binding energy notation",
-            stacklevel=2,
-        )
-        kinetic_energy = max(
-            arr.coords["eV"].max().item(),
-            arr.S.hv - arr.S.analyzer_work_function,
-        )
+        if arr.S.energy_notation == "Binding"
+        else arr.coords["eV"].max().item()
+    )
     # note that the type of the kinetic_energy is float in below.
-    kxs: NDArray[np.float64] = K_INV_ANGSTROM * np.sqrt(kinetic_energy) * np.sin(sampled_phi_values)
+    kxs: NDArray[np.float64] = (
+        K_INV_ANGSTROM * np.sqrt(max_kinetic_energy) * np.sin(sampled_phi_values)
+    )
     kys: NDArray[np.float64] = (
         K_INV_ANGSTROM
-        * np.sqrt(kinetic_energy)
+        * np.sqrt(max_kinetic_energy)
         * np.cos(sampled_phi_values)
         * np.sin(sampled_beta_values)
     )

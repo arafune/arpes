@@ -301,7 +301,7 @@ class ARPESPhysicalProperty:
     def energy_notation(self) -> EnergyNotation:
         """The energy notation ("Binding" energy or "Final" state energy)."""
         notation = self._obj.attrs.get("energy_notation", "Binding").lower()
-        final_notations = {"kinetic", "kinetic energy", "final", "final stat energy"}
+        final_notations = {"kinetic", "kinetic energy", "final", "final state energy"}
         if notation in final_notations:
             self._obj.attrs["energy_notation"] = "Final"
             return "Final"

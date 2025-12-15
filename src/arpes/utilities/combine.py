@@ -1,7 +1,5 @@
 """Syntax suger for combination of ARPES data."""
 
-from __future__ import annotations
-
 from logging import DEBUG, INFO
 
 import xarray as xr
