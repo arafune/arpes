@@ -142,7 +142,7 @@ def apply_mask(
     data: xr.DataArray,
     mask: dict[str, Incomplete] | NDArray[np.bool_],
     replace: float = np.nan,
-    radius: Incomplete = None,
+    radius: float = 0.0,
     *,
     invert: bool = False,
 ) -> xr.DataArray:
