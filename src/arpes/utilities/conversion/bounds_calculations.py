@@ -6,7 +6,6 @@ which is responsible for actually outputting the desired bounds.
 
 from __future__ import annotations
 
-import warnings
 from typing import TYPE_CHECKING
 
 import numpy as np
