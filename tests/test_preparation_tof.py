@@ -14,7 +14,7 @@ from arpes.preparation.tof import (
 
 
 @pytest.fixture
-def simple_tof_dataarray():
+def simple_tof_dataarray() -> xr.DataArray:
     time = np.linspace(1.0, 5.0, 10)
     angle = np.linspace(-1.0, 1.0, 3)
 
@@ -33,12 +33,12 @@ def simple_tof_dataarray():
 
 
 @pytest.fixture
-def simple_dataset(simple_tof_dataarray):
+def simple_dataset(simple_tof_dataarray: xr.DataArray) -> xr.Dataset:
     ds = xr.Dataset(
         {
             "t_up": simple_tof_dataarray,
             "t_down": simple_tof_dataarray * 0.8,
-        }
+        },
     )
     ds = ds.assign_coords(time=simple_tof_dataarray.coords["time"])
     ds.attrs.update(
@@ -50,12 +50,12 @@ def simple_dataset(simple_tof_dataarray):
             "E_max": 10.0,
             "dE": 0.5,
             "sherman": 0.2,
-        }
+        },
     )
     return ds
 
 
-def test_convert_to_kinetic_energy_basic(simple_tof_dataarray):
+def test_convert_to_kinetic_energy_basic(simple_tof_dataarray: xr.DataArray):
     ke_axis = np.linspace(0.5, 5.0, 20)
 
     out = convert_to_kinetic_energy(simple_tof_dataarray, ke_axis)
@@ -67,7 +67,7 @@ def test_convert_to_kinetic_energy_basic(simple_tof_dataarray):
     assert out.attrs["mstar"] == 1.0
 
 
-def test_convert_to_kinetic_energy_preserves_other_dims(simple_tof_dataarray):
+def test_convert_to_kinetic_energy_preserves_other_dims(simple_tof_dataarray: xr.DataArray):
     ke_axis = np.linspace(0.5, 5.0, 10)
     out = convert_to_kinetic_energy(simple_tof_dataarray, ke_axis)
 
@@ -77,16 +77,22 @@ def test_convert_to_kinetic_energy_preserves_other_dims(simple_tof_dataarray):
 #  build_KE_coords_to_time_pixel_coords(
 
 
-def test_build_KE_coords_to_time_pixel_coords_callable(simple_dataset):
+def test_build_KE_coords_to_time_pixel_coords_callable(simple_dataset: xr.Dataset):
     ke_axis = np.linspace(0.5, 5.0, 10)
-    func = build_KE_coords_to_time_pixel_coords(simple_dataset, ke_axis)
+    func = build_KE_coords_to_time_pixel_coords(
+        simple_dataset,
+        ke_axis,
+    )
 
     assert callable(func)
 
 
-def test_KE_coords_to_time_pixel_coords_execution(simple_dataset):
+def test_KE_coords_to_time_pixel_coords_execution(simple_dataset: xr.Dataset):
     ke_axis = np.linspace(0.5, 5.0, 10)
-    func = build_KE_coords_to_time_pixel_coords(simple_dataset, ke_axis)
+    func = build_KE_coords_to_time_pixel_coords(
+        simple_dataset,
+        ke_axis,
+    )
 
     # fake coordinate tuple (like ndimage gives)
     coord_energy = xr.DataArray(np.array([0, 1, 2]), dims=("points",))
@@ -105,16 +111,22 @@ def test_KE_coords_to_time_pixel_coords_execution(simple_dataset):
 # build_KE_coords_to_time_coords
 
 
-def test_build_KE_coords_to_time_coords_callable(simple_dataset):
+def test_build_KE_coords_to_time_coords_callable(simple_dataset: xr.Dataset):
     ke_axis = np.linspace(0.5, 5.0, 10)
-    func = build_KE_coords_to_time_coords(simple_dataset, ke_axis)
+    func = build_KE_coords_to_time_coords(
+        simple_dataset,
+        ke_axis,
+    )
 
     assert callable(func)
 
 
-def test_KE_coords_to_time_coords_execution(simple_dataset):
+def test_KE_coords_to_time_coords_execution(simple_dataset: xr.Dataset):
     ke_axis = np.linspace(0.5, 5.0, 10)
-    func = build_KE_coords_to_time_coords(simple_dataset, ke_axis)
+    func = build_KE_coords_to_time_coords(
+        simple_dataset,
+        ke_axis,
+    )
 
     coords = xr.DataArray(
         np.arange(5),
@@ -130,27 +142,27 @@ def test_KE_coords_to_time_coords_execution(simple_dataset):
 # process_SToF
 
 
-def test_process_SToF_creates_energy_axis(simple_dataset):
+def test_process_SToF_creates_energy_axis(simple_dataset: xr.Dataset):
     out = process_SToF(simple_dataset)
 
     assert isinstance(out, xr.Dataset)
     assert "eV" in out.dims
 
 
-def test_process_SToF_renames_channels(simple_dataset):
+def test_process_SToF_renames_channels(simple_dataset: xr.Dataset):
     out = process_SToF(simple_dataset)
 
     assert "up" in out.data_vars
     assert "down" in out.data_vars
 
 
-def test_process_SToF_spin_correction_applied(simple_dataset):
+def test_process_SToF_spin_correction_applied(simple_dataset: xr.Dataset):
     out = process_SToF(simple_dataset)
 
     assert not np.allclose(out["up"], out["down"])
 
 
-def test_process_SToF_spin_correction_identity_when_sherman_zero(simple_dataset):
+def test_process_SToF_spin_correction_identity_when_sherman_zero(simple_dataset: xr.Dataset):
     simple_dataset = simple_dataset.copy()
     simple_dataset.attrs["sherman"] = 0.0
 
@@ -161,7 +173,7 @@ def test_process_SToF_spin_correction_identity_when_sherman_zero(simple_dataset)
 # process_DLD
 
 
-def test_process_DLD_runs(simple_dataset):
+def test_process_DLD_runs(simple_dataset: xr.Dataset):
     out = process_DLD(simple_dataset)
 
     assert isinstance(out, xr.Dataset)
