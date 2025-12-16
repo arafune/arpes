@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import xarray as xr
-from matplotlib.path import Path
+from matplotlib.path import Path as mPath
 
 from arpes.provenance import update_provenance
 from arpes.utilities import normalize_to_spectrum
@@ -90,7 +90,7 @@ def polys_to_mask(
 
     mask = None
     for poly in polys:
-        grid: NDArray[np.bool_] = Path(poly).contains_points(points, radius=radius)
+        grid: NDArray[np.bool_] = mPath(poly).contains_points(points, radius=radius)
 
         grid = grid.reshape(list(shape)[::-1]).T
 
@@ -126,7 +126,7 @@ def apply_mask_to_coords(
     dest_shape = shape[:-1]
     new_shape = [np.prod(dest_shape), len(dims)]
     mask_array = (
-        Path(np.array(mask["poly"]))
+        mPath(np.array(mask["poly"]))
         .contains_points(as_array.reshape(new_shape))
         .reshape(dest_shape)
     )
