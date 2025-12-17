@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
+    Generic,
     Literal,
     TypeAlias,
     TypeGuard,
@@ -22,6 +23,7 @@ from xarray.core.coordinates import DataArrayCoordinates, DatasetCoordinates
 from arpes._typing.base import (
     ANGLE,
     HIGH_SYMMETRY_POINTS,
+    DataType,
     SpectrumType,
 )
 from arpes.debug import setup_logger
@@ -47,7 +49,6 @@ if TYPE_CHECKING:
         SampleInfo,
         ScanInfo,
     )
-    from arpes._typing.base import XrTypes
     from arpes.provenance import Provenance
 
 EnergyNotation: TypeAlias = Literal["Binding", "Final"]
@@ -57,7 +58,7 @@ LOGLEVEL = LOGLEVELS[1]
 logger = setup_logger(__name__, LOGLEVEL)
 
 
-class ARPESAngleProperty:
+class ARPESAngleProperty(Generic[DataType]):
     """Class for Angle related property.
 
     Attributes:
@@ -67,7 +68,7 @@ class ARPESAngleProperty:
         This class should not be called directly.
     """
 
-    _obj: XrTypes
+    _obj: DataType
 
     @property
     def angle_unit(self) -> Literal["Degrees", "Radians"]:
@@ -129,7 +130,7 @@ class ARPESAngleProperty:
         )
 
 
-class ARPESPhysicalProperty:
+class ARPESPhysicalProperty(Generic[DataType]):
     """Class for ARPES physical properties.
 
     Attributes:
@@ -139,7 +140,7 @@ class ARPESPhysicalProperty:
         This class should not be called directly.
     """
 
-    _obj: XrTypes
+    _obj: DataType
 
     @property
     def work_function(self) -> float:
@@ -330,17 +331,15 @@ class ARPESPhysicalProperty:
             self._obj.attrs["energy_notation"] = "Binding"
 
 
-class ARPESInfoProperty(ARPESPhysicalProperty):
+class ARPESInfoProperty(ARPESPhysicalProperty[DataType]):
     """Class for Information Property.
 
     Attributes:
-        _obj (XrTypes): ARPES data
+        _obj: ARPES data
 
     Note:
         This class should not be called directly.
     """
-
-    _obj: XrTypes
 
     @property
     def scan_name(self) -> str:
@@ -614,17 +613,15 @@ class ARPESInfoProperty(ARPESPhysicalProperty):
         raise TypeError(msg)
 
 
-class ARPESOffsetProperty(ARPESAngleProperty):
+class ARPESOffsetProperty(ARPESAngleProperty[DataType]):
     """Class for offset value property.
 
     Attributes:
-        _obj (XrTypes): ARPES data
+        _obj: ARPES data
 
     Note:
         This class should not be called directly.
     """
-
-    _obj: XrTypes
 
     def symmetry_points(
         self,
@@ -852,10 +849,10 @@ class ARPESOffsetProperty(ARPESAngleProperty):
         )
 
 
-class ARPESProvenanceProperty:
+class ARPESProvenanceProperty(Generic[DataType]):
     """Class for Provenance related property."""
 
-    _obj: XrTypes
+    _obj: DataType
 
     def short_history(self, key: str = "by") -> list:
         """Return the short version of history.
@@ -964,10 +961,12 @@ class ARPESProvenanceProperty:
         return None
 
 
-class ARPESPropertyBase(ARPESInfoProperty, ARPESOffsetProperty, ARPESProvenanceProperty):
+class ARPESPropertyBase(
+    ARPESInfoProperty[DataType],
+    ARPESOffsetProperty[DataType],
+    ARPESProvenanceProperty[DataType],
+):
     """Base class for ARPES Property."""
-
-    _obj: XrTypes
 
     @property
     def is_spatial(self) -> bool:
@@ -1086,10 +1085,8 @@ class ARPESPropertyBase(ARPESInfoProperty, ARPESOffsetProperty, ARPESProvenanceP
         return full_coords
 
 
-class ARPESProperty(ARPESPropertyBase):
+class ARPESProperty(ARPESPropertyBase[DataType]):
     """Class for ARPES property."""
-
-    _obj: XrTypes
 
     @staticmethod
     def dict_to_html(d: Mapping[str, float | str]) -> str:

@@ -25,11 +25,13 @@ from arpes.plotting.dispersion import (
 from arpes.plotting.fermi_edge import fermi_edge_reference
 from arpes.plotting.spatial import reference_scan_spatial
 from arpes.plotting.ui import ProfileApp
+from arpes.utilities import selections
+from arpes.xarray_extensions._helper.spectroscopy import mean_other_impl, sum_other_impl
 
 from .base import ARPESAccessorBase, ARPESDataArrayAccessorBase
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Hashable, Sequence
     from pathlib import Path
 
     from _typeshed import Incomplete
@@ -39,6 +41,7 @@ if TYPE_CHECKING:
     from panel.layout import Panel
 
     from arpes._typing.attrs_property import CoordsOffset, SpectrumType
+    from arpes._typing.base import ReduceMethod
     from arpes._typing.plotting import (
         HvRefScanParam,
         LabeledFermiSurfaceParam,
@@ -284,9 +287,36 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
             return self._referenced_scans_for_spatial_plot(**kwargs)
         raise NotImplementedError
 
+    def sum_other(
+        self,
+        dim_or_dims: list[str],
+        *,
+        keep_attrs: bool = False,
+    ) -> xr.DataArray:
+        """See :meth:`ARPESDatasetAccessor.sum_other`."""
+        return sum_other_impl(self._obj, dim_or_dims, keep_attrs=keep_attrs)
+
+    def mean_other(
+        self,
+        dim_or_dims: list[str] | str,
+        *,
+        keep_attrs: bool = False,
+    ) -> xr.DataArray:
+        """See :meth:`ARPESDatasetAccessor.mean_other`."""
+        return mean_other_impl(self._obj, dim_or_dims, keep_attrs=keep_attrs)
+
+    def fat_sel(
+        self,
+        widths: dict[Hashable, float] | None = None,
+        method: ReduceMethod = "mean",
+        **kwargs: float,
+    ) -> xr.DataArray:
+        """See :meth:`ARPESDatasetAccessor.fat_sel`."""
+        return selections.fat_sel(data=self._obj, widths=widths, method=method, **kwargs)
+
 
 @xr.register_dataset_accessor("S")
-class ARPESDatasetAccessor(ARPESAccessorBase):
+class ARPESDatasetAccessor(ARPESAccessorBase[xr.Dataset]):
     """Spectrum related accessor for `xr.Dataset`."""
 
     def __getattr__(self, item: str) -> dict:
@@ -531,3 +561,135 @@ class ARPESDatasetAccessor(ARPESAccessorBase):
         """
         self._obj: xr.Dataset
         super().__init__(xarray_obj)
+
+    def sum_other(
+        self,
+        dim_or_dims: list[str],
+        *,
+        keep_attrs: bool = False,
+    ) -> xr.Dataset:
+        """Calculates the sum over all dimensions *except* those specified.
+
+        This is a convenience method for `xarray.Dataset.sum()` or `xarray.DataArray.sum()`
+        that inverts the selection of dimensions. Instead of specifying dimensions
+        to sum *along*, you specify dimensions to *keep*.
+
+        Args:
+            dim_or_dims (list[str]): A list of dimension names to keep. The sum
+                operation will be performed over all other dimensions not in this list.
+            keep_attrs (bool, optional): If True, attributes (`.attrs`) will be
+                preserved on the returned object. Defaults to False.
+
+        Returns:
+            DataType: A new xarray object (Dataset or DataArray) with the data
+            summed along the specified "other" dimensions. Its dimensions will
+            only include those listed in `dim_or_dims`.
+
+        Raises:
+            AssertionError: If `dim_or_dims` is not a list.
+
+        Examples:
+            >>> data = xr.DataArray(np.ones((2, 3, 4)), dims=['x', 'y', 'z'])
+            >>> accessor = ARPESAccessorBase(data)
+            >>> accessor.sum_other(dim_or_dims=['x']) # Sums over 'y' and 'z'
+            <xarray.DataArray (x: 2)>
+            array([12., 12.])
+            Dimensions without coordinates: y, z
+            Coordinates:
+              * x        (x) int64 0 1
+            >>> accessor.sum_other(dim_or_dims=['y', 'z']) # Sums over 'x'
+            <xarray.DataArray (y: 3, z: 4)>
+            array([[2., 2., 2., 2.],
+                   [2., 2., 2., 2.],
+                   [2., 2., 2., 2.]])
+            Dimensions without coordinates: x
+            Coordinates:
+              * y        (y) int64 0 1 2
+              * z        (z) int64 0 1 2 3
+        """
+        return sum_other_impl(self._obj, dim_or_dims, keep_attrs=keep_attrs)
+
+    def mean_other(
+        self,
+        dim_or_dims: list[str] | str,
+        *,
+        keep_attrs: bool = False,
+    ) -> xr.Dataset:
+        """Calculates the mean over all dimensions *except* those specified.
+
+        This is a convenience method for `xarray.Dataset.mean()` or `xarray.DataArray.mean()`
+        that inverts the selection of dimensions. Instead of specifying dimensions
+        to average *along*, you specify dimensions to *keep*.
+
+        Args:
+            dim_or_dims (list[str] | str): A list of dimension names to keep, or a single
+                dimension name string. The mean operation will be performed over all other
+                dimensions not in this list/string.
+            keep_attrs (bool, optional): If True, attributes (`.attrs`) will be
+                preserved on the returned object. Defaults to False.
+
+        Returns:
+            DataType: A new xarray object (Dataset or DataArray) with the data
+            averaged along the specified "other" dimensions. Its dimensions will
+            only include those listed in `dim_or_dims`.
+
+        Raises:
+            AssertionError: If `dim_or_dims` is not a list (note: the type hint allows `str`
+                but the assertion explicitly checks for `list`). This discrepancy should
+                be resolved for consistency. For now, the docstring reflects the assertion.
+
+        Examples:
+            >>> data = xr.DataArray(np.arange(12).reshape(2, 2, 3), dims=['x', 'y', 'z'])
+            >>> accessor = ARPESAccessorBase(data)
+            >>> accessor.mean_other(dim_or_dims=['x']) # Averages over 'y' and 'z'
+            <xarray.DataArray (x: 2)>
+            array([2.5, 8.5])
+            Coordinates:
+              * x        (x) int64 0 1
+            >>> accessor.mean_other(dim_or_dims=['y', 'z']) # Averages over 'x'
+            <xarray.DataArray (y: 2, z: 3)>
+            array([[2.5, 3.5, 4.5],
+                   [5.5, 6.5, 7.5]])
+            Coordinates:
+              * y        (y) int64 0 1
+              * z        (z) int64 1 2 3
+        """
+        return mean_other_impl(self._obj, dim_or_dims, keep_attrs=keep_attrs)
+
+    def fat_sel(
+        self,
+        widths: dict[Hashable, float] | None = None,
+        method: ReduceMethod = "mean",
+        **kwargs: float,
+    ) -> xr.Dataset:
+        """Performs a 'fat' selection, integrating data over small regions specified by widths.
+
+        This method allows for integrating a selection over a small coordinate region
+        (defined by `widths` or keyword arguments), effectively reducing noise
+        by averaging or summing over nearby slices. The resulting dataset will
+        be normalized by the number of slices integrated over if `method="mean"`.
+
+        Args:
+            widths (dict[Hashable, float] | None, optional): A dictionary
+                specifying the width of the integration window for each dimension.
+                Keys are dimension names (Hashable), and values are float widths.
+                Overrides any widths specified in `kwargs`. Defaults to None,
+                in which case `selections.fat_sel` might use default widths.
+            method (ReduceMethod, optional): The reduction method to apply within
+                the selection window. Can be "mean" (default) or "sum".
+            **kwargs (float): Keyword arguments that can define specific selection
+                points (e.g., `eV=1.5`) or widths (e.g., `eV_width=0.1`).
+                **Note**: Using `*_width` in kwargs for specifying widths is
+                deprecated. Prefer the `widths` dictionary argument.
+
+        Returns:
+            XrTypes: The xarray.DataArray or xarray.Dataset after the 'fat'
+            selection and reduction have been applied. The dimensions for which
+            a width was specified will effectively be reduced or removed.
+
+        Note:
+            The `widths` argument is the preferred way to specify integration
+            widths. Using `*_width` through `kwargs` is deprecated and may
+            be removed in future versions.
+        """
+        return selections.fat_sel(data=self._obj, widths=widths, method=method, **kwargs)

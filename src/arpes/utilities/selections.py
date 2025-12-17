@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
     from numpy.typing import NDArray
 
-    from arpes._typing.base import DataType, ReduceMethod, XrTypes
+    from arpes._typing.base import DataType, ReduceMethod
 
 __all__ = (
     "fat_sel",
@@ -55,11 +55,11 @@ DEFAULT_RADII: dict[str, float] = {
 
 
 def fat_sel(
-    data: XrTypes,
+    data: DataType,
     widths: dict[Hashable, float] | None = None,
     method: ReduceMethod = "mean",
     **kwargs: float,
-) -> XrTypes:
+) -> DataType:
     """Allows integrating a selection over a small region.
 
     The produced dataset will be normalized by dividing by the number
@@ -253,7 +253,7 @@ def select_around(
     return selected.mean(list(radius.keys()))
 
 
-def ravel_from_mask(data: DataType, mask: XrTypes) -> DataType:
+def ravel_from_mask(data: DataType, mask: xr.DataArray) -> DataType:
     """Selects out the data from a NDArray whose points are marked true in `mask`.
 
     See also `unravel_from_mask`
@@ -266,7 +266,7 @@ def ravel_from_mask(data: DataType, mask: XrTypes) -> DataType:
 
     Args:
         data (DataType): Input ARPES data
-        mask (XrTypes):  Mask data
+        mask (xr.DataArray):  Mask data
 
     Returns:
         Raveled data with masked points removed.

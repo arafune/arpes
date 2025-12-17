@@ -7,10 +7,9 @@ import warnings
 from logging import DEBUG, INFO
 from typing import (
     TYPE_CHECKING,
-    Any,
+    Generic,
 )
 
-import numpy as np
 import xarray as xr
 from more_itertools import always_reversible
 
@@ -20,7 +19,6 @@ from arpes.utilities import selections
 
 if TYPE_CHECKING:
     from collections.abc import (
-        Callable,
         Hashable,
         Iterator,
         Mapping,
@@ -28,13 +26,13 @@ if TYPE_CHECKING:
     )
 
     from _typeshed import Incomplete
-    from numpy.typing import NDArray
 
     from arpes._typing.base import (
         ReduceMethod,
-        SelType,
         XrTypes,
     )
+
+from arpes._typing.base import DataType
 
 from .property import ARPESProperty
 
@@ -45,7 +43,7 @@ LOGLEVEL = LOGLEVELS[1]
 logger = setup_logger(__name__, LOGLEVEL)
 
 
-class ARPESAccessorBase(ARPESProperty):
+class ARPESAccessorBase(ARPESProperty[DataType]):
     """Base class for the "S" accessor of xarray extensions in PyARPES.
 
     This class provides a foundational set of utility methods for interacting
@@ -55,11 +53,11 @@ class ARPESAccessorBase(ARPESProperty):
     fitting tools.
     """
 
-    def __init__(self, xarray_obj: XrTypes) -> None:
+    def __init__(self, xarray_obj: DataType) -> None:
         """Initializes the ARPESAccessorBase with an xarray object.
 
         Args:
-            xarray_obj (XrTypes): The xarray.Dataset or xarray.DataArray instance
+            xarray_obj: The xarray.Dataset or xarray.DataArray instance
                 to which this accessor is attached.
         """
         self._obj = xarray_obj
@@ -94,148 +92,6 @@ class ARPESAccessorBase(ARPESProperty):
         """
         return [n for n in dir(self) if name in n]
 
-    def sum_other(
-        self,
-        dim_or_dims: list[str],
-        *,
-        keep_attrs: bool = False,
-    ) -> XrTypes:
-        """Calculates the sum over all dimensions *except* those specified.
-
-        This is a convenience method for `xarray.Dataset.sum()` or `xarray.DataArray.sum()`
-        that inverts the selection of dimensions. Instead of specifying dimensions
-        to sum *along*, you specify dimensions to *keep*.
-
-        Args:
-            dim_or_dims (list[str]): A list of dimension names to keep. The sum
-                operation will be performed over all other dimensions not in this list.
-            keep_attrs (bool, optional): If True, attributes (`.attrs`) will be
-                preserved on the returned object. Defaults to False.
-
-        Returns:
-            XrTypes: A new xarray object (Dataset or DataArray) with the data
-            summed along the specified "other" dimensions. Its dimensions will
-            only include those listed in `dim_or_dims`.
-
-        Raises:
-            AssertionError: If `dim_or_dims` is not a list.
-
-        Examples:
-            >>> data = xr.DataArray(np.ones((2, 3, 4)), dims=['x', 'y', 'z'])
-            >>> accessor = ARPESAccessorBase(data)
-            >>> accessor.sum_other(dim_or_dims=['x']) # Sums over 'y' and 'z'
-            <xarray.DataArray (x: 2)>
-            array([12., 12.])
-            Dimensions without coordinates: y, z
-            Coordinates:
-              * x        (x) int64 0 1
-            >>> accessor.sum_other(dim_or_dims=['y', 'z']) # Sums over 'x'
-            <xarray.DataArray (y: 3, z: 4)>
-            array([[2., 2., 2., 2.],
-                   [2., 2., 2., 2.],
-                   [2., 2., 2., 2.]])
-            Dimensions without coordinates: x
-            Coordinates:
-              * y        (y) int64 0 1 2
-              * z        (z) int64 0 1 2 3
-        """
-        assert isinstance(dim_or_dims, list)
-
-        return self._obj.sum(
-            [d for d in self._obj.dims if d not in dim_or_dims],
-            keep_attrs=keep_attrs,
-        )
-
-    def mean_other(
-        self,
-        dim_or_dims: list[str] | str,
-        *,
-        keep_attrs: bool = False,
-    ) -> XrTypes:
-        """Calculates the mean over all dimensions *except* those specified.
-
-        This is a convenience method for `xarray.Dataset.mean()` or `xarray.DataArray.mean()`
-        that inverts the selection of dimensions. Instead of specifying dimensions
-        to average *along*, you specify dimensions to *keep*.
-
-        Args:
-            dim_or_dims (list[str] | str): A list of dimension names to keep, or a single
-                dimension name string. The mean operation will be performed over all other
-                dimensions not in this list/string.
-            keep_attrs (bool, optional): If True, attributes (`.attrs`) will be
-                preserved on the returned object. Defaults to False.
-
-        Returns:
-            XrTypes: A new xarray object (Dataset or DataArray) with the data
-            averaged along the specified "other" dimensions. Its dimensions will
-            only include those listed in `dim_or_dims`.
-
-        Raises:
-            AssertionError: If `dim_or_dims` is not a list (note: the type hint allows `str`
-                but the assertion explicitly checks for `list`). This discrepancy should
-                be resolved for consistency. For now, the docstring reflects the assertion.
-
-        Examples:
-            >>> data = xr.DataArray(np.arange(12).reshape(2, 2, 3), dims=['x', 'y', 'z'])
-            >>> accessor = ARPESAccessorBase(data)
-            >>> accessor.mean_other(dim_or_dims=['x']) # Averages over 'y' and 'z'
-            <xarray.DataArray (x: 2)>
-            array([2.5, 8.5])
-            Coordinates:
-              * x        (x) int64 0 1
-            >>> accessor.mean_other(dim_or_dims=['y', 'z']) # Averages over 'x'
-            <xarray.DataArray (y: 2, z: 3)>
-            array([[2.5, 3.5, 4.5],
-                   [5.5, 6.5, 7.5]])
-            Coordinates:
-              * y        (y) int64 0 1
-              * z        (z) int64 1 2 3
-        """
-        assert isinstance(dim_or_dims, list)
-
-        return self._obj.mean(
-            [d for d in self._obj.dims if d not in dim_or_dims],
-            keep_attrs=keep_attrs,
-        )
-
-    def fat_sel(
-        self,
-        widths: dict[Hashable, float] | None = None,
-        method: ReduceMethod = "mean",
-        **kwargs: float,
-    ) -> XrTypes:
-        """Performs a 'fat' selection, integrating data over small regions specified by widths.
-
-        This method allows for integrating a selection over a small coordinate region
-        (defined by `widths` or keyword arguments), effectively reducing noise
-        by averaging or summing over nearby slices. The resulting dataset will
-        be normalized by the number of slices integrated over if `method="mean"`.
-
-        Args:
-            widths (dict[Hashable, float] | None, optional): A dictionary
-                specifying the width of the integration window for each dimension.
-                Keys are dimension names (Hashable), and values are float widths.
-                Overrides any widths specified in `kwargs`. Defaults to None,
-                in which case `selections.fat_sel` might use default widths.
-            method (ReduceMethod, optional): The reduction method to apply within
-                the selection window. Can be "mean" (default) or "sum".
-            **kwargs (float): Keyword arguments that can define specific selection
-                points (e.g., `eV=1.5`) or widths (e.g., `eV_width=0.1`).
-                **Note**: Using `*_width` in kwargs for specifying widths is
-                deprecated. Prefer the `widths` dictionary argument.
-
-        Returns:
-            XrTypes: The xarray.DataArray or xarray.Dataset after the 'fat'
-            selection and reduction have been applied. The dimensions for which
-            a width was specified will effectively be reduced or removed.
-
-        Note:
-            The `widths` argument is the preferred way to specify integration
-            widths. Using `*_width` through `kwargs` is deprecated and may
-            be removed in future versions.
-        """
-        return selections.fat_sel(data=self._obj, widths=widths, method=method, **kwargs)
-
     def modelfit(self, *args: Incomplete, **kwargs: Incomplete) -> xr.Dataset:
         """Performs curve fitting using `lmfit` via the `xarray-lmfit` extension.
 
@@ -269,7 +125,7 @@ class ARPESAccessorBase(ARPESProperty):
         return self._obj.xlm.modelfit(*args, **kwargs)
 
 
-class ARPESDataArrayAccessorBase(ARPESAccessorBase):
+class ARPESDataArrayAccessorBase(ARPESAccessorBase[xr.DataArray]):
     """Base class for accessors specifically designed for `xarray.DataArray` objects in PyARPES.
 
     This class extends `ARPESAccessorBase` and provides methods tailored for
@@ -361,7 +217,7 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase):
         return selections.select_around(data=self._obj, point=point, radius=radius, mode=mode)
 
 
-class GenericAccessorBase:
+class GenericAccessorBase(Generic[DataType]):
     """Class for general-purpose utility methods for xarray.Dataset and xarray.DataArray objects.
 
     This class offers functionalities such as coordinate manipulation,
@@ -369,106 +225,7 @@ class GenericAccessorBase:
     which can be broadly useful across different types of scientific data.
     """
 
-    _obj: XrTypes
-
-    def round_coordinates(
-        self,
-        coords_to_round: dict[str, list[float] | NDArray[np.float64]],
-        *,
-        as_indices: bool = False,
-    ) -> dict:
-        """Rounds specified coordinates to their nearest existing values in the dataset.
-
-        This method takes a dictionary of target coordinate values and finds the
-        closest actual coordinate values present in the xarray object along those
-        dimensions using `method="nearest"`. It can optionally return these
-        rounded coordinates as their integer indices.
-
-        Args:
-            coords_to_round (dict[str, list[float] | NDArray[np.float64]]):
-                A dictionary where keys are dimension names (strings) and values
-                are the target coordinate points (floats or arrays of floats)
-                to be rounded to the nearest existing coordinate in the dataset.
-            as_indices (bool, optional): If True, the rounded coordinates are
-                returned as their integer indices within the respective dimensions.
-                If False (default), the actual float coordinate values are returned.
-
-        Returns:
-            dict[str, float | int]: A dictionary mapping dimension names to their
-            rounded coordinate values (float) or their corresponding integer indices (int),
-            depending on the `as_indices` parameter. Only dimensions specified in
-            `coords_to_round` will be included in the output.
-
-        Raises:
-            AssertionError: If the internal `_obj` is not an `xarray.DataArray`
-                or `xarray.Dataset`.
-
-        Examples:
-            >>> data = xr.DataArray(np.arange(10), dims=['x'], coords={'x': np.linspace(0, 9, 10)})
-            >>> accessor = GenericAccessorBase(data)
-            >>> accessor.round_coordinates({'x': [3.1]})
-            {'x': 3.0}
-            >>> accessor.round_coordinates({'x': [3.9]}, as_indices=True)
-            {'x': 4}
-            >>> data_md = xr.DataArray(np.random.rand(5,5), dims=['a', 'b'],
-            ...                      coords={'a': np.arange(5), 'b': np.arange(5,10)})
-            >>> accessor_md = GenericAccessorBase(data_md)
-            >>> accessor_md.round_coordinates({'a': [2.2], 'b': [6.8]})
-            {'a': 2.0, 'b': 7.0}
-        """
-        assert isinstance(self._obj, xr.DataArray | xr.Dataset)
-        data = self._obj
-        rounded = {
-            k: v.item()
-            for k, v in data.sel(coords_to_round, method="nearest").coords.items()
-            if k in coords_to_round
-        }
-
-        if as_indices:
-            rounded = {k: data.coords[k].index(v) for k, v in rounded.items()}
-
-        return rounded
-
-    def apply_over(
-        self,
-        fn: Callable[[xr.DataArray | xr.Dataset], XrTypes | NDArray[np.float64]],
-        *,
-        copy: bool = True,
-        selections: Mapping[str, SelType] | None = None,
-        **selections_kwargs: SelType,
-    ) -> XrTypes:
-        """Applies a function to a data region and updates the dataset with the result.
-
-        Args:
-            fn (Callable): The function to apply.
-            copy (bool, optional): If True, operates on a deep copy of the data.
-                If False, modifies the data in-place. Defaults to True.
-            selections (Incomplete): Keyword arguments specifying the region of the data to select.
-            **selections_kwargs: Selection keys and values as keyword arguments.
-
-        Returns:
-            XrTypes: The dataset after the function has been applied.
-
-        Todo:
-            - Add tests.
-        """
-        assert isinstance(self._obj, xr.DataArray | xr.Dataset)
-
-        data = self._obj.copy(deep=True) if copy else self._obj
-
-        if selections is None:
-            combined_selections: Mapping[str, SelType] = selections_kwargs
-        else:
-            combined_selections = {**(selections or {}), **selections_kwargs}
-
-        selected: xr.DataArray | xr.Dataset = data.sel(**(combined_selections))  # type: ignore[arg-type]
-        transformed = fn(selected)
-
-        if isinstance(transformed, xr.DataArray | xr.Dataset):
-            transformed = transformed.values
-
-        data.loc[combined_selections] = transformed
-        return data
+    _obj: DataType
 
     def coordinatize(self, as_coordinate_name: str | None = None) -> XrTypes:  # pragma: no cover
         """Copies data into a coordinate's data, with an optional renaming.
@@ -610,37 +367,3 @@ class GenericAccessorBase:
                 )
             return [result[selected_names] for selected_names in args[0]]
         return result
-
-    def filter_coord(
-        self,
-        coordinate_name: str,
-        sieve: Callable[[Any, XrTypes], bool],
-    ) -> XrTypes:
-        """Filters a dataset along a coordinate.
-
-        Sieve should be a function which accepts a coordinate value and the slice
-        of the data along that dimension.
-
-        Internally, the predicate function `sieve` is applied to the coordinate and slice to
-        generate a mask. The mask is used to select from the data after iteration.
-
-        An improvement here would support filtering over several coordinates.
-
-        Args:
-            coordinate_name: The coordinate which should be filtered.
-            sieve: A predicate to be applied to the coordinate and data at that coordinate.
-
-        Returns:
-            A subset of the data composed of the slices which make the `sieve` predicate `True`.
-
-        Todo:
-            Test
-        """
-        mask = np.array(
-            [
-                i
-                for i, c in enumerate(self._obj.coords[coordinate_name])
-                if sieve(c, self._obj.isel({coordinate_name: i}))
-            ],
-        )
-        return self._obj.isel({coordinate_name: mask})

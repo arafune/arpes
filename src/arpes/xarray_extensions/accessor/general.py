@@ -13,7 +13,7 @@ import xarray as xr
 from arpes.correction import coords, intensity_map
 from arpes.debug import setup_logger
 from arpes.plotting.movie import plot_movie
-from arpes.utilities import apply_dataarray
+from arpes.utilities import apply_dataarray, selections
 
 if TYPE_CHECKING:
     from collections.abc import (
@@ -30,8 +30,14 @@ if TYPE_CHECKING:
     from matplotlib.figure import Figure
     from numpy.typing import DTypeLike, NDArray
 
-    from arpes._typing.base import DataType, XrTypes
+    from arpes._typing.base import DataType, ReduceMethod, SelType
     from arpes._typing.plotting import PColorMeshKwargs
+from arpes.xarray_extensions._helper.general import (
+    apply_over_impl,
+    filter_coord_impl,
+    round_coordinates_impl,
+)
+
 from .base import GenericAccessorBase
 
 LOGLEVELS = (DEBUG, INFO)
@@ -40,7 +46,7 @@ logger = setup_logger(__name__, LOGLEVEL)
 
 
 @xr.register_dataset_accessor("G")
-class GenericDatasetAccessor(GenericAccessorBase):
+class GenericDatasetAccessor(GenericAccessorBase[xr.Dataset]):
     """A collection of generic accessors for xarray.Dataset objects.
 
     This accessor provides utility methods for filtering data variables,
@@ -393,9 +399,108 @@ class GenericDatasetAccessor(GenericAccessorBase):
 
         return copied
 
+    def round_coordinates(
+        self,
+        coords_to_round: dict[str, list[float] | NDArray[np.float64]],
+        *,
+        as_indices: bool = False,
+    ) -> dict[str, float | int]:
+        """Rounds specified coordinates to their nearest existing values in the dataset.
+
+        This method takes a dictionary of target coordinate values and finds the
+        closest actual coordinate values present in the xarray object along those
+        dimensions using `method="nearest"`. It can optionally return these
+        rounded coordinates as their integer indices.
+
+        Args:
+            coords_to_round (dict[str, list[float] | NDArray[np.float64]]):
+                A dictionary where keys are dimension names (strings) and values
+                are the target coordinate points (floats or arrays of floats)
+                to be rounded to the nearest existing coordinate in the dataset.
+            as_indices (bool, optional): If True, the rounded coordinates are
+                returned as their integer indices within the respective dimensions.
+                If False (default), the actual float coordinate values are returned.
+
+        Returns:
+            dict[str, float | int]: A dictionary mapping dimension names to their
+            rounded coordinate values (float) or their corresponding integer indices (int),
+            depending on the `as_indices` parameter. Only dimensions specified in
+            `coords_to_round` will be included in the output.
+
+        Raises:
+            AssertionError: If the internal `_obj` is not an `xarray.DataArray`
+                or `xarray.Dataset`.
+
+        Examples:
+            >>> data = xr.DataArray(np.arange(10), dims=['x'], coords={'x': np.linspace(0, 9, 10)})
+            >>> accessor = GenericAccessorBase(data)
+            >>> accessor.round_coordinates({'x': [3.1]})
+            {'x': 3.0}
+            >>> accessor.round_coordinates({'x': [3.9]}, as_indices=True)
+            {'x': 4}
+            >>> data_md = xr.DataArray(np.random.rand(5,5), dims=['a', 'b'],
+            ...                      coords={'a': np.arange(5), 'b': np.arange(5,10)})
+            >>> accessor_md = GenericAccessorBase(data_md)
+            >>> accessor_md.round_coordinates({'a': [2.2], 'b': [6.8]})
+            {'a': 2.0, 'b': 7.0}
+        """
+        return round_coordinates_impl(self._obj, coords_to_round, as_indices=as_indices)
+
+    def filter_coord(
+        self,
+        coordinate_name: str,
+        sieve: Callable[[Any, xr.Dataset], bool],
+    ) -> xr.Dataset:
+        """Filters a dataset along a coordinate.
+
+        Sieve should be a function which accepts a coordinate value and the slice
+        of the data along that dimension.
+
+        Internally, the predicate function `sieve` is applied to the coordinate and slice to
+        generate a mask. The mask is used to select from the data after iteration.
+
+        An improvement here would support filtering over several coordinates.
+
+        Args:
+            coordinate_name: The coordinate which should be filtered.
+            sieve: A predicate to be applied to the coordinate and data at that coordinate.
+
+        Returns:
+            A subset of the data composed of the slices which make the `sieve` predicate `True`.
+
+        Todo:
+            Test
+        """
+        return filter_coord_impl(self._obj, coordinate_name, sieve)
+
+    def apply_over(
+        self,
+        fn: Callable[[xr.Dataset], xr.Dataset | NDArray[np.float64]],
+        *,
+        copy: bool = True,
+        selections: Mapping[str, SelType] | None = None,
+        **selections_kwargs: SelType,
+    ) -> xr.Dataset:
+        """Applies a function to a data region and updates the dataset with the result.
+
+        Args:
+            fn (Callable): The function to apply.
+            copy (bool, optional): If True, operates on a deep copy of the data.
+                If False, modifies the data in-place. Defaults to True.
+            selections (Incomplete): Keyword arguments specifying the region of the data to select.
+            **selections_kwargs: Selection keys and values as keyword arguments.
+
+        Returns:
+            XrTypes: The dataset after the function has been applied.
+
+        Todo:
+            - Add tests.
+        """
+        return apply_over_impl(self._obj, fn, copy=copy, selections=selections, **selections_kwargs)
+
 
 @xr.register_dataarray_accessor("G")
-class GenericDataArrayAccessor(GenericAccessorBase):
+class GenericDataArrayAccessor(GenericAccessorBase[xr.DataArray]):
     """A collection of generic accessors for xarray.DataArray objects.
 
     This accessor provides utility methods for common operations on `xarray.DataArray`,
@@ -644,7 +749,7 @@ class GenericDataArrayAccessor(GenericAccessorBase):
     def map_axes(
         self,
         axes: list[str] | str,
-        fn: Callable[[XrTypes, dict[Hashable, float]], DataType],
+        fn: Callable[[DataType, dict[Hashable, float]], DataType],
         dtype: DTypeLike = None,
     ) -> xr.DataArray:
         """Apply a function along specified axes of the DataArray, creating a new DataArray.
@@ -655,7 +760,7 @@ class GenericDataArrayAccessor(GenericAccessorBase):
 
         Args:
             axes (list[str] | str): The axis or axes along which to iterate and apply the function.
-            fn (Callable[[XrTypes, dict[str, float]], DataType]): A function that takes the selected
+            fn (Callable[[DataType, dict[str, float]], DataType]): Function that takes the selected
                 data and its coordinates as input and returns the transformed data.
             dtype (DTypeLike, optional): The desired data type for the output DataArray. If not
                 specified, the type is inferred from the function's output.
@@ -901,3 +1006,40 @@ class GenericDataArrayAccessor(GenericAccessorBase):
             coords=self._obj.coords,
             dims=self._obj.dims,
         )
+
+    def round_coordinates(
+        self,
+        coords_to_round: dict[str, list[float] | NDArray[np.float64]],
+        *,
+        as_indices: bool = False,
+    ) -> dict[str, float | int]:
+        """See :meth:`GenericDatasetAccessor.round_coordinates`."""
+        return round_coordinates_impl(self._obj, coords_to_round, as_indices=as_indices)
+
+    def filter_coord(
+        self,
+        coordinate_name: str,
+        sieve: Callable[[Any, xr.DataArray], bool],
+    ) -> xr.DataArray:
+        """See :meth:`GenericDatasetAccessor.filter_coord`."""
+        return filter_coord_impl(self._obj, coordinate_name, sieve)
+
+    def apply_over(
+        self,
+        fn: Callable[[xr.DataArray], xr.DataArray | NDArray[np.float64]],
+        *,
+        copy: bool = True,
+        selections: Mapping[str, SelType] | None = None,
+        **selections_kwargs: SelType,
+    ) -> xr.DataArray:
+        """See :meth:`GenericDatasetAccessor.apply_over`."""
+        return apply_over_impl(self._obj, fn, copy=copy, selections=selections, **selections_kwargs)
+
+    def fat_sel(
+        self,
+        widths: dict[Hashable, float] | None = None,
+        method: ReduceMethod = "mean",
+        **kwargs: float,
+    ) -> xr.DataArray:
+        """See :meth:`GenericDatasetAccessor.fat_sel`."""
+        return selections.fat_sel(data=self._obj, widths=widths, method=method, **kwargs)

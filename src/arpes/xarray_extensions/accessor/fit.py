@@ -52,8 +52,6 @@ class ARPESDatasetFitToolAccessor:
         _obj (xr.Dataset): The xarray Dataset instance to which this accessor is attached.
     """
 
-    _obj: xr.Dataset
-
     def __init__(self, xarray_obj: xr.Dataset) -> None:
         """Initializes the ARPESDatasetFitToolAccessor.
 
