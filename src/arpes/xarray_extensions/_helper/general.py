@@ -40,7 +40,7 @@ def round_coordinates_impl(
     }
 
     if as_indices:
-        rounded = {k: data.coords[k].index(v) for k, v in rounded.items()}
+        rounded = {k: data.coords[k].to_index().get_loc(v) for k, v in rounded.items()}
 
     return rounded
 
@@ -129,5 +129,8 @@ def apply_over_impl(
     if isinstance(transformed, xr.DataArray | xr.Dataset):
         transformed = transformed.values
 
+    if isinstance(data, xr.Dataset) and isinstance(transformed, np.ndarray):
+        msg = "apply_over_impl: ndarray return is not supported for Dataset"
+        raise TypeError(msg)
     data.loc[combined_selections] = transformed
     return data
