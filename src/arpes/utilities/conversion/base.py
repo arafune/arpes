@@ -75,6 +75,7 @@ class CoordinateConverter:
         self.phi: NDArray[np.float64] | None = None
 
     @staticmethod
+    @abstractmethod
     def prep(arr: xr.DataArray) -> None:
         """Perform preprocessing of the array to convert before we start.
 

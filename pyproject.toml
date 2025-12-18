@@ -7,7 +7,7 @@ authors = [
   { name = "Ryuichi Arafune", email = "ryuichi.arafune@gmail.com" },
 ]
 readme = "README.rst"
-requires-python = ">= 3.11"
+requires-python = ">= 3.12"
 
 dependencies = [
   "holoviews>=1.16.0",
@@ -116,7 +116,12 @@ omit = [
 ]
 
 [tool.coverage.report]
-exclude_lines = ["raise NotImplementedError", "pragma: no cover"]
+exclude_lines = [
+  "raise NotImplementedError",
+  "pragma: no cover",
+  "@overload",
+  "@abstractmethod",
+]
 exclude_also = [
   "def __repr__",
   "def _repr_html_.*",
@@ -148,7 +153,7 @@ exclude = [
 typeCheckingMode = "standard" # "off", "basic" "standard" "strict"
 include = ["src"]
 
-pythonVersion = "3.11"
+pythonVersion = "3.12"
 pythonPlatform = "All"
 
 reportMissingTypeStubs = false
