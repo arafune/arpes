@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 import xarray as xr
+
 import arpes.xarray_extensions  # noqa: F401
 
 

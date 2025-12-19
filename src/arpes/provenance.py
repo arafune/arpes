@@ -28,7 +28,7 @@ import warnings
 from datetime import UTC
 from logging import DEBUG, INFO
 from pathlib import Path
-from typing import TYPE_CHECKING, ParamSpec, TypedDict, TypeVar
+from typing import TYPE_CHECKING, ParamSpec, TypedDict, TypeVar, cast
 
 import xarray as xr
 
@@ -134,13 +134,16 @@ def provenance_from_file(
     logger.debug("provenance from file")
     if "id" not in child_arr.attrs:
         attach_id(child_arr)
-    child_provenance_context: Provenance = {
-        "record": record,
-        "file": file,
-        "jupyter_context": get_recent_history(5),
-        "time": datetime.datetime.now(UTC).isoformat(),
-        "version": VERSION,
-    }
+    child_provenance_context: Provenance = cast(
+        "Provenance",
+        {
+            "record": record,
+            "file": file,
+            "jupyter_context": get_recent_history(5),
+            "time": datetime.datetime.now(UTC).isoformat(),
+            "version": VERSION,
+        },
+    )
     logger.debug(f"child_provenance_context: {child_provenance_context}")
     child_arr.attrs["provenance"] = child_provenance_context
 
@@ -196,12 +199,15 @@ def update_provenance(
                 if len(all_parents) > 1:
                     provenance_fn = provenance_multiple_parents
                 if all_parents:
-                    provenance_context: Provenance = {
-                        "what": what,
-                        "by": fn.__name__,
-                        "time": datetime.datetime.now(UTC).isoformat(),
-                        "version": VERSION,
-                    }
+                    provenance_context: Provenance = cast(
+                        "Provenance",
+                        {
+                            "what": what,
+                            "by": getattr(fn, "__name__", type(fn).__name__),
+                            "time": datetime.datetime.now(UTC).isoformat(),
+                            "version": VERSION,
+                        },
+                    )
                     provenance_fn(
                         child_arr=result,
                         parents=all_parents,
@@ -249,26 +255,33 @@ def save_plot_provenance(plot_fn: Callable[P, R]) -> Callable[P, R]:
             if not workspace_name or workspace_name not in path:
                 warnings.warn(
                     (
-                        f"Plotting function {plot_fn.__name__} appears not to abide by "
+                        f"Plotting function {
+                            getattr(plot_fn, '__name__', type(plot_fn).__name__)
+                        } appears not to abide by "
                         "practice of placing plots into designated workspaces."
                     ),
                     stacklevel=2,
                 )
 
-            provenance_context: Provenance = {
-                "VERSION": VERSION,
-                "time": datetime.datetime.now(UTC).isoformat(),
-                "jupyter_context": get_recent_history(5),
-                "name": plot_fn.__name__,
-                "args": [
-                    arg.attrs.get("provenance", {}) for arg in args if isinstance(arg, xr.DataArray)
-                ],
-                "kwargs": {
-                    k: v.attrs.get("provenance", {})
-                    for k, v in kwargs.items()
-                    if isinstance(v, xr.DataArray)
+            provenance_context: Provenance = cast(
+                "Provenance",
+                {
+                    "VERSION": VERSION,
+                    "time": datetime.datetime.now(UTC).isoformat(),
+                    "jupyter_context": get_recent_history(5),
+                    "name": getattr(plot_fn, "__name__", type(plot_fn).__name__),
+                    "args": [
+                        arg.attrs.get("provenance", {})
+                        for arg in args
+                        if isinstance(arg, xr.DataArray)
+                    ],
+                    "kwargs": {
+                        k: v.attrs.get("provenance", {})
+                        for k, v in kwargs.items()
+                        if isinstance(v, xr.DataArray)
+                    },
                 },
-            }
+            )
 
             provenance_path = path + ".provenance.json"
             with Path(provenance_path).open("w", encoding="UTF-8") as f:
@@ -311,14 +324,17 @@ def provenance(
             stacklevel=2,
         )
 
-    child_arr.attrs["provenance"] = {
-        "record": record,
-        "jupyter_context": get_recent_history(5),
-        "parent_id": parent_id,
-        "parents_provanence": parents.attrs.get("provenance"),
-        "time": datetime.datetime.now(UTC).isoformat(),
-        "version": VERSION,
-    }
+    child_arr.attrs["provenance"] = cast(
+        "Provenance",
+        {
+            "record": record,
+            "jupyter_context": get_recent_history(5),
+            "parent_id": parent_id,
+            "parents_provanence": parents.attrs.get("provenance"),
+            "time": datetime.datetime.now(UTC).isoformat(),
+            "version": VERSION,
+        },
+    )
 
 
 def provenance_multiple_parents(
@@ -348,11 +364,14 @@ def provenance_multiple_parents(
             stacklevel=2,
         )
 
-    child_arr.attrs["provenance"] = {
-        "record": record,
-        "jupyter_context": get_recent_history(5),
-        "parent_id": [p.attrs.get("id") for p in parents],
-        "parents_provenance": [p.attrs.get("provenance") for p in parents],
-        "time": datetime.datetime.now(UTC).isoformat(),
-        "version": VERSION,
-    }
+    child_arr.attrs["provenance"] = cast(
+        "Provenance",
+        {
+            "record": record,
+            "jupyter_context": get_recent_history(5),
+            "parent_id": [p.attrs.get("id") for p in parents],
+            "parents_provenance": [p.attrs.get("provenance") for p in parents],
+            "time": datetime.datetime.now(UTC).isoformat(),
+            "version": VERSION,
+        },
+    )
