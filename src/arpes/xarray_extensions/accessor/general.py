@@ -13,7 +13,7 @@ import xarray as xr
 from arpes.correction import coords, intensity_map
 from arpes.debug import setup_logger
 from arpes.plotting.movie import plot_movie
-from arpes.utilities import apply_dataarray, selections
+from arpes.utilities import apply_dataarray
 
 if TYPE_CHECKING:
     from collections.abc import (
@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     from matplotlib.figure import Figure
     from numpy.typing import DTypeLike, NDArray
 
-    from arpes._typing.base import DataType, ReduceMethod, SelType
+    from arpes._typing.base import DataType, SelType
     from arpes._typing.plotting import PColorMeshKwargs
 from arpes.xarray_extensions._helper.general import (
     apply_over_impl,
@@ -1034,12 +1034,3 @@ class GenericDataArrayAccessor(GenericAccessorBase[xr.DataArray]):
     ) -> xr.DataArray:
         """See :meth:`GenericDatasetAccessor.apply_over`."""
         return apply_over_impl(self._obj, fn, copy=copy, selections=selections, **selections_kwargs)
-
-    def fat_sel(
-        self,
-        widths: dict[Hashable, float] | None = None,
-        method: ReduceMethod = "mean",
-        **kwargs: float,
-    ) -> xr.DataArray:
-        """See :meth:`GenericDatasetAccessor.fat_sel`."""
-        return selections.fat_sel(data=self._obj, widths=widths, method=method, **kwargs)

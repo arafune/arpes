@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 import xarray as xr
+from numpy.typing import NDArray
 
 import arpes.xarray_extensions.accessor.general  # noqa: F401
 
@@ -20,6 +21,40 @@ def simple_da() -> xr.DataArray:
 def simple_ds(simple_da: xr.DataArray) -> xr.Dataset:
     """Dataset wrapper around the simple DataArray."""
     return xr.Dataset({"a": simple_da})
+
+
+def test_round_coordinates_for_da(simple_da: xr.DataArray) -> None:
+    """Simple check for thin wrapper of round_coordinates_impl."""
+    rounded = simple_da.G.round_coordinates({"x": [2.1], "y": [0.2]})
+    assert isinstance(rounded["x"], float)
+    assert isinstance(rounded["y"], float)
+
+
+def test_filter_coord_for_da(simple_da: xr.DataArray) -> None:
+    """Simple test for thin wrapper of filter_coord_impl."""
+
+    def sieve(coord, da):
+        return coord > 5.0
+
+    filtered = simple_da.G.filter_coord("x", sieve)
+    assert isinstance(filtered, xr.DataArray)
+    assert np.all(filtered.coords["x"].values > 5.0)
+
+
+def test_apply_over_for_da(simple_da: xr.DataArray) -> None:
+    """Simple test for thin wrapper of apply_over_impl."""
+
+    def fn(da):
+        return da.values * 2
+
+    result = simple_da.G.apply_over(
+        fn,
+        selections={"x": 0.0},
+    )
+
+    assert isinstance(result, xr.DataArray)
+    assert result is not simple_da
+    assert np.all(result.sel(x=0.0).values == simple_da.sel(x=0.0).values * 2)
 
 
 def test_filter_vars_basic():
@@ -130,3 +165,34 @@ def test_shift_coords_by_basic():
     shifted = arr.G.shift_coords_by({"x": 5, "y": -10})
     assert np.all(shifted.coords["x"].values == arr.coords["x"].values + 5)
     assert np.all(shifted.coords["y"].values == arr.coords["y"].values - 10)
+
+
+def test_apply_over_dataset_ndarray_return_raises(simple_ds: xr.Dataset) -> None:
+    """Dataset + ndarray return should raise TypeError."""
+
+    def fn(ds) -> NDArray[np.float64]:
+        return ds["a"].values + 10
+
+    with pytest.raises(TypeError, match="ndarray return is not supported"):
+        simple_ds.G.apply_over(
+            fn,
+            selections={"x": 4.0},
+        )
+
+
+def test_round_coordinates_for_ds(simple_ds: xr.Dataset) -> None:
+    """Simple check for thin wrapper of round_coordinates_impl."""
+    rounded = simple_ds.G.round_coordinates({"x": [2.1], "y": [0.2]})
+    assert isinstance(rounded["x"], float)
+    assert isinstance(rounded["y"], float)
+
+
+def test_filter_coord_for_ds(simple_ds: xr.Dataset) -> None:
+    """Simple test for thin wrapper of filter_coord_impl."""
+
+    def sieve(coord, da):
+        return coord > 5.0
+
+    filtered = simple_ds.G.filter_coord("x", sieve)
+    assert isinstance(filtered, xr.Dataset)
+    assert np.all(filtered.coords["x"].values > 5.0)

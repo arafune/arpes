@@ -110,6 +110,33 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
         self._obj.attrs = array.attrs
         self._obj.coords.update(array.coords)
 
+    def sum_other(
+        self,
+        dim_or_dims: list[str],
+        *,
+        keep_attrs: bool = False,
+    ) -> xr.DataArray:
+        """See :meth:`ARPESDatasetAccessor.sum_other`."""
+        return sum_other_impl(self._obj, dim_or_dims, keep_attrs=keep_attrs)
+
+    def mean_other(
+        self,
+        dim_or_dims: list[str] | str,
+        *,
+        keep_attrs: bool = False,
+    ) -> xr.DataArray:
+        """See :meth:`ARPESDatasetAccessor.mean_other`."""
+        return mean_other_impl(self._obj, dim_or_dims, keep_attrs=keep_attrs)
+
+    def fat_sel(
+        self,
+        widths: dict[Hashable, float] | None = None,
+        method: ReduceMethod = "mean",
+        **kwargs: float,
+    ) -> xr.DataArray:
+        """See :meth:`ARPESDatasetAccessor.fat_sel`."""
+        return selections.fat_sel(data=self._obj, widths=widths, method=method, **kwargs)
+
     # --- Mehhods about plotting
     # --- TODO : [RA] Consider refactoring/removing
     def plot(
@@ -286,33 +313,6 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
         if self.spectrum_type in {"ucut", "spem"}:
             return self._referenced_scans_for_spatial_plot(**kwargs)
         raise NotImplementedError
-
-    def sum_other(
-        self,
-        dim_or_dims: list[str],
-        *,
-        keep_attrs: bool = False,
-    ) -> xr.DataArray:
-        """See :meth:`ARPESDatasetAccessor.sum_other`."""
-        return sum_other_impl(self._obj, dim_or_dims, keep_attrs=keep_attrs)
-
-    def mean_other(
-        self,
-        dim_or_dims: list[str] | str,
-        *,
-        keep_attrs: bool = False,
-    ) -> xr.DataArray:
-        """See :meth:`ARPESDatasetAccessor.mean_other`."""
-        return mean_other_impl(self._obj, dim_or_dims, keep_attrs=keep_attrs)
-
-    def fat_sel(
-        self,
-        widths: dict[Hashable, float] | None = None,
-        method: ReduceMethod = "mean",
-        **kwargs: float,
-    ) -> xr.DataArray:
-        """See :meth:`ARPESDatasetAccessor.fat_sel`."""
-        return selections.fat_sel(data=self._obj, widths=widths, method=method, **kwargs)
 
 
 @xr.register_dataset_accessor("S")
