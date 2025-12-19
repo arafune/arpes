@@ -26,6 +26,10 @@ if TYPE_CHECKING:
     from _typeshed import Incomplete
     from numpy.typing import NDArray
 
+    prange = range
+else:
+    from numba import prange
+
 
 __all__ = ["ConvertKp", "ConvertKxKy"]
 
@@ -47,7 +51,7 @@ def _exact_arcsin(  # noqa: PLR0913
 ) -> None:
     """A efficient arcsin with total momentum scaling."""
     mul_idx = 1 if par_tot else 0
-    for i in numba.prange(len(k_par)):
+    for i in prange(len(k_par)):
         result = np.arcsin(k_par[i] / np.sqrt(k_tot[i * mul_idx] ** 2 - k_perp[i] ** 2))
         if negate:
             result = -result
@@ -71,7 +75,7 @@ def _small_angle_arcsin(  # noqa: PLR0913
     mul_idx = 0
     """
     mul_idx = 1 if par_tot else 0
-    for i in numba.prange(len(k_par)):
+    for i in prange(len(k_par)):
         result = np.arcsin(k_par[i] / k_tot[i * mul_idx])
         if negate:
             result = -result
@@ -88,7 +92,7 @@ def _rotate_kx_ky(
 ) -> None:
     cos_chi = np.cos(chi)
     sin_chi = np.sin(chi)
-    for i in numba.prange(len(kx)):
+    for i in prange(len(kx)):
         kxout[i] = kx[i] * cos_chi - ky[i] * sin_chi
         kyout[i] = ky[i] * cos_chi + kx[i] * sin_chi
 
@@ -108,7 +112,7 @@ def _compute_ktot(
         binding_energy: [TODO:description]
         k_tot: [TODO:description]
     """
-    for i in numba.prange(len(binding_energy)):
+    for i in prange(len(binding_energy)):
         k_tot[i] = K_INV_ANGSTROM * np.sqrt(
             hv - work_function + binding_energy[i],
         )

@@ -326,7 +326,7 @@ class ARPESPhysicalProperty(Generic[DataType]):
         if energy_notation == "Binding":
             self._obj.coords["eV"] = self._obj.coords["eV"] + shift
             self._obj.attrs["energy_notation"] = "Final"
-        elif energy_notation == "Final":
+        else:  # "Final""
             self._obj.coords["eV"] = self._obj.coords["eV"] - shift
             self._obj.attrs["energy_notation"] = "Binding"
 

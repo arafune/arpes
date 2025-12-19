@@ -8,10 +8,7 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from arpes.xarray_extensions._helper.spectroscopy import (
-    mean_other_impl,
-    sum_other_impl,
-)
+import arpes.xarray_extensions.accessor.spectroscopy  # noqa: F401
 
 
 @pytest.fixture
