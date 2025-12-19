@@ -11,6 +11,7 @@ They aim to achieve full branch coverage for:
 import numpy as np
 import pytest
 import xarray as xr
+from numpy.typing import NDArray
 
 from arpes.xarray_extensions._helper.general import (
     apply_over_impl,
@@ -24,7 +25,7 @@ from arpes.xarray_extensions._helper.general import (
 
 
 @pytest.fixture
-def simple_da():
+def simple_da() -> xr.DataArray:
     """Simple 2D DataArray with numeric coordinates."""
     x = np.linspace(0.0, 10.0, 6)
     y = np.linspace(-1.0, 1.0, 3)
@@ -33,7 +34,7 @@ def simple_da():
 
 
 @pytest.fixture
-def simple_ds(simple_da):
+def simple_ds(simple_da: xr.DataArray) -> xr.Dataset:
     """Dataset wrapper around the simple DataArray."""
     return xr.Dataset({"a": simple_da})
 
@@ -43,7 +44,7 @@ def simple_ds(simple_da):
 # -----------------------------------------------------------------------------
 
 
-def test_round_coordinates_impl_returns_values(simple_da):
+def test_round_coordinates_impl_returns_values(simple_da: xr.DataArray):
     """Nearest coordinate values should be returned as Python scalars."""
     rounded = round_coordinates_impl(
         simple_da,
@@ -55,7 +56,7 @@ def test_round_coordinates_impl_returns_values(simple_da):
     assert isinstance(rounded["y"], float)
 
 
-def test_round_coordinates_impl_as_indices(simple_da):
+def test_round_coordinates_impl_as_indices(simple_da: xr.DataArray):
     """When as_indices=True, integer coordinate indices should be returned."""
     rounded = round_coordinates_impl(
         simple_da,
@@ -72,7 +73,7 @@ def test_round_coordinates_impl_as_indices(simple_da):
 # -----------------------------------------------------------------------------
 
 
-def test_filter_coord_impl_dataarray(simple_da):
+def test_filter_coord_impl_dataarray(simple_da: xr.DataArray):
     """filter_coord_impl should filter a DataArray based on a sieve function."""
 
     def sieve(coord, da):
@@ -84,7 +85,7 @@ def test_filter_coord_impl_dataarray(simple_da):
     assert np.all(filtered.coords["x"].values > 5.0)
 
 
-def test_filter_coord_impl_dataset(simple_ds):
+def test_filter_coord_impl_dataset(simple_ds: xr.Dataset):
     """filter_coord_impl should also work for Dataset inputs."""
 
     def sieve(coord, ds):
@@ -101,9 +102,8 @@ def test_filter_coord_impl_dataset(simple_ds):
 # -----------------------------------------------------------------------------
 
 
-def test_apply_over_impl_da_copy_and_ndarray_return(simple_da):
-    """
-    When the callback returns an ndarray and copy=True,
+def test_apply_over_impl_da_copy_and_ndarray_return(simple_da: xr.DataArray):
+    """When the callback returns an ndarray and copy=True,
     a new DataArray should be returned with updated values.
     """
 
@@ -121,9 +121,8 @@ def test_apply_over_impl_da_copy_and_ndarray_return(simple_da):
     assert np.all(result.sel(x=0.0).values == simple_da.sel(x=0.0).values * 2)
 
 
-def test_apply_over_impl_da_inplace_with_xarray_return(simple_da):
-    """
-    When copy=False and the callback returns an xarray object,
+def test_apply_over_impl_da_inplace_with_xarray_return(simple_da: xr.DataArray):
+    """When copy=False and the callback returns an xarray object,
     the modification should happen in-place.
     """
 
@@ -146,10 +145,10 @@ def test_apply_over_impl_da_inplace_with_xarray_return(simple_da):
 # -----------------------------------------------------------------------------
 
 
-def test_apply_over_impl_dataset_ndarray_return_raises(simple_ds):
+def test_apply_over_impl_dataset_ndarray_return_raises(simple_ds: xr.Dataset):
     """Dataset + ndarray return should raise TypeError."""
 
-    def fn(ds):
+    def fn(ds) -> NDArray[np.float64]:
         return ds["a"].values + 10
 
     with pytest.raises(TypeError, match="ndarray return is not supported"):

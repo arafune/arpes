@@ -3,7 +3,23 @@
 import numpy as np
 import pytest
 import xarray as xr
+
 import arpes.xarray_extensions.accessor.general  # noqa: F401
+
+
+@pytest.fixture
+def simple_da() -> xr.DataArray:
+    """Simple 2D DataArray with numeric coordinates."""
+    x = np.linspace(0.0, 10.0, 6)
+    y = np.linspace(-1.0, 1.0, 3)
+    data = np.arange(18).reshape(6, 3)
+    return xr.DataArray(data, coords={"x": x, "y": y}, dims=("x", "y"))
+
+
+@pytest.fixture
+def simple_ds(simple_da: xr.DataArray) -> xr.Dataset:
+    """Dataset wrapper around the simple DataArray."""
+    return xr.Dataset({"a": simple_da})
 
 
 def test_filter_vars_basic():

@@ -15,23 +15,22 @@ from arpes.xarray_extensions._helper.spectroscopy import (
 
 
 @pytest.fixture
-def simple_da():
+def simple_da() -> xr.DataArray:
     """Simple 2D DataArray for testing."""
     x = [0.0, 1.0, 2.0]
     y = [10.0, 20.0]
     data = np.arange(6).reshape(3, 2)
-    da = xr.DataArray(
+    return xr.DataArray(
         data,
         coords={"x": x, "y": y},
         dims=("x", "y"),
         name="a",
         attrs={"test_attr": "value"},
     )
-    return da
 
 
 @pytest.fixture
-def simple_ds(simple_da):
+def simple_ds(simple_da: xr.DataArray) -> xr.Dataset:
     """Simple Dataset wrapping simple_da."""
     return xr.Dataset({"a": simple_da})
 
@@ -41,11 +40,8 @@ def simple_ds(simple_da):
 # ---------------------------------------------------------------------
 
 
-def test_sum_other_impl_dataarray(simple_da):
-    """
-    sum_other_impl should sum over all dimensions except the specified ones
-    for a DataArray.
-    """
+def test_sum_other_impl_dataarray(simple_da: xr.DataArray) -> None:
+    """sum_other_impl should sum over all dimensions except the specified ones for a DataArray."""
     result = sum_other_impl(simple_da, ["x"])
 
     assert isinstance(result, xr.DataArray)
@@ -55,11 +51,8 @@ def test_sum_other_impl_dataarray(simple_da):
     np.testing.assert_allclose(result.values, expected.values)
 
 
-def test_sum_other_impl_dataset(simple_ds):
-    """
-    sum_other_impl should sum over all dimensions except the specified ones
-    for a Dataset.
-    """
+def test_sum_other_impl_dataset(simple_ds: xr.Dataset) -> None:
+    """sum_other_impl should sum over all dimensions except the specified ones for a Dataset."""
     result = sum_other_impl(simple_ds, ["x"])
 
     assert isinstance(result, xr.Dataset)
@@ -69,10 +62,8 @@ def test_sum_other_impl_dataset(simple_ds):
     np.testing.assert_allclose(result["a"].values, expected["a"].values)
 
 
-def test_sum_other_impl_keep_attrs(simple_da):
-    """
-    sum_other_impl should preserve attributes when keep_attrs=True.
-    """
+def test_sum_other_impl_keep_attrs(simple_da: xr.DataArray) -> None:
+    """sum_other_impl should preserve attributes when keep_attrs=True."""
     result = sum_other_impl(simple_da, ["x"], keep_attrs=True)
 
     assert result.attrs == simple_da.attrs
@@ -83,11 +74,8 @@ def test_sum_other_impl_keep_attrs(simple_da):
 # ---------------------------------------------------------------------
 
 
-def test_mean_other_impl_dataarray(simple_da):
-    """
-    mean_other_impl should average over all dimensions except the specified ones
-    for a DataArray.
-    """
+def test_mean_other_impl_dataarray(simple_da: xr.DataArray) -> None:
+    """mean_other_impl should average over all dimensions except the specified ones for a DataArray."""
     result = mean_other_impl(simple_da, ["x"])
 
     assert isinstance(result, xr.DataArray)
@@ -97,11 +85,8 @@ def test_mean_other_impl_dataarray(simple_da):
     np.testing.assert_allclose(result.values, expected.values)
 
 
-def test_mean_other_impl_dataset(simple_ds):
-    """
-    mean_other_impl should average over all dimensions except the specified ones
-    for a Dataset.
-    """
+def test_mean_other_impl_dataset(simple_ds: xr.Dataset):
+    """mean_other_impl should average over all dimensions except the specified ones for a Dataset."""
     result = mean_other_impl(simple_ds, ["x"])
 
     assert isinstance(result, xr.Dataset)
@@ -111,10 +96,8 @@ def test_mean_other_impl_dataset(simple_ds):
     np.testing.assert_allclose(result["a"].values, expected["a"].values)
 
 
-def test_mean_other_impl_keep_attrs(simple_da):
-    """
-    mean_other_impl should preserve attributes when keep_attrs=True.
-    """
+def test_mean_other_impl_keep_attrs(simple_da: xr.DataArray) -> None:
+    """mean_other_impl should preserve attributes when keep_attrs=True."""
     result = mean_other_impl(simple_da, ["x"], keep_attrs=True)
 
     assert result.attrs == simple_da.attrs
