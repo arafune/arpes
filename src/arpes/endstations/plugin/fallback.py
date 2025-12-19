@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import warnings
 from logging import DEBUG, INFO
+from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 from arpes.config import load_plugins
@@ -11,8 +12,6 @@ from arpes.debug import setup_logger
 from arpes.endstations import EndstationBase, resolve_endstation
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     import xarray as xr
     from _typeshed import Incomplete
 
