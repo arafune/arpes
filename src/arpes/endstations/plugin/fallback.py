@@ -86,13 +86,11 @@ class FallbackEndstation(EndstationBase):
         **kwargs: Incomplete,
     ) -> xr.Dataset:
         """Delegates to a dynamically chosen plugin for loading."""
-        if scan_desc is None:
-            scan_desc = {}
+        scan_desc = {} if scan_desc is None else scan_desc
         if not file:
-            assert scan_desc is not None
             assert "file" in scan_desc
             file = scan_desc["file"]
-        assert isinstance(file, str)
+        assert isinstance(file, str | Path)
         associated_loader = FallbackEndstation.determine_associated_loader(file)
         try:
             file_number = int(file)
