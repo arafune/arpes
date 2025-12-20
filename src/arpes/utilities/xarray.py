@@ -5,7 +5,7 @@ from __future__ import annotations
 import warnings
 from functools import singledispatch
 from logging import DEBUG, INFO
-from typing import TYPE_CHECKING, Any, Concatenate, ParamSpec, TypeVar
+from typing import TYPE_CHECKING, Concatenate, ParamSpec, TypeVar
 
 import xarray as xr
 
@@ -15,14 +15,10 @@ from arpes.helper.dict import rename_keys
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    import numpy as np
-    from _typeshed import Incomplete
-    from numpy.typing import NDArray
     from xarray.core.common import DataWithCoords
 
 
 __all__ = (
-    "lift_dataarray",
     "lift_dataarray_attrs",
     "lift_datavar_attrs",
     "rename_dataarray_attrs",
@@ -86,44 +82,6 @@ def unwrap_xarray_dict(
     )
 
     return {k: unwrap_xarray_item(v) for k, v in input_dict.items()}
-
-
-def apply_dataarray(
-    arr: xr.DataArray,  # arr.values is used
-    f: Callable[[NDArray[np.float64], Any], NDArray[np.float64]],
-    *args: Incomplete,
-    **kwargs: Incomplete,
-) -> xr.DataArray:
-    """Applies a function onto the values of a DataArray.
-
-    Args:
-        arr (xr.DataArray): original DataArray.
-        f (Callable): Function to apply the DataArray.
-        args: arguments for "f".
-        kwargs: keyword arguments for "f"
-
-    Returns:
-        xr.DataArray replaced after the function.
-    """
-    return arr.G.with_values(f(arr.values, *args, **kwargs))
-
-
-def lift_dataarray(  # unused
-    f: Callable[[NDArray[np.float64], Any], NDArray[np.float64]],
-) -> Callable[[xr.DataArray], xr.DataArray]:
-    """Lifts a function that operates on an np.ndarray's values to act on an xr.DataArray.
-
-    Args:
-        f: Callable
-
-    Returns:
-        g: Function operating on an xr.DataArray
-    """
-
-    def g(arr: xr.DataArray, *args: Incomplete, **kwargs: Incomplete) -> xr.DataArray:
-        return apply_dataarray(arr, f, *args, **kwargs)
-
-    return g
 
 
 def lift_dataarray_attrs(

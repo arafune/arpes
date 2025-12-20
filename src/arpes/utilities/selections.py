@@ -12,6 +12,7 @@ import numpy as np
 import xarray as xr
 
 from arpes.debug import setup_logger
+from arpes.xarray_extensions.accessor.spectrum_type import AngleUnit
 
 from . import normalize_to_spectrum
 
@@ -88,7 +89,7 @@ def fat_sel(
     assert isinstance(widths, dict)
     default_widths = DEFAULT_RADII
 
-    if data.S.angle_unit == "Degrees":
+    if data.S.angle_unit is AngleUnit.DEG:
         default_widths["phi"] = 1.0
         default_widths["beta"] = 1.0
         default_widths["theta"] = 1.0

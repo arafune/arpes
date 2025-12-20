@@ -10,6 +10,7 @@ import numpy as np
 import xarray as xr
 
 from arpes.debug import setup_logger
+from arpes.xarray_extensions.accessor.spectrum_type import AngleUnit
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Hashable
@@ -102,12 +103,12 @@ class CoordinateConverter:
         """
         # 89 - 91 degrees
         angle_tolerance = 1.0
-        angle_unit = self.arr.S.angle_unit.upper()
+        angle_unit = self.arr.S.angle_unit
 
         alpha = self.arr.S.lookup_offset_coord("alpha")
         return (
             float(np.abs(alpha - 90.0)) < angle_tolerance
-            if angle_unit.startswith("DEG")
+            if angle_unit is AngleUnit.DEG
             else np.abs(alpha - np.pi / 2) < np.deg2rad(angle_tolerance)
         )
 

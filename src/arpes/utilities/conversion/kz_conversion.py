@@ -9,6 +9,7 @@ import numba
 import numpy as np
 
 from arpes.constants import HV_CONVERSION, K_INV_ANGSTROM
+from arpes.xarray_extensions.accessor.spectrum_type import EnergyNotation
 
 from .base import K_SPACE_BORDER, MOMENTUM_BREAKPOINTS, CoordinateConverter
 from .bounds_calculations import calculate_kp_kz_bounds
@@ -177,15 +178,16 @@ class ConvertKpKz(CoordinateConverter):
         if self.hv is None:
             self.kspace_to_hv(binding_energy, kp, kz)
         assert self.hv is not None
-        if self.arr.S.energy_notation == "Binding":
+        if self.arr.S.energy_notation is EnergyNotation.BINDING:
             kinetic_energy = binding_energy + self.hv - self.arr.S.analyzer_work_function
-        elif self.arr.S.energy_notation == "Final":
+        elif self.arr.S.energy_notation is EnergyNotation.FINAL:
             kinetic_energy = binding_energy - self.arr.S.analyzer_work_function
         else:
             warnings.warn(
                 "Energy notation is not specified. Assume the Binding energy notation",
                 stacklevel=2,
             )
+            self.arr.S.energy_notation = EnergyNotation.BINDING
             kinetic_energy = binding_energy + self.hv - self.arr.S.analyzer_work_function
         self.phi = np.zeros_like(self.hv)
         _kp_to_polar(

@@ -10,10 +10,10 @@ from typing import (
 import numpy as np
 import xarray as xr
 
+from arpes.analysis.value_transform import apply_dataarray
 from arpes.correction import coords, intensity_map
 from arpes.debug import setup_logger
 from arpes.plotting.movie import plot_movie
-from arpes.utilities import apply_dataarray
 
 if TYPE_CHECKING:
     from collections.abc import (

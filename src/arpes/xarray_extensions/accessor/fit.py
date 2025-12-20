@@ -11,7 +11,7 @@ import numpy as np
 import xarray as xr
 import xarray_lmfit
 
-from arpes.analysis import param_getter, param_stderr_getter
+from arpes.analysis.band_analysis_utils import param_getter, param_stderr_getter
 from arpes.debug import setup_logger
 from arpes.models.band import MultifitBand
 from arpes.plotting.parameter import plot_parameter

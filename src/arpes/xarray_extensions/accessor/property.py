@@ -10,7 +10,6 @@ from typing import (
     Any,
     Generic,
     Literal,
-    TypeAlias,
     TypeGuard,
     get_args,
 )
@@ -24,12 +23,13 @@ from arpes._typing.base import (
     ANGLE,
     HIGH_SYMMETRY_POINTS,
     DataType,
-    SpectrumType,
 )
 from arpes.debug import setup_logger
 from arpes.plotting.utils import fancy_labels, remove_colorbars
 from arpes.utilities.xarray import unwrap_xarray_item
 from arpes.xarray_extensions._helper import unwrap_provenance
+
+from .spectrum_type import AngleUnit, EnergyNotation, SpectrumType, infer_spectrum_type_from_dims
 
 if TYPE_CHECKING:
     from collections.abc import (
@@ -51,7 +51,6 @@ if TYPE_CHECKING:
     )
     from arpes.provenance import Provenance
 
-EnergyNotation: TypeAlias = Literal["Binding", "Final"]
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
@@ -71,29 +70,31 @@ class ARPESAngleProperty(Generic[DataType]):
     _obj: DataType
 
     @property
-    def angle_unit(self) -> Literal["Degrees", "Radians"]:
-        """Return Angle unit ("Degrees" or "Radians")."""
-        return self._obj.attrs.get("angle_unit", "Radians")
+    def angle_unit(self) -> AngleUnit:
+        """Return Angle unit Enum ("Degrees" or "Radians")."""
+        unit_str: str = self._obj.attrs.get("angle_unit", AngleUnit.RAD.value)
+        if unit_str.lower().startswith("deg"):
+            return AngleUnit.DEG
+        if unit_str.lower().startswith("rad"):
+            return AngleUnit.RAD
+        msg = f"Invalid angle unit found: {unit_str!r}"
+        raise ValueError(msg)
 
     @angle_unit.setter
-    def angle_unit(self, angle_unit: Literal["Degrees", "Radians"]) -> None:
+    def angle_unit(self, angle_unit: AngleUnit) -> None:
         """Set "angle unit".
 
         Angle unit should be "Degrees" or "Radians"
 
         Args:
-            angle_unit: Literal["Degrees", "Radians"]
+            angle_unit: ["Degrees", "Radians"]
         """
-        assert angle_unit in {
-            "Degrees",
-            "Radians",
-        }, "Angle unit should be 'Degrees' or 'Radians'"
-        self._obj.attrs["angle_unit"] = angle_unit
+        self._obj.attrs["angle_unit"] = angle_unit.value
 
         if isinstance(self._obj, xr.Dataset):
             for data_var in self._obj.data_vars.values():
                 if "eV" in data_var.dims:
-                    data_var.attrs["angle_unit"] = angle_unit
+                    data_var.attrs["angle_unit"] = angle_unit.value
 
     def lookup_coord(self, name: str) -> xr.DataArray | float:
         """Return the coordinates, if not return np.nan."""
@@ -301,14 +302,29 @@ class ARPESPhysicalProperty(Generic[DataType]):
     @property
     def energy_notation(self) -> EnergyNotation:
         """The energy notation ("Binding" energy or "Final" state energy)."""
-        notation = self._obj.attrs.get("energy_notation", "Binding").lower()
+        notation = self._obj.attrs.get("energy_notation", EnergyNotation.BINDING.value)
         final_notations = {"kinetic", "kinetic energy", "final", "final state energy"}
-        if notation in final_notations:
+        if notation.lower() in final_notations:
             self._obj.attrs["energy_notation"] = "Final"
-            return "Final"
+            return EnergyNotation.FINAL
+        if notation.lower() in {"binding"}:
+            self._obj.attrs["energy_notation"] = "Binding"
+            return EnergyNotation.BINDING
+        msg = f"Invalid energy notation found: {notation!r}"
+        raise ValueError(msg)
 
-        self._obj.attrs["energy_notation"] = "Binding"
-        return "Binding"
+    @energy_notation.setter
+    def energy_notation(self, notation: EnergyNotation) -> None:
+        """Set energy notation.
+
+        Args:
+            notation (EnergyNotation): energy notation enum
+        """
+        self._obj.attrs["energy_notation"] = notation.value
+        if isinstance(self._obj, xr.Dataset):
+            for data_var in self._obj.data_vars.values():
+                if "eV" in data_var.dims:
+                    data_var.attrs["energy_notation"] = notation.value
 
     def switch_energy_notation(self, nonlinear_order: int = 1) -> None:
         """Switch the energy notation between binding and kinetic.
@@ -321,14 +337,15 @@ class ARPESPhysicalProperty(Generic[DataType]):
             raise RuntimeError(msg)
 
         energy_notation = self.energy_notation
+
         shift = nonlinear_order * self._obj.coords["hv"]
 
-        if energy_notation == "Binding":
+        if energy_notation is EnergyNotation.BINDING:
             self._obj.coords["eV"] = self._obj.coords["eV"] + shift
-            self._obj.attrs["energy_notation"] = "Final"
+            self.energy_notation = EnergyNotation.FINAL
         else:  # "Final""
             self._obj.coords["eV"] = self._obj.coords["eV"] - shift
-            self._obj.attrs["energy_notation"] = "Binding"
+            self.energy_notation = EnergyNotation.BINDING
 
 
 class ARPESInfoProperty(ARPESPhysicalProperty[DataType]):
@@ -392,7 +409,7 @@ class ARPESInfoProperty(ARPESPhysicalProperty[DataType]):
             "time": self._obj.attrs.get("time", None),
             "date": self._obj.attrs.get("date", None),
             "type": self.scan_type,
-            "spectrum_type": self.spectrum_type,
+            "spectrum_type": self.spectrum_type.value,
             "experimenter": self._obj.attrs.get("experimenter"),
             "sample": self._obj.attrs.get("sample_name"),
         }
@@ -581,36 +598,20 @@ class ARPESInfoProperty(ARPESPhysicalProperty[DataType]):
     def spectrum_type(self) -> SpectrumType:
         """Spectrum type (cut, map, hv_map, ucut, spem and xps)."""
         assert isinstance(self._obj, xr.DataArray | xr.Dataset)
-        if self._obj.attrs.get("spectrum_type"):
-            return self._obj.attrs["spectrum_type"]
-        dim_types = {
-            ("eV",): "xps",
-            ("eV", "phi"): "cut",
-            # this should check whether the other angular axis perpendicular to scan axis?
-            ("eV", "phi", "beta"): "map",
-            ("eV", "phi", "theta"): "map",
-            ("eV", "hv", "phi"): "hv_map",
-            # kspace
-            ("eV", "kp"): "cut",
-            ("eV", "kx", "ky"): "map",
-            ("eV", "kp", "kz"): "hv_map",
-        }
-        dims: tuple[str, ...] = tuple(sorted(str(dim) for dim in self._obj.dims))
-        if dims in dim_types:
-            dim_type = dim_types.get(dims)
-        else:
-            msg = "Cannot determine spectrum type"
-            raise TypeError(msg)
 
-        def _dim_type_check(
-            dim_type: str | None,
-        ) -> TypeGuard[SpectrumType]:
-            return dim_type in get_args(SpectrumType)
+        raw = self._obj.attrs.get("spectrum_type")
+        if isinstance(raw, SpectrumType):
+            return raw
 
-        if _dim_type_check(dim_type):
-            return dim_type
-        msg = "Dimension type may be incorrect"
-        raise TypeError(msg)
+        if isinstance(raw, str):
+            try:
+                return SpectrumType(raw)
+            except ValueError as e:
+                msg = f"Invalid spectrum_type attr: {raw!r}"
+                raise TypeError(msg) from e
+
+        dims = tuple(sorted(map(str, self._obj.dims)))
+        return infer_spectrum_type_from_dims(dims)
 
 
 class ARPESOffsetProperty(ARPESAngleProperty[DataType]):
@@ -840,7 +841,7 @@ class ARPESOffsetProperty(ARPESAngleProperty[DataType]):
             True if the alpha value is consistent with a vertical slit analyzer. False otherwise.
         """
         angle_tolerance = 1.0
-        if self.angle_unit.startswith("Deg") or self.angle_unit.startswith("deg"):
+        if self.angle_unit is AngleUnit.DEG:
             return float(np.abs(self.lookup_offset_coord("alpha") - 90.0)) < angle_tolerance
         return float(np.abs(self.lookup_offset_coord("alpha") - np.pi / 2)) < float(
             np.deg2rad(
@@ -977,7 +978,8 @@ class ARPESPropertyBase(
             dimensions. False otherwise.
         """
         assert isinstance(self._obj, xr.DataArray | xr.Dataset)
-        if self.spectrum_type in {"ucut", "spem"}:
+
+        if self.spectrum_type.is_intrinsically_spatial:
             return True
 
         return any(d in {"X", "Y", "Z"} for d in self._obj.dims)

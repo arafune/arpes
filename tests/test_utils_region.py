@@ -3,10 +3,12 @@
 import numpy as np
 import xarray as xr
 
-from arpes.utilities.region import (
+from arpes.analysis.spectrum_edges import (
     find_spectrum_angular_edges,
     find_spectrum_angular_edges_full,
     find_spectrum_energy_edges,
+)
+from arpes.utilities.region import (
     meso_effective_selector,
     wide_angle_selector,
 )

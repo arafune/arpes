@@ -142,9 +142,9 @@ Small-Angle Approximated and Volumetric Related
    :toctree: generated/
 
    utilities.conversion.core.convert_to_kspace
-   utilities.conversion.forward.convert_coordinate_forward
-   utilities.conversion.forward.convert_through_angular_point
-   utilities.conversion.forward.convert_through_angular_pair
+   analysis.forward_conversion.convert_coordinate_forward
+   analysis.forward_conversion.convert_through_angular_point
+   analysis.forward_conversion.convert_through_angular_pair
 
 Exact Forward Transforms
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -152,7 +152,7 @@ Exact Forward Transforms
 .. autosummary::
    :toctree: generated/
 
-   utilities.conversion.forward.convert_coordinates_to_kspace_forward
+   analysis.forward_conversion.convert_coordinates_to_kspace_forward
 
 
 Utilities

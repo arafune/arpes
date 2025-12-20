@@ -4,6 +4,7 @@ import numpy as np
 
 from arpes._typing.base import ANGLE, DataType
 from arpes._typing.utils import flatten_literals
+from arpes.xarray_extensions.accessor.spectrum_type import AngleUnit
 
 
 def radian_to_degree(data: DataType) -> DataType:
@@ -17,7 +18,7 @@ def radian_to_degree(data: DataType) -> DataType:
     Returns:
         DataType: The angle unit converted data.
     """
-    if data.S.angle_unit.upper().startswith("DEG"):
+    if data.S.angle_unit is AngleUnit.DEG:
         return data
     data.attrs["angle_unit"] = "Degrees"
     for angle in flatten_literals(ANGLE):
@@ -43,7 +44,7 @@ def degree_to_radian(data: DataType) -> DataType:
     Returns:
         DataType: The angle unit converted data.
     """
-    if data.S.angle_unit.upper().startswith("RAD"):
+    if data.S.angle_unit is AngleUnit.RAD:
         return data
     data.attrs["angle_unit"] = "Radians"
     for angle in flatten_literals(ANGLE):
@@ -71,10 +72,10 @@ def switched_angle_unit(data: DataType) -> DataType:
         DataType: The angle unit converted data.
     """
     data_copy = data.copy(deep=True)
-    angle_unit = data_copy.attrs.get("angle_unit", "Radians").lower()
-    if angle_unit.startswith("rad"):
+    angle_unit = data_copy.S.angle_unit
+    if angle_unit is AngleUnit.RAD:
         return radian_to_degree(data_copy)
-    if angle_unit.startswith("deg"):
+    if angle_unit is AngleUnit.DEG:
         return degree_to_radian(data_copy)
     msg = 'The angle_unit must be "Radians" or "Degrees"'
     raise TypeError(msg)

@@ -38,6 +38,7 @@ from arpes.constants import TWO_DIMENSION
 from arpes.debug import setup_logger
 from arpes.provenance import Provenance, provenance, update_provenance
 from arpes.utilities import normalize_to_spectrum
+from arpes.xarray_extensions.accessor.spectrum_type import AngleUnit
 
 from .fast_interp import Interpolator
 from .grids import (
@@ -355,8 +356,7 @@ def convert_to_kspace(  # noqa: PLR0913
     bounds = bounds or {}
     arr = arr if isinstance(arr, xr.DataArray) else normalize_to_spectrum(arr)
     assert isinstance(arr, xr.DataArray)
-    angle_unit = arr.S.angle_unit.upper()
-    if angle_unit.startswith("DEG"):
+    if arr.S.angle_unit is AngleUnit.DEG:
         arr = arr.S.switched_angle_unit()
     logger.debug(f"bounds (covnert_to_kspace): {bounds}")
     logger.debug(f"keys in coords (convert_to_kspace): {coords.keys()}")

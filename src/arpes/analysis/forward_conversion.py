@@ -25,14 +25,14 @@ from arpes.analysis.filters import gaussian_filter_arr
 from arpes.debug import setup_logger
 from arpes.provenance import update_provenance
 from arpes.utilities import normalize_to_spectrum
-
-from .bounds_calculations import (
+from arpes.utilities.conversion.bounds_calculations import (
     euler_to_kx,
     euler_to_ky,
     euler_to_kz,
     full_angles_to_k,
 )
-from .core import convert_to_kspace
+from arpes.utilities.conversion.core import convert_to_kspace
+from arpes.xarray_extensions.accessor.spectrum_type import EnergyNotation, SpectrumType
 
 if TYPE_CHECKING:
     from collections.abc import Hashable
@@ -195,7 +195,7 @@ def convert_through_angular_pair(  # noqa: PLR0913
     Returns:
         The momentum cut passing first through `first_point` and then through `second_point`.
     """
-    assert data.spectrum_type == "map"
+    assert data.S.spectrum_type is SpectrumType.MAP
     k_first_point = convert_coordinate_forward(data, first_point, **k_coords)
     k_second_point = convert_coordinate_forward(data, second_point, **k_coords)
 
@@ -368,19 +368,20 @@ def convert_coordinates(
         return c[tuple(index_list)]
 
     # build the full kinetic energy array over relevant dimensions
-    if arr.S.energy_notation == "Binding":
+    if arr.S.energy_notation is EnergyNotation.BINDING:
         kinetic_energy = (
             expand_to("eV", raw_coords["eV"])
             + expand_to("hv", raw_coords["hv"])
             - arr.S.analyzer_work_function
         )
-    elif arr.S.energy_notation == "Final":
+    elif arr.S.energy_notation.energy_notation is EnergyNotation.FINAL:
         kinetic_energy = expand_to("eV", raw_coords["eV"]) - arr.S.analyzer_work_function
     else:
         warnings.warn(
             "Energy notation is not specified. Assume the Binding energy notation",
             stacklevel=2,
         )
+        arr.S.energy_notation = EnergyNotation.BINDING
         kinetic_energy = (
             expand_to("eV", raw_coords["eV"])
             + expand_to("hv", raw_coords["hv"])

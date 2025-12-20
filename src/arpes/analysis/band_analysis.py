@@ -21,7 +21,8 @@ from arpes.debug import setup_logger
 from arpes.helper.jupyter import get_tqdm
 from arpes.models.band import Band
 from arpes.provenance import update_provenance
-from arpes.utilities.conversion.forward import convert_coordinates_to_kspace_forward
+
+from .forward_conversion import convert_coordinates_to_kspace_forward
 
 if TYPE_CHECKING:
     from collections.abc import Hashable, Iterator

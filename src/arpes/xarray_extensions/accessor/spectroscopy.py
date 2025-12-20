@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
     from panel.layout import Panel
 
-    from arpes._typing.attrs_property import CoordsOffset, SpectrumType
+    from arpes._typing.attrs_property import CoordsOffset
     from arpes._typing.base import ReduceMethod
     from arpes._typing.plotting import (
         HvRefScanParam,
@@ -304,15 +304,7 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
         Returns:
             The axes which were used for plotting.
         """
-        if self.spectrum_type == "map":
-            return self._referenced_scans_for_map_plot(**kwargs)
-        if self.spectrum_type == "hv_map":
-            return self._referenced_scans_for_hv_map_plot(**kwargs)
-        if self.spectrum_type == "cut":
-            return self._simple_spectrum_reference_plot(**kwargs)
-        if self.spectrum_type in {"ucut", "spem"}:
-            return self._referenced_scans_for_spatial_plot(**kwargs)
-        raise NotImplementedError
+        return self.spectrum_type.reference_plot(self, **kwargs)
 
 
 @xr.register_dataset_accessor("S")
@@ -329,18 +321,6 @@ class ARPESDatasetAccessor(ARPESAccessorBase[xr.Dataset]):
             The attribute after lookup on the default spectrum
         """
         return getattr(self._obj.S.spectrum.S, item)
-
-    @property
-    def is_spatial(self) -> bool:
-        """Predicate indicating whether the dataset is a spatial scanning dataset.
-
-        Returns:
-            True if the dataset has dimensions indicating it is a spatial scan.
-            False otherwise
-        """
-        assert isinstance(self.spectrum, xr.DataArray | xr.Dataset)
-
-        return self.spectrum.S.is_spatial
 
     @property
     def spectrum(self) -> xr.DataArray:
@@ -401,15 +381,6 @@ class ARPESDatasetAccessor(ARPESAccessorBase[xr.Dataset]):
             that they are spectra.
         """
         return [dv for dv in self._obj.data_vars.values() if "eV" in dv.dims]
-
-    @property
-    def spectrum_type(self) -> SpectrumType:
-        """Gives a heuristic estimate of what kind of data is contained by the spectrum.
-
-        Returns:
-            The kind of data, coarsely
-        """
-        return self.spectrum.S.spectrum_type
 
     def reference_plot(self: Self, **kwargs: Incomplete) -> None:
         """Creates reference plots for a dataset.

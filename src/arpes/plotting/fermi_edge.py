@@ -11,9 +11,9 @@ import xarray as xr
 from matplotlib.axes import Axes
 
 from arpes.analysis.general import fit_fermi_edge
+from arpes.analysis.value_transform import apply_dataarray
 from arpes.constants import TWO_DIMENSION
 from arpes.provenance import save_plot_provenance
-from arpes.utilities import apply_dataarray
 
 from .utils import label_for_dim, path_for_plot
 

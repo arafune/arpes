@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import xarray as xr
 
-from arpes.utilities.conversion.forward import (
+from arpes.analysis.forward_conversion import (
     convert_coordinate_forward,
     convert_through_angular_pair,
     convert_through_angular_point,

@@ -9,6 +9,17 @@ Primary (X.-.-) version numbers are used to denote backwards
 incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
+5.1.0 (2026-XX-XX)
+^^^^^^^^^^^^^^^^^^
+
+* Module structure refactoring
+
+  * areps.utilities.conversion.forward moves to arpes.analysis.forward_conversion
+  * apply_dataarray and lift_dataarray move to arpes.analysis.value_transform from areps.utilities.xarray
+
+* Refactoring by introducing Enum (SpectrumType, AngleUnit)
+
+
 5.0.1 (2025-12-20)
 ^^^^^^^^^^^^^^^^^^
 

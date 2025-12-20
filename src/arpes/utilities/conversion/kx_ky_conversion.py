@@ -14,6 +14,7 @@ import xarray as xr
 
 from arpes.constants import K_INV_ANGSTROM
 from arpes.debug import setup_logger
+from arpes.xarray_extensions.accessor.spectrum_type import EnergyNotation
 
 from .base import K_SPACE_BORDER, MOMENTUM_BREAKPOINTS, CoordinateConverter
 from .bounds_calculations import calculate_kp_bounds, calculate_kx_ky_bounds
@@ -207,7 +208,7 @@ class ConvertKp(CoordinateConverter):
         energy_notation = self.arr.S.energy_notation
         hv = self.arr.S.hv
         work_function = self.arr.S.analyzer_work_function
-        hv_ = 0 if energy_notation == "Final" else hv
+        hv_ = 0 if energy_notation is EnergyNotation.FINAL else hv
         self.k_tot = _safe_compute_k_tot(hv_, work_function, binding_energy)
 
     def kspace_to_phi(
@@ -379,7 +380,7 @@ class ConvertKxKy(CoordinateConverter):
         energy_notation = self.arr.S.energy_notation
         hv: float = self.arr.S.hv
         work_function = self.arr.S.analyzer_work_function
-        hv = 0.0 if energy_notation == "Final" else hv
+        hv = 0.0 if energy_notation is EnergyNotation.FINAL else hv
         self.k_tot = _safe_compute_k_tot(hv, work_function, binding_energy)
 
     def conversion_for(self, dim: Hashable) -> Callable[..., NDArray[np.float64]]:

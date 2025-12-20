@@ -84,6 +84,10 @@ def autodoc_skip_member(app, what, name, obj, skip, options):
     # This is a noop for now
     return skip
 
+autodoc_mock_imports = [
+    "arpes.analysis.value_transform",
+    "arpes.xarray_extensions",
+]
 
 def setup(app):
     app.connect("autodoc-skip-member", autodoc_skip_member)

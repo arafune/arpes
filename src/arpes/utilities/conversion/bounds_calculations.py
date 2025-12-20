@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from arpes.constants import K_INV_ANGSTROM
+from arpes.xarray_extensions.accessor.spectrum_type import EnergyNotation
 
 if TYPE_CHECKING:
     import xarray as xr
@@ -310,7 +311,7 @@ def calculate_kx_ky_bounds(
             arr.coords["eV"].max().item(),
             arr.S.hv - arr.S.analyzer_work_function,
         )
-        if arr.S.energy_notation == "Binding"
+        if arr.S.energy_notation is EnergyNotation.BINDING
         else arr.coords["eV"].max().item()
     )
     # note that the type of the kinetic_energy is float in below.
