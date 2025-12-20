@@ -195,9 +195,7 @@ def update_provenance(
             if isinstance(result, xr.DataArray | xr.Dataset) and result_not_identity:
                 if "id" in result.attrs:
                     del result.attrs["id"]
-                provenance_fn = provenance
-                if len(all_parents) > 1:
-                    provenance_fn = provenance_multiple_parents
+                provenance_fn = provenance_multiple_parents if len(all_parents) > 1 else provenance
                 if all_parents:
                     provenance_context: Provenance = cast(
                         "Provenance",

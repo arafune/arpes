@@ -9,7 +9,7 @@ The plugin supports flowing scenarios:
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, cast
 
 import numpy as np
 import xarray as xr
@@ -107,12 +107,14 @@ class PhelixEndstation(HemisphericalEndstation, SingleFileEndstation, Synchrotro
         Returns:
             xr.Datast: pyARPES is not compatible at this stage.  (postprocess_final is needed.)
         """
-        provenance_context: Provenance = {
-            "what": "Loaded xy dataset",
-            "by": "load_single_frame",
-        }
-        if scan_desc is None:
-            scan_desc = {}
+        provenance_context: Provenance = cast(
+            "Provenance",
+            {
+                "what": "Loaded xy dataset",
+                "by": "load_single_frame",
+            },
+        )
+        scan_desc = {} if scan_desc is None else scan_desc
         file = Path(frame_path)
         if file.suffix in self._TOLERATED_EXTENSIONS:
             data = load_xy(frame_path, **kwargs)

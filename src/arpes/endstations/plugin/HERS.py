@@ -5,7 +5,7 @@ from __future__ import annotations
 import itertools
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, cast
 
 import numpy as np
 import xarray as xr
@@ -108,7 +108,10 @@ class HERSEndstation(
         }
 
         dataset = xr.Dataset(data_vars, relevant_coords, scan_desc)
-        provenance_context: Provenance = {"what": "Loaded BL10 dataset", "by": "load_DLD"}
+        provenance_context: Provenance = cast(
+            "Provenance",
+            {"what": "Loaded BL10 dataset", "by": "load_DLD"},
+        )
         provenance_from_file(dataset, str(data_loc), provenance_context)
 
         return dataset

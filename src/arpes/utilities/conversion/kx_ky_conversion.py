@@ -5,7 +5,6 @@ Broadly, this covers cases where we are not performing photon energy scans.
 
 from __future__ import annotations
 
-import warnings
 from logging import DEBUG, INFO
 from typing import TYPE_CHECKING
 
@@ -208,13 +207,6 @@ class ConvertKp(CoordinateConverter):
         energy_notation = self.arr.S.energy_notation
         hv = self.arr.S.hv
         work_function = self.arr.S.analyzer_work_function
-        if energy_notation not in {"Final", "Binding"}:
-            warning_msg = "Energy notation is not specified. Assume the Binding energy notation"
-            warnings.warn(
-                warning_msg,
-                stacklevel=2,
-            )
-            energy_notation = "Binding"
         hv_ = 0 if energy_notation == "Final" else hv
         self.k_tot = _safe_compute_k_tot(hv_, work_function, binding_energy)
 
@@ -387,15 +379,8 @@ class ConvertKxKy(CoordinateConverter):
         energy_notation = self.arr.S.energy_notation
         hv: float = self.arr.S.hv
         work_function = self.arr.S.analyzer_work_function
-        if energy_notation not in {"Final", "Binding"}:
-            warning_msg = "Energy notation is not specified. Assume the Binding energy notation"
-            warnings.warn(
-                warning_msg,
-                stacklevel=2,
-            )
-            energy_notation = "Binding"
-        hv_ = 0.0 if energy_notation == "Final" else hv
-        self.k_tot = _safe_compute_k_tot(hv_, work_function, binding_energy)
+        hv = 0.0 if energy_notation == "Final" else hv
+        self.k_tot = _safe_compute_k_tot(hv, work_function, binding_energy)
 
     def conversion_for(self, dim: Hashable) -> Callable[..., NDArray[np.float64]]:
         """Looks up the appropriate momentum-to-angle conversion routine by dimension name."""

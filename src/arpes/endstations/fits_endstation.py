@@ -28,7 +28,7 @@ import contextlib
 import warnings
 from logging import DEBUG, INFO
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, cast
 
 import numpy as np
 import xarray as xr
@@ -342,10 +342,13 @@ class FITSEndstation(EndstationBase):
                 data = data.assign_coords(phi=phi_axis)
 
             # Always attach provenance
-            provenance_context: Provenance = {
-                "what": "Loaded MC dataset from FITS.",
-                "by": "load_MC",
-            }
+            provenance_context: Provenance = cast(
+                "Provenance",
+                {
+                    "what": "Loaded MC dataset from FITS.",
+                    "by": "load_MC",
+                },
+            )
             provenance_from_file(data, str(frame_path), provenance_context)
 
             return data

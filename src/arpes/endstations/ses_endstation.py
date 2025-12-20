@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from logging import DEBUG, INFO
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import h5py
 import numpy as np
@@ -203,7 +203,9 @@ class SESEndstation(EndstationBase):
             dims=dimension_labels,
             attrs=attrs,
         )
-        provenance_context: Provenance = {"what": "Loaded SES dataset from HDF5.", "by": "load_SES"}
+        provenance_context: Provenance = cast(
+            "Provenance", {"what": "Loaded SES dataset from HDF5.", "by": "load_SES"}
+        )
         provenance_from_file(dataset_contents["spectrum"], str(data_loc), provenance_context)
         return xr.Dataset(
             dataset_contents,

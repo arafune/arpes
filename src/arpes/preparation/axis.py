@@ -153,11 +153,14 @@ def normalize_dim(
 
     if not keep_id and "id" in to_return.attrs:
         del to_return.attrs["id"]
-    provenance_context: Provenance = {
-        "what": "Normalize axis or axes",
-        "by": "normalize_dim",
-        "dims": dims,
-    }
+    provenance_context: Provenance = cast(
+        "Provenance",
+        {
+            "what": "Normalize axis or axes",
+            "by": "normalize_dim",
+            "dims": dims,
+        },
+    )
 
     provenance(to_return, arr, provenance_context)
 
@@ -331,14 +334,16 @@ def transform_dataarray_axis(  # noqa: PLR0913
 
     if "id" in new_ds:
         del new_ds.attrs["id"]
-    provenance_context: Provenance = {
-        "what": "Transformed a Dataset coordinate axis",
-        "by": "transform_dataarray_axis",
-        "old_axis": old_axis_name,
-        "new_axis": new_axis_name,
-        "transformed_vars": list(transform_spectra.keys()),
-    }
-
+    provenance_context: Provenance = cast(
+        "Provenance",
+        {
+            "what": "Transformed a Dataset coordinate axis",
+            "by": "transform_dataarray_axis",
+            "old_axis": old_axis_name,
+            "new_axis": new_axis_name,
+            "transformed_vars": list(transform_spectra.keys()),
+        },
+    )
     provenance(new_ds, dataset, provenance_context)
 
     return new_ds

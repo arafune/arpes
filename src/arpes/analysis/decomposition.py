@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from functools import wraps
-from typing import TYPE_CHECKING, Literal, TypedDict, Unpack
+from typing import TYPE_CHECKING, Literal, TypedDict, Unpack, cast
 
 import sklearn
 import xarray as xr
@@ -161,13 +161,16 @@ def decomposition_along(
     if stacked:
         into = into.unstack("fit_axis")
 
-    provenance_context: Provenance = {
-        "what": "sklearn decomposition",
-        "by": "decomposition_along",
-        "axes": axes,
-        "correlation": False,
-        "decomposition_cls": decomposition_cls.__name__,
-    }
+    provenance_context: Provenance = cast(
+        "Provenance",
+        {
+            "what": "sklearn decomposition",
+            "by": "decomposition_along",
+            "axes": axes,
+            "correlation": False,
+            "decomposition_cls": decomposition_cls.__name__,
+        },
+    )
 
     provenance(into, data, provenance_context)
 

@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
     from _typeshed import Incomplete
 
-    from ._typing import XrTypes
+    from ._typing.base import XrTypes
 
 Wave: TypeAlias = Any  # really, igor.Wave but we do not assume installation
 
@@ -193,7 +193,7 @@ def wave_to_xarray(wave: Wave) -> xr.DataArray:
     n_dims = len([a for a in wave.axis if len(a)])
 
     def get_axis_name(index: int) -> str:
-        unit = wave.axis_units[index]
+        unit: str = wave.axis_units[index]
         if unit:
             return {
                 "eV": "eV",

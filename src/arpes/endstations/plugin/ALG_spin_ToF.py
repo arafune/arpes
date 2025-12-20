@@ -8,7 +8,7 @@ import warnings
 from logging import DEBUG, INFO
 from pathlib import Path
 
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, cast
 
 import h5py
 import numpy as np
@@ -121,10 +121,13 @@ class SpinToFEndstation(EndstationBase):
             dims=("x_pixels", "t_pixels"),
             attrs=f["/PRIMARY"].attrs.items(),
         )
-        pronance_context: Provenance = {
-            "what": "Loaded Anton and Ping DLD dataset from HDF5.",
-            "by": "load_DLD",
-        }
+        pronance_context: Provenance = cast(
+            "Provenance",
+            {
+                "what": "Loaded Anton and Ping DLD dataset from HDF5.",
+                "by": "load_DLD",
+            },
+        )
 
         provenance_from_file(dataset_contents["raw"], str(data_loc), pronance_context)
 
@@ -277,11 +280,13 @@ class SpinToFEndstation(EndstationBase):
         for data_arr in dataset.data_vars.values():
             if "time" in data_arr.dims:
                 data_arr.data = data_arr.sel(time=slice(None, None, -1)).data
-        provenance_context: Provenance = {
-            "what": "Loaded Spin-ToF dataset",
-            "by": "load_DLD",
-        }
-
+        provenance_context: Provenance = cast(
+            "Provenance",
+            {
+                "what": "Loaded Spin-ToF dataset",
+                "by": "load_DLD",
+            },
+        )
         provenance_from_file(dataset, str(data_loc), provenance_context)
 
         return dataset

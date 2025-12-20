@@ -28,7 +28,7 @@ import warnings
 from collections.abc import Hashable
 from itertools import pairwise
 from logging import DEBUG, INFO
-from typing import TYPE_CHECKING, Literal, TypedDict, TypeGuard, Unpack
+from typing import TYPE_CHECKING, Literal, TypedDict, TypeGuard, Unpack, cast
 
 import numpy as np
 import xarray as xr
@@ -249,12 +249,15 @@ def slice_along_path(  # noqa: PLR0913
 
     if "id" in converted_ds.attrs:
         del converted_ds.attrs["id"]
-        provenance_context: Provenance = {
-            "what": "Slice along path",
-            "by": "slice_along_path",
-            "parsed_interpolation_points": parsed_interpolation_points,
-            "interpolation_points": interpolation_points,
-        }
+        provenance_context: Provenance = cast(
+            "Provenance",
+            {
+                "what": "Slice along path",
+                "by": "slice_along_path",
+                "parsed_interpolation_points": parsed_interpolation_points,
+                "interpolation_points": interpolation_points,
+            },
+        )
 
         provenance(converted_ds, arr, provenance_context)
 

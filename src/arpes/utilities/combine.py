@@ -1,6 +1,7 @@
 """Syntax suger for combination of ARPES data."""
 
 from logging import DEBUG, INFO
+from typing import cast
 
 import xarray as xr
 
@@ -72,11 +73,14 @@ def concat_along_phi(
             combine_attrs="drop_conflicts",
         ).sortby("phi")
     concat_array.attrs["id"] = id_add
-    provenance_contents: Provenance = {
-        "what": "concat_along_phi",
-        "parant_id": (id_arr_a, id_arr_b),
-        "occupation_ratio": occupation_ratio,
-    }
+    provenance_contents: Provenance = cast(
+        "Provenance",
+        {
+            "what": "concat_along_phi",
+            "parant_id": (id_arr_a, id_arr_b),
+            "occupation_ratio": occupation_ratio,
+        },
+    )
     if enhance_a != 1.0:
         provenance_contents["enhance_a"] = enhance_a
 

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import functools
-from typing import TYPE_CHECKING, Literal, NamedTuple
+from typing import TYPE_CHECKING, Literal, NamedTuple, cast
 
 import numpy as np
 import xarray as xr
@@ -186,11 +186,14 @@ def curvature1d(
 
     if "id" in arr.attrs:
         filterd_arr.attrs["id"] = str(arr.attrs["id"]) + "_CV"
-        provenance_context: Provenance = {
-            "what": "Maximum Curvature",
-            "by": "1D",
-            "alpha": alpha,
-        }
+        provenance_context: Provenance = cast(
+            "Provenance",
+            {
+                "what": "Maximum Curvature",
+                "by": "1D",
+                "alpha": alpha,
+            },
+        )
         provenance(filterd_arr, arr, provenance_context)
     return filterd_arr
 
@@ -251,14 +254,16 @@ def curvature2d(
 
     if "id" in curv.attrs:
         del curv.attrs["id"]
-        provenance_context: Provenance = {
-            "what": "Curvature",
-            "by": "2D_with_weight",
-            "dims": dims,
-            "alpha": alpha,
-            "weight2d": weight2d,
-        }
-
+        provenance_context: Provenance = cast(
+            "Provenance",
+            {
+                "what": "Curvature",
+                "by": "2D_with_weight",
+                "dims": dims,
+                "alpha": alpha,
+                "weight2d": weight2d,
+            },
+        )
         provenance(curv, arr, provenance_context)
     return curv
 
@@ -305,12 +310,15 @@ def dn_along_axis(
 
     if "id" in dn_arr.attrs:
         dn_arr.attrs["id"] = str(dn_arr.attrs["id"]) + f"_dy{order}"
-        provenance_context: Provenance = {
-            "what": f"{order}th derivative",
-            "by": "dn_along_axis",
-            "axis": dim,
-            "order": order,
-        }
+        provenance_context: Provenance = cast(
+            "Provenance",
+            {
+                "what": f"{order}th derivative",
+                "by": "dn_along_axis",
+                "axis": dim,
+                "order": order,
+            },
+        )
 
         provenance(
             dn_arr,

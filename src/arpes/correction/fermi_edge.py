@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, TypeVar, cast
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -130,11 +130,14 @@ def apply_direct_fermi_edge_correction(
 
     if "id" in corrected_arr.attrs:
         del corrected_arr.attrs["id"]
-    provenance_context: Provenance = {
-        "what": "Shifted Fermi edge to align at 0 along hv axis",
-        "by": "apply_photon_energy_fermi_edge_correction",
-        "correction": correction,  # TODO: NEED check
-    }
+    provenance_context: Provenance = cast(
+        "Provenance",
+        {
+            "what": "Shifted Fermi edge to align at 0 along hv axis",
+            "by": "apply_photon_energy_fermi_edge_correction",
+            "correction": correction,  # TODO: NEED check
+        },
+    )
 
     provenance(corrected_arr, arr, provenance_context)
 
@@ -280,11 +283,14 @@ def apply_photon_energy_fermi_edge_correction(
 
     if "id" in corrected_arr.attrs:
         del corrected_arr.attrs["id"]
-    provenance_context: Provenance = {
-        "what": "Shifted Fermi edge to align at 0 along hv axis",
-        "by": "apply_photon_energy_fermi_edge_correction",
-        "correction": list(correction_values.values),
-    }
+    provenance_context: Provenance = cast(
+        "Provenance",
+        {
+            "what": "Shifted Fermi edge to align at 0 along hv axis",
+            "by": "apply_photon_energy_fermi_edge_correction",
+            "correction": list(correction_values.values),
+        },
+    )
 
     provenance(corrected_arr, arr, provenance_context)
 
@@ -333,11 +339,14 @@ def apply_quadratic_fermi_edge_correction(
 
     if "id" in corrected_arr.attrs:
         del corrected_arr.attrs["id"]
-    provenance_context: Provenance = {
-        "what": "Shifted Fermi edge to align at 0",
-        "by": "apply_quadratic_fermi_edge_correction",
-        "correction": correction.best_values,
-    }
+    provenance_context: Provenance = cast(
+        "Provenance",
+        {
+            "what": "Shifted Fermi edge to align at 0",
+            "by": "apply_quadratic_fermi_edge_correction",
+            "correction": correction.best_values,
+        },
+    )
 
     provenance(corrected_arr, arr, provenance_context)
 

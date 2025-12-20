@@ -14,7 +14,7 @@ from collections.abc import Callable, Hashable, Iterable, Iterator, Sequence
 from datetime import UTC
 from logging import DEBUG, INFO
 from pathlib import Path
-from typing import TYPE_CHECKING, Protocol, Unpack, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, Unpack, cast, runtime_checkable
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -905,12 +905,15 @@ def savefig(
 
     full_path = path_for_plot(desired_path)
     provenance_path = str(full_path) + ".provenance.json"
-    provenance_context: Provenance = {
-        "VERSION": VERSION,
-        "time": datetime.datetime.now(UTC).isoformat(),
-        "jupyter_notebook_name": get_notebook_name(),
-        "name": "savefig",
-    }
+    provenance_context: Provenance = cast(
+        "Provenance",
+        {
+            "VERSION": VERSION,
+            "time": datetime.datetime.now(UTC).isoformat(),
+            "jupyter_notebook_name": get_notebook_name(),
+            "name": "savefig",
+        },
+    )
 
     def extract_provenance(for_data: XrTypes) -> Provenance:
         return for_data.attrs.get("provenance", {})

@@ -1,7 +1,7 @@
 """Provides coordinate aware filters and smoothing."""
 
 from collections.abc import Hashable
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, cast
 
 import numpy as np
 import xarray as xr
@@ -62,13 +62,15 @@ def gaussian_filter_arr(
     filtered_arr = xr.DataArray(values, arr.coords, arr.dims, attrs=arr.attrs)
     if "id" in filtered_arr.attrs:
         del filtered_arr.attrs["id"]
-        provenance_context: Provenance = {
-            "what": "Gaussian filtered data",
-            "by": "gaussian_filter_arr",
-            "sigma": sigma,
-            "use_pixel": use_pixel,
-        }
-
+        provenance_context: Provenance = cast(
+            "Provenance",
+            {
+                "what": "Gaussian filtered data",
+                "by": "gaussian_filter_arr",
+                "sigma": sigma,
+                "use_pixel": use_pixel,
+            },
+        )
         provenance(filtered_arr, arr, provenance_context)
     return filtered_arr
 
@@ -125,12 +127,15 @@ def boxcar_filter_arr(
     filtered_arr = arr.G.with_values(array_values)
     if "id" in arr.attrs:
         del filtered_arr.attrs["id"]
-        provenance_context: Provenance = {
-            "what": "Boxcar filtered data",
-            "by": "boxcar_filter_arr",
-            "size": size,
-            "use_pixel": use_pixel,
-        }
+        provenance_context: Provenance = cast(
+            "Provenance",
+            {
+                "what": "Boxcar filtered data",
+                "by": "boxcar_filter_arr",
+                "size": size,
+                "use_pixel": use_pixel,
+            },
+        )
 
         provenance(filtered_arr, arr, provenance_context)
     return filtered_arr

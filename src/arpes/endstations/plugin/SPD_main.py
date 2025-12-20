@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from logging import DEBUG, INFO
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, cast
 
 import numpy as np
 import xarray as xr
@@ -102,7 +102,7 @@ class SPDEndstation(HemisphericalEndstation, SingleFileEndstation):
         Returns:
             xr.Dataset: pyARPES compatible.
         """
-        scan_desc = scan_desc or {}
+        scan_desc = {} if scan_desc is None else scan_desc
         defaults = {
             "x": np.nan,
             "y": np.nan,
@@ -136,11 +136,14 @@ class SPDEndstation(HemisphericalEndstation, SingleFileEndstation):
         Returns:
             xr.Datast: pyARPES is not compatible at this stage.  (postprocess_final is needed.)
         """
-        scan_desc = scan_desc or {}
-        provenance_context: Provenance = {
-            "what": "Loaded itx dataset",
-            "by": "load_single_frame",
-        }
+        scan_desc = {} if scan_desc is None else scan_desc
+        provenance_context: Provenance = cast(
+            "Provenance",
+            {
+                "what": "Loaded itx dataset",
+                "by": "load_single_frame",
+            },
+        )
 
         logger.debug(f"provenance_context: {provenance_context}")
         file = Path(frame_path)
