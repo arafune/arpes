@@ -208,8 +208,8 @@ class ConvertKp(CoordinateConverter):
         energy_notation = self.arr.S.energy_notation
         hv = self.arr.S.hv
         work_function = self.arr.S.analyzer_work_function
-        hv_ = 0 if energy_notation is EnergyNotation.FINAL else hv
-        self.k_tot = _safe_compute_k_tot(hv_, work_function, binding_energy)
+        hv = 0 if energy_notation is EnergyNotation.FINAL else hv
+        self.k_tot = _safe_compute_k_tot(hv, work_function, binding_energy)
 
     def kspace_to_phi(
         self,

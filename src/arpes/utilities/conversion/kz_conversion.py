@@ -180,15 +180,9 @@ class ConvertKpKz(CoordinateConverter):
         assert self.hv is not None
         if self.arr.S.energy_notation is EnergyNotation.BINDING:
             kinetic_energy = binding_energy + self.hv - self.arr.S.analyzer_work_function
-        elif self.arr.S.energy_notation is EnergyNotation.FINAL:
+        else:  # self.arr.S.energy_notation is EnergyNotation.FINAL:
             kinetic_energy = binding_energy - self.arr.S.analyzer_work_function
-        else:
-            warnings.warn(
-                "Energy notation is not specified. Assume the Binding energy notation",
-                stacklevel=2,
-            )
-            self.arr.S.energy_notation = EnergyNotation.BINDING
-            kinetic_energy = binding_energy + self.hv - self.arr.S.analyzer_work_function
+
         self.phi = np.zeros_like(self.hv)
         _kp_to_polar(
             kinetic_energy,
