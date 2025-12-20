@@ -374,19 +374,8 @@ def convert_coordinates(
             + expand_to("hv", raw_coords["hv"])
             - arr.S.analyzer_work_function
         )
-    elif arr.S.energy_notation.energy_notation is EnergyNotation.FINAL:
+    else:  # arr.S.energy_notation.energy_notation is EnergyNotation.FINAL:
         kinetic_energy = expand_to("eV", raw_coords["eV"]) - arr.S.analyzer_work_function
-    else:
-        warnings.warn(
-            "Energy notation is not specified. Assume the Binding energy notation",
-            stacklevel=2,
-        )
-        arr.S.energy_notation = EnergyNotation.BINDING
-        kinetic_energy = (
-            expand_to("eV", raw_coords["eV"])
-            + expand_to("hv", raw_coords["hv"])
-            - arr.S.analyzer_work_function
-        )
 
     kx, ky, kz = full_angles_to_k(
         kinetic_energy,
