@@ -13,6 +13,10 @@ Contents:
     - infer_spectrum_type_from_dims(dims: tuple[str, ...]) -> SpectrumType:
       Infers the appropriate SpectrumType from a given tuple of dimension names.
 
+    - AngleUnit (Enum): Represents angle units (Degrees, Radians).
+
+    - EnergyNotation (Enum): Represents energy reference points (Binding, Final).
+
 Usage:
     >>> from arpes.analysis.spectrum_types import SpectrumType, infer_spectrum_type_from_dims
     >>> SpectrumType.CUT.ndim
