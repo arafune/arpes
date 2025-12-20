@@ -486,19 +486,6 @@ class ARPESDatasetAccessor(ARPESAccessorBase[xr.Dataset]):
             self.spectrum.S.subtraction_reference_plots(pattern=prefix + "{}.png", **kwargs)
             angle_integrated.S.fermi_edge_reference_plots(pattern=prefix + "{}.png", **kwargs)
 
-    def switch_energy_notation(self, nonlinear_order: int = 1) -> None:
-        """Switch the energy notation between binding and kinetic.
-
-        Args:
-            nonlinear_order (int): order of the nonliniarity, default to 1
-        """
-        super().switch_energy_notation(nonlinear_order=nonlinear_order)
-        for data in self._obj.data_vars.values():
-            if data.S.energy_notation == "Binding":
-                data.attrs["energy_notation"] = "Final"
-            else:
-                data.attrs["energy_notation"] = "Binding"
-
     def switched_angle_unit(self) -> xr.Dataset:
         """Return the identical data but the angle unit is converted.
 
