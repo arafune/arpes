@@ -9,10 +9,10 @@ Primary (X.-.-) version numbers are used to denote backwards
 incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
-5.0.1 (2025-xx-xx)
+5.0.1 (2025-12-20)
 ^^^^^^^^^^^^^^^^^^
 
-* Tidy-up (about docmentaion)
+* Tidy-up (about documentaion)
 
 * Refactoring dark_background & get_colorbar functions in plotting.utils
 
@@ -29,7 +29,7 @@ primarily indicate new features and documentation.
 
 * Internal change
 
-  * xarray_extensions.py is split into several files in xarray_extensions/ directory.
+  * xarray_extensions.py is split into several files in xarray_extensions directory.
 
 5.0.0-per5 (2025-7-19)
 ^^^^^^^^^^^^^^^^^^^^^^^^
