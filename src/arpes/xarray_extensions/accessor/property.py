@@ -24,6 +24,7 @@ from arpes._typing.base import (
     HIGH_SYMMETRY_POINTS,
     DataType,
 )
+from arpes.correction import angle_unit
 from arpes.debug import setup_logger
 from arpes.plotting.utils import fancy_labels, remove_colorbars
 from arpes.utilities.xarray import unwrap_xarray_item
@@ -87,7 +88,7 @@ class ARPESAngleProperty(Generic[DataType]):
         Angle unit should be "Degrees" or "Radians"
 
         Args:
-            angle_unit: ["Degrees", "Radians"]
+            angle_unit: AngleUnit.DEG or AngleUnit.RAD
         """
         self._obj.attrs["angle_unit"] = angle_unit.value
 
@@ -95,6 +96,23 @@ class ARPESAngleProperty(Generic[DataType]):
             for data_var in self._obj.data_vars.values():
                 if "eV" in data_var.dims:
                     data_var.attrs["angle_unit"] = angle_unit.value
+
+    def switched_angle_unit(self) -> DataType:
+        """Return the identical data but the angle unit is converted.
+
+        Change the value of angle related objects/variables in attrs and coords
+
+        Returns:
+            xr.DataArray:The DataArray in which angle units are converted.
+        """
+        return angle_unit.switched_angle_unit(self._obj)
+
+    def switch_angle_unit(self) -> None:
+        """Switch angle unit (radians <-> degrees) in place.
+
+        Change the value of angle related objects/variables in attrs and coords
+        """
+        return angle_unit.switch_angle_unit(self._obj)
 
     def lookup_coord(self, name: str) -> xr.DataArray | float:
         """Return the coordinates, if not return np.nan."""

@@ -1,11 +1,49 @@
 from __future__ import annotations
 
+from enum import Enum
 from typing import TYPE_CHECKING
 
 import numpy as np
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
+
+
+class IgorSetscaleFlag(Enum):
+    """Enum for Igor SetScale flag."""
+
+    INCLUSIVE = "I"
+    PERPOINTS = "P"
+    DEFAULT = ""
+
+    def set_scale(
+        self,
+        num1: float,
+        num2: float,
+        pixels: int,
+    ) -> NDArray[np.float64]:
+        """Return scale array based on the flag."""
+        if self is IgorSetscaleFlag.INCLUSIVE:
+            return np.linspace(
+                num1,
+                num2,
+                num=pixels,
+                dtype=np.float64,
+            )
+        if self is IgorSetscaleFlag.PERPOINTS:
+            return np.linspace(
+                num1,
+                num1 + num2 * pixels - 1,
+                num=pixels,
+                dtype=np.float64,
+            )
+        return np.linspace(
+            num1,
+            num2,
+            num=pixels,
+            dtype=np.float64,
+            endpoint=False,
+        )
 
 
 def parse_setscale(line: str) -> tuple[str, str, float, float, str]:
