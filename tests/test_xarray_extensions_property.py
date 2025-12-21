@@ -186,6 +186,12 @@ class TestAngleUnitForDataset:
         assert dataset_cut.attrs["chi_offset"] == np.rad2deg(-0.10909301748228785)
         assert dataset_cut.S.angle_unit is AngleUnit.DEG
 
+    def test_offset_from_symmetry_point(self, dataset_cut: xr.Dataset) -> None:
+        dataset_cut.attrs["symmetry_points"] = {"G": {"phi": dataset_cut.S.phi_offset + 0.1}}
+        np.testing.assert_allclose(dataset_cut.S.lookup_offset("phi"), 0.505)
+
+        np.testing.assert_allclose(dataset_cut.S.lookup_offset("chi"), dataset_cut.S.chi_offset)
+
     def test_for_is_slit_vertical(self, dataset_cut: xr.Dataset) -> None:
         """Test for is_slit_vertical (Dataset version)."""
         assert dataset_cut.S.is_slit_vertical is False
