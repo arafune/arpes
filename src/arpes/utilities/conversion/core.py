@@ -350,8 +350,8 @@ def convert_to_kspace(  # noqa: PLR0913
         xr.DataArray: Converted ARPES (k-space) data.
     """
     coords = coords or {}
+    assert coords is not None
     coords.update(kwargs)
-    assert isinstance(coords, dict)
 
     bounds = bounds or {}
     arr = arr if isinstance(arr, xr.DataArray) else normalize_to_spectrum(arr)

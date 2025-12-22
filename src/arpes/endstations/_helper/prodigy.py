@@ -23,27 +23,28 @@ class IgorSetscaleFlag(Enum):
         pixels: int,
     ) -> NDArray[np.float64]:
         """Return scale array based on the flag."""
-        if self is IgorSetscaleFlag.INCLUSIVE:
-            return np.linspace(
+        scale_map = {
+            IgorSetscaleFlag.INCLUSIVE: lambda: np.linspace(
                 num1,
                 num2,
                 num=pixels,
                 dtype=np.float64,
-            )
-        if self is IgorSetscaleFlag.PERPOINTS:
-            return np.linspace(
+            ),
+            IgorSetscaleFlag.PERPOINTS: lambda: np.linspace(
                 num1,
                 num1 + num2 * pixels - 1,
                 num=pixels,
                 dtype=np.float64,
-            )
-        return np.linspace(
-            num1,
-            num2,
-            num=pixels,
-            dtype=np.float64,
-            endpoint=False,
-        )
+            ),
+            IgorSetscaleFlag.DEFAULT: lambda: np.linspace(
+                num1,
+                num2,
+                num=pixels,
+                dtype=np.float64,
+                endpoint=False,
+            ),
+        }
+        return scale_map[self]()
 
 
 def parse_setscale(line: str) -> tuple[str, str, float, float, str]:

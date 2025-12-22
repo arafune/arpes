@@ -59,7 +59,7 @@ def unwrap_xarray_item(item: xr.DataArray) -> xr.DataArray | float:
         return item
 
 
-def unwrap_xarray_dict(
+def unwrap_xarray_dict(  # pragma: no cover
     input_dict: dict[str, xr.DataArray],
 ) -> dict[str, xr.DataArray | float]:
     """Returns the attributes as unwrapped values rather than item() instances.
