@@ -6,7 +6,6 @@ from scipy.interpolate import RegularGridInterpolator
 from arpes.utilities.conversion.core import (
     convert_to_kspace,
     grid_interpolator_from_dataarray,
-    slice_along_path,
 )
 
 # FILE: tests/test_core.py
@@ -36,13 +35,6 @@ def test_grid_interpolator_from_dataarray_nearest(sample_dataarray: xr.DataArray
 def test_grid_interpolator_from_dataarray_invalid_method(sample_dataarray: xr.DataArray) -> None:
     with pytest.raises(ValueError):
         grid_interpolator_from_dataarray(sample_dataarray, method="invalid")
-
-
-@pytest.mark.skip
-def test_slice_along_path(sample_dataarray: xr.DataArray) -> None:
-    path = [{"x": 0, "y": 0}, {"x": 9, "y": 9}]
-    result = slice_along_path(sample_dataarray, path)
-    assert isinstance(result, xr.Dataset)
 
 
 def test_convert_to_kspace(sample_dataarray: xr.DataArray) -> None:

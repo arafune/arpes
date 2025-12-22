@@ -12,11 +12,12 @@ import xarray as xr
 from matplotlib.axes import Axes
 from mpl_toolkits.mplot3d import Axes3D
 
+from arpes.analysis.path import slice_along_path
 from arpes.io import load_data
 from arpes.preparation import normalize_dim
 from arpes.provenance import save_plot_provenance
 from arpes.utilities import bz
-from arpes.utilities.conversion import remap_coords_to, slice_along_path
+from arpes.utilities.conversion import remap_coords_to
 
 from .utils import label_for_colorbar, label_for_dim, label_for_symmetry_point, path_for_plot
 
