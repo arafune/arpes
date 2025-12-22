@@ -168,13 +168,13 @@ class ProdigyItx:
                 axis_info=self.axis_info["z"],
                 pixels=self.pixels[2],
             )
-            dims = ["cycle", *dims]
+            dims.append("cycle")
         if "w" in self.axis_info:
             coords["ch2"] = create_coords(
                 axis_info=self.axis_info["w"],
                 pixels=self.pixels[3],
             )
-            dims = ["ch2", *dims]
+            dims.append("ch2")
 
         attrs = {**common_attrs, **self.params}
         if "y" in self.axis_info:
