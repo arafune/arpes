@@ -9,9 +9,9 @@ import xarray as xr
 from lmfit.models import LinearModel, LorentzianModel
 from sklearn.decomposition import PCA
 
+from arpes.analysis.path import slice_along_path
 from arpes.provenance import update_provenance
 from arpes.utilities import normalize_to_spectrum
-from arpes.utilities.conversion import slice_along_path
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Hashable
