@@ -72,8 +72,10 @@ class FallbackEndstation(EndstationBase):
                 endstation_cls = resolve_endstation(retry=False, location=location)
                 if endstation_cls.is_file_accepted(file):
                     return endstation_cls
-            except BaseException:
-                logger.exception("Exception occurs.")
+            except Exception as exc:  # noqa : BLE001
+                # Fallback loader: any plugin-related failure should be ignored
+                # and the next candidate tried.
+                logger.debug(f"Could not resolve endstation for {location}: {exc}")
 
         msg = f"PyARPES failed to find a plugin acceptable for {file}."
         raise ValueError(msg)
