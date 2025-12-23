@@ -19,11 +19,13 @@ __all__ = [
     "d2_along_axis",
     "deconvolve_ice",
     "deconvolve_rl",
+    "delaytime_fs",
     "determine_broadened_fermi_distribution",
     "dn_along_axis",
     "edcs_along_pocket",
     "estimate_bare_band",
     "factor_analysis_along",
+    "find_t_for_max_intensity",
     "fit_bands",
     "fit_fermi_edge",
     "fit_for_effective_mass",
@@ -39,6 +41,7 @@ __all__ = [
     "pca_along",
     "pocket_parameters",
     "polys_to_mask",
+    "position_mm_to_delaytime_fs",
     "quasiparticle_lifetime",
     "radial_edcs_along_pocket",
     "raw_poly_to_mask",
@@ -93,7 +96,13 @@ if TYPE_CHECKING:
         quasiparticle_lifetime,
         to_self_energy,
     )
-    from .tarpes import build_crosscorrelation, relative_change
+    from .tarpes import (
+        build_crosscorrelation,
+        delaytime_fs,
+        find_t_for_max_intensity,
+        position_mm_to_delaytime_fs,
+        relative_change,
+    )
     from .xps import approximate_core_levels
 
 
@@ -155,6 +164,9 @@ def __getattr__(name: str) -> Any:  # noqa: ANN401
         "build_crosscorrelation": "arpes.analysis.tarpes",
         "relative_change": "arpes.analysis.tarpes",
         "approximate_core_levels": "arpes.analysis.xps",
+        "find_t_for_max_intensity": "arpes.analysis.tarpes",
+        "delaytime_fs": "arpes.analysis.tarpes",
+        "position_mm_to_delaytime_fs": "arpes.analysis.tarpes",
     }
 
     module_name = _module_map[name]
