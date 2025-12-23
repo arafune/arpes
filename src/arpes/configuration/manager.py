@@ -83,6 +83,9 @@ class ConfigManager:
 
     def load_local_config(self, module_name: str = "local_config") -> None:
         """Optionally loads a local configuration module."""
+        logger.debug(f"Attempting to load local config module: {module_name}")
+        logger.debug(f"sys.path: {sys.path}")
+        logger.debug(f"Path.cwd: {Path.cwd()}")
         spec = importlib.util.find_spec(module_name)
         if spec is None:
             msg = f"Could not find {module_name}. "

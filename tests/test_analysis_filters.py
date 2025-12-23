@@ -1,8 +1,9 @@
-import numpy as np
+import numpy as np  # noqa: D100
 import pytest
 import xarray as xr
 
-from src.arpes.analysis.filters import boxcar_filter_arr, savgol_filter_multi, savitzky_golay_filter
+import arpes.xarray_extensions
+from arpes.analysis.filters import boxcar_filter_arr, savgol_filter_multi, savitzky_golay_filter
 
 
 @pytest.fixture
@@ -22,6 +23,14 @@ def test_savgol_filter_multi(sample_data: xr.DataArray):
     result = savgol_filter_multi(sample_data, axis_params={"x": (1, 0), "y": (4, 1)})
     assert isinstance(result, xr.DataArray)
     assert result.shape == sample_data.shape
+
+
+def test_savgol_filter_multi_invalid_axis_raises(sample_data: xr.DataArray):
+    with pytest.raises(ValueError, match="Axis 'not_exist' not found in DataArray dimensions"):
+        savgol_filter_multi(
+            sample_data,
+            axis_params={"not_exist": (5, 2)},
+        )
 
 
 def test_boxcar_filter_arr_with_pixel_units(sample_data: xr.DataArray):

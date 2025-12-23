@@ -41,7 +41,7 @@ def deconvolve_ice(
     psf: NDArray[np.float64],
     n_iterations: int = 5,
     deg: int | None = None,
-) -> xr.DataArray | NDArray[np.float64]:
+) -> xr.DataArray:
     """Deconvolves data by a given point spread function (PSF).
 
     The iterative convolution extrapolation method is used.
@@ -177,11 +177,12 @@ def make_psf(
             (pixels[str(k)] - 1) / 2 * strides[str(k)],
             pixels[str(k)],
         )
-    if LOGLEVEL == DEBUG:
-        for k, v in psf_coords.items():
-            logger.debug(
-                f" psf_coords[{k}]: ±{np.max(v):.3f}",
-            )
+    for k, v in psf_coords.items():
+        logger.debug(
+            "psf_coords[%s]: ±%.3f",
+            k,
+            np.max(v),
+        )
     coords = np.meshgrid(*[psf_coords[dim] for dim in data.dims], indexing="ij")
     coords_for_pdf_pos = np.stack(coords, axis=-1)  # point distribution function (pdf)
     logger.debug(f"shape of coords_for_pdf_pos: {coords_for_pdf_pos.shape}")
