@@ -4,8 +4,8 @@
 import os
 import sys
 
-sys.path.append(os.path.abspath("../src/arpes"))
-sys.path.append(os.path.abspath(".."))
+#sys.path.append(os.path.abspath("../src/arpes"))
+#sys.path.append(os.path.abspath(".."))
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -112,7 +112,9 @@ napoleon_use_rtype = True
 # nbsphinx settings
 nbsphinx_timeout = 600
 
-nbsphinx_execute = "never" if os.getenv("READTHEDOCS") else "always"
+nbsphinx_execute = "always"
+
+nbsphinx_allow_errors = False
 
 
 autosummary_generate = True
