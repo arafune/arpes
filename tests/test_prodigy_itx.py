@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 import xarray as xr
 
+from arpes.endstations._helper.prodigy import IgorSetscaleFlag
 from arpes.endstations.prodigy_itx import ProdigyItx
 
 data_dir = Path(__file__).parent.parent / "src" / "arpes" / "example_data"
@@ -27,7 +28,12 @@ class TestItx:
         workfunction_analyzer = 4.401
         assert sample_itx.params["WorkFunction"] == workfunction_analyzer
         assert sample_itx.pixels == (600, 501)
-        assert sample_itx.axis_info["x"] == ("I", -12.4792, 12.4792, "deg (theta_y)")
+        assert sample_itx.axis_info["x"] == (
+            IgorSetscaleFlag.INCLUSIVE,
+            -12.4792,
+            12.4792,
+            "deg (theta_y)",
+        )
 
     def test_integrated_intensity(self, sample_itx: ProdigyItx) -> None:
         """Test for integrated_intensity property."""

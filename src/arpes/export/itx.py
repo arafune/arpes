@@ -12,7 +12,6 @@ import numpy as np
 import xarray as xr
 
 from arpes.debug import setup_logger
-from arpes.endstations._helper.prodigy import as_angle
 
 LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
@@ -74,7 +73,6 @@ def export_itx(
 def convert_itx_format(
     arr: xr.DataArray,
     *,
-    keep_degree: bool = False,
     add_notes: bool = False,
 ) -> str:
     """Export pyarpes spectrum data to itx file.
@@ -101,9 +99,9 @@ def convert_itx_format(
 
     assert isinstance(arr, xr.DataArray)
     if "User Comment" in arr.attrs:
-        arr.attrs["User Comment"] += ";" + _user_comment_from_attrs(arr, keep_degree=keep_degree)
+        arr.attrs["User Comment"] += ";" + _user_comment_from_attrs(arr)
     else:
-        arr.attrs["User Comment"] = _user_comment_from_attrs(arr, keep_degree=keep_degree)
+        arr.attrs["User Comment"] = _user_comment_from_attrs(arr)
     start_energy: float = arr.indexes["eV"][0]
     step_energy: float = arr.indexes["eV"][1] - arr.indexes["eV"][0]
     end_energy: float = arr.indexes["eV"][-1]
@@ -127,8 +125,8 @@ def convert_itx_format(
     for a_intensities in intensities_list:
         itx_str += " ".join(map(str, a_intensities)) + "\n"
     itx_str += "END\n"
-    start_phi_deg: float = as_angle(arr.indexes["phi"][0], keep_degree=keep_degree)  # type: ignore[call-arg]
-    end_phi_deg: float = as_angle(arr.indexes["phi"][-1], keep_degree=keep_degree)  # type: ignore[call-arg]
+    start_phi_deg: float = arr.indexes["phi"][0]
+    end_phi_deg: float = arr.indexes["phi"][-1]
     itx_str += (
         f"""X SetScale/I x, {start_phi_deg}, {end_phi_deg}, "deg (theta_y)", '{wavename}'\n"""
     )
@@ -153,8 +151,6 @@ def convert_itx_format(
 
 def _user_comment_from_attrs(
     dataarray: xr.DataArray,
-    *,
-    keep_degree: bool,
 ) -> str:
     key_pos: set[str] = {"x", "y", "z"}
     key_angle: set[str] = {"beta", "chi", "psi"}
@@ -164,7 +160,7 @@ def _user_comment_from_attrs(
             logger.debug(f"key: {key}, value: {type(value)} ")
             user_comment += str(key) + ":" + f"{value}" + ";"
         if key in key_angle:
-            user_comment += str(key) + ":" + f"{as_angle(value, keep_degree=keep_degree)}"
+            user_comment += str(key) + ":" + f"{value}"
     return user_comment
 
 

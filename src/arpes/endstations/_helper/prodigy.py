@@ -32,7 +32,7 @@ class IgorSetscaleFlag(Enum):
             ),
             IgorSetscaleFlag.PERPOINTS: lambda: np.linspace(
                 num1,
-                num1 + num2 * pixels - 1,
+                num1 + num2 * (pixels - 1),
                 num=pixels,
                 dtype=np.float64,
             ),
@@ -47,28 +47,36 @@ class IgorSetscaleFlag(Enum):
         return scale_map[self]()
 
 
-def parse_setscale(line: str) -> tuple[str, str, float, float, str]:
+def parse_setscale(
+    line: str,
+) -> tuple[
+    IgorSetscaleFlag,
+    str,
+    float,
+    float,
+    str,
+]:
     """Parse setscale.
 
     Args:
         line(str): line should start with "X SetScale"
 
     Returns:
-        tuple[str, str, float, float, str]
+        tuple[IgorSetscaleFlag, str, float, float, str]
     """
     assert "SetScale" in line
-    flag: str
+    flag: IgorSetscaleFlag
     dim: str
     num1: float
     num2: float
     unit: str
     setscale = line.split(",", maxsplit=5)
     if "/I" in setscale[0]:
-        flag = "I"
+        flag = IgorSetscaleFlag.INCLUSIVE
     elif "/P" in line:
-        flag = "P"
+        flag = IgorSetscaleFlag.PERPOINTS
     else:
-        flag = ""
+        flag = IgorSetscaleFlag.DEFAULT
     dim = setscale[0][-1]
     if dim not in {"x", "y", "z", "d", "t"}:
         msg = "Dimension is not correct"
@@ -77,27 +85,6 @@ def parse_setscale(line: str) -> tuple[str, str, float, float, str]:
     num1 = float(setscale[1])
     num2 = float(setscale[2])
     return (flag, dim, num1, num2, unit)
-
-
-def angle_unit_to_rad(params: dict[str, str | float]) -> dict[str, str | float]:
-    """Correct unit angle from degrees to radians in params object.
-
-    Just a helper function.
-    """
-    for angle in ("beta", "chi", "theta", "psi", "phi"):
-        if angle in params:
-            params[angle] = np.deg2rad(params[angle])
-        if angle + "_offset" in params:
-            params[angle + "_offset"] = np.deg2rad(params[angle + "_offset"])
-    return params
-
-
-def as_angle(
-    angle: NDArray[np.float64],
-    *,
-    keep_degree: bool = False,
-) -> NDArray[np.float64]:
-    return angle if keep_degree else np.deg2rad(angle)
 
 
 def correct_angle_region(

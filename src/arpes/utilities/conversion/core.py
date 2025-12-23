@@ -183,7 +183,7 @@ def convert_to_kspace(  # noqa: PLR0913
     Returns:
         xr.DataArray: Converted ARPES (k-space) data.
     """
-    coords = coords or {}
+    coords = {} if coords is None else coords
     assert coords is not None
     coords.update(kwargs)
 

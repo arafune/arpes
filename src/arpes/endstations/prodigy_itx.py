@@ -10,9 +10,6 @@ Main components:
 - `load_itx`, `export_itx`: Functions to load or save single/multiple ITX spectra.
 - Internal utilities for header parsing, unit correction, and metadata integration.
 
-The output format is compatible with pyARPES, using physical units (e.g. radians),
-and attaches metadata as `attrs` in `xarray` structures.
-
 Typical usage:
     arr = load_itx("example.itx")
     export_itx("out.itx", arr)
@@ -29,7 +26,7 @@ import xarray as xr
 
 from arpes.constants import TWO_DIMENSION
 from arpes.debug import setup_logger
-from arpes.endstations._helper.prodigy import angle_unit_to_rad, as_angle, parse_setscale
+from arpes.endstations._helper.prodigy import IgorSetscaleFlag, parse_setscale
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
@@ -51,7 +48,7 @@ class ProdigyItx:
     Attributes:
         params(dict[str, str | int float]): Measurement Parameters
         pixels(tuple[int, int]): The number of the pixcels of the intensity map.
-        axis_info(dict[str, tuple[str, float, float, str]]): Information of axis
+        axis_info(dict[str, tuple[IgorSetscaleFlag, float, float, str]]): Information of axis
         wavename(str): The name of wave
         intensity(list[list[float]]): Phtoemission intensity
     """
@@ -60,7 +57,7 @@ class ProdigyItx:
         """Initialize."""
         self.params: dict[str, str | float] = {}
         self.pixels: tuple[int, ...]
-        self.axis_info: dict[str, tuple[str, float, float, str]] = {}
+        self.axis_info: dict[str, tuple[IgorSetscaleFlag, float, float, str]] = {}
         self.wavename: str = ""
         self.intensity: NDArray[np.float64]
         if list_style_itx_data is not None:
@@ -101,15 +98,11 @@ class ProdigyItx:
 
     def to_dataarray(
         self,
-        *,
-        keep_degree: bool = False,
         **kwargs: str | float,
     ) -> xr.DataArray:
         """Export to Xarray.
 
         Args:
-            keep_degree(bool): if True, keep the unit of angle axis(degree).
-                Default to False (convert to radian).
             **kwargs(str | float): Extra arguments. Forward to the attrs of the output xarray.
 
         Returns:
@@ -117,39 +110,28 @@ class ProdigyItx:
         """
 
         def create_coords(
-            axis_info: tuple[str, float, float, str],
+            axis_info: tuple[IgorSetscaleFlag, float, float, str],
             pixels: int,
         ) -> NDArray[np.float64]:
             """Create coordinate array from the axis_info."""
-            assert axis_info[0] in {"I", "P"}
-            if axis_info[0] == "I":
-                return np.linspace(
-                    float(axis_info[1]),
-                    float(axis_info[2]),
-                    num=pixels,
-                    dtype=np.float64,
-                )
-            return np.linspace(
-                float(axis_info[1]),
-                float(axis_info[1]) + float(axis_info[2]) * (pixels - 1),
-                num=pixels,
-                dtype=np.float64,
+            flag, start, delta_or_end, _ = axis_info
+            return flag.set_scale(
+                num1=float(start),
+                num2=float(delta_or_end),
+                pixels=pixels,
             )
 
         common_attrs: dict[str, str | float] = {
             "spectrum_type": "cut",
-            "angle_unit": "rad (theta_y)",
+            "angle_unit": "deg (theta_y)",
         }
         coords: dict[str, NDArray[np.float64]] = {}
         dims: list[str] = []
         # set angle axis
         if "x" in self.axis_info:
-            coords["phi"] = as_angle(
-                create_coords(
-                    axis_info=self.axis_info["x"],
-                    pixels=self.pixels[0],
-                ),
-                keep_degree=keep_degree,
+            coords["phi"] = create_coords(
+                axis_info=self.axis_info["x"],
+                pixels=self.pixels[0],
             )
             dims.append("phi")
         if "y" in self.axis_info:
@@ -176,7 +158,6 @@ class ProdigyItx:
             attrs["enegy_unit"] = self.axis_info["y"][3]
         if "d" in self.axis_info:
             attrs["count_unit"] = self.axis_info["d"][3]
-        attrs = angle_unit_to_rad(attrs)
         logger.debug(f"dims: {dims}")
         data_array = xr.DataArray(
             data=self.intensity.reshape(_pixel_to_shape(self.pixels)),
@@ -205,15 +186,12 @@ def _pixel_to_shape(pixel: tuple[int, ...]) -> tuple[int, ...]:
 
 def load_itx(
     path_to_file: Path | str,
-    *,
-    keep_degree: bool = False,
     **kwargs: str | float,
 ) -> xr.DataArray | list[xr.DataArray]:
     """Load and parse the itx data.
 
     Args:
         path_to_file (Path | str): Path to itx file.
-        keep_degree (bool): if True, keep the unit of angle axis(degree).
         kwargs (str | int | float): Treated as attrs
 
     Returns:
@@ -240,10 +218,7 @@ def load_itx(
         itx_data = list(map(str.rstrip, itx_data))
         if itx_data.count("BEGIN") == 1:
             prodigy_itx = ProdigyItx(itx_data)
-            return prodigy_itx.to_dataarray(
-                keep_degree=keep_degree,
-                **kwargs,
-            )
+            return prodigy_itx.to_dataarray(**kwargs)
         end_index_list = [*find_indices(itx_data, ""), -1]
         slice_list = []
         for i in range(len(end_index_list)):
@@ -253,10 +228,7 @@ def load_itx(
                 slice_list.append(slice(end_index_list[i - 1], end_index_list[i]))
         multi_itx_data = []
         for sl in slice_list:
-            a_itx_data = ProdigyItx(itx_data[sl]).to_dataarray(
-                keep_degree=keep_degree,
-                **kwargs,
-            )
+            a_itx_data = ProdigyItx(itx_data[sl]).to_dataarray(**kwargs)
             multi_itx_data.append(a_itx_data)
         return multi_itx_data
 

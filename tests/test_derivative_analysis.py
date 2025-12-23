@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pytest
 
+import arpes.xarray_extensions  # noqa: F401
 from arpes.analysis import (
     curvature1d,
     curvature2d,
@@ -69,16 +70,16 @@ class TestCurvature:
             curvature1d_.S.fat_sel(phi=0).values[:10],
             np.array(
                 [
-                    7.07724847e-06,
-                    1.06370106e-05,
-                    1.42062982e-05,
-                    1.41170512e-05,
-                    1.37150185e-05,
-                    1.28095565e-05,
-                    1.12204529e-05,
-                    8.80671096e-06,
-                    5.49241186e-06,
-                    1.28644325e-06,
+                    7.67748744e-06,
+                    1.15478339e-05,
+                    1.54454883e-05,
+                    1.53771677e-05,
+                    1.49487128e-05,
+                    1.39339501e-05,
+                    1.21205324e-05,
+                    9.34471491e-06,
+                    5.52249250e-06,
+                    6.73175422e-07,
                 ],
             ),
         )
@@ -86,7 +87,11 @@ class TestCurvature:
     def test_curvature2d(self, dataarray_cut2: xr.DataArray) -> None:
         """Test for curvature2d."""
         curvature2d_ = curvature2d(
-            gaussian_filter_arr(arr=dataarray_cut2, sigma={"eV": 0.01, "phi": 0.01}, iteration_n=5),
+            gaussian_filter_arr(
+                arr=dataarray_cut2,
+                sigma={"eV": 0.01, "phi": 0.5},
+                iteration_n=5,
+            ),
             dims=("phi", "eV"),
             alpha=0.1,
         )
@@ -95,40 +100,42 @@ class TestCurvature:
             curvature2d_.S.fat_sel(phi=0).values[:10],
             np.array(
                 [
-                    0.09261529,
-                    -0.04079264,
-                    -0.13616132,
-                    -0.04837879,
-                    0.05987709,
-                    0.1819472,
-                    0.31050261,
-                    0.43807027,
-                    0.55754661,
-                    0.66265751,
+                    0.00733302,
+                    0.00256763,
+                    -0.00067419,
+                    0.002817,
+                    0.00709423,
+                    0.01187314,
+                    0.01684305,
+                    0.02169049,
+                    0.02612197,
+                    0.02988408,
                 ],
             ),
+            rtol=1e-5,
         )
 
     def test_minimum_gradient(self, dataarray_cut2: xr.DataArray) -> None:
         """Test for minimum_gradient."""
         minimum_gradient_ = minimum_gradient(
-            gaussian_filter_arr(arr=dataarray_cut2, sigma={"eV": 0.01, "phi": 0.01}, iteration_n=3),
+            gaussian_filter_arr(arr=dataarray_cut2, sigma={"eV": 0.01, "phi": 1.0}, iteration_n=3),
         )
         assert minimum_gradient_.S.is_differentiated
         np.testing.assert_allclose(
             minimum_gradient_.S.fat_sel(phi=0).values[:10],
             np.array(
                 [
-                    102.15697879,
-                    82.68220469,
-                    81.397849,
-                    80.1135804,
-                    79.26103613,
-                    79.13139342,
-                    79.8569153,
-                    81.4094856,
-                    83.58925389,
-                    86.02784453,
+                    112.05062133,
+                    90.80459471,
+                    89.49275982,
+                    87.99979717,
+                    86.68187383,
+                    85.80900488,
+                    85.53816062,
+                    85.91798979,
+                    86.90138614,
+                    88.35749916,
                 ],
             ),
+            rtol=1e-5,
         )

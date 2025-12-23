@@ -8,6 +8,7 @@ import xarray as xr
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
+import arpes.xarray_extensions  # noqa: F401
 from arpes.plotting import stack_plot
 from arpes.plotting.stack_plot import (
     flat_stack_plot,
@@ -32,13 +33,7 @@ class TestHelperFunction:
         np.testing.assert_allclose(
             ys0[:5],
             np.array(
-                [
-                    -9.82091280e-02,
-                    -1.56042628e-01,
-                    -1.45321028e-01,
-                    -1.69142328e-01,
-                    -1.16088128e-01,
-                ],
+                [-12.359606, -12.4174395, -12.4067179, -12.4305392, -12.377485],
             ),
         )
         ys1 = stack_plot._y_shifted(
@@ -49,7 +44,7 @@ class TestHelperFunction:
         )
         np.testing.assert_allclose(
             ys1[:5],
-            np.array([-0.21780313, -0.27563663, -0.26491503, -0.28873633, -0.23568213]),
+            np.array([-12.4792, -12.5370335, -12.5263119, -12.5501332, -12.497079]),
         )
 
     def test__rebinning(self, dataarray_cut2: xr.DataArray) -> None:
@@ -81,26 +76,38 @@ class TestHelperFunction:
     def test__scale_factor(self, dataarray_cut2: xr.DataArray) -> None:
         """Test for helperfuncsion, _scale_factor."""
         scale_factor = stack_plot._scale_factor(dataarray_cut2, "phi")
-        np.testing.assert_allclose(scale_factor, 0.19045560735480058)
+        np.testing.assert_allclose(scale_factor, np.rad2deg(0.19045560735480058))
         np.testing.assert_allclose(
-            stack_plot._scale_factor(dataarray_cut2, "phi", offset_correction="constant"),
-            desired=0.19896425702750428,
+            stack_plot._scale_factor(
+                dataarray_cut2,
+                "phi",
+                offset_correction="constant",
+            ),
+            desired=np.rad2deg(0.19896425702750428),
         )
         np.testing.assert_allclose(
-            stack_plot._scale_factor(dataarray_cut2, "phi", offset_correction="constant_right"),
-            desired=0.19896425702750428,
+            stack_plot._scale_factor(
+                dataarray_cut2,
+                "phi",
+                offset_correction="constant_right",
+            ),
+            desired=np.rad2deg(0.19896425702750428),
         )
 
         np.testing.assert_allclose(
-            stack_plot._scale_factor(dataarray_cut2, "phi", offset_correction=None),
-            desired=0.19184807723402728,
+            stack_plot._scale_factor(
+                dataarray_cut2,
+                "phi",
+                offset_correction=None,
+            ),
+            desired=np.rad2deg(0.19184807723402728),
         )
 
 
 class TestStackDispersionPlot:
     """Test class for stack_dispersion_plot."""
 
-    def test_statck_dispersion_plot_1(self, dataarray_cut2: xr.DataArray) -> None:
+    def test_stack_dispersion_plot_1(self, dataarray_cut2: xr.DataArray) -> None:
         """Test for stack_dispersion_plot.
 
         Todo:
@@ -118,7 +125,7 @@ class TestStackDispersionPlot:
         )
         assert ax.get_title() == "2PPE Xe/Au(111)"
 
-    def test_statck_dispersion_plot_2(self, dataarray_cut2: xr.DataArray) -> None:
+    def test_stack_dispersion_plot_2(self, dataarray_cut2: xr.DataArray) -> None:
         """Test for stack_dispersion_plot.
 
         with fill_between_mode.
@@ -139,18 +146,30 @@ class TestStackDispersionPlot:
         paths = ax.collections
         np.testing.assert_allclose(
             paths[0].get_paths()[0].vertices[:3],
-            np.array([[9.0, 0.19602282], [9.0, 0.19632079], [9.002, 0.19634603]]),
+            np.array(
+                [
+                    [9.0, np.rad2deg(0.19602282)],
+                    [9.0, np.rad2deg(0.19632079)],
+                    [9.002, np.rad2deg(0.19634603)],
+                ]
+            ),
         )
         np.testing.assert_allclose(
             actual=paths[-1].get_paths()[0].vertices[:3],
-            desired=np.array([[9.0, -0.19602282], [9.0, -0.19578132], [9.002, -0.19573485]]),
+            desired=np.array(
+                [
+                    [9.0, np.rad2deg(-0.19602282)],
+                    [9.0, np.rad2deg(-0.19578132)],
+                    [9.002, np.rad2deg(-0.19573485)],
+                ],
+            ),
         )
         xmin, xmax = ax.get_xlim()
         assert xmin == 8.95
         assert xmax == 10.05
         ymin, ymax = ax.get_ylim()
-        assert ymin == -0.2157909190282624
-        assert ymax == 0.21910736470983783
+        np.testing.assert_allclose(ymin, -12.363908917090033)
+        np.testing.assert_allclose(ymax, 12.55392725889067)
 
 
 class TestFlatStackPlot:

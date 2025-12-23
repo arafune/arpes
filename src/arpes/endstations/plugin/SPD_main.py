@@ -82,7 +82,7 @@ class SPDEndstation(HemisphericalEndstation, SingleFileEndstation):
         "perpendicular_deflectors": False,
         "analyzer_radius": 100,
         "analyzer_type": "hemispherical",
-        "alpha": np.pi / 2,
+        "alpha": 90,
         "chi": 0,
         "theta": 0,
         "psi": 0,
@@ -110,7 +110,7 @@ class SPDEndstation(HemisphericalEndstation, SingleFileEndstation):
             "theta": 0,
             "beta": 0,
             "chi": 0,
-            "alpha": np.pi / 2,
+            "alpha": 90,
             "hv": np.nan,
             "energy_notation": "Final",
         }
@@ -150,7 +150,6 @@ class SPDEndstation(HemisphericalEndstation, SingleFileEndstation):
         if file.suffix == ".itx":
             data = load_itx(
                 frame_path,
-                keep_degree=False,
                 **kwargs,
             )
             if not isinstance(data, list):
@@ -178,7 +177,6 @@ class SPDEndstation(HemisphericalEndstation, SingleFileEndstation):
         if file.suffix == ".sp2":
             data = load_sp2(
                 frame_path,
-                keep_degree=False,
                 **kwargs,
             )
             dataset = xr.Dataset({"spectrum": data}, attrs=data.attrs)

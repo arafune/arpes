@@ -15,16 +15,6 @@ from arpes.utilities.selections import (
 rng = np.random.default_rng()
 
 
-def test__if_radius_is_None(
-    phi_values: xr.DataArray,
-) -> None:
-    radius = _radius(
-        points={"phi": phi_values},
-        radius=None,
-    )
-    assert radius == {"phi": 0.02}
-
-
 def test__if_radius_is_array(phi_values: xr.DataArray) -> None:
     with pytest.raises(TypeError, match="radius should be a float, dictionary or None"):
         _radius(

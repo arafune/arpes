@@ -537,14 +537,16 @@ class TestShiftCoords:
         assert dataarray_cut2.attrs["phi_offset"] == 0
         np.testing.assert_array_almost_equal(
             dataarray_cut2.coords["phi"].values[:5],
-            np.array(
-                [
-                    -0.22325728,
-                    -0.22253006,
-                    -0.22180284,
-                    -0.22107561,
-                    -0.22034839,
-                ],
+            np.rad2deg(
+                np.array(
+                    [
+                        -0.22325728,
+                        -0.22253006,
+                        -0.22180284,
+                        -0.22107561,
+                        -0.22034839,
+                    ],
+                ),
             ),
         )
 
@@ -552,14 +554,16 @@ class TestShiftCoords:
         assert dataarray_cut2.attrs["beta"] == 0
         np.testing.assert_array_almost_equal(
             dataarray_cut2.coords["phi"].values[:5],
-            np.array(
-                [
-                    -0.27561716,
-                    -0.27488994,
-                    -0.27416271,
-                    -0.27343549,
-                    -0.27270827,
-                ],
+            np.rad2deg(
+                np.array(
+                    [
+                        -0.27561716,
+                        -0.27488994,
+                        -0.27416271,
+                        -0.27343549,
+                        -0.27270827,
+                    ],
+                ),
             ),
         )
 
