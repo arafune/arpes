@@ -128,31 +128,21 @@ class ProdigyItx:
         coords: dict[str, NDArray[np.float64]] = {}
         dims: list[str] = []
         # set angle axis
-        if "x" in self.axis_info:
-            coords["phi"] = create_coords(
-                axis_info=self.axis_info["x"],
-                pixels=self.pixels[0],
-            )
-            dims.append("phi")
-        if "y" in self.axis_info:
-            coords["eV"] = create_coords(
-                axis_info=self.axis_info["y"],
-                pixels=self.pixels[1],
-            )
-            dims.append("eV")
-        if "z" in self.axis_info:
-            coords["cycle"] = create_coords(
-                axis_info=self.axis_info["z"],
-                pixels=self.pixels[2],
-            )
-            dims.append("cycle")
-        if "w" in self.axis_info:
-            coords["ch2"] = create_coords(
-                axis_info=self.axis_info["w"],
-                pixels=self.pixels[3],
-            )
-            dims.append("ch2")
 
+        axis_defs = {
+            "x": ("phi", 0),
+            "y": ("eV", 1),
+            "z": ("cycle", 2),
+            "w": ("ch2", 3),
+        }
+
+        for key, (coord, pix) in axis_defs.items():
+            if key in self.axis_info:
+                coords[coord] = create_coords(
+                    axis_info=self.axis_info[key],
+                    pixels=self.pixels[pix],
+                )
+                dims.append(coord)
         attrs = {**common_attrs, **self.params}
         if "y" in self.axis_info:
             attrs["enegy_unit"] = self.axis_info["y"][3]
