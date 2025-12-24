@@ -68,8 +68,9 @@ otherwise recorded by default.
 Units
 ~~~~~
 
-Spatial and angular coordinates are reported in millimeters and radians
-respectively. Temperatures are everywhere recorded in Kelvin. Relative
+Spatial coordinates are reported in millimeters. Angular coordinates are reported in radians or degrees.
+(Radians is the default unit, due to the historical reason.)  Within a single Dataset/DataArray, the angular units must be consistent.
+Temperatures are everywhere recorded in Kelvin. Relative
 times are reported in seconds. Currents are recorded in nanoamp unit.
 Pressures are recorded in torr. Potentials are recorded in volts. Laser
 pulse durations and other pump-probe quantities are reported in

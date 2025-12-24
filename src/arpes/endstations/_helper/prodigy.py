@@ -73,7 +73,7 @@ def parse_setscale(
     setscale = line.split(",", maxsplit=5)
     if "/I" in setscale[0]:
         flag = IgorSetscaleFlag.INCLUSIVE
-    elif "/P" in line:
+    elif "/P" in setscale[0]:
         flag = IgorSetscaleFlag.PERPOINTS
     else:
         flag = IgorSetscaleFlag.DEFAULT
