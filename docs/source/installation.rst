@@ -49,7 +49,7 @@ Additional Suggested Steps
 1. Install and configure standard tools like
    `Jupyter <https://jupyter.org/>`__ or `Jupyter Lab <https://jupyterlab.readthedocs.io/en/latest>`__. 
 2. Explore the documentation and example notebooks at 
-   `the documentation site <https://arpes-v4.readthedocs.io/en/daredevil/>`__.
+   `the documentation site <https://arpes-corrected.readthedocs.io/en/latest/>`__.
 
 Barebones kernel installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
