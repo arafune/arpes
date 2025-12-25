@@ -108,19 +108,6 @@ class ProdigyItx:
         Returns:
             xr.DataArray: pyarpess compatibility
         """
-
-        def create_coords(
-            axis_info: tuple[IgorSetscaleFlag, float, float, str],
-            pixels: int,
-        ) -> NDArray[np.float64]:
-            """Create coordinate array from the axis_info."""
-            flag, start, delta_or_end, _ = axis_info
-            return flag.set_scale(
-                num1=float(start),
-                num2=float(delta_or_end),
-                pixels=pixels,
-            )
-
         common_attrs: dict[str, str | float] = {
             "spectrum_type": "cut",
             "angle_unit": "deg (theta_y)",
@@ -138,7 +125,7 @@ class ProdigyItx:
 
         for key, (coord, pix) in axis_defs.items():
             if key in self.axis_info:
-                coords[coord] = create_coords(
+                coords[coord] = _create_coord(
                     axis_info=self.axis_info[key],
                     pixels=self.pixels[pix],
                 )
@@ -320,3 +307,16 @@ def _parse_user_comment(
         else:
             common_params[item] = True
     return common_params
+
+
+def _create_coord(
+    axis_info: tuple[IgorSetscaleFlag, float, float, str],
+    pixels: int,
+) -> NDArray[np.float64]:
+    """Create coordinate array from the axis_info."""
+    flag, start, delta_or_end, _ = axis_info
+    return flag.set_scale(
+        num1=float(start),
+        num2=float(delta_or_end),
+        pixels=pixels,
+    )

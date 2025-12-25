@@ -13,4 +13,4 @@ from pathlib import Path
 # Base paths
 SOURCE_ROOT: str = str(Path(__file__).resolve().parent)
 
-VERSION = "5.0.2"
+VERSION = "5.0.3"
