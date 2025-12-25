@@ -14,7 +14,7 @@ def sample_data() -> xr.DataArray:
 
 
 @pytest.fixture
-def sample_data3D() -> xr.DataArray:
+def sample_data3d() -> xr.DataArray:
     x = np.linspace(0, 10, 11)
     y = np.linspace(0, 5, 6)
     w = np.linspace(0, 1, 6)  # Adding a third dimension for testing
@@ -83,10 +83,10 @@ def test_shift_axis_required(sample_data: xr.DataArray):
         shift(sample_data, shift_vals, shift_axis="")
 
 
-def test_shift_by_axis_required_for_ndarray(sample_data3D: xr.DataArray):
-    shift_vals = np.ones(sample_data3D.sizes["x"])  # Not matching y
+def test_shift_by_axis_required_for_ndarray(sample_data3d: xr.DataArray):
+    shift_vals = np.ones(sample_data3d.sizes["x"])  # Not matching y
     with pytest.raises(TypeError):
-        shift(sample_data3D, shift_vals, shift_axis="y")
+        shift(sample_data3d, shift_vals, shift_axis="y")
 
 
 def test_shift_with_integer_array():
