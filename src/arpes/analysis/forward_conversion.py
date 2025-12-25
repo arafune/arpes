@@ -25,13 +25,13 @@ from arpes.analysis.filters import gaussian_filter_arr
 from arpes.debug import setup_logger
 from arpes.provenance import update_provenance
 from arpes.utilities import normalize_to_spectrum
+from arpes.utilities.conversion.api import convert_to_kspace
 from arpes.utilities.conversion.bounds_calculations import (
     euler_to_kx,
     euler_to_ky,
     euler_to_kz,
     full_angles_to_k,
 )
-from arpes.utilities.conversion.core import convert_to_kspace
 from arpes.xarray_extensions.accessor.spectrum_type import EnergyNotation, SpectrumType
 
 if TYPE_CHECKING:
