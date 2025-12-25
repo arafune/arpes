@@ -6,7 +6,7 @@ from arpes.correction.intensity_map import shift
 
 
 @pytest.fixture
-def sample_data():
+def sample_data() -> xr.DataArray:
     x = np.linspace(0, 10, 11)
     y = np.linspace(0, 5, 6)
     z = np.random.rand(len(y), len(x))
@@ -14,7 +14,7 @@ def sample_data():
 
 
 @pytest.fixture
-def sample_data3D():
+def sample_data3d() -> xr.DataArray:
     x = np.linspace(0, 10, 11)
     y = np.linspace(0, 5, 6)
     w = np.linspace(0, 1, 6)  # Adding a third dimension for testing
@@ -22,9 +22,11 @@ def sample_data3D():
     return xr.DataArray(z, coords={"y": y, "x": x, "w": w}, dims=["y", "x", "w"])
 
 
-def test_shift_with_xrdataarray(sample_data):
+def test_shift_with_xrdataarray(sample_data: xr.DataArray):
     shift_vals = xr.DataArray(
-        np.ones(sample_data.sizes["y"]), coords={"y": sample_data.coords["y"]}, dims=["y"],
+        np.ones(sample_data.sizes["y"]),
+        coords={"y": sample_data.coords["y"]},
+        dims=["y"],
     )
     out = shift(sample_data, shift_vals, shift_axis="x", shift_coords=False)
     assert isinstance(out, xr.DataArray)
@@ -32,28 +34,30 @@ def test_shift_with_xrdataarray(sample_data):
     np.testing.assert_array_equal(out.coords["y"], sample_data.coords["y"])
 
 
-def test_shift_with_xrdataarray_shift_coords(sample_data):
+def test_shift_with_xrdataarray_shift_coords(sample_data: xr.DataArray):
     shift_vals = xr.DataArray(
-        np.ones(sample_data.sizes["y"]), coords={"y": sample_data.coords["y"]}, dims=["y"],
+        np.ones(sample_data.sizes["y"]),
+        coords={"y": sample_data.coords["y"]},
+        dims=["y"],
     )
     out = shift(sample_data, shift_vals, shift_axis="x", shift_coords=True)
     assert not np.allclose(out.coords["x"], sample_data.coords["x"])
 
 
-def test_shift_with_ndarray(sample_data):
+def test_shift_with_ndarray(sample_data: xr.DataArray):
     shift_vals = np.ones(sample_data.sizes["y"])
     out = shift(sample_data, shift_vals, shift_axis="x", by_axis="y")
     assert out.shape == sample_data.shape
 
 
-def test_shift_with_ndarray_missing_by_axis(sample_data):
+def test_shift_with_ndarray_missing_by_axis(sample_data: xr.DataArray):
     shift_vals = np.ones(sample_data.sizes["y"])
     # This should succeed because the function infers by_axis when 2D
     out = shift(sample_data, shift_vals, shift_axis="x")
     assert out.shape == sample_data.shape
 
 
-def test_shift_coords_alignment(sample_data):
+def test_shift_coords_alignment(sample_data: xr.DataArray):
     shift_vals = np.linspace(-1, 1, sample_data.sizes["y"])
     out = shift(sample_data, shift_vals, shift_axis="x", by_axis="y", shift_coords=True)
     mean_shift = np.mean(shift_vals)
@@ -61,28 +65,28 @@ def test_shift_coords_alignment(sample_data):
     np.testing.assert_allclose(out.coords["x"], expected_coords, atol=1e-6)
 
 
-def test_shift_extend_coords_min(sample_data):
+def test_shift_extend_coords_min(sample_data: xr.DataArray):
     shift_vals = np.full(sample_data.sizes["y"], 5.0)
     out = shift(sample_data, shift_vals, shift_axis="x", by_axis="y", extend_coords=True)
     assert out.sizes["x"] > sample_data.sizes["x"]
 
 
-def test_shift_extend_coords_max(sample_data):
+def test_shift_extend_coords_max(sample_data: xr.DataArray):
     shift_vals = np.full(sample_data.sizes["y"], -5.0)
     out = shift(sample_data, shift_vals, shift_axis="x", by_axis="y", extend_coords=True)
     assert out.sizes["x"] > sample_data.sizes["x"]
 
 
-def test_shift_axis_required(sample_data):
+def test_shift_axis_required(sample_data: xr.DataArray):
     shift_vals = np.ones(sample_data.sizes["y"])
     with pytest.raises(AssertionError):
         shift(sample_data, shift_vals, shift_axis="")
 
 
-def test_shift_by_axis_required_for_ndarray(sample_data3D):
-    shift_vals = np.ones(sample_data3D.sizes["x"])  # Not matching y
+def test_shift_by_axis_required_for_ndarray(sample_data3d: xr.DataArray):
+    shift_vals = np.ones(sample_data3d.sizes["x"])  # Not matching y
     with pytest.raises(TypeError):
-        shift(sample_data3D, shift_vals, shift_axis="y")
+        shift(sample_data3d, shift_vals, shift_axis="y")
 
 
 def test_shift_with_integer_array():

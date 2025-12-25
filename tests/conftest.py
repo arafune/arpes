@@ -9,8 +9,7 @@ from typing import TYPE_CHECKING, TypedDict
 import pytest
 from lmfit.models import ConstantModel, LinearModel, LorentzianModel, QuadraticModel
 
-import arpes
-import arpes.endstations
+# import arpes.endstations
 from arpes.configuration.manager import config_manager
 from arpes.fits import AffineBroadenedFD
 from arpes.io import example_data
@@ -193,6 +192,9 @@ SCAN_FIXTURE_LOCATIONS = {
 @pytest.fixture
 def sandbox_configuration() -> Iterator[Sandbox]:
     """Generates a sandboxed configuration of the ARPES data analysis suite."""
+    from arpes import plugin_loader  # noqa: PLC0415
+    from arpes.endstations import registry  # noqa: PLC0415
+
     resources_dir = Path.cwd() / "tests" / "resources"
 
     def set_workspace(name: str) -> None:
@@ -217,8 +219,8 @@ def sandbox_configuration() -> Iterator[Sandbox]:
         with_workspace=set_workspace,
         load=load,
     )
-    arpes.plugin_loader.load_plugins()
+    plugin_loader.load_plugins()
     yield sandbox
     config_manager.config["WORKSPACE"] = None
     # arpes.config.CONFIG["WORKSPACE"] = None
-    arpes.endstations.registry._ENDSTATION_ALIASES = {}
+    registry._ENDSTATION_ALIASES = {}

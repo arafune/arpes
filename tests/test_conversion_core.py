@@ -3,10 +3,8 @@ import pytest
 import xarray as xr
 from scipy.interpolate import RegularGridInterpolator
 
-from arpes.utilities.conversion.core import (
-    convert_to_kspace,
-    grid_interpolator_from_dataarray,
-)
+from arpes.utilities.conversion.api import convert_to_kspace
+from arpes.utilities.conversion.core import grid_interpolator_from_dataarray
 
 # FILE: tests/test_core.py
 

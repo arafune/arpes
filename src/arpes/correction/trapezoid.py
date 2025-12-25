@@ -26,7 +26,7 @@ from numba import typed, types
 
 from arpes.debug import setup_logger
 from arpes.utilities.conversion.base import CoordinateConverter
-from arpes.utilities.conversion.core import convert_coordinates
+from arpes.utilities.conversion.coordinates import convert_coordinates
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Hashable

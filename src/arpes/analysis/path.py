@@ -21,7 +21,7 @@ from logging import DEBUG, INFO
 
 from arpes.debug import setup_logger
 from arpes.provenance import Provenance, provenance
-from arpes.utilities.conversion.core import convert_coordinates
+from arpes.utilities.conversion.coordinates import convert_coordinates
 from arpes.utilities.conversion.grids import determine_axis_type
 
 LOGLEVELS = (DEBUG, INFO)

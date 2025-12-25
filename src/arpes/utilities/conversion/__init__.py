@@ -2,6 +2,5 @@
 
 from __future__ import annotations
 
+from .api import convert_to_kspace
 from .calibration import DetectorCalibration
-from .core import convert_to_kspace
-from .remap_manipulator import remap_coords_to
