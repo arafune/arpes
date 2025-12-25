@@ -5,7 +5,17 @@ import matplotlib.pyplot as plt
 from matplotlib.cm import ScalarMappable
 from matplotlib.colorbar import Colorbar
 
-from arpes.plotting.utils import get_colorbars
+from arpes.plotting.utils import get_colorbars, remove_colorbars
+
+
+def test_remove_colorbars():
+    fig, ax = plt.subplots()
+    im = ax.imshow([[0, 1], [2, 3]])
+    plt.colorbar(im)
+
+    assert len(get_colorbars(fig)) == 1
+    remove_colorbars(fig)
+    assert len(get_colorbars(fig)) == 0
 
 
 def test_get_colorbars_all_paths():
