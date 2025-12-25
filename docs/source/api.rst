@@ -141,7 +141,7 @@ Small-Angle Approximated and Volumetric Related
 .. autosummary::
    :toctree: generated/
 
-   utilities.conversion.core.convert_to_kspace
+   utilities.conversion.api.convert_to_kspace
    analysis.forward_conversion.convert_coordinate_forward
    analysis.forward_conversion.convert_through_angular_point
    analysis.forward_conversion.convert_through_angular_pair
@@ -163,7 +163,6 @@ Utilities
 
    utilities.conversion.fast_interp.Interpolator
    utilities.conversion.bounds_calculations.full_angles_to_k
-   utilities.conversion.remap_manipulator.remap_coords_to
 
 Conversion Implementations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
