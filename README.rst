@@ -5,13 +5,13 @@
 +-----------------------+
 
 .. |Documentation| image:: https://img.shields.io/badge/api-reference-blue.svg
-   :target: https://arpes-v4.readthedocs.io/en/daredevil/
+   :target: https://arpes-corrected.readthedocs.io/en/latest/
 
 |coverage| |docs_status| |code_format| |code style| |uv| 
 
 
-.. |docs_status| image:: https://readthedocs.org/projects/arpes-v4/badge/?version=stable&style=flat
-   :target: https://arpes-v4.readthedocs.io/en/stable/
+.. |docs_status| image:: https://readthedocs.org/projects/arpes-corrected/badge/?version=stable&style=flat
+   :target: https://arpes-corrected.readthedocs.io/en/latest/
 .. |coverage| image:: https://codecov.io/gh/arafune/arpes/graph/badge.svg?token=TW9EPVB1VE
    :target:  https://app.codecov.io/gh/arafune/arpes
 .. |code style| image:: https://img.shields.io/badge/code%20style-black-000000.svg
@@ -155,7 +155,7 @@ PyArpes contribution after `cadaaae`_, |copy| 2023-2025 by Ryuichi Arafune, all 
 
 .. _cadaaae: https://github.com/arafune/arpes/commit/cadaaae0525d0889ef030cf18cf049da8fec2ee3
 .. _Jupyter: https://jupyter.org/
-.. _the documentation site: https://arpes-v4.readthedocs.io/en/daredevil
-.. _contributing: https://arpes-v4.readthedocs.io/en/daredevil/contributing.html
-.. _FAQ: https://arpes-v4.readthedocs.io/en/daredevil/faq.html
+.. _the documentation site: https://arpes-corrected.readthedocs.io/en/latest
+.. _contributing: https://arpes-corrected.readthedocs.io/en/latest/contributing.html
+.. _FAQ: https://arpes-corrected.readthedocs.io/en/latest/faq.html
 

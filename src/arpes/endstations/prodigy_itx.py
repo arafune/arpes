@@ -131,10 +131,8 @@ class ProdigyItx:
                 )
                 dims.append(coord)
         attrs = {**common_attrs, **self.params}
-        if "y" in self.axis_info:
-            attrs["enegy_unit"] = self.axis_info["y"][3]
-        if "d" in self.axis_info:
-            attrs["count_unit"] = self.axis_info["d"][3]
+        attrs["enegy_unit"] = self.axis_info["y"][3] if "y" in self.axis_info else ""
+        attrs["count_unit"] = self.axis_info["d"][3] if "d" in self.axis_info else ""
         logger.debug(f"dims: {dims}")
         data_array = xr.DataArray(
             data=self.intensity.reshape(_pixel_to_shape(self.pixels)),
