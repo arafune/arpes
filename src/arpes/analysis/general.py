@@ -253,12 +253,6 @@ def _bin(
     Returns:
         Binned xarray object with updated coordinates.
     """
-
-    original_left, original_right = (
-        data.coords[bin_axis].min().item(),
-        data.coords[bin_axis].max().item(),
-    )
-    original_region = original_right - original_left
     if method not in ("sum", "mean"):
         msg = "method must be 'sum' or 'mean'"
         raise TypeError(msg)
