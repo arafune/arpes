@@ -44,7 +44,7 @@ if TYPE_CHECKING:
 __all__ = ("NSRLEndstation", "SSRFEndstation")
 
 
-def determine_dim(viewer_ini: ConfigParser, dim_name: str) -> tuple[int, NDArray[np.float64], str]:
+def determine_dim(viewer_ini: ConfigParser, dim_name: str) -> tuple[int, NDArray[np.floating], str]:
     """Determine dimension values from from the ini file.
 
     Args:

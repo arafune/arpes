@@ -48,12 +48,12 @@ def flatten_literals(literal_type: Incomplete) -> set[str]:
 
 
 def is_dict_kspacecoords(
-    a_dict: dict[Hashable, NDArray[np.float64]] | dict[str, NDArray[np.float64]],
+    a_dict: dict[Hashable, NDArray[np.floating]] | dict[str, NDArray[np.floating]],
 ) -> TypeGuard[KspaceCoords]:
     """Checks if a dictionary contains k-space coordinates.
 
     Args:
-        a_dict (dict[Hashable, NDArray[np.float64]] | dict[str, NDArray[np.float64]]):
+        a_dict (dict[Hashable, NDArray[np.floating]] | dict[str, NDArray[np.floating]]):
            The dictionary to check.
 
     Returns:

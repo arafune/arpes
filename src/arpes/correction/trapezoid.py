@@ -44,9 +44,9 @@ logger = setup_logger(__name__, LOGLEVEL)
 
 @numba.njit(parallel=True)
 def _phi_to_phi(
-    energy: NDArray[np.float64],
-    phi: NDArray[np.float64],
-    phi_out: NDArray[np.float64],
+    energy: NDArray[np.floating],
+    phi: NDArray[np.floating],
+    phi_out: NDArray[np.floating],
     corners: typed.typeddict.Dict[str, typed.typeddict.Dict[str, float]],
     rectangle_phis: list[float],
 ) -> None:
@@ -91,9 +91,9 @@ def _phi_to_phi(
 
 @numba.njit(parallel=True)
 def _phi_to_phi_forward(
-    energy: NDArray[np.float64],
-    phi: NDArray[np.float64],
-    phi_out: NDArray[np.float64],
+    energy: NDArray[np.floating],
+    phi: NDArray[np.floating],
+    phi_out: NDArray[np.floating],
     corners: typed.typeddict.Dict[str, typed.typeddict.Dict[str, float]],
     rectangle_phis: list[float],
 ) -> None:
@@ -104,11 +104,11 @@ def _phi_to_phi_forward(
     a rectangle.
 
     Args:
-        energy : NDArray[np.float64]
+        energy : NDArray[np.floating]
             The energy values of the trapezoid.
-        phi : NDArray[np.float64]
+        phi : NDArray[np.floating]
             The phi values of the trapezoid.
-        phi_out : NDArray[np.float64]
+        phi_out : NDArray[np.floating]
             The output phi values of the rectangle.
         corners : dict[str, dict[str, float]]
             The corners of the trapezoid, each corner is a dictionary with 'eV' and 'phi' keys.
@@ -179,7 +179,7 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
         self,
         resolution: dict[str, float] | None = None,
         bounds: dict[str, tuple[float, float]] | None = None,
-    ) -> dict[Hashable, NDArray[np.float64]]:
+    ) -> dict[Hashable, NDArray[np.floating]]:
         """Calculates the coordinates which should be used in correced data.
 
         Args:
@@ -208,8 +208,8 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
         logger.debug(f"coordinates: {coordinates}")
         return coordinates
 
-    def conversion_for(self, dim: Hashable) -> Callable[..., NDArray[np.float64]]:
-        def _with_identity(*args: NDArray[np.float64]) -> NDArray[np.float64]:
+    def conversion_for(self, dim: Hashable) -> Callable[..., NDArray[np.floating]]:
+        def _with_identity(*args: NDArray[np.floating]) -> NDArray[np.floating]:
             return self.identity_transform(dim, *args)
 
         return {
@@ -221,9 +221,9 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
 
     def phi_to_phi(
         self,
-        binding_energy: NDArray[np.float64],
-        phi: NDArray[np.float64],
-    ) -> NDArray[np.float64]:
+        binding_energy: NDArray[np.floating],
+        phi: NDArray[np.floating],
+    ) -> NDArray[np.floating]:
         """Converts the given phi values to a new phi representation based on binding energy.
 
         This method computes the new phi values based on the provided binding energy and phi values,
@@ -231,12 +231,12 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
         the existing value.
 
         Args:
-            binding_energy (NDArray[np.float64]): The array of binding energy values.
-            phi (NDArray[np.float64]): The array of phi values to be converted.
+            binding_energy (NDArray[np.floating]): The array of binding energy values.
+            phi (NDArray[np.floating]): The array of phi values to be converted.
             rectangle_phis (list[float]): max and min of the angle phi in the rectangle.
 
         Returns:
-            NDArray[np.float64]: The transformed phi values.
+            NDArray[np.floating]: The transformed phi values.
 
         Raises:
             ValueError: If any required attributes are missing or invalid.
@@ -255,21 +255,21 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
 
     def phi_to_phi_forward(
         self,
-        binding_energy: NDArray[np.float64],
-        phi: NDArray[np.float64],
-    ) -> NDArray[np.float64]:
+        binding_energy: NDArray[np.floating],
+        phi: NDArray[np.floating],
+    ) -> NDArray[np.floating]:
         """Transforms phi values based on binding energy using a forward method.
 
         This method computes the new phi values based on the provided binding energy and phi values,
         applying a forward transformation. The result is stored in the `phi_out` array.
 
         Args:
-            binding_energy (NDArray[np.float64]): The array of binding energy values.
-            phi (NDArray[np.float64]): The array of phi values to be converted.
+            binding_energy (NDArray[np.floating]): The array of binding energy values.
+            phi (NDArray[np.floating]): The array of phi values to be converted.
             rectangle_phis (list[float]): max and min of the angle phi in the rectangle.
 
         Returns:
-            NDArray[np.float64]: The transformed phi values after the forward transformation.
+            NDArray[np.floating]: The transformed phi values after the forward transformation.
         """
         phi_out = np.zeros_like(phi)
         logger.debug(f"type of self.corners in phi_to_phi_forward : {type(self.corners)}")
@@ -431,10 +431,19 @@ def _corners_typed_dict(
     corners: list[dict[str, float]],
 ) -> typed.typeddict.Dict[str, typed.typeddict.Dict[str, float]]:
     normal_dict_corners = _corners(corners)
-    inter_dict_type = types.DictType(keyty=types.unicode_type, valty=types.float64)
-    typed_dict_corners = typed.Dict.empty(key_type=types.unicode_type, value_type=inter_dict_type)
+    inter_dict_type = types.DictType(
+        keyty=types.unicode_type,
+        valty=types.float64,
+    )
+    typed_dict_corners = typed.Dict.empty(
+        key_type=types.unicode_type,
+        value_type=inter_dict_type,
+    )
     for corner_position, coords in normal_dict_corners.items():
-        each_corner = typed.Dict.empty(key_type=types.unicode_type, value_type=types.float64)
+        each_corner = typed.Dict.empty(
+            key_type=types.unicode_type,
+            value_type=types.float64,
+        )
         for coord_name in ["eV", "phi"]:
             each_corner[coord_name] = coords[coord_name]
         typed_dict_corners[corner_position] = each_corner

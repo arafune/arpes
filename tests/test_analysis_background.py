@@ -10,13 +10,13 @@ from arpes.analysis.background import calculate_background_hull, remove_backgrou
 
 
 @pytest.fixture
-def lorentzian_curve() -> NDArray[np.float64]:
+def lorentzian_curve() -> NDArray[np.floating]:
     x = np.linspace(-2, 0, 100)
     return lorentzian(x, 0.05, -0.5, 0.1)
 
 
 @pytest.fixture
-def lorentzian_linear_bg(lorentzian_curve: NDArray[np.float64]):
+def lorentzian_linear_bg(lorentzian_curve: NDArray[np.floating]):
     x = np.linspace(-2, 0, 100)
     y = x + lorentzian_curve
     return xr.DataArray(y, coords={"eV": x}, dims="eV")

@@ -38,7 +38,7 @@ __all__ = (
 def adjust_coords_to_limit(
     da: xr.DataArray,
     new_limits: Mapping[Hashable, float],
-) -> dict[Hashable, NDArray[np.float64]]:
+) -> dict[Hashable, NDArray[np.floating]]:
     """Extend the coordinates of an xarray DataArray to given values for each dimension.
 
     The extension will ensure that the new coordinates cover up to the given extension value,
@@ -80,7 +80,7 @@ def adjust_coords_to_limit(
 
 def extend_coords(
     da: xr.DataArray,
-    new_coords: Mapping[Hashable, list[float] | NDArray[np.float64]],
+    new_coords: Mapping[Hashable, list[float] | NDArray[np.floating]],
 ) -> xr.DataArray:
     """Expand the coordinates of an xarray DataArray by adding new coordinate values.
 
@@ -118,7 +118,7 @@ def extend_coords(
 
 
 def is_equally_spaced(
-    coords: xr.DataArray | NDArray[np.float64],
+    coords: xr.DataArray | NDArray[np.floating],
     dim_name: Hashable | None = None,
     **kwargs: Incomplete,
 ) -> float:

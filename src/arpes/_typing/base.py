@@ -41,4 +41,4 @@ Plot2DStyle = Literal["line", "scatter"]
 
 AnalysisRegion = Literal["copper_prior", "wide_angular", "narrow_angular"]
 
-SelType = float | str | slice | list[float | str] | NDArray[np.float64]
+SelType = float | str | slice | list[float | str] | NDArray[np.floating]

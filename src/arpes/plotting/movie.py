@@ -390,27 +390,27 @@ def plot_movie(  # noqa: PLR0913
     )
 
 
-def _replace_after_col(array: NDArray[np.float64], col_num: int) -> NDArray[np.float64]:
+def _replace_after_col(array: NDArray[np.floating], col_num: int) -> NDArray[np.floating]:
     """Replace elements in the array with NaN af ter a specified column.
 
     Args:
-        array (NDArray[np.float64): The input array.
+        array (NDArray[np.floating): The input array.
         col_num (int): The column number after which elements will be replaced with NaN.
 
     Returns:
-        NDArray[np.float64]: The modified array with NaN values after the specified column.
+        NDArray[np.floating]: The modified array with NaN values after the specified column.
     """
     return np.where(np.arange(array.shape[1])[:, None] >= col_num, np.nan, array.T).T
 
 
-def _replace_after_row(array: NDArray[np.float64], row_num: int) -> NDArray[np.float64]:
+def _replace_after_row(array: NDArray[np.floating], row_num: int) -> NDArray[np.floating]:
     """Replace elements in the array with NaN after a specified row.
 
     Args:
-        array (NDArray[np.float64]): The input array.
+        array (NDArray[np.floating]): The input array.
         row_num (int): The row number after which elements will be replaced with NaN.
 
     Returns:
-        NDArray[np.float64]: The modified array with NaN values after the specified row.
+        NDArray[np.floating]: The modified array with NaN values after the specified row.
     """
     return np.where(np.arange(array.shape[0])[:, None] >= row_num, np.nan, array)

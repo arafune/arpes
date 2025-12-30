@@ -194,7 +194,7 @@ def curves_along_pocket(
 
     center_point: dict[Hashable, float] = {k: v for k, v in kwargs.items() if k in data.dims}
 
-    center_as_vector: NDArray[np.float64] = np.array(
+    center_as_vector: NDArray[np.floating] = np.array(
         [center_point.get(dim_name, 0.0) for dim_name in fermi_surface_dims],
     )
 

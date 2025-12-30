@@ -28,7 +28,7 @@ __all__ = [
 @update_provenance("Convert ToF data from timing signal to kinetic energy")
 def convert_to_kinetic_energy(
     dataarray: xr.DataArray,
-    kinetic_energy_axis: NDArray[np.float64],
+    kinetic_energy_axis: NDArray[np.floating],
 ) -> xr.DataArray:
     """Convert the ToF timing information into an energy histogram.
 
@@ -51,7 +51,7 @@ def convert_to_kinetic_energy(
     dataarray = dataarray.transpose(*new_dim_order)
     new_dim_order[0] = "eV"
 
-    timing: NDArray[np.float64] = dataarray.coords["time"].values
+    timing: NDArray[np.floating] = dataarray.coords["time"].values
     assert timing[1] > timing[0]
     t_min, t_max = timing.min().item(), timing.max().item()
 
@@ -101,7 +101,7 @@ def convert_to_kinetic_energy(
 
 def build_KE_coords_to_time_pixel_coords(
     dataset: xr.Dataset,
-    interpolation_axis: NDArray[np.float64],
+    interpolation_axis: NDArray[np.floating],
 ) -> Callable[..., tuple[xr.DataArray]]:
     """Constructs a coordinate conversion function from kinetic energy to time pixels."""
     conv = (
@@ -143,7 +143,7 @@ def build_KE_coords_to_time_pixel_coords(
 
 def build_KE_coords_to_time_coords(
     dataset: xr.Dataset,
-    interpolation_axis: NDArray[np.float64],
+    interpolation_axis: NDArray[np.floating],
 ) -> Callable[..., tuple[xr.DataArray]]:
     """Constructs a coordinate conversion function from kinetic energy to time coords.
 

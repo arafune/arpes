@@ -248,13 +248,13 @@ class AxisCallable(Protocol):
         *args: Any,
         axis: int,
         **kwargs: Any,
-    ) -> NDArray[np.float64]: ...
+    ) -> NDArray[np.floating]: ...
 
 
 def transform_dataarray_axis(  # noqa: PLR0913
     func: AxisCallable,
     old_and_new_axis_names: tuple[str, str],
-    new_axis: NDArray[np.float64] | xr.DataArray,
+    new_axis: NDArray[np.floating] | xr.DataArray,
     dataset: xr.Dataset,
     prep_name: Callable[[str], str],
     *,
@@ -265,7 +265,7 @@ def transform_dataarray_axis(  # noqa: PLR0913
     Args:
         func (Callable): The function to apply to the axis of the DataArray
         old_and_new_axis_names (tuple[str, str]): Tuple containing the old and new axis names
-        new_axis (NDArray[np.float64] | xr.DataArray): Values for the new axis
+        new_axis (NDArray[np.floating] | xr.DataArray): Values for the new axis
         dataset (xr.Dataset): The dataset to transform
         prep_name (Callable): Function to prepare the name for the transformed DataArrays
         transform_spectra (dict[str, xr.DataArray] | None): Dictionary of spectra to transform

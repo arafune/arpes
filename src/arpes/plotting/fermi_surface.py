@@ -74,7 +74,7 @@ def fermi_surface_slices(
 @save_plot_provenance
 def magnify_circular_regions_plot(  # noqa: PLR0913
     data: xr.DataArray,
-    magnified_points: NDArray[np.float64] | list[float],
+    magnified_points: NDArray[np.floating] | list[float],
     mag: float = 10,
     radius: float = 0.05,
     # below this two can be treated as kwargs?

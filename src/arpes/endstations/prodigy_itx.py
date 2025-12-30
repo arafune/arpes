@@ -59,7 +59,7 @@ class ProdigyItx:
         self.pixels: tuple[int, ...]
         self.axis_info: dict[str, tuple[IgorSetscaleFlag, float, float, str]] = {}
         self.wavename: str = ""
-        self.intensity: NDArray[np.float64]
+        self.intensity: NDArray[np.floating]
         if list_style_itx_data is not None:
             self.parse(list_style_itx_data)
 
@@ -112,7 +112,7 @@ class ProdigyItx:
             "spectrum_type": "cut",
             "angle_unit": "deg (theta_y)",
         }
-        coords: dict[str, NDArray[np.float64]] = {}
+        coords: dict[str, NDArray[np.floating]] = {}
         dims: list[str] = []
         # set angle axis
 
@@ -146,7 +146,7 @@ class ProdigyItx:
         return data_array
 
     @property
-    def integrated_intensity(self) -> np.float64:
+    def integrated_intensity(self) -> np.floating:
         """Return the integrated intensity."""
         return np.sum(self.intensity)
 
@@ -310,7 +310,7 @@ def _parse_user_comment(
 def _create_coord(
     axis_info: tuple[IgorSetscaleFlag, float, float, str],
     pixels: int,
-) -> NDArray[np.float64]:
+) -> NDArray[np.floating]:
     """Create coordinate array from the axis_info."""
     flag, start, delta_or_end, _ = axis_info
     return flag.set_scale(

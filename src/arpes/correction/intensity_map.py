@@ -46,7 +46,7 @@ class ShiftParam(TypedDict, total=False):
 
 def shift(  # noqa: PLR0913
     data: xr.DataArray,
-    other: xr.DataArray | NDArray[np.float64],
+    other: xr.DataArray | NDArray[np.floating],
     shift_axis: str = "",
     by_axis: str = "",
     *,
@@ -107,7 +107,7 @@ def shift(  # noqa: PLR0913
             data = coords.extend_coords(da=data, new_coords=extended_coord)
 
     padding_value = 0 if data.dtype == np.int_ else np.nan
-    shifted_data: NDArray[np.float64] = shift_by(
+    shifted_data: NDArray[np.floating] = shift_by(
         arr=data.values,
         value=shift_amount,
         axis=data.dims.index(shift_axis),
@@ -126,12 +126,12 @@ def shift(  # noqa: PLR0913
 
 def _compute_shift_amount(
     data: xr.DataArray,
-    other: xr.DataArray | NDArray[np.float64],
+    other: xr.DataArray | NDArray[np.floating],
     shift_axis: str,
     by_axis: str = "",
     *,
     shift_coords: bool = False,
-) -> tuple[NDArray[np.float64], float, str]:
+) -> tuple[NDArray[np.floating], float, str]:
     """Compute shift amount based on `other` and determine `by_axis` if necessary.
 
     Helper function for `shift`
@@ -146,7 +146,7 @@ def _compute_shift_amount(
             shift.
 
     Returns:
-        tuple[NDArray[np.float64], float, str]:
+        tuple[NDArray[np.floating], float, str]:
             - shift_amount: The computed shift values.
             - mean_shift: The mean value of `other` (0 if not shifting coords).
             - by_axis: The determined `by_axis` name.
@@ -184,23 +184,23 @@ def _compute_shift_amount(
 
 
 def shift_by(
-    arr: NDArray[np.float64],
-    value: NDArray[np.float64],
+    arr: NDArray[np.floating],
+    value: NDArray[np.floating],
     axis: int = 0,
     by_axis: int = 0,
     **kwargs: Unpack[ShiftParam],
-) -> NDArray[np.float64]:
+) -> NDArray[np.floating]:
     """Shifts slices of `arr` perpendicular to `by_axis` by `value`.
 
     Args:
-        arr (NDArray[np.float64): Input array to be shifted.
-        value (NDArray[np.float64): Array of shift values.
+        arr (NDArray[np.floating): Input array to be shifted.
+        value (NDArray[np.floating): Array of shift values.
         axis (int): Axis number of np.ndarray for shift.
         by_axis (int): Axis number of np.ndarray for non-shift.
         **kwargs(ShiftParam): Additional parameters to pass to scipy.ndimage.shift.
 
     Returns:
-        NDArray[np.float64]: The shifted array.
+        NDArray[np.floating]: The shifted array.
     """
     assert axis != by_axis, "`axis` and `by_axis` must be different."
     arr_copy = arr.copy()

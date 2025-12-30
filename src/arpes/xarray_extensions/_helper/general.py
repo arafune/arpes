@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 def round_coordinates_impl(
     data: DataType,
-    coords_to_round: dict[str, list[float] | NDArray[np.float64]],
+    coords_to_round: dict[str, list[float] | NDArray[np.floating]],
     *,
     as_indices: bool = False,
 ) -> dict[str, float | int]:
@@ -83,7 +83,7 @@ def filter_coord_impl(
 @overload
 def apply_over_impl(
     data: xr.Dataset,
-    fn: Callable[[xr.Dataset], xr.Dataset | NDArray[np.float64]],
+    fn: Callable[[xr.Dataset], xr.Dataset | NDArray[np.floating]],
     *,
     copy: bool = True,
     selections: Mapping[str, SelType] | None = None,
@@ -94,7 +94,7 @@ def apply_over_impl(
 @overload
 def apply_over_impl(
     data: xr.DataArray,
-    fn: Callable[[xr.DataArray], xr.DataArray | NDArray[np.float64]],
+    fn: Callable[[xr.DataArray], xr.DataArray | NDArray[np.floating]],
     *,
     copy: bool = True,
     selections: Mapping[str, SelType] | None = None,

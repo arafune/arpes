@@ -104,7 +104,7 @@ class CoordinateTransform(TypedDict, total=True):
 
         but no specific coordinate system is assumed at this level.
 
-    transforms : dict[str, Callable[..., NDArray[np.float64]]]
+    transforms : dict[str, Callable[..., NDArray[np.floating]]]
         Mapping from coordinate names to transformation functions.
 
         Each callable must accept a sequence of meshed coordinate arrays
@@ -125,12 +125,12 @@ class CoordinateTransform(TypedDict, total=True):
     """
 
     dims: list[str] | list[Hashable]  # in most case dims should be Literal["kp", "kx", "ky", "kz"]]
-    transforms: dict[str, Callable[..., NDArray[np.float64]]]
+    transforms: dict[str, Callable[..., NDArray[np.floating]]]
 
 
 def convert_coordinates(
     arr: xr.DataArray,
-    target_coordinates: dict[Hashable, NDArray[np.float64]],
+    target_coordinates: dict[Hashable, NDArray[np.floating]],
     coordinate_transform: CoordinateTransform,
     *,
     as_dataset: bool = False,
@@ -139,7 +139,7 @@ def convert_coordinates(
 
     Args:
         arr(xr.DataArray): ARPES data
-        target_coordinates:(dict[Hashable, NDArray[np.float64]]):  coorrdinate for ...
+        target_coordinates:(dict[Hashable, NDArray[np.floating]]):  coorrdinate for ...
         coordinate_transform(dict[str, list[str] | Callable]): coordinat for ...
         as_dataset(bool): if True, return the data as the dataSet
 
@@ -172,7 +172,7 @@ def convert_coordinates(
             meshed_coordinates = [arr.S.lookup_offset_coord("eV"), *meshed_coordinates]
     old_coord_names = [str(dim) for dim in arr.dims if dim not in target_coordinates]
     assert isinstance(coordinate_transform["transforms"], dict)
-    transforms: dict[str, Callable[..., NDArray[np.float64]]] = coordinate_transform["transforms"]
+    transforms: dict[str, Callable[..., NDArray[np.floating]]] = coordinate_transform["transforms"]
     logger.debug(f"transforms is {transforms}")
     old_coordinate_transforms = [
         transforms[str(dim)] for dim in arr.dims if dim not in target_coordinates
@@ -181,7 +181,7 @@ def convert_coordinates(
 
     output_shape = [len(target_coordinates[str(d)]) for d in coordinate_transform["dims"]]
 
-    def compute_coordinate(transform: Callable[..., NDArray[np.float64]]) -> NDArray[np.float64]:
+    def compute_coordinate(transform: Callable[..., NDArray[np.floating]]) -> NDArray[np.floating]:
         logger.debug(f"transform function is {transform}")
         return np.reshape(
             transform(*meshed_coordinates),
@@ -201,7 +201,7 @@ def convert_coordinates(
     )
 
     # Wrap it all up
-    def acceptable_coordinate(c: NDArray[np.float64] | xr.DataArray) -> bool:
+    def acceptable_coordinate(c: NDArray[np.floating] | xr.DataArray) -> bool:
         """Return True if the dim of array is subset of dim of coordinate_transform.
 
         Currently we do this to filter out coordinates

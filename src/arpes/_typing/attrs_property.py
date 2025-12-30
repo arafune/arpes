@@ -172,15 +172,15 @@ class DAQInfo(TypedDict, total=False):
 class Coordinates(TypedDict, total=False):
     """TypedDict for attrs."""
 
-    x: NDArray[np.float64] | float
-    y: NDArray[np.float64] | float
-    z: NDArray[np.float64] | float
-    alpha: NDArray[np.float64] | float
-    beta: NDArray[np.float64] | float
-    chi: NDArray[np.float64] | float
-    theta: NDArray[np.float64] | float
-    psi: NDArray[np.float64] | float
-    phi: NDArray[np.float64] | float
+    x: NDArray[np.floating] | float
+    y: NDArray[np.floating] | float
+    z: NDArray[np.floating] | float
+    alpha: NDArray[np.floating] | float
+    beta: NDArray[np.floating] | float
+    chi: NDArray[np.floating] | float
+    theta: NDArray[np.floating] | float
+    psi: NDArray[np.floating] | float
+    phi: NDArray[np.floating] | float
 
 
 class Spectrometer(AnalyzerInfo, Coordinates, DAQInfo, total=False):
@@ -215,11 +215,11 @@ class ARPESAttrs(Spectrometer, LightSourceInfo, SampleInfo, total=False):
 
 
 class KspaceCoords(TypedDict, total=False):
-    eV: NDArray[np.float64]
-    kp: NDArray[np.float64]
-    kx: NDArray[np.float64]
-    ky: NDArray[np.float64]
-    kz: NDArray[np.float64]
+    eV: NDArray[np.floating]
+    kp: NDArray[np.floating]
+    kx: NDArray[np.floating]
+    ky: NDArray[np.floating]
+    kz: NDArray[np.floating]
 
 
 CoordsOffset: TypeAlias = Literal[

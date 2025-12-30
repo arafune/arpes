@@ -75,8 +75,8 @@ class AffineBroadenedFD(Model):
 
     def guess(
         self,
-        data: XrTypes | NDArray[np.float64],
-        x: NDArray[np.float64] | xr.DataArray,
+        data: XrTypes | NDArray[np.floating],
+        x: NDArray[np.floating] | xr.DataArray,
         **kwargs: float,
     ) -> lf.Parameters:
         """Estimate initial model parameter values from data."""
@@ -133,8 +133,8 @@ class FermiLorentzianModel(Model):
 
     def guess(
         self,
-        data: XrTypes | NDArray[np.float64],
-        x: NDArray[np.float64] | xr.DataArray,
+        data: XrTypes | NDArray[np.floating],
+        x: NDArray[np.floating] | xr.DataArray,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
         """Estimate initial model parameter values from data."""
@@ -176,8 +176,8 @@ class FermiDiracModel(Model):
 
     def guess(
         self,
-        data: NDArray[np.float64] | XrTypes,
-        x: NDArray[np.float64] | xr.DataArray,
+        data: NDArray[np.floating] | XrTypes,
+        x: NDArray[np.floating] | xr.DataArray,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
         """Estimate initial model parameter values from data."""
@@ -224,7 +224,7 @@ class GStepBModel(Model):
     def guess(
         self,
         data: XrTypes,
-        x: NDArray[np.float64] | xr.DataArray,
+        x: NDArray[np.floating] | xr.DataArray,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
         """Estimate initial model parameter values from data."""
@@ -261,7 +261,7 @@ class BandEdgeBModel(Model):
     def guess(
         self,
         data: XrTypes,
-        x: NDArray[np.float64] | xr.DataArray,
+        x: NDArray[np.floating] | xr.DataArray,
         **kwargs: float,
     ) -> lf.Parameters:
         """Placeholder for making better heuristic guesses here.
@@ -296,14 +296,14 @@ class BandEdgeBGModel(Model):
 
     @staticmethod
     def band_edge_bkg_gauss(  # noqa: PLR0913
-        x: NDArray[np.float64],
+        x: NDArray[np.floating],
         width: float = 0.05,
         amplitude: float = 1,
         gamma: float = 0.1,
         lor_center: float = 0,
         lin_slope: float = 0,
         const_bkg: float = 0,
-    ) -> NDArray[np.float64]:
+    ) -> NDArray[np.floating]:
         """Fitting model for Lorentzian and background multiplied into Fermi dirac distribution."""
         return np.convolve(
             np.asarray(
@@ -341,7 +341,7 @@ class BandEdgeBGModel(Model):
     def guess(
         self,
         data: XrTypes,
-        x: NDArray[np.float64] | None = None,
+        x: NDArray[np.floating] | None = None,
         **kwargs: float,
     ) -> lf.Parameters:
         """Placeholder for making better heuristic guesses here.
@@ -382,12 +382,12 @@ class GStepBStandardModel(Model):
 
     @staticmethod
     def gstepb_standard(
-        x: NDArray[np.float64],
+        x: NDArray[np.floating],
         center: float = 0,
         sigma: float = 1,
         amplitude: float = 1,
         **kwargs: Incomplete,
-    ) -> NDArray[np.float64]:
+    ) -> NDArray[np.floating]:
         """Specializes parameters in gstepb."""
         return gstepb(x, center, width=sigma, erf_amp=amplitude, **kwargs)
 
@@ -406,7 +406,7 @@ class GStepBStandardModel(Model):
     def guess(
         self,
         data: XrTypes,
-        x: NDArray[np.float64] | xr.DataArray,
+        x: NDArray[np.floating] | xr.DataArray,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
         """Estimate initial model parameter values from data."""

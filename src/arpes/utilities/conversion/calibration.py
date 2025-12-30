@@ -54,9 +54,9 @@ class DetectorCalibration:
 
     def correct_detector_angle(
         self,
-        eV: NDArray[np.float64],  # noqa: N803
-        phi: NDArray[np.float64],
-    ) -> NDArray[np.float64]:
+        eV: NDArray[np.floating],  # noqa: N803
+        phi: NDArray[np.floating],
+    ) -> NDArray[np.floating]:
         """Applies a calibration to the detector `phi` angle."""
         left, right = (
             np.interp(x=0, xp=self._left_edge.eV.values, fp=self._left_edge.phi.values),

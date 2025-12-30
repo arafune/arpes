@@ -30,8 +30,8 @@ class Gaussian2DModel(Model):
 
     @staticmethod
     def gaussian_2d_bkg(  # noqa: PLR0913
-        x: NDArray[np.float64] | xr.DataArray,
-        y: NDArray[np.float64] | xr.DataArray,
+        x: NDArray[np.floating] | xr.DataArray,
+        y: NDArray[np.floating] | xr.DataArray,
         amplitude: float = 1,
         xc: float = 0,
         yc: float = 0,
@@ -40,7 +40,7 @@ class Gaussian2DModel(Model):
         const_bkg: float = 0,
         x_bkg: float = 0,
         y_bkg: float = 0,
-    ) -> NDArray[np.float64]:
+    ) -> NDArray[np.floating]:
         """Defines a multidimensional axis aligned normal."""
         bkg = np.outer(x * 0 + 1, y_bkg * y) + np.outer(x * x_bkg, y * 0 + 1) + const_bkg
         # make the 2D Gaussian matrix
@@ -89,8 +89,8 @@ class EffectiveMassModel(Model):
 
     @staticmethod
     def effective_mass_bkg(  # noqa: PLR0913
-        eV: NDArray[np.float64],  # noqa: N803
-        kp: NDArray[np.float64],
+        eV: NDArray[np.floating],  # noqa: N803
+        kp: NDArray[np.floating],
         m_star: float = 0,
         k_center: float = 0,
         eV_center: float = 0,  # noqa: N803
@@ -100,7 +100,7 @@ class EffectiveMassModel(Model):
         const_bkg: float = 0,
         k_bkg: float = 0,
         eV_bkg: float = 0,  # noqa: N803
-    ) -> NDArray[np.float64]:
+    ) -> NDArray[np.floating]:
         """Model implementation function for simultaneous 2D curve fitting of band effective mass.
 
         Allows for an affine background in each dimension, together with variance in the band

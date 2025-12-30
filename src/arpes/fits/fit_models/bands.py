@@ -24,11 +24,11 @@ class ParabolicDispersionPhiModel(Model):
 
     def parabolic_band_dispersion_phi(
         self,
-        x: NDArray[np.float64],
+        x: NDArray[np.floating],
         effective_mass: float,
         phi_offset: float,
         energy_offset: float,
-    ) -> NDArray[np.float64]:
+    ) -> NDArray[np.floating]:
         """Return the energy at the emission angle under the free electron band model."""
         return energy_offset * effective_mass / (effective_mass - np.sin((x - phi_offset) ** 2))
 
@@ -43,8 +43,8 @@ class ParabolicDispersionPhiModel(Model):
 
     def guess(
         self,
-        data: NDArray[np.float64] | XrTypes,
-        x: NDArray[np.float64] | xr.DataArray,
+        data: NDArray[np.floating] | XrTypes,
+        x: NDArray[np.floating] | xr.DataArray,
         **kwargs: float,
     ) -> lf.Parameters:
         """Estimate initial model parameter values from data."""

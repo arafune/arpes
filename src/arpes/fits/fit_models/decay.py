@@ -24,12 +24,12 @@ class ExponentialDecayCModel(Model):
 
     @staticmethod
     def exponential_decay_c(
-        x: NDArray[np.float64],
+        x: NDArray[np.floating],
         amp: float,
         tau: float,
         t0: float,
         const_bkg: float,
-    ) -> NDArray[np.float64]:
+    ) -> NDArray[np.floating]:
         """Represents an exponential decay after a point (delta) impulse.
 
         This coarsely models the dynamics after excitation in a
@@ -63,8 +63,8 @@ class ExponentialDecayCModel(Model):
 
     def guess(
         self,
-        data: NDArray[np.float64] | XrTypes,
-        x: NDArray[np.float64] | xr.DataArray,
+        data: NDArray[np.floating] | XrTypes,
+        x: NDArray[np.floating] | xr.DataArray,
         **kwargs: float,
     ) -> lf.Parameters:
         """Estimate initial model parameter values from data."""
@@ -92,13 +92,13 @@ class TwoExponentialDecayCModel(Model):
 
     @staticmethod
     def twoexponential_decay_c(  # noqa: PLR0913
-        x: NDArray[np.float64],
+        x: NDArray[np.floating],
         amp: float,
         t0: float,
         tau1: float,
         tau2: float,
         const_bkg: float,
-    ) -> NDArray[np.float64]:
+    ) -> NDArray[np.floating]:
         """Like `exponential_decay_c`, except with two timescales.
 
         This is meant to model if two different quasiparticle decay channels are allowed,
@@ -126,8 +126,8 @@ class TwoExponentialDecayCModel(Model):
 
     def guess(
         self,
-        data: NDArray[np.float64] | xr.DataArray,
-        x: NDArray[np.float64] | xr.DataArray,
+        data: NDArray[np.floating] | xr.DataArray,
+        x: NDArray[np.floating] | xr.DataArray,
         **kwargs: float,
     ) -> lf.Parameters:
         """Placeholder for making better heuristic guesses here."""

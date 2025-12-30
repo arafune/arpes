@@ -59,10 +59,10 @@ def grid_interpolator_from_dataarray(
         c = arr.coords[d]
         if len(c) > 1 and c[1] - c[0] < 0:
             flip_axes.add(str(d))
-    values: NDArray[np.float64] = arr.values
+    values: NDArray[np.floating] = arr.values
     for dim in flip_axes:
         values = np.flip(values, arr.dims.index(dim))
-    interp_points: list[NDArray[np.float64]] = [
+    interp_points: list[NDArray[np.floating]] = [
         arr.coords[d].values[::-1] if d in flip_axes else arr.coords[d].values for d in arr.dims
     ]
     trace_size = [len(pts) for pts in interp_points]

@@ -53,7 +53,7 @@ LOGLEVELS = (DEBUG, INFO)
 LOGLEVEL = LOGLEVELS[1]
 logger = setup_logger(__name__, LOGLEVEL)
 
-A = TypeVar("A", NDArray[np.float64], float)
+A = TypeVar("A", NDArray[np.floating], float)
 
 
 def convert_coordinate_forward(
@@ -154,11 +154,11 @@ def convert_through_angular_pair(  # noqa: PLR0913
     data: xr.DataArray,
     first_point: dict[Hashable, float],
     second_point: dict[Hashable, float],
-    cut_specification: dict[str, NDArray[np.float64]],
-    transverse_specification: dict[str, NDArray[np.float64]],
+    cut_specification: dict[str, NDArray[np.floating]],
+    transverse_specification: dict[str, NDArray[np.floating]],
     *,
     relative_coords: bool = True,
-    **k_coords: NDArray[np.float64],
+    **k_coords: NDArray[np.floating],
 ) -> xr.DataArray:
     """Converts the lower dimensional ARPES cut passing through `first_point` and `second_point`.
 
@@ -263,11 +263,11 @@ def convert_through_angular_pair(  # noqa: PLR0913
 def convert_through_angular_point(
     data: xr.DataArray,
     coords: dict[Hashable, float],
-    cut_specification: dict[str, NDArray[np.float64]],
-    transverse_specification: dict[str, NDArray[np.float64]],
+    cut_specification: dict[str, NDArray[np.floating]],
+    transverse_specification: dict[str, NDArray[np.floating]],
     *,
     relative_coords: bool = True,
-    **k_coords: NDArray[np.float64],
+    **k_coords: NDArray[np.floating],
 ) -> xr.DataArray:
     """Converts the lower dimensional ARPES cut passing through given angular `coords`.
 
@@ -332,13 +332,13 @@ def convert_coordinates(
 ) -> xr.Dataset:
     """Converts coordinates forward in momentum."""
 
-    def unwrap_coord(coord: xr.DataArray | float) -> NDArray[np.float64] | float:
+    def unwrap_coord(coord: xr.DataArray | float) -> NDArray[np.floating] | float:
         if isinstance(coord, xr.DataArray):
             return coord.values
         return coord
 
     coord_names: set[str] = {"phi", "psi", "alpha", "theta", "beta", "chi", "hv", "eV"}
-    raw_coords: dict[str, NDArray[np.float64] | float] = {
+    raw_coords: dict[str, NDArray[np.floating] | float] = {
         k: unwrap_coord(arr.S.lookup_offset_coord(k)) for k in coord_names
     }
     raw_angles = {k: v for k, v in raw_coords.items() if k not in {"eV", "hv"}}
@@ -357,8 +357,8 @@ def convert_coordinates(
 
     def expand_to(
         cname: str,
-        c: NDArray[np.float64] | float,
-    ) -> NDArray[np.float64] | float:
+        c: NDArray[np.floating] | float,
+    ) -> NDArray[np.floating] | float:
         if isinstance(c, float):
             return c
         assert isinstance(c, np.ndarray)
@@ -460,7 +460,7 @@ def convert_coordinates_to_kspace_forward(arr: XrTypes) -> xr.Dataset:
             ("chi", "hv", "phi"): ["kx", "ky", "kz"],
         }.get(tupled_momentum_compatibles, [])
     full_old_dims: list[str] = [*momentum_compatibles, "eV"]
-    projection_vectors: NDArray[np.float64] = np.ndarray(
+    projection_vectors: NDArray[np.floating] = np.ndarray(
         shape=tuple(len(arr.coords[d]) for d in full_old_dims),
         dtype=object,
     )
@@ -549,7 +549,7 @@ def _broadcast_by_dim_location(
     data: xr.DataArray,
     target_shape: tuple[int, ...],
     dim_location: int | None = None,
-) -> NDArray[np.float64]:
+) -> NDArray[np.floating]:
     if isinstance(data, xr.DataArray) and not data.dims:
         data = data.item()
     if isinstance(

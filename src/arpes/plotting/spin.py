@@ -252,7 +252,7 @@ def polarization_intensity_to_color(
     data: xr.Dataset,
     vmax: float = 0,
     pmax: float = 1,
-) -> NDArray[np.float64]:
+) -> NDArray[np.floating]:
     """Converts a dataset with intensity and polarization into a RGB colorarray.
 
     This consists of a few steps:

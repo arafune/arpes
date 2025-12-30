@@ -25,14 +25,14 @@ class DiracDispersionModel(Model):
 
     def dirac_dispersion(  # noqa:  PLR0913
         self,
-        x: NDArray[np.float64],
+        x: NDArray[np.floating],
         kd: float = 1.6,
         amplitude_1: float = 1,
         amplitude_2: float = 1,
         center: float = 0,
         sigma_1: float = 1,
         sigma_2: float = 1,
-    ) -> NDArray[np.float64]:
+    ) -> NDArray[np.floating]:
         """Model for dirac_dispersion symmetric about the dirac point.
 
         Fits lorentziants to (kd-center) and (kd+center)
@@ -73,8 +73,8 @@ class DiracDispersionModel(Model):
 
     def guess(
         self,
-        data: NDArray[np.float64] | XrTypes,
-        x: NDArray[np.float64] | xr.DataArray,
+        data: NDArray[np.floating] | XrTypes,
+        x: NDArray[np.floating] | xr.DataArray,
         **kwargs: float,
     ) -> lf.Parameters:
         """Estimate initial model parameter values from data."""

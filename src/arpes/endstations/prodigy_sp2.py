@@ -53,7 +53,7 @@ def load_sp2(
     params: dict[str, str | float] = {}
     data: list[float] = []
     pixels: tuple[int, int] = (0, 0)
-    coords: dict[str, NDArray[np.float64]] = {}
+    coords: dict[str, NDArray[np.floating]] = {}
     with Path(path_to_file).open(encoding="Windows-1252") as sp2file:
         for line in sp2file:
             if line.startswith("#"):

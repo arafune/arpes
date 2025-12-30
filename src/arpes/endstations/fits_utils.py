@@ -41,7 +41,7 @@ DEFAULT_DIMENSION_RENAMINGS: dict[str, str] = {
     "Z": "z",
 }
 
-CoordsDict: TypeAlias = dict[str, NDArray[np.float64]]
+CoordsDict: TypeAlias = dict[str, NDArray[np.floating]]
 Dimension = str
 
 
@@ -140,7 +140,7 @@ def extract_coords(
 
             logger.debug(f"Loop (name, n_regions, size) = {(name, n_regions, n)}")
 
-            coord: NDArray[np.float64] = np.array(())
+            coord: NDArray[np.float64] = np.empty(0, dtype=np.float64)
             for region in range(n_regions):
                 start, end, n = (
                     attrs[f"ST_{loop}_{region}"],

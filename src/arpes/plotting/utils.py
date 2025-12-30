@@ -131,8 +131,8 @@ def mod_plot_to_ax(
     assert isinstance(data_arr, xr.DataArray)
     assert isinstance(ax, Axes)
     with unchanged_limits(ax):
-        xs: NDArray[np.float64] = data_arr.coords[data_arr.dims[0]].values
-        ys: NDArray[np.float64] = mod.eval(x=xs)
+        xs: NDArray[np.floating] = data_arr.coords[data_arr.dims[0]].values
+        ys: NDArray[np.floating] = mod.eval(x=xs)
         ax.plot(xs, ys, **kwargs)
 
 
@@ -213,7 +213,7 @@ def color_for_darkbackground(obj: Colorbar | Axes) -> None:
 def data_to_axis_units(
     points: tuple[float, float],
     ax: Axes | None = None,
-) -> NDArray[np.float64]:
+) -> NDArray[np.floating]:
     """Converts from data coordinates to axis coordinates (figure pixcels)."""
     if ax is None:
         ax = plt.gca()
@@ -224,7 +224,7 @@ def data_to_axis_units(
 def axis_to_data_units(
     points: tuple[float, float],
     ax: Axes | None = None,
-) -> NDArray[np.float64]:
+) -> NDArray[np.floating]:
     """Converts from axis coordinate to data coorinates."""
     if ax is None:
         ax = plt.gca()
@@ -234,7 +234,7 @@ def axis_to_data_units(
 
 def ddata_daxis_units(
     ax: Axes | None = None,
-) -> NDArray[np.float64]:
+) -> NDArray[np.floating]:
     """Gives the derivative of data units with respect to axis units."""
     if ax is None:
         ax = plt.gca()
@@ -246,7 +246,7 @@ def ddata_daxis_units(
 
 def daxis_ddata_units(
     ax: Axes | None = None,
-) -> NDArray[np.float64]:
+) -> NDArray[np.floating]:
     """Gives the derivative of axis units with respect to data units."""
     if ax is None:
         ax = plt.gca()
@@ -688,7 +688,7 @@ def insert_cut_locator(
 
     n = 200
 
-    def resolve(name: Hashable, value: slice | int) -> NDArray[np.float64]:
+    def resolve(name: Hashable, value: slice | int) -> NDArray[np.floating]:
         if isinstance(value, slice):
             low = value.start
             high = value.stop

@@ -48,7 +48,7 @@ def collect_leaves(tree: dict[str, Any], is_leaf: Incomplete = None) -> dict:
         A dictionary with the leaves and their direct parent key.
     """
 
-    def reducer(dd: dict, item: tuple[str, NDArray[np.float64]]) -> dict:
+    def reducer(dd: dict, item: tuple[str, NDArray[np.floating]]) -> dict:
         dd[item[0]].append(item[1])
         return dd
 

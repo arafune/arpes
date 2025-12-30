@@ -61,7 +61,7 @@ LEGENDLOCATION = Literal[
 
 
 class Line2DProperty(TypedDict, total=False):
-    agg_filter: Callable[[NDArray[np.float64], int], tuple[NDArray[np.float64], int, int]]
+    agg_filter: Callable[[NDArray[np.floating], int], tuple[NDArray[np.floating], int, int]]
     alpha: float | None
     animated: bool
     antialiased: bool | list[bool]
@@ -119,7 +119,7 @@ class PolyCollectionProperty(Line2DProperty, total=False):
     norm: Normalize | None
     offset_transform: Transform
     # offsets: (N, 2) or (2, ) array-like
-    sizes: NDArray[np.float64] | None
+    sizes: NDArray[np.floating] | None
     transform: Transform
     urls: list[str] | None
 
@@ -127,7 +127,7 @@ class PolyCollectionProperty(Line2DProperty, total=False):
 class MPLPlotKwargsBasic(TypedDict, total=False):
     """Kwargs for Axes.plot & Axes.fill_between."""
 
-    agg_filter: Callable[[NDArray[np.float64], int], tuple[NDArray[np.float64], int, int]]
+    agg_filter: Callable[[NDArray[np.floating], int], tuple[NDArray[np.floating], int, int]]
     alpha: float | None
     animated: bool
     antialiased: bool | list[bool]
@@ -183,8 +183,8 @@ class MPLPlotKwargs(MPLPlotKwargsBasic, total=False):
     randomness: float
     solid_capstyle: CapStyleType
     solid_joinstyle: JoinStyleType
-    xdata: NDArray[np.float64]
-    ydata: NDArray[np.float64]
+    xdata: NDArray[np.floating]
+    ydata: NDArray[np.floating]
     zorder: float
 
 
@@ -247,7 +247,7 @@ _FONTWEIGHTS = Literal[
 
 
 class MPLTextParam(TypedDict, total=False):
-    agg_filter: Callable[[NDArray[np.float64], int], tuple[NDArray[np.float64], int, int]]
+    agg_filter: Callable[[NDArray[np.floating], int], tuple[NDArray[np.floating], int, int]]
     alpha: float | None
     animated: bool
     antialiased: bool

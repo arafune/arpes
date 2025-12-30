@@ -33,7 +33,7 @@ def find_spectrum_energy_edges(
     data: xr.DataArray,
     *,
     indices: bool = False,
-) -> NDArray[np.float64] | NDArray[np.int_]:
+) -> NDArray[np.floating] | NDArray[np.int_]:
     """Compute the angular edges of the spectrum over the specified energy range.
 
     This method identifies the low and high angular edges for each slice of the spectrum
@@ -51,7 +51,7 @@ def find_spectrum_energy_edges(
             resolution for edge detection. Defaults to 0.05.
 
     Returns:
-        tuple[NDArray[np.float64], NDArray[np.float64], xr.DataArray]:
+        tuple[NDArray[np.floating], NDArray[np.floating], xr.DataArray]:
             - If `indices=True`:
                 - Low edge indices.
                 - High edge indices.
@@ -85,7 +85,7 @@ def find_spectrum_energy_edges(
     energy_marginal = data.sum([d for d in data.dims if d != "eV"])
 
     embed_size = 20
-    embedded: NDArray[np.float64] = np.ndarray(shape=[embed_size, energy_marginal.sizes["eV"]])
+    embedded: NDArray[np.floating] = np.ndarray(shape=[embed_size, energy_marginal.sizes["eV"]])
     embedded[:] = energy_marginal.values
     embedded = ndi.gaussian_filter(embedded, embed_size / 3)
 
@@ -108,7 +108,7 @@ def find_spectrum_angular_edges(
     *,
     angle_name: str = "phi",
     indices: bool = False,
-) -> NDArray[np.float64] | NDArray[np.int_]:
+) -> NDArray[np.floating] | NDArray[np.int_]:
     """Return angle position corresponding to the (1D) spectrum edge.
 
     Args:
@@ -116,7 +116,7 @@ def find_spectrum_angular_edges(
         angle_name (str): Angle name to find the edge
         indices (bool):  If True, return the index not the angle value.
 
-    Returns: NDArray[np.float64] | NDArray[np.int_]
+    Returns: NDArray[np.floating] | NDArray[np.int_]
         Angle position
     """
     angular_dim: str = "pixel" if "pixel" in data.dims else angle_name
@@ -126,7 +126,7 @@ def find_spectrum_angular_edges(
     )
 
     embed_size = 20
-    embedded: NDArray[np.float64] = np.ndarray(
+    embedded: NDArray[np.floating] = np.ndarray(
         shape=[embed_size, phi_marginal.sizes[angular_dim]],
     )
     embedded[:] = phi_marginal.values
@@ -153,7 +153,7 @@ def find_spectrum_angular_edges_full(
     *,
     indices: bool = False,
     energy_division: float = 0.05,
-) -> tuple[NDArray[np.float64], NDArray[np.float64], xr.DataArray]:
+) -> tuple[NDArray[np.floating], NDArray[np.floating], xr.DataArray]:
     """Finds the angular edges of the spectrum based on energy slicing and rebinning.
 
     This method uses edge detection techniques to identify boundaries in the angular dimension.
@@ -167,9 +167,9 @@ def find_spectrum_angular_edges_full(
 
     Returns:
         tuple: A tuple containing:
-            - low_edges (NDArray[np.float64]): Values or indices of the low edges
+            - low_edges (NDArray[np.floating]): Values or indices of the low edges
                 of the spectrum.
-            - high_edges (NDArray[np.float64]): Values or indices of the high edges
+            - high_edges (NDArray[np.floating]): Values or indices of the high edges
                 of the spectrum.
             - eV_coords (xr.DataArray): The coordinates of the rebinned energy axis.
 
@@ -181,8 +181,8 @@ def find_spectrum_angular_edges_full(
     # down to this region
     # we will then find the appropriate edge for each slice, and do a fit to the edge locations
     energy_edge = find_spectrum_energy_edges(data)
-    low_edge: np.float64 = np.min(energy_edge) + energy_division
-    high_edge: np.float64 = np.max(energy_edge) - energy_division
+    low_edge: np.floating = np.min(energy_edge) + energy_division
+    high_edge: np.floating = np.max(energy_edge) - energy_division
 
     if high_edge - low_edge < 3 * energy_division:
         # Doesn't look like the automatic inference of the energy edge was valid
@@ -199,7 +199,7 @@ def find_spectrum_angular_edges_full(
     rebinned = rebin(energy_cut, shape=new_shape)
 
     embed_size = 20
-    embedded: NDArray[np.float64] = np.empty(
+    embedded: NDArray[np.floating] = np.empty(
         shape=[embed_size, rebinned.sizes[angular_dim]],
     )
     low_edges = []
@@ -236,8 +236,8 @@ def zero_spectrometer_edges(
     data: xr.DataArray,
     cut_margin: int = 0,
     interp_range: float | None = None,
-    low: Sequence[float] | NDArray[np.float64] | None = None,
-    high: Sequence[float] | NDArray[np.float64] | None = None,
+    low: Sequence[float] | NDArray[np.floating] | None = None,
+    high: Sequence[float] | NDArray[np.floating] | None = None,
 ) -> xr.DataArray:
     """Zeros out the spectrum data outside of the specified low and high edges.
 
@@ -251,10 +251,10 @@ def zero_spectrometer_edges(
             Defaults to 50 pixels or 0.08 in angular units, depending on the data type.
         interp_range (float or None, optional): Specifies the interpolation range for edge data.
             If provided, the edge values are interpolated within this range.
-        low (Sequence[float], NDArray[np.float64], or None, optional): Low edge values.
+        low (Sequence[float], NDArray[np.floating], or None, optional): Low edge values.
             Use this to manually specify the low edge. Defaults to None.
             (automatically determined).
-        high (Sequence[float], NDArray[np.float64], or None, optional): High edge values.
+        high (Sequence[float], NDArray[np.floating], or None, optional): High edge values.
             Use this to manually specify the high edge. Defaults to None.
             (automatically determined).
 

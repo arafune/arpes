@@ -45,10 +45,10 @@ def _nothing_to_array(x: xr.DataArray) -> xr.DataArray:
 
 
 def _vector_diff(
-    arr: NDArray[np.float64],
+    arr: NDArray[np.floating],
     delta: tuple[DELTA, DELTA],
     n: int = 1,
-) -> NDArray[np.float64]:
+) -> NDArray[np.floating]:
     """Computes finite differences along the vector delta, given as a tuple.
 
     Using delta = (0, 1) is equivalent to np.diff(..., axis=1), while
@@ -138,7 +138,7 @@ def _gradient_modulus(
     """
     spectrum = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     assert isinstance(spectrum, xr.DataArray)
-    values: NDArray[np.float64] = spectrum.values
+    values: NDArray[np.floating] = spectrum.values
     gradient_vector = np.zeros(shape=(8, *values.shape))
 
     gradient_vector[0, :-delta, :] = _vector_diff(values, (delta, 0))

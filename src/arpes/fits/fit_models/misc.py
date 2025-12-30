@@ -27,12 +27,12 @@ class FermiVelocityRenormalizationModel(Model):
 
     @staticmethod
     def fermi_velocity_renormalization_mfl(
-        x: NDArray[np.float64],
+        x: NDArray[np.floating],
         n0: float,
         v0: float,
         alpha: float,
         eps: float,
-    ) -> NDArray[np.float64]:
+    ) -> NDArray[np.floating]:
         """A model for Logarithmic Renormalization to Fermi Velocity in Dirac Materials.
 
         Args:
@@ -57,8 +57,8 @@ class FermiVelocityRenormalizationModel(Model):
 
     def guess(
         self,
-        data: XrTypes | NDArray[np.float64],
-        x: NDArray[np.float64] | xr.DataArray,
+        data: XrTypes | NDArray[np.floating],
+        x: NDArray[np.floating] | xr.DataArray,
         **kwargs: float,
     ) -> lf.Parameters:
         """Placeholder for parameter estimation."""
@@ -79,13 +79,13 @@ class LogRenormalizationModel(Model):
 
     @staticmethod
     def log_renormalization(  # noqa: PLR0913
-        x: NDArray[np.float64],
+        x: NDArray[np.floating],
         kF: float = 1.6,  # noqa:  N803
         kD: float = 1.6,  # noqa:  N803
         kC: float = 1.7,  # noqa:  N803
         alpha: float = 0.4,
         vF: float = 1e6,  # noqa:  N803
-    ) -> NDArray[np.float64]:
+    ) -> NDArray[np.floating]:
         """Logarithmic correction to linear dispersion near charge neutrality in Dirac materials.
 
         As examples, this can be used to study the low energy physics in high quality ARPES spectra
@@ -119,8 +119,8 @@ class LogRenormalizationModel(Model):
 
     def guess(
         self,
-        data: XrTypes | NDArray[np.float64],
-        x: NDArray[np.float64] | xr.DataArray,
+        data: XrTypes | NDArray[np.floating],
+        x: NDArray[np.floating] | xr.DataArray,
         **kwargs: float,
     ) -> lf.Parameters:
         """Placeholder for actually making parameter estimates here."""

@@ -204,7 +204,7 @@ def convert_to_kspace(  # noqa: PLR0913
         calibration=calibration,
     )
 
-    converted_coordinates: dict[Hashable, NDArray[np.float64]] = converter.get_coordinates(
+    converted_coordinates: dict[Hashable, NDArray[np.floating]] = converter.get_coordinates(
         resolution=resolution,
         bounds=bounds,
     )

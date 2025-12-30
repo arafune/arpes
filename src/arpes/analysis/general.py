@@ -62,7 +62,7 @@ def fit_fermi_edge(
 @update_provenance("Normalized by the 1/Fermi Dirac Distribution at sample temp")
 def normalize_by_fermi_distribution(
     data: xr.DataArray,
-    max_gain: float | np.float64 = 0,
+    max_gain: float | np.floating = 0.0,
     rigid_shift: float = 0,
     instrumental_broadening: float = 0,
     total_broadening: float = 0,

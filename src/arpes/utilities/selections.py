@@ -315,7 +315,7 @@ def select_disk_mask(
     around: dict[str, float] | None = None,
     *,
     flat: bool = False,
-) -> NDArray[np.float64]:
+) -> NDArray[np.floating]:
     """A complement to `select_disk` which only generates the mask for the selection.
 
     Selects the data in a disk around the point described by `around`. A point is a labelled
@@ -363,7 +363,7 @@ def select_disk(
     around: dict[str, float] | None = None,
     *,
     invert: bool = False,
-) -> tuple[dict[str, NDArray[np.float64]], NDArray[np.float64], NDArray[np.float64]]:
+) -> tuple[dict[str, NDArray[np.floating]], NDArray[np.floating], NDArray[np.floating]]:
     """Selects the data in a disk around the point requested.
 
      (or annulus if `outer_radius` is provided)

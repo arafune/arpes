@@ -56,7 +56,7 @@ def plot_parameter(  # noqa: PLR0913
 
     ds = fit_data.F.param_as_dataset(param_name)
     x_name = ds.value.dims[0]
-    x: NDArray[np.float64] = ds.coords[x_name].values
+    x: NDArray[np.floating] = ds.coords[x_name].values
     kwargs.setdefault("fillstyle", "none")
     kwargs.setdefault("markersize", 8)
     kwargs.setdefault("color", "#1f77b4")  # matplotlib.colors.TABLEAU_COLORS["tab:blue"]

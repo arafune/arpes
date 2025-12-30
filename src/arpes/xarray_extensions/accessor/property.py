@@ -553,7 +553,7 @@ class ARPESInfoProperty(ARPESPhysicalProperty[DataType]):
         return beamline_info
 
     @property
-    def sweep_settings(self) -> dict[str, xr.DataArray | NDArray[np.float64] | float | None]:
+    def sweep_settings(self) -> dict[str, xr.DataArray | NDArray[np.floating] | float | None]:
         """For datasets acquired with swept acquisition settings, provides those settings."""
         return {
             "high_energy": self._obj.attrs.get("sweep_high_energy"),

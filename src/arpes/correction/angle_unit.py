@@ -11,7 +11,7 @@ from arpes._typing.base import ANGLE, DataType
 from arpes._typing.utils import flatten_literals
 from arpes.xarray_extensions.accessor.spectrum_type import AngleUnit
 
-AngleValue = TypeVar("AngleValue", float, np.float64, NDArray[np.float64])
+AngleValue = TypeVar("AngleValue", float, np.floating, NDArray[np.floating])
 
 
 def radian_to_degree(data: xr.DataArray) -> xr.DataArray:

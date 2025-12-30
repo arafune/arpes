@@ -40,10 +40,10 @@ logger = setup_logger(__name__, LOGLEVEL)
 
 @numba.njit(parallel=True)
 def _exact_arcsin(  # noqa: PLR0913
-    k_par: NDArray[np.float64],
-    k_perp: NDArray[np.float64],
-    k_tot: NDArray[np.float64],
-    phi: NDArray[np.float64],
+    k_par: NDArray[np.floating],
+    k_perp: NDArray[np.floating],
+    k_tot: NDArray[np.floating],
+    phi: NDArray[np.floating],
     offset: float,
     *,
     par_tot: bool,
@@ -60,9 +60,9 @@ def _exact_arcsin(  # noqa: PLR0913
 
 @numba.njit(parallel=True)
 def _small_angle_arcsin(  # noqa: PLR0913
-    k_par: NDArray[np.float64],
-    k_tot: NDArray[np.float64],
-    phi: NDArray[np.float64],
+    k_par: NDArray[np.floating],
+    k_tot: NDArray[np.floating],
+    phi: NDArray[np.floating],
     offset: float,
     *,
     par_tot: bool,
@@ -84,10 +84,10 @@ def _small_angle_arcsin(  # noqa: PLR0913
 
 @numba.njit(parallel=True)
 def _rotate_kx_ky(
-    kx: NDArray[np.float64],
-    ky: NDArray[np.float64],
-    kxout: NDArray[np.float64],
-    kyout: NDArray[np.float64],
+    kx: NDArray[np.floating],
+    ky: NDArray[np.floating],
+    kxout: NDArray[np.floating],
+    kyout: NDArray[np.floating],
     chi: float,
 ) -> None:
     cos_chi = np.cos(chi)
@@ -101,8 +101,8 @@ def _rotate_kx_ky(
 def _compute_ktot(
     hv: float,
     work_function: float,
-    binding_energy: NDArray[np.float64],
-    k_tot: NDArray[np.float64],
+    binding_energy: NDArray[np.floating],
+    k_tot: NDArray[np.floating],
 ) -> None:
     """Calculate 0.512 √E.
 
@@ -121,8 +121,8 @@ def _compute_ktot(
 def _safe_compute_k_tot(
     hv: float,
     work_function: float,
-    binding_energy: float | NDArray[np.float64] | xr.DataArray,
-) -> NDArray[np.float64]:
+    binding_energy: float | NDArray[np.floating] | xr.DataArray,
+) -> NDArray[np.floating]:
     if isinstance(binding_energy, float):
         arr_binding_energy = np.array([binding_energy])
     elif isinstance(binding_energy, xr.DataArray):
@@ -154,14 +154,14 @@ class ConvertKp(CoordinateConverter):
         super().__init__(*args, **kwargs)
         logger.debug(f"self.dim_order: {self.dim_order}")
 
-        self.k_tot: NDArray[np.float64] | None = None
-        self.phi: NDArray[np.float64] | None = None
+        self.k_tot: NDArray[np.floating] | None = None
+        self.phi: NDArray[np.floating] | None = None
 
     def get_coordinates(
         self,
         resolution: dict[str, float] | None = None,
         bounds: dict[str, tuple[float, float]] | None = None,
-    ) -> dict[Hashable, NDArray[np.float64]]:
+    ) -> dict[Hashable, NDArray[np.floating]]:
         """Calculates appropriate coordinate bounds.
 
         Args:
@@ -203,7 +203,7 @@ class ConvertKp(CoordinateConverter):
         coordinates.update(base_coords)
         return coordinates
 
-    def compute_k_tot(self, binding_energy: NDArray[np.float64]) -> None:
+    def compute_k_tot(self, binding_energy: NDArray[np.floating]) -> None:
         """Compute the total momentum (inclusive of kz) at different binding energies."""
         energy_notation = self.arr.S.energy_notation
         hv = self.arr.S.hv
@@ -213,10 +213,10 @@ class ConvertKp(CoordinateConverter):
 
     def kspace_to_phi(
         self,
-        binding_energy: NDArray[np.float64],
-        kp: NDArray[np.float64],
+        binding_energy: NDArray[np.floating],
+        kp: NDArray[np.floating],
         *args: Incomplete,
-    ) -> NDArray[np.float64]:
+    ) -> NDArray[np.floating]:
         """Converts from momentum back to the analyzer angular axis."""
         # Dont remove *args even if not used.
         del args
@@ -251,10 +251,12 @@ class ConvertKp(CoordinateConverter):
         assert self.phi is not None
         return self.phi
 
-    def conversion_for(self, dim: Hashable) -> Callable[[NDArray[np.float64]], NDArray[np.float64]]:
+    def conversion_for(
+        self, dim: Hashable
+    ) -> Callable[[NDArray[np.floating]], NDArray[np.floating]]:
         """Looks up the appropriate momentum-to-angle conversion routine by dimension name."""
 
-        def _with_identity(*args: NDArray[np.float64]) -> NDArray[np.float64]:
+        def _with_identity(*args: NDArray[np.floating]) -> NDArray[np.floating]:
             return self.identity_transform(dim, *args)
 
         return {  # type: ignore[return-value]
@@ -276,12 +278,12 @@ class ConvertKxKy(CoordinateConverter):
     def __init__(self, arr: xr.DataArray, *args: Incomplete, **kwargs: Incomplete) -> None:
         """Initialize the kx-ky momentum converter and cached coordinate values."""
         super().__init__(arr, *args, **kwargs)
-        self.k_tot: NDArray[np.float64] | None = None
+        self.k_tot: NDArray[np.floating] | None = None
         # the angle perpendicular to phi as appropriate to the scan, this can be any of
         # psi, theta, beta
-        self.perp_angle: NDArray[np.float64] | None = None
-        self.rkx: NDArray[np.float64] | None = None
-        self.rky: NDArray[np.float64] | None = None
+        self.perp_angle: NDArray[np.floating] | None = None
+        self.rkx: NDArray[np.floating] | None = None
+        self.rky: NDArray[np.floating] | None = None
         # accept either vertical or horizontal, fail otherwise
         if not any(
             np.abs(arr.alpha - alpha_option) < np.deg2rad(1) for alpha_option in [0, np.pi / 2]
@@ -311,7 +313,7 @@ class ConvertKxKy(CoordinateConverter):
         self,
         resolution: dict[str, float] | None = None,
         bounds: dict[str, tuple[float, float]] | None = None,
-    ) -> dict[Hashable, NDArray[np.float64]]:
+    ) -> dict[Hashable, NDArray[np.floating]]:
         """Calculates the coordinates which should be used in momentum space.
 
         Args:
@@ -375,7 +377,7 @@ class ConvertKxKy(CoordinateConverter):
         coordinates.update(base_coords)
         return coordinates
 
-    def compute_k_tot(self, binding_energy: NDArray[np.float64]) -> None:
+    def compute_k_tot(self, binding_energy: NDArray[np.floating]) -> None:
         """Compute the total momentum (inclusive of kz) at different binding energies."""
         energy_notation = self.arr.S.energy_notation
         hv: float = self.arr.S.hv
@@ -383,10 +385,10 @@ class ConvertKxKy(CoordinateConverter):
         hv = 0.0 if energy_notation is EnergyNotation.FINAL else hv
         self.k_tot = _safe_compute_k_tot(hv, work_function, binding_energy)
 
-    def conversion_for(self, dim: Hashable) -> Callable[..., NDArray[np.float64]]:
+    def conversion_for(self, dim: Hashable) -> Callable[..., NDArray[np.floating]]:
         """Looks up the appropriate momentum-to-angle conversion routine by dimension name."""
 
-        def _with_identity(*args: NDArray[np.float64]) -> NDArray[np.float64]:
+        def _with_identity(*args: NDArray[np.floating]) -> NDArray[np.floating]:
             return self.identity_transform(dim, *args)
 
         return {  # type: ignore[return-value]
@@ -408,9 +410,9 @@ class ConvertKxKy(CoordinateConverter):
 
     def rkx_rky(
         self,
-        kx: NDArray[np.float64],
-        ky: NDArray[np.float64],
-    ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+        kx: NDArray[np.floating],
+        ky: NDArray[np.floating],
+    ) -> tuple[NDArray[np.floating], NDArray[np.floating]]:
         """Returns the rotated kx and ky values when we are rotating by nonzero chi."""
         if self.rkx is not None and self.rky is not None:
             return self.rkx, self.rky
@@ -422,11 +424,11 @@ class ConvertKxKy(CoordinateConverter):
 
     def kspace_to_phi(
         self,
-        binding_energy: NDArray[np.float64],
-        kx: NDArray[np.float64],
-        ky: NDArray[np.float64],
+        binding_energy: NDArray[np.floating],
+        kx: NDArray[np.floating],
+        ky: NDArray[np.floating],
         *args: Incomplete,
-    ) -> NDArray[np.float64]:
+    ) -> NDArray[np.floating]:
         """Converts from momentum back to the analyzer angular axis."""
         logger.debug("the following args are not used in kspace_to_phi")
         logger.debug(args)
@@ -467,10 +469,10 @@ class ConvertKxKy(CoordinateConverter):
 
     def kspace_to_perp_angle(
         self,
-        binding_energy: NDArray[np.float64],
-        kx: NDArray[np.float64],
-        ky: NDArray[np.float64],
-    ) -> NDArray[np.float64]:
+        binding_energy: NDArray[np.floating],
+        kx: NDArray[np.floating],
+        ky: NDArray[np.floating],
+    ) -> NDArray[np.floating]:
         """Converts from momentum back to the scan angle perpendicular to the analyzer."""
         if self.perp_angle is not None:
             return self.perp_angle

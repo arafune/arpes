@@ -19,7 +19,7 @@ __all__ = ["remap_coords_to"]
 def remap_coords_to(
     arr: DataType,
     reference_arr: DataType,
-) -> dict[str, NDArray[np.float64] | xr.DataArray]:
+) -> dict[str, NDArray[np.floating] | xr.DataArray]:
     """Produces coordinates for the scan path of `arr` in the coordinate system of `reference_arr`.
 
     This needs to be thought out a bit more, namely to take into account better the

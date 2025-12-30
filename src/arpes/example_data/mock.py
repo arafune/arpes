@@ -9,12 +9,12 @@ __all__ = ("build_mock_tarpes", "temporal_from_rate")
 
 
 def temporal_from_rate(
-    t: float | NDArray[np.float64],
+    t: float | NDArray[np.floating],
     g: float,
     sigma: float,
     k_ex: float,
     t0: float = 0,
-) -> float | NDArray[np.float64]:
+) -> float | NDArray[np.floating]:
     """Temporal profile.
 
     From a rate equation, which is used in (for example)

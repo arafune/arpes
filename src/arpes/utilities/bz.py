@@ -60,7 +60,7 @@ T = TypeVar("T")
 def process_kpath(
     path: str,
     cell: Cell,
-) -> NDArray[np.float64]:
+) -> NDArray[np.floating]:
     """Converts paths consisting of point definitions to raw coordinates.
 
     Args:
@@ -130,7 +130,7 @@ def reduced_bz_axis_to(
     symbol: str,
     *,
     include_E: bool = False,  # noqa: N803
-) -> NDArray[np.float64]:
+) -> NDArray[np.floating]:
     """Calculates a displacement vector to a modded high symmetry point.
 
     Args:
@@ -173,7 +173,7 @@ def reduced_bz_axis_to(
     raise NotImplementedError
 
 
-def reduced_bz_axes(data: XrTypes) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+def reduced_bz_axes(data: XrTypes) -> tuple[NDArray[np.floating], NDArray[np.floating]]:
     """Calculates displacement vectors to high symmetry points in the first Brillouin zone.
 
     Args:
@@ -247,7 +247,7 @@ def reduced_bz_poly(
     data: XrTypes,
     *,
     scale_zone: bool = False,
-) -> NDArray[np.float64]:
+) -> NDArray[np.floating]:
     """Returns a polynomial representing the reduce first Brillouin zone.
 
     Args:
@@ -298,7 +298,7 @@ def reduced_bz_E_mask(
     e_cut: float,
     *,
     scale_zone: bool = False,
-) -> NDArray[np.float64]:
+) -> NDArray[np.floating]:
     """Calculates a mask for data which contains points below an energy cutoff.
 
     Args:
@@ -307,7 +307,7 @@ def reduced_bz_E_mask(
         e_cut: [TODO:description]
         scale_zone: [TODO:description]
 
-    Returns: NDArray[np.float64]
+    Returns: NDArray[np.floating]
         [TODO:description]
 
     ToDo: Test
@@ -361,7 +361,7 @@ def reduced_bz_E_mask(
     return np.reshape(mask, sdata.data.shape)
 
 
-def reduced_bz_mask(data: XrTypes, **kwargs: Incomplete) -> NDArray[np.float64]:
+def reduced_bz_mask(data: XrTypes, **kwargs: Incomplete) -> NDArray[np.floating]:
     """Calculates a mask for the first Brillouin zone of a piece of data.
 
     Args:

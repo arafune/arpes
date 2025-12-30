@@ -60,8 +60,8 @@ class Band:
         sigma: float = 0.1 / spacing
         raw_values = self.embed_nan(self.center.values, 50)
 
-        masked: NDArray[np.float64] = np.nan_to_num(np.copy(raw_values), nan=0.0)
-        nan_mask: NDArray[np.float64] = np.nan_to_num(np.copy(raw_values) * 0 + 1, nan=0.0)
+        masked: NDArray[np.floating] = np.nan_to_num(np.copy(raw_values), nan=0.0)
+        nan_mask: NDArray[np.floating] = np.nan_to_num(np.copy(raw_values) * 0 + 1, nan=0.0)
 
         nan_mask = scipy.ndimage.gaussian_filter(nan_mask, sigma, mode="mirror")
         masked = scipy.ndimage.gaussian_filter(masked, sigma, mode="mirror")
@@ -100,7 +100,7 @@ class Band:
         var_name: str,  # Literal["center", "amplitude", "sigma""]
         *,
         clean: bool = True,
-    ) -> xr.DataArray | NDArray[np.float64]:
+    ) -> xr.DataArray | NDArray[np.floating]:
         """Converts the underlying data into an array representation."""
         assert isinstance(self._data, xr.Dataset)
         if not clean:
@@ -123,7 +123,7 @@ class Band:
         return center_array
 
     @property
-    def center_stderr(self) -> NDArray[np.float64]:
+    def center_stderr(self) -> NDArray[np.floating]:
         """Gets the peak location stderr along the band."""
         center_stderr = self.get_dataarray("center_stderr", clean=False)
         assert isinstance(center_stderr, np.ndarray)
@@ -162,17 +162,17 @@ class Band:
         return self._data.center.dims
 
     @staticmethod
-    def embed_nan(values: NDArray[np.float64], padding: int) -> NDArray[np.float64]:
+    def embed_nan(values: NDArray[np.floating], padding: int) -> NDArray[np.floating]:
         """Return np.ndarray padding before and after the original NDArray with nan.
 
         Args:
             values: [TODO:description]
             padding: the length of the padding
 
-        Returns: NDArray[np.float64]
+        Returns: NDArray[np.floating]
             [TODO:description]
         """
-        embedded: NDArray[np.float64] = np.full(
+        embedded: NDArray[np.floating] = np.full(
             shape=(values.shape[0] + 2 * padding,),
             fill_value=np.nan,
             dtype=np.float64,
