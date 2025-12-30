@@ -752,21 +752,19 @@ def get_colorbars(fig: Figure | None = None) -> list[Colorbar]:
 
 
 def remove_colorbars(fig: Figure | None = None) -> None:
-    """Removes colorbars from given (or, if no given figure, current) matplotlib figure.
+    """Removes colorbars from given (or current) matplotlib figure.
 
     Args:
-        fig: The figure to modify, by default uses the current figure (`plt.gcf()`)
+        fig: The figure to modify. If None, uses current figure.
     """
-    # TODO: after colorbar removal, plots should be relaxed/rescaled to occupy space previously
-    # allocated to colorbars for now, can follow this with plt.tight_layout()
-    COLORBAR_ASPECT_RATIO = 20
-    if fig is not None:
-        for ax in fig.axes:
-            aspect_ratio = ax.get_aspect()
-            if isinstance(aspect_ratio, float) and aspect_ratio >= COLORBAR_ASPECT_RATIO:
-                ax.remove()
-    else:
-        remove_colorbars(plt.gcf())
+    fig = plt.gcf() if fig is None else fig
+
+    for cbar in get_colorbars(fig):
+        if hasattr(cbar, "remove"):
+            cbar.remove()
+        # fallback (older versions / edge cases)
+        elif hasattr(cbar, "ax"):
+            cbar.ax.remove()
 
 
 def calculate_aspect_ratio(data: xr.DataArray) -> float:

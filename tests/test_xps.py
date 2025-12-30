@@ -18,5 +18,5 @@ class TestXPS:
         energies = approximate_core_levels(dataarray_cut2.S.sum_other(["eV"]))
         np.testing.assert_allclose(
             energies,
-            [9.36826347305, 9.58383233535, 9.89520958085],
+            [9.368, 9.584, 9.895],
         )

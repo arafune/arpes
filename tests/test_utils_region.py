@@ -61,8 +61,8 @@ def test_meso_effective_selector(dataarray_cut: xr.DataArray) -> None:
 def test_find_spectrum_angular_edges_full(dataarray_cut: xr.DataArray) -> None:
     """Test for find_spectrum_angular_edges_full."""
     desired = (
-        np.array([0.26964973, 0.26092309, 0.30281099, 0.28012171, 0.26441375, 0.25394177]),
-        np.array([0.59951696, 0.60824361, 0.60998894, 0.60824361, 0.54890241, 0.56810104]),
+        np.array([0.269124, 0.260397, 0.302285, 0.279596, 0.263888, 0.253416]),
+        np.array([0.598991, 0.607718, 0.609463, 0.607718, 0.548377, 0.567575]),
     )
     results = find_spectrum_angular_edges_full(dataarray_cut)
     np.testing.assert_allclose(

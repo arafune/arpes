@@ -148,19 +148,19 @@ class TestStackDispersionPlot:
             paths[0].get_paths()[0].vertices[:3],
             np.array(
                 [
-                    [9.0, np.rad2deg(0.19602282)],
-                    [9.0, np.rad2deg(0.19632079)],
-                    [9.002, np.rad2deg(0.19634603)],
-                ]
+                    [9.0, 11.231],
+                    [9.0, 11.248082],
+                    [9.002, 11.249529],
+                ],
             ),
         )
         np.testing.assert_allclose(
             actual=paths[-1].get_paths()[0].vertices[:3],
             desired=np.array(
                 [
-                    [9.0, np.rad2deg(-0.19602282)],
-                    [9.0, np.rad2deg(-0.19578132)],
-                    [9.002, np.rad2deg(-0.19573485)],
+                    [9.0, -11.2435],
+                    [9.0, -11.229656],
+                    [9.002, -11.226992],
                 ],
             ),
         )
@@ -168,8 +168,8 @@ class TestStackDispersionPlot:
         assert xmin == 8.95
         assert xmax == 10.05
         ymin, ymax = ax.get_ylim()
-        np.testing.assert_allclose(ymin, -12.363908917090033)
-        np.testing.assert_allclose(ymax, 12.55392725889067)
+        np.testing.assert_allclose(ymin, -12.376731)
+        np.testing.assert_allclose(ymax, 12.55435)
 
 
 class TestFlatStackPlot:

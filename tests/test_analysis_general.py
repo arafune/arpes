@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 import xarray as xr
 
+import arpes.xarray_extensions
 from arpes.analysis.general import (
     _bin,
     condense,
@@ -88,7 +89,11 @@ def test_symmetrize_axis():
     energy = np.linspace(-1, 1, 201)
     data = np.random.default_rng().random(201)
     da = xr.DataArray(data, coords=[("eV", energy)])
-    result = symmetrize_axis(da, axis_name="eV", flip_axes=False)
+    result = symmetrize_axis(
+        da,
+        axis_name="eV",
+        flip_axes=False,
+    )
     assert isinstance(result, xr.DataArray)
     assert result.shape == da.shape
 
@@ -105,6 +110,21 @@ def test_rebin():
     result = rebin(data, shape, bin_width=None, method="mean")
     assert isinstance(result, xr.DataArray)
     assert result.sizes["eV"] == 50
+
+
+def test_rebin_with_method_sum():
+    data = xr.DataArray(np.random.default_rng().random((10, 100)), dims=["x", "eV"])
+    shape = {"eV": 50}
+    result = rebin(data, shape, bin_width=None, method="sum")
+    assert isinstance(result, xr.DataArray)
+    assert result.sizes["eV"] == 50
+
+
+def test_rebin_with_wrong_method():
+    data = xr.DataArray(np.random.default_rng().random((10, 100)), dims=["x", "eV"])
+    shape = {"eV": 50}
+    with pytest.raises(TypeError):
+        rebin(data, shape, bin_width=None, method="invalid_method")
 
 
 def test__bin():

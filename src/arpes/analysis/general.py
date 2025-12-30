@@ -138,7 +138,7 @@ def symmetrize_axis(
 
     Args:
         data: input data
-        axis_name: name of axis to be symmbetrized.
+        axis_name: name of axis to be symmetrized.
         flip_axes (list[str]): lis of axis name to be flipped flipping.
 
     Returns:
@@ -242,32 +242,30 @@ def _bin(
     bins: int,
     method: ReduceMethod,
 ) -> DataType:
-    original_left, original_right = (
-        data.coords[bin_axis].min().item(),
-        data.coords[bin_axis].max().item(),
-    )
-    original_region = original_right - original_left
-    if method == "sum":
-        data = (
-            data.groupby_bins(bin_axis, bins, precision=10)
-            .sum()
-            .rename({bin_axis + "_bins": bin_axis})
-        )
-    elif method == "mean":
-        data = (
-            data.groupby_bins(bin_axis, bins, precision=10)
-            .mean()
-            .rename({bin_axis + "_bins": bin_axis})
-        )
-    else:
-        msg = "method must be sum or mean"
+    """Bin data along a specified axis and replace bin coordinates with bin centers.
+
+    Args:
+        data: xarray DataArray or Dataset to bin.
+        bin_axis: Name of the coordinate along which to bin.
+        bins: Number of bins.
+        method: Reduction method, either "sum" or "mean".
+
+    Returns:
+        Binned xarray object with updated coordinates.
+    """
+    if method not in ("sum", "mean"):
+        msg = "method must be 'sum' or 'mean'"
         raise TypeError(msg)
-    left = data.coords[bin_axis].values[0].left
-    right = data.coords[bin_axis].values[0].right
-    left = left + original_region * 0.001
-    medium_values = [
-        (left + right) / 2,
-        *[(b.left + b.right) / 2 for b in data.coords[bin_axis].values[1:]],
+    grouped = data.groupby_bins(bin_axis, bins)
+    data = getattr(grouped, method)().rename({bin_axis + "_bins": bin_axis})
+
+    bin_edges = data.coords[bin_axis].values
+
+    first_left = np.nextafter(bin_edges[0].left, bin_edges[0].right)
+    bin_centers = [(first_left + bin_edges[0].right) / 2] + [
+        (b.left + b.right) / 2 for b in bin_edges[1:]
     ]
-    data.coords[bin_axis] = np.array(medium_values)
+
+    data.coords[bin_axis] = np.array(bin_centers)
+
     return data
