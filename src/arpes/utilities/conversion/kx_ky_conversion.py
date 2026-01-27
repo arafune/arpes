@@ -252,7 +252,7 @@ class ConvertKp(CoordinateConverter):
         return self.phi
 
     def conversion_for(
-        self, dim: Hashable
+        self, dim: Hashable,
     ) -> Callable[[NDArray[np.floating]], NDArray[np.floating]]:
         """Looks up the appropriate momentum-to-angle conversion routine by dimension name."""
 
