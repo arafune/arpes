@@ -8,11 +8,16 @@ Note:
     prefer using `config_manager.enter_workspace(...)` and `exit_workspace()`.
 """
 
+from __future__ import annotations
+
 import warnings
 from contextlib import ContextDecorator
-from types import TracebackType
+from typing import TYPE_CHECKING
 
 from arpes.configuration.manager import config_manager
+
+if TYPE_CHECKING:
+    from types import TracebackType
 
 __all__ = ["WorkspaceManager"]
 
@@ -50,7 +55,7 @@ class WorkspaceManager(ContextDecorator):
         self.workspace_name = workspace_name
         self._active = bool(workspace_name)
 
-    def __enter__(self) -> "WorkspaceManager":
+    def __enter__(self) -> WorkspaceManager:  # noqa: PYI034
         """Enter the runtime context for the WorkspaceManager.
 
         Returns:
