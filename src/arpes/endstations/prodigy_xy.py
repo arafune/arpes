@@ -30,10 +30,19 @@ import xarray as xr
 from arpes.helper import clean_keys
 
 if TYPE_CHECKING:
+
     from numpy.typing import NDArray
+
+from dataclasses import dataclass
+
+@dataclass
+class Axis:
+    name: str
+    values: NDArray[np.float64]
 
 MAP_DIMENSION = 3
 SECOND_DIM_NAME = "nonenergy"
+THIRD_DIM_NAME = "parameter"
 
 __all__ = ["load_xy"]
 
@@ -57,6 +66,7 @@ class ProdigyXY:
         """Initialize."""
         self.params: dict[str, str | float | int] = {}
         self.axis_info: dict[str, tuple[NDArray[np.float64], str]] = {}
+        self.axes: list[Axis]
         self.intensity: NDArray[np.float64]
         if list_from_xy_file is not None:
             self.parse(list_from_xy_file)
@@ -72,86 +82,64 @@ class ProdigyXY:
         xy_data_params = [line.strip() for line in list_from_xy_file if line.startswith("#")]
         en_counts = np.loadtxt(list_from_xy_file, comments="#", dtype=float)
         energies = en_counts[:, 0]
-        self.intensity = en_counts[:, 1]
+        intensity = en_counts[:, 1]
 
         self.params = _parse_xy_head(xy_data_params)
         # search for second and third dimension values and names
         xy_dims = _parse_xy_dims(xy_data_params)
 
-        dim_names = list(xy_dims.keys())
-        dim_values = list(xy_dims.values())
-
-        second_dim_name: str = str(dim_names[0])
-        second_dim_values = dim_values[0]
-        num_of_second = len(second_dim_values)
-        second_dim_values = np.linspace(second_dim_values[0], second_dim_values[-1], num_of_second)
-
-        third_dim_name: str = str(dim_names[1])
-        third_dim_values = dim_values[1]
-
-        num_of_third = 1 if len(third_dim_values) == 0 else len(third_dim_values)
-
-        if self.params["scan_mode"] == "SnapshotFAT":
-            num_of_en = len(self.intensity) // (num_of_second * num_of_third)
+        if "scan_mode" in self.params and self.params["scan_mode"] == "SnapshotFAT":
+            # dynamic calculation
+            n_other = np.prod([len(v) for v in xy_dims.values()]) or 1
+            n_energy = len(intensity) // n_other
         else:
-            num_of_en = int(self.params["values_curve"])
+           n_energy = int(self.params["values_curve"])
 
-        kinetic_ef_energy = np.linspace(energies[0], energies[num_of_en - 1], num_of_en)
-        # first dimension is always energy
-        self.axis_info["d1"] = (kinetic_ef_energy, "eV")
+        energy_axis = np.linspace(energies[0], energies[n_energy - 1], n_energy)
 
-        # second dimension could be phi angle or x position on the sample in magnification modes
-        self.axis_info["d2"] = (second_dim_values, second_dim_name)
-        # third dimension - polar angle of the manipulator od deflector shift - psi angle
-        if num_of_third > 1:
-            # 3d map eV vs phi vs parameter
-            self.axis_info["d3"] = (third_dim_values, third_dim_name)
-            self.intensity = self.intensity.reshape(
-                (
-                    num_of_third,
-                    num_of_second,
-                    num_of_en,
-                ),
+        axes: list[Axis] = [Axis("eV", energy_axis)]
+
+        # enforce order: nonenergy first, then others
+        if SECOND_DIM_NAME in xy_dims:
+            axes.append(Axis(SECOND_DIM_NAME, xy_dims[SECOND_DIM_NAME]))
+
+        for name, values in xy_dims.items():
+            if name != SECOND_DIM_NAME:
+                axes.append(Axis(name, values))
+
+        self.axes = axes
+        sizes = [len(ax.values) for ax in self.axes]
+
+        expected_size = int(np.prod(sizes))
+        if intensity.size != expected_size:
+            raise ValueError(
+                f"Data size mismatch: got {intensity.size}, expected {expected_size}"
             )
-            self.intensity = np.transpose(self.intensity, (2, 1, 0))
-        else:
-            # single scan only eV vs phi
-            self.intensity = self.intensity.reshape(
-                (
-                    num_of_second,
-                    num_of_en,
-                ),
-            )
-            self.intensity = np.transpose(self.intensity, (1, 0))
+
+        # data stored as: (slowest → fastest) = reversed axes
+        shape = list(reversed(sizes))
+
+        arr = intensity.reshape(shape)
+
+        # reorder to (energy, nonenergy, ...)
+        self.intensity = np.transpose(arr, tuple(reversed(range(len(shape)))))
+
 
     def to_data_array(self, **kwargs: str | float) -> xr.DataArray:
-        """Export to Xarray.
+        """Export to Xarray."""
+        coords: dict[str, NDArray[np.float64]] = {
+            ax.name: ax.values for ax in self.axes
+        }
+        dims = [ax.name for ax in self.axes]
 
-        Args:
-            **kwargs(str | float): Extra arguments. Forward to the attrs of the output xarray.
-
-        Returns:
-            xr.DataArray: pyarpess compatibility
-        """
-        attrs = self.params
-        coords: dict[str, NDArray[np.float64]] = {}
-        # set energy axis
-        coords[self.axis_info["d1"][1]] = self.axis_info["d1"][0]
-        # set the second dimension - non energy ordinate
-        coords[self.axis_info["d2"][1]] = self.axis_info["d2"][0]
-        # set the third dimension
-        if len(self.axis_info) == MAP_DIMENSION:
-            coords[self.axis_info["d3"][1]] = self.axis_info["d3"][0]
-
-        dims = [v[1] for v in self.axis_info.values()]
         data_array = xr.DataArray(
-            np.array(self.intensity),
+            self.intensity,
             coords=coords,
             dims=dims,
-            attrs=attrs,
+            attrs=self.params.copy(),
         )
-        for k, v in kwargs.items():
-            data_array.attrs[k] = v
+
+        data_array.attrs.update(kwargs)
         return data_array
 
     @property
@@ -216,51 +204,45 @@ def _parse_xy_head(xy_data_params: list[str]) -> dict[str, str | int | float]:
 
 
 def _parse_xy_dims(xy_data_params: list[str]) -> dict[str, NDArray[np.float64]]:
-    """Parse other than energy dimensions.
-
-    Args:
-        xy_data_params: list[str]
-        Comment lines, starting with #, of the xy data file
-
-    Returns:
-        Dictionary with the second and the third dimension values
-        where the key is the name of the dimension
-    """
-    xy_dims: dict[str, NDArray[np.float64]] = {}
-
-    second_dim_done: bool = False
+    """Parse dimensions other than energy from xy header."""
     second_dim: list[float] = []
     second_name: str = SECOND_DIM_NAME
+
     third_dim: list[float] = []
-    third_dim_count: int = 0
-    third_dim_name: str = "thirddim"
+    third_name: str | None = None
 
-    paramexpr = re.compile(r"# Parameter:\s\"(\w+)\s.+\s=\s(-?\d+.?\d*)")
-    nonenergyexpr = re.compile(r"# NonEnergyOrdinate:\s+(-?\d+.?\d*)")
+    PARAMETER_RE = re.compile(r'# Parameter:\s"([^"]+).+=\s*(-?\d+\.?\d*)')
+    NONENERGY_RE = re.compile(r"# NonEnergyOrdinate:\s+(-?\d+\.?\d*)")
 
+    second_dim_done: bool = False
     for line in xy_data_params:
-        # Use nested conditions for better performance
-        # Search for Parameter line
-        m = paramexpr.match(line)
+
+        # --- third dimension (Parameter) ---
+        m = PARAMETER_RE.match(line)
         if m:
+            if third_name is None:
+                third_name = m.group(1).strip()
             third_dim.append(float(m.group(2)))
-            # Capture the parameter name. Could be for example polar [deg] or deflector [x]
-            if third_dim_count == 0:
-                third_dim_name = str(m.group(1)).strip()
-            third_dim_count += 1
+            continue
+
+        # --- second dimension (NonEnergyOrdinate) ---
         if not second_dim_done:
-            m = nonenergyexpr.match(line)
+            m = NONENERGY_RE.match(line)
             if m:
-                nonenergy = float(m.group(1))
-                second_dim.append(nonenergy)
-                if len(second_dim) > 1 and nonenergy == second_dim[0]:
+                value = float(m.group(1))
+                second_dim.append(value)
+
+                if len(second_dim) > 1 and value == second_dim[0]:
                     second_dim.pop()
                     second_dim_done = True
 
-    second_dim_values = np.array(second_dim)
-    third_dim_values = np.array(third_dim)
-    xy_dims[second_name] = second_dim_values
-    xy_dims[third_dim_name] = third_dim_values
+    xy_dims: dict[str, NDArray[np.float64]] = {}
+
+    if second_dim:
+        xy_dims[second_name] = np.array(second_dim)
+
+    if third_dim:
+        xy_dims[third_name or THIRD_DIM_NAME] = np.array(third_dim)
 
     return clean_keys(xy_dims)
 

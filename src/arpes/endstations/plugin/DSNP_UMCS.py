@@ -117,11 +117,12 @@ class DSNP_UMCSEndstation(  # noqa: N801
                 lens_mode = data.attrs["analyzer_lens"].split(":")[0]
                 if lens_mode in self._LENS_MAPPING:
                     dispersion_mode = self._LENS_MAPPING[lens_mode]
-                    if dispersion_mode:
-                        data = data.rename({"nonenergy": "phi"})
-                        data = data.assign_coords(phi=np.deg2rad(data.phi))
-                    else:
-                        data = data.rename({"nonenergy": "x"})
+                    if "nonenergy" in data.coords:
+                        if dispersion_mode:
+                            data = data.rename({"nonenergy": "phi"})
+                            data = data.assign_coords(phi=np.deg2rad(data.phi))
+                        else:
+                            data = data.rename({"nonenergy": "x"})
                 else:
                     msg = f"Unknown Analyzer Lens: {lens_mode}"
                     raise ValueError(msg)
