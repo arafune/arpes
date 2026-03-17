@@ -78,15 +78,19 @@ class ProdigyXY:
             list_from_xy_file(list[str]):list form of xy file by readlines()
 
         """
-        # create separate list that contains only commented lines (starting with #)
-        xy_data_params = [line.strip() for line in list_from_xy_file if line.startswith("#")]
-        en_counts = np.loadtxt(list_from_xy_file, comments="#", dtype=float)
-        energies = en_counts[:, 0]
-        intensity = en_counts[:, 1]
+        # --- split header and data ---
+        header_lines = [line.strip() for line in list_from_xy_file if line.startswith("#")]
+        raw_data = np.loadtxt(list_from_xy_file, comments="#", dtype=float)
 
-        self.params = _parse_xy_head(xy_data_params)
-        # search for second and third dimension values and names
-        xy_dims = _parse_xy_dims(xy_data_params)
+        # --- energy + intensity ---
+        energies = raw_data[:, 0]
+        intensity = raw_data[:, 1]
+
+        # --- metadata ---
+        self.params = _parse_xy_head(header_lines)
+
+        # --- dimensions from header ---
+        xy_dims = _parse_xy_dims(header_lines)
 
         if "scan_mode" in self.params and self.params["scan_mode"] == "SnapshotFAT":
             # dynamic calculation
@@ -112,9 +116,8 @@ class ProdigyXY:
 
         expected_size = int(np.prod(sizes))
         if intensity.size != expected_size:
-            raise ValueError(
-                f"Data size mismatch: got {intensity.size}, expected {expected_size}"
-            )
+            msg = f"Data size mismatch: got {intensity.size}, expected {expected_size}"
+            raise ValueError(msg)
 
         # data stored as: (slowest → fastest) = reversed axes
         shape = list(reversed(sizes))
