@@ -30,15 +30,16 @@ import xarray as xr
 from arpes.helper import clean_keys
 
 if TYPE_CHECKING:
-
     from numpy.typing import NDArray
 
 from dataclasses import dataclass
+
 
 @dataclass
 class Axis:
     name: str
     values: NDArray[np.float64]
+
 
 MAP_DIMENSION = 3
 SECOND_DIM_NAME = "nonenergy"
@@ -97,7 +98,7 @@ class ProdigyXY:
             n_other = np.prod([len(v) for v in xy_dims.values()]) or 1
             n_energy = len(intensity) // n_other
         else:
-           n_energy = int(self.params["values_curve"])
+            n_energy = int(self.params["values_curve"])
 
         energy_axis = np.linspace(energies[0], energies[n_energy - 1], n_energy)
 
@@ -127,12 +128,9 @@ class ProdigyXY:
         # reorder to (energy, nonenergy, ...)
         self.intensity = np.transpose(arr, tuple(reversed(range(len(shape)))))
 
-
     def to_data_array(self, **kwargs: str | float) -> xr.DataArray:
         """Export to Xarray."""
-        coords: dict[str, NDArray[np.float64]] = {
-            ax.name: ax.values for ax in self.axes
-        }
+        coords: dict[str, NDArray[np.float64]] = {ax.name: ax.values for ax in self.axes}
         dims = [ax.name for ax in self.axes]
 
         data_array = xr.DataArray(
@@ -219,7 +217,6 @@ def _parse_xy_dims(xy_data_params: list[str]) -> dict[str, NDArray[np.float64]]:
 
     second_dim_done: bool = False
     for line in xy_data_params:
-
         # --- third dimension (Parameter) ---
         m = PARAMETER_RE.match(line)
         if m:
