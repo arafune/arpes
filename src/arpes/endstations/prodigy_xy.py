@@ -167,16 +167,16 @@ def load_xy(
         return data_array
 
 
-def _parse_xy_head(xy_data_params: list[str]) -> dict[str, str | int | float]:
+def _parse_xy_head(header_lines: list[str]) -> dict[str, str | int | float]:
     """Parse Common head part."""
     temp_params: dict[str, str | int | float] = {}
     start_ind = 0
-    for line in xy_data_params:
+    for line in header_lines:
         if line.startswith("# Group:"):
             break
         start_ind += 1
 
-    for line in xy_data_params[start_ind:]:
+    for line in header_lines[start_ind:]:
         if line.startswith("# Cycle"):
             break
         key, _, value = line[1:].partition(":")
@@ -189,7 +189,7 @@ def _parse_xy_head(xy_data_params: list[str]) -> dict[str, str | int | float]:
     return temp_params
 
 
-def _parse_xy_dims(xy_data_params: list[str]) -> dict[str, NDArray[np.float64]]:
+def _parse_xy_dims(header_lines: list[str]) -> dict[str, NDArray[np.float64]]:
     """Parse non-energy dimensions from header.
 
     Returns only dimensions present in the file:
@@ -207,7 +207,7 @@ def _parse_xy_dims(xy_data_params: list[str]) -> dict[str, NDArray[np.float64]]:
     NONENERGY_RE = re.compile(r"# NonEnergyOrdinate:\s+(-?\d+\.?\d*)")
 
     second_dim_done: bool = False
-    for line in xy_data_params:
+    for line in header_lines:
         # --- third dimension (Parameter) ---
         m = PARAMETER_RE.match(line)
         if m:
