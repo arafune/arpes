@@ -40,9 +40,11 @@ class Axis:
     values: NDArray[np.float64]
 
 
-MAP_DIMENSION = 3
 SECOND_DIM_NAME = "nonenergy"
 THIRD_DIM_NAME = "parameter"
+
+PARAMETER_RE = re.compile(r'# Parameter:\s"([^"]+).+=\s*(-?\d+\.?\d*)')
+NONENERGY_RE = re.compile(r"# NonEnergyOrdinate:\s+(-?\d+\.?\d*)")
 
 __all__ = ["load_xy"]
 
@@ -62,7 +64,6 @@ class ProdigyXY:
     def __init__(self, list_from_xy_file: list[str] | None = None) -> None:
         """Initialize."""
         self.params: dict[str, str | float | int] = {}
-        self.axis_info: dict[str, tuple[NDArray[np.float64], str]] = {}
         self.axes: list[Axis]
         self.intensity: NDArray[np.float64]
         if list_from_xy_file is not None:
@@ -77,11 +78,11 @@ class ProdigyXY:
         """
         # --- split header and data ---
         header_lines = [line.strip() for line in list_from_xy_file if line.startswith("#")]
-        raw_data = np.loadtxt(list_from_xy_file, comments="#", dtype=float)
+        data = np.loadtxt(list_from_xy_file, comments="#", dtype=float)
 
         # --- energy + intensity ---
-        energies = raw_data[:, 0]
-        intensity = raw_data[:, 1]
+        energies = data[:, 0]
+        flat_intensity = data[:, 1]
 
         # --- metadata ---
         self.params = _parse_xy_head(header_lines)
@@ -89,10 +90,12 @@ class ProdigyXY:
         # --- dimensions from header ---
         xy_dims = _parse_xy_dims(header_lines)
 
-        if "scan_mode" in self.params and self.params["scan_mode"] == "SnapshotFAT":
-            # dynamic calculation
+        if self.params.get("scan_mode") == "SnapshotFAT":
+            # for SnapshotFAT mode the values_curve param is typically 1
+            # first calculate the product of all non-energy dimensions (fallback to 1 for 1D case)
             n_other = np.prod([len(v) for v in xy_dims.values()]) or 1
-            n_energy = len(intensity) // n_other
+            # then calculate the number of energies
+            n_energy = len(flat_intensity) // n_other
         else:
             n_energy = int(self.params["values_curve"])
 
@@ -109,23 +112,17 @@ class ProdigyXY:
                 axes.append(Axis(name, values))
 
         self.axes = axes
-        sizes = [len(ax.values) for ax in self.axes]
+        sizes = [ax.values.size for ax in self.axes]
 
         expected_size = int(np.prod(sizes))
-        if intensity.size != expected_size:
-            msg = f"Data size mismatch: got {intensity.size}, expected {expected_size}"
+        if flat_intensity.size != expected_size:
+            msg = f"Data size mismatch: got {flat_intensity.size}, expected {expected_size}"
             raise ValueError(msg)
 
-        # data stored as: (slowest → fastest) = reversed axes
-        shape = list(reversed(sizes))
-
-        arr = intensity.reshape(shape)
-
-        # reorder to (energy, nonenergy, ...)
-        self.intensity = np.transpose(arr, tuple(reversed(range(len(shape)))))
+        self.intensity = _reshape_intensity(flat_intensity, axes)
 
     def to_data_array(self, **kwargs: str | float) -> xr.DataArray:
-        """Export to Xarray."""
+        """Export to xarray DataArray."""
         coords: dict[str, NDArray[np.float64]] = {ax.name: ax.values for ax in self.axes}
         dims = [ax.name for ax in self.axes]
 
@@ -161,10 +158,7 @@ def load_xy(
     with Path(path_to_file).open(mode="r") as xy_file:
         xy_data: list[str] = xy_file.readlines()
         prodigy_xy = ProdigyXY(xy_data)
-        data_array = prodigy_xy.to_data_array()
-        for k, v in kwargs.items():
-            data_array.attrs[k] = v
-        return data_array
+        return prodigy_xy.to_data_array(**kwargs)
 
 
 def _parse_xy_head(header_lines: list[str]) -> dict[str, str | int | float]:
@@ -203,9 +197,6 @@ def _parse_xy_dims(header_lines: list[str]) -> dict[str, NDArray[np.float64]]:
     third_dim: list[float] = []
     third_name: str | None = None
 
-    PARAMETER_RE = re.compile(r'# Parameter:\s"([^"]+).+=\s*(-?\d+\.?\d*)')
-    NONENERGY_RE = re.compile(r"# NonEnergyOrdinate:\s+(-?\d+\.?\d*)")
-
     second_dim_done: bool = False
     for line in header_lines:
         # --- third dimension (Parameter) ---
@@ -236,6 +227,19 @@ def _parse_xy_dims(header_lines: list[str]) -> dict[str, NDArray[np.float64]]:
         xy_dims[third_name or THIRD_DIM_NAME] = np.array(third_dim)
 
     return clean_keys(xy_dims)
+
+
+def _reshape_intensity(flat: NDArray[np.float64], axes: list[Axis]) -> NDArray[np.float64]:
+    """Reshape flat intensity array into N-dimensional form.
+
+    Data in Prodigy files is stored with fastest-changing axis last.
+    This function reshapes and reorders it to match axes order:
+    (energy, nonenergy, parameter, ...).
+    """
+    sizes = [len(ax.values) for ax in axes]
+    shape = list(reversed(sizes))
+    arr = flat.reshape(shape)
+    return np.transpose(arr, tuple(reversed(range(len(shape)))))
 
 
 def _formatted_value(value: str) -> float | str:
