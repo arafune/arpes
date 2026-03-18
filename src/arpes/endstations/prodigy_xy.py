@@ -1,21 +1,20 @@
-"""pyarpes plugin for SpecsLab Prodigy exported .xy files.
+"""Input support for SpecsLab Prodigy exported .xy files.
 
-Currently, this plugin supports following scenarios:
-1. Single scan dispersion modes eV vs phi angle.
-2. Single scan magnification modes eV vs x.
-3. 3D maps: counts as a function of eV, phi, and a third parameter.
+Supported data dimensionality:
+- 1D: energy only
+- 2D: energy vs nonenergy (angle or spatial coordinate)
+- 3D: energy vs nonenergy vs parameter
 
-First dimension is always energy. It is stored as a first column of the xy data.
+Data model:
+- The first column is always energy (eV).
+- The second column is intensity.
+- Additional dimensions are reconstructed from header metadata:
+    * NonEnergyOrdinate → second dimension (if present)
+    * Parameter → third dimension (if present)
 
-Second dimension "nonenegy" is perpendicular to the energy on the MCP detector,
-stored as # NonEnergyOrdinate in each block of the data.
-This could be both: angular (phi angle) or spatial (along the slit direction).
-
-Third dimension/parameter could be:
-- the deflector shift (psi angle)
-- manipulator rotation (theta angle).
-- other parameter: the details should be provided in specific end station plugin.
-The third dimension is stored with an original name found in xy file (Parameter).
+Notes:
+- Energy axis is reconstructed using linspace for numerical stability.
+- Dimension names are preserved from the file and normalized later by plugins.
 """
 
 from __future__ import annotations
@@ -49,18 +48,15 @@ __all__ = ["load_xy"]
 
 
 class ProdigyXY:
-    """Class for Prodigy exported xy file.
-
-    Args:
-        list_from_xy_file(list[str] | None): list form of xy file
-            (Path(xy_file).open().readlines())
+    """Parser for Prodigy .xy files.
 
     Attributes:
-        params(dict[str, str | int float]): Measurement Parameters
-        axis_info(dict[str, tuple[NDArray, str]]):
-        Information about all axes:
-        key=d1,d2,d3 (values and name)
-        intensity: photemission intensity
+        params:
+            Measurement metadata parsed from header.
+        axes:
+            Ordered list of axes (energy first).
+        intensity:
+            N-dimensional intensity array aligned with axes.
     """
 
     def __init__(self, list_from_xy_file: list[str] | None = None) -> None:
@@ -172,18 +168,7 @@ def load_xy(
 
 
 def _parse_xy_head(xy_data_params: list[str]) -> dict[str, str | int | float]:
-    """Parse Common head part.
-
-    Parameters
-    ----------
-    xy_data_params : list[str]
-        Comment lines, starting with #, of the xy data file
-
-    Returns:
-    -------
-    dict[str, str | int | float]
-        Common head data
-    """
+    """Parse Common head part."""
     temp_params: dict[str, str | int | float] = {}
     start_ind = 0
     for line in xy_data_params:
@@ -205,7 +190,13 @@ def _parse_xy_head(xy_data_params: list[str]) -> dict[str, str | int | float]:
 
 
 def _parse_xy_dims(xy_data_params: list[str]) -> dict[str, NDArray[np.float64]]:
-    """Parse dimensions other than energy from xy header."""
+    """Parse non-energy dimensions from header.
+
+    Returns only dimensions present in the file:
+    - no NonEnergyOrdinate → 1D
+    - NonEnergyOrdinate only → 2D
+    - NonEnergyOrdinate + Parameter → 3D
+    """
     second_dim: list[float] = []
     second_name: str = SECOND_DIM_NAME
 
