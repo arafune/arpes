@@ -159,7 +159,7 @@ class ProdigyXY:
     @property
     def integrated_intensity(self) -> np.float64:
         """Return the integrated intensity."""
-        return np.sum(np.array(self.intensity))
+        return np.float64(self.intensity.sum())
 
 
 def load_xy(
