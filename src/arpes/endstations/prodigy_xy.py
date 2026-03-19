@@ -43,8 +43,10 @@ class Axis:
 SECOND_DIM_NAME = "nonenergy"
 THIRD_DIM_NAME = "parameter"
 
-PARAMETER_RE = re.compile(r'# Parameter:\s"([^"]+).+=\s*(-?\d+\.?\d*)')
-NONENERGY_RE = re.compile(r"# NonEnergyOrdinate:\s+(-?\d+\.?\d*)")
+NUMBER_RE = r"(?P<value>[+-]?\d+(?:\.\d+)?)"
+
+PARAMETER_RE = re.compile(r'# Parameter: "(?P<name>[^"\[]+)(?: \[[^\]]+\])?" = ' + NUMBER_RE)
+NONENERGY_RE = re.compile(r"# NonEnergyOrdinate:\s+" + NUMBER_RE)
 
 __all__ = ["load_xy"]
 
@@ -93,12 +95,11 @@ class ProdigyXY:
         if self.params.get("scan_mode") == "SnapshotFAT":
             # for SnapshotFAT mode the values_curve param is typically 1
             # first calculate the product of all non-energy dimensions (fallback to 1 for 1D case)
-            n_other = np.prod([len(v) for v in xy_dims.values()]) or 1
+            n_other = np.prod([len(v) for v in xy_dims.values()], dtype=np.int64, initial=1).item()
             # then calculate the number of energies
             n_energy = len(flat_intensity) // n_other
         else:
             n_energy = int(self.params["values_curve"])
-
         energy_axis = np.linspace(energies[0], energies[n_energy - 1], n_energy)
 
         axes: list[Axis] = [Axis("eV", energy_axis)]
@@ -203,18 +204,17 @@ def _parse_xy_dims(header_lines: list[str]) -> dict[str, NDArray[np.float64]]:
         m = PARAMETER_RE.match(line)
         if m:
             if third_name is None:
-                third_name = m.group(1).strip()
-            third_dim.append(float(m.group(2)))
+                third_name = m.group("name")
+            third_dim.append(float(m.group("value")))
             continue
 
         # --- second dimension (NonEnergyOrdinate) ---
         if not second_dim_done:
             m = NONENERGY_RE.match(line)
             if m:
-                value = float(m.group(1))
+                value = float(m.group("value"))
                 second_dim.append(value)
-
-                if len(second_dim) > 1 and value == second_dim[0]:
+                if len(second_dim) > 1 and np.allclose(value, second_dim[0]):
                     second_dim.pop()
                     second_dim_done = True
 
