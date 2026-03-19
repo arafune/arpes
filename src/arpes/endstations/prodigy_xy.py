@@ -43,6 +43,25 @@ class Axis:
 SECOND_DIM_NAME = "nonenergy"
 THIRD_DIM_NAME = "parameter"
 
+# XY Prodigy file header section
+HEADER_SECTION_START = "# Group"
+HEADER_SECTION_END = "# Cycle"
+
+HEADER_KV_RE = re.compile(r"# (?P<key>[^:]+):\s*(?P<value>.*\S)?")
+
+HEADER_VALUES_TYPES = {
+    "curves_scan": int,
+    "values_curve": int,
+    "dwell_time": float,
+    "excitation_energy": float,
+    "kinetic_energy": float,
+    "pass_energy": float,
+    "bias_voltage": float,
+    "detector_voltage": float,
+    "eff_workfunction": float,
+}
+
+# XY Prodigy dimension name and values patterns
 NUMBER_RE = r"(?P<value>[+-]?\d+(?:\.\d+)?)"
 
 PARAMETER_RE = re.compile(r'# Parameter: "(?P<name>[^"\[]+)(?: \[[^\]]+\])?" = ' + NUMBER_RE)
@@ -163,25 +182,36 @@ def load_xy(
 
 
 def _parse_xy_head(header_lines: list[str]) -> dict[str, str | int | float]:
-    """Parse Common head part."""
-    temp_params: dict[str, str | int | float] = {}
-    start_ind = 0
+    """Parse header section into a typed parameter dictionary."""
+    in_header_section = False
+    params = {}
+
     for line in header_lines:
-        if line.startswith("# Group:"):
+        # Search for header beginning
+        if not in_header_section:
+            if line.startswith(HEADER_SECTION_START):
+                in_header_section = True
+            continue
+
+        # Search for header end
+        if line.startswith(HEADER_SECTION_END):
             break
-        start_ind += 1
 
-    for line in header_lines[start_ind:]:
-        if line.startswith("# Cycle"):
-            break
-        key, _, value = line[1:].partition(":")
-        temp_params[key.strip()] = _formatted_value(value)
+        # Read parameters
+        m = HEADER_KV_RE.match(line)
+        if m:
+            key = m.group("key").strip()
+            val = (m.group("value") or "").strip()
+            params[key] = val
 
-    temp_params = clean_keys(temp_params)
-    temp_params["curves_scan"] = int(temp_params["curves_scan"])
-    temp_params["values_curve"] = int(temp_params["values_curve"])
+    params = clean_keys(params)
 
-    return temp_params
+    # Cast the values
+    for key, cast in HEADER_VALUES_TYPES.items():
+        if key in params:
+            params[key] = cast(params[key])
+
+    return params
 
 
 def _parse_xy_dims(header_lines: list[str]) -> dict[str, NDArray[np.float64]]:
