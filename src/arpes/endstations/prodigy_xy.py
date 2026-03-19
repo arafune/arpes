@@ -157,8 +157,8 @@ def load_xy(
         xr.DataArray: pyARPES compatible
     """
     with Path(path_to_file).open(mode="r") as xy_file:
-        xy_data: list[str] = xy_file.readlines()
-        prodigy_xy = ProdigyXY(xy_data)
+        list_from_xy_file: list[str] = xy_file.readlines()
+        prodigy_xy = ProdigyXY(list_from_xy_file)
         return prodigy_xy.to_data_array(**kwargs)
 
 
