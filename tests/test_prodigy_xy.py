@@ -31,7 +31,10 @@ class TestXYLoader:
         attrs = sample_xy.attrs
         assert isinstance(attrs["detector_voltage"], float)
         assert isinstance(attrs["values_curve"], int)
+        assert isinstance(attrs["scan_mode"], str)
+        assert attrs["scan_mode"] == "SnapshotFAT"
 
+        np.testing.assert_allclose(attrs["values_curve"], 1)
         np.testing.assert_allclose(attrs["eff_workfunction"], 4.32)
         np.testing.assert_allclose(attrs["excitation_energy"], 21.2182)
 
