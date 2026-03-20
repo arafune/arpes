@@ -20,6 +20,7 @@ Notes:
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -31,14 +32,13 @@ from arpes.helper import clean_keys
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
-from dataclasses import dataclass
-
 
 @dataclass
 class Axis:
     name: str
     values: NDArray[np.float64]
 
+Axes = list[Axis]
 
 SECOND_DIM_NAME = "nonenergy"
 THIRD_DIM_NAME = "parameter"
@@ -83,8 +83,13 @@ def load_xy(
     Returns:
         xr.DataArray: pyARPES compatible
     """
+    file_as_lines: list[str]
+    metadata_lines: list[str]
+    data: NDArray[np.float64]
+
+    path = Path(path_to_file)
     # Read the file as lines
-    with Path(path_to_file).open("r") as f:
+    with Path(path).open("r") as f:
         file_as_lines = f.readlines()
 
     # Separate metadata
@@ -93,13 +98,16 @@ def load_xy(
     data = np.loadtxt(file_as_lines, comments="#", dtype=np.float64)
 
     # energy + flat intensity
-    energies = data[:, 0]
-    flat_intensity = data[:, 1]
+    energies: NDArray[np.float64] = data[:, 0]
+    flat_intensity: NDArray[np.float64] = data[:, 1]
 
     # parse metadata
-    params = _parse_xy_head(metadata_lines)
-    xy_dims = _parse_xy_dims(metadata_lines)
+    params: dict[str, str | float] = _parse_xy_head(metadata_lines)
+    xy_dims: dict[str, NDArray[np.float64]] = _parse_xy_dims(metadata_lines)
 
+    # calculate or extract the number of energies
+    n_other: int
+    n_energy: int
     if params.get("scan_mode") == "SnapshotFAT":
         # for SnapshotFAT mode the values_curve param is typically 1
         # therefore the number of energies must be calculated manually
@@ -111,9 +119,9 @@ def load_xy(
     else:
         n_energy = int(params["values_curve"])
 
-    energy_axis = np.linspace(energies[0], energies[n_energy - 1], n_energy)
+    energy_axis: NDArray[np.float64] = np.linspace(energies[0], energies[n_energy - 1], n_energy)
 
-    axes: list[Axis] = [Axis("eV", energy_axis)]
+    axes: Axes = [Axis("eV", energy_axis)]
 
     # enforce order: nonenergy first, then others
     if SECOND_DIM_NAME in xy_dims:
@@ -123,19 +131,19 @@ def load_xy(
         if name != SECOND_DIM_NAME:
             axes.append(Axis(name, values))
 
-    sizes = [ax.values.size for ax in axes]
+    sizes: list[int] = [ax.values.size for ax in axes]
 
     expected_size = int(np.prod(sizes))
     if flat_intensity.size != expected_size:
         msg = f"Data size mismatch: got {flat_intensity.size}, expected {expected_size}"
         raise ValueError(msg)
 
-    intensity = _reshape_intensity(flat_intensity, axes)
+    intensity: NDArray[np.float64] = _reshape_intensity(flat_intensity, axes)
 
     coords: dict[str, NDArray[np.float64]] = {ax.name: ax.values for ax in axes}
-    dims = [ax.name for ax in axes]
+    dims: list[str] = [ax.name for ax in axes]
 
-    data_array = xr.DataArray(
+    data_array: xr.DataArray = xr.DataArray(
         intensity,
         coords=coords,
         dims=dims,
@@ -150,7 +158,7 @@ def load_xy(
 def _parse_xy_head(header_lines: list[str]) -> dict[str, str | int | float]:
     """Parse header section into a typed parameter dictionary."""
     in_header_section = False
-    params = {}
+    params: dict[str, str | float] = {}
 
     for line in header_lines:
         # Search for header beginning
@@ -225,7 +233,7 @@ def _parse_xy_dims(header_lines: list[str]) -> dict[str, NDArray[np.float64]]:
     return clean_keys(xy_dims)
 
 
-def _reshape_intensity(flat: NDArray[np.float64], axes: list[Axis]) -> NDArray[np.float64]:
+def _reshape_intensity(flat: NDArray[np.float64], axes: Axes) -> NDArray[np.float64]:
     """Reshape flat intensity array into N-dimensional form.
 
     Data in Prodigy files is stored with fastest-changing axis last.
@@ -236,4 +244,3 @@ def _reshape_intensity(flat: NDArray[np.float64], axes: list[Axis]) -> NDArray[n
     shape = list(reversed(sizes))
     arr = flat.reshape(shape)
     return np.transpose(arr, tuple(reversed(range(len(shape)))))
-
