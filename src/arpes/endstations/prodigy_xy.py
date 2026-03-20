@@ -38,6 +38,7 @@ class Axis:
     name: str
     values: NDArray[np.float64]
 
+
 Axes = list[Axis]
 
 SECOND_DIM_NAME = "nonenergy"
