@@ -170,7 +170,7 @@ def savitzky_golay_filter(  # noqa: PLR0913
     """
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     axis = data.dims.index(dim) if dim else -1
-    dim = dim if dim else data.dims[0]
+    dim = dim or data.dims[0]
     coords_diffs = np.diff(data.coords[dim])
     assert np.allclose(coords_diffs, coords_diffs[0], rtol=1e-5, atol=1e-6), (
         f"The coordinates must be equally spaced. Consider to use interpolation. f{coords_diffs}"

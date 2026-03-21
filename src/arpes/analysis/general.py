@@ -104,9 +104,7 @@ def normalize_by_fermi_distribution(
     assert isinstance(distrib, np.ndarray)
     # don't boost by more than 90th percentile of input, by default
     max_gain = (
-        max_gain
-        if max_gain
-        else min(
+        max_gain or min(
             float(np.mean(data.values, dtype=np.float64)),
             float(np.percentile(data.values, 10)),
         )

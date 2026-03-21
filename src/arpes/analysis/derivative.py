@@ -176,7 +176,7 @@ def curvature1d(
     """
     assert isinstance(arr, xr.DataArray)
     assert alpha > 0
-    dim = dim if dim else str(arr.dims[0])
+    dim = dim or str(arr.dims[0])
     smooth_ = _nothing_to_array if smooth_fn is None else smooth_fn
     arr = smooth_(arr)
     d_arr = arr.differentiate(dim)
@@ -301,7 +301,7 @@ def dn_along_axis(
         The nth derivative data.
     """
     assert isinstance(arr, xr.DataArray)
-    dim = dim if dim else str(arr.dims[0])
+    dim = dim or str(arr.dims[0])
     smooth_ = _nothing_to_array if smooth_fn is None else smooth_fn
     dn_arr = smooth_(arr)
     for _ in range(order):
