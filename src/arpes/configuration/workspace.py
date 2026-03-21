@@ -50,7 +50,7 @@ class WorkspaceManager(ContextDecorator):
         self.workspace_name = workspace_name
         self._active = bool(workspace_name)
 
-    def __enter__(self) -> "WorkspaceManager":
+    def __enter__(self) -> "WorkspaceManager":  # noqa: PYI034
         """Enter the runtime context for the WorkspaceManager.
 
         Returns:
