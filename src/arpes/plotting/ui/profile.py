@@ -159,8 +159,8 @@ def profile_view(
     kwargs.setdefault("profile_view_height", 100)
 
     max_coords = data.G.argmax_coords()
-    posx = posx if posx else PointerX(x=max_coords[data.dims[0]])
-    posy = posy if posy else PointerY(y=max_coords[data.dims[1]])
+    posx = posx or PointerX(x=max_coords[data.dims[0]])
+    posy = posy or PointerY(y=max_coords[data.dims[1]])
 
     plot_lim = get_plot_lim(data, log=kwargs["log"])
 

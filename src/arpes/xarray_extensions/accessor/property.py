@@ -325,7 +325,7 @@ class ARPESPhysicalProperty(Generic[DataType]):
         if notation.lower() in final_notations:
             self._obj.attrs["energy_notation"] = "Final"
             return EnergyNotation.FINAL
-        if notation.lower() in {"binding"}:
+        if notation.lower() == "binding":
             self._obj.attrs["energy_notation"] = "Binding"
             return EnergyNotation.BINDING
         msg = f"Invalid energy notation found: {notation!r}"

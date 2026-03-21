@@ -279,7 +279,7 @@ class GenericAccessorBase(Generic[DataType]):
             which shows the relationship between pixel position and physical (like "eV" and "phi").
         """
         assert isinstance(self._obj, xr.DataArray | xr.Dataset)
-        dim_names = dim_names if dim_names else tuple(self._obj.dims)
+        dim_names = dim_names or tuple(self._obj.dims)
         dim_names = [dim_names] if isinstance(dim_names, str) else dim_names
         coords_list = [self._obj.coords[d].values for d in dim_names]
         for indices in itertools.product(*[range(len(c)) for c in coords_list]):
@@ -302,7 +302,7 @@ class GenericAccessorBase(Generic[DataType]):
             Iterator of the physical position like ("eV" and "phi")
             {'phi': -0.2178031280148764, 'eV': 9.002}
         """
-        dim_names = dim_names if dim_names else tuple(self._obj.dims)
+        dim_names = dim_names or tuple(self._obj.dims)
         dim_names = [dim_names] if isinstance(dim_names, str) else dim_names
         the_iterator: Iterator = itertools.product(*[self._obj.coords[d].values for d in dim_names])
         the_iterator = always_reversible(the_iterator) if reverse else the_iterator
