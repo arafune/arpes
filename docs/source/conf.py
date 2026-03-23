@@ -8,6 +8,7 @@ import sys
 #sys.path.append(os.path.abspath(".."))
 
 import warnings
+
 warnings.filterwarnings("ignore")
 os.environ["PYTHONWARNINGS"] = "ignore"
 
@@ -66,6 +67,16 @@ suppress_warnings = [
     "nbsphinx",
 ]
 
+nitpick_ignore_regex = [
+    (
+        "py:class",
+        r"^(A dataset consisting|AdjointLayout|AnalysisError|AnalyzerInfo|ANGLE|Axes|BeamLineSettings|Callable|Cell|Collection|CoordsOffset|DAQInfo|DELTA|DetectorCalibration|DTypeLike|DataType|EndstationBase|EnergyNotation|ExperimentInfo|Figure|Field|Hashable|Incomplete|KspaceCoords|LEGENDLOCATION|LightSourceInfo|MOMENTUM|Mapping|Momentum|NDArray|PColorMeshKwargs|Path|PointerX|PointerY|ProfileViewParam|Provenance|ReduceMethod|SampleInfo|ScanInfo|SelType|SpectrumType|TODO|The experimental condition|XrTypes|animation\.FuncAnimation|are the amounts to|arpes\..+|holoviews\.(AdjointLayout|DynamicMap)|np\..+|optional|two arrays|xarray\..+|xr\..+)$",
+    ),
+    ("py:obj", r"^arpes\..+$"),
+    ("py:meth", r"^xarray\.Dataset\.drop_vars$"),
+    ("py:exc", r"^AnalysisError$"),
+]
+
 
 apidoc_separate_modules = True
 
@@ -79,9 +90,29 @@ katex_options = ""
 
 
 # autodoc settings
+AUTODOC_SKIPPED_MEMBERS = {
+    "__annotate_func__",
+    "__annotations__",
+    "__annotations_cache__",
+    "__dataclass_fields__",
+    "__dataclass_params__",
+    "__dict__",
+    "__doc__",
+    "__firstlineno__",
+    "__match_args__",
+    "__module__",
+    "__replace__",
+    "__static_attributes__",
+    "__weakref__",
+}
+
+
 def autodoc_skip_member(app, what, name, obj, skip, options):
     """Don't include parts of code which require optional dependencies for now."""
-    # This is a noop for now
+    if name in AUTODOC_SKIPPED_MEMBERS:
+        return True
+    if name.startswith("__") and name != "__init__":
+        return True
     return skip
 
 autodoc_mock_imports = [
@@ -94,6 +125,8 @@ def setup(app):
 
 
 autodoc_mock_imports = ["torch", "pytorch_lightning"]
+autodoc_typehints = "none"
+viewcode_follow_imported_members = False
 
 
 # Napoleon settings
@@ -122,14 +155,14 @@ autosummary_generate = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
-source_suffix = ".rst"
+source_suffix = {".rst": "restructuredtext"}
 
 # The master toctree document.
 master_doc = "index"
 
 language = "en"
 
-exclude_patterns = []
+exclude_patterns = ["notebooks/Untitled*.ipynb"]
 
 pygments_style = "sphinx"
 

@@ -59,7 +59,7 @@ Masking
 -------
 
 You can use ``mask()`` to get an interactive masking utility. See
-:doc:`here <data-manipulation?id=masking>` for more details.
+:doc:`here <notebooks/data-manipulation-intermediate>` for more details.
 
 Laying Lineshapes for Curve Fitting
 -----------------------------------

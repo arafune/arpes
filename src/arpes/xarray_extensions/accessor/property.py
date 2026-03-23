@@ -826,25 +826,16 @@ class ARPESOffsetProperty(ARPESAngleProperty[DataType]):
         point names to their coordinates.
 
         Yields:
-            Iterator[tuple[HIGH_SYMMETRY_POINTS, dict[str, float]]]: An iterator
-            where each item is a tuple containing:
-            - A `HIGH_SYMMETRY_POINTS` enum member (or equivalent identifier)
-              representing the name of the symmetry point.
-            - A dictionary mapping dimension names (strings) to their float
-              coordinate values at that symmetry point.
+            tuple[HIGH_SYMMETRY_POINTS, dict[str, float]]: The symmetry-point
+                name together with a dictionary of coordinate values for that
+                point.
 
         Examples:
-            Assuming `ds_accessor` has symmetry points defined:
-
             >>> # Assume ds_accessor.symmetry_points() returns:
             >>> # {HIGH_SYMMETRY_POINTS.GAMMA: {'kx': 0.0, 'ky': 0.0},
             >>> #  HIGH_SYMMETRY_POINTS.X_POINT: {'kx': 1.0, 'ky': 0.0}}
             >>> for point_name, coords in ds_accessor.iter_own_symmetry_points:
             ...     print(f"Symmetry Point: {point_name}, Coordinates: {coords}")
-
-            Symmetry Point: Gamma, Coordinates: {'kx': 0.0, 'ky': 0.0}
-
-            Symmetry Point: X_Point, Coordinates: {'kx': 1.0, 'ky': 0.0}
         """
         sym_points = self.symmetry_points()
         yield from sym_points.items()

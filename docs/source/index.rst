@@ -202,6 +202,7 @@ Detailed Guides
    curve-fitting
    customization
    advanced-plotting
+   writing-interactive-tools
    writing-plugins-basic
    writing-plugins
    igor-pro
@@ -256,14 +257,11 @@ Reference
 =========
 
 * :doc:`migration-guide`
-* :doc:`writing-plugins-basic`
-* :doc:`writing-plugins`
 * :doc:`data-provenance`
 * :doc:`modeling`
 * :doc:`cmp-stack`
 * :doc:`contributing`
 * :doc:`dev-guide`
-* :doc:`api`
 
 .. toctree::
    :maxdepth: 3
@@ -271,14 +269,11 @@ Reference
    :caption: Reference
 
    migration-guide
-   writing-plugins-basic
-   writing-plugins
    data-provenance
    modeling
    cmp-stack
    contributing
    dev-guide
-   api
 
 
 Changelog

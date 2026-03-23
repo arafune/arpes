@@ -161,9 +161,10 @@ Changed
 * Remove CoincidentLinePlot (Same (at least similar) feature can be done with fill_between)
 * Remove zero_nans arg in shift_by. Use da.fillna(0), instead.
 * Remove utilities/transfer.py because it's essentially empty.
-* Remove cut_nan_coords. Use dropna like that:
-  for cname in da.coords:
-      da = da.dropna(dim=cname, how="any")
+* Remove cut_nan_coords. Use ``dropna`` like this::
+
+      for cname in da.coords:
+          da = da.dropna(dim=cname, how="any")
 
 * Move utilities/convert/trapezoid.py -> correction/trapezoid.py
 

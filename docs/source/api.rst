@@ -457,12 +457,12 @@ Models
    :toctree: generated/
    :recursive:
 
-  fit_models.fermi_edge
-  fit_models.dirac
-  fit_models.bands
-  fit_models.functional_forms
-  fit_models.misc
-  fit_models.two_dimensional
+   fit_models.fermi_edge
+   fit_models.dirac
+   fit_models.bands
+   fit_models.functional_forms
+   fit_models.misc
+   fit_models.two_dimensional
 
 Plotting
 ========
@@ -548,6 +548,7 @@ Curve Fitting Plots
 ~~~~~~~~~~~~~~~~~~~
 
 .. autosummary::
+   :toctree: generated/
 
    fits.plot_fit
    fits.plot_fits
@@ -557,6 +558,7 @@ False Color Plots
 ~~~~~~~~~~~~~~~~~
 
 .. autosummary::
+   :toctree: generated/
 
    false_color.false_color_plot
 
@@ -564,9 +566,8 @@ Plotting with Brillouin Zones
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autosummary::
-  :toctree: generated/
+   :toctree: generated/
 
-   bz.bz_plot
    bz.plot_data_to_bz
    bz.overplot_standard
    bz.plot_plane_to_bz

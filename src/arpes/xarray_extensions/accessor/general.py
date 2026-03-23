@@ -146,12 +146,9 @@ class GenericDatasetAccessor(GenericAccessorBase[xr.Dataset]):
                 the dimensions whose coordinates will be shifted. These dimensions
                 should typically form a meshgrid.
             shift (NDArray[np.floating] | float): The amount(s) by which to shift
-                the coordinates.
-                - If a `float`, the same scalar shift is applied uniformly to all dimensions.
-                - If an `NDArray[np.floating]`, it must be a 1D array with a
-                  length equal to `len(dims)`. Each element in the array
-                  corresponds to the shift applied to the coordinate of the
-                  respective dimension in `dims`.
+                the coordinates. A float applies the same scalar shift to every
+                dimension. A one-dimensional array applies one shift value per
+                dimension in `dims`.
 
         Returns:
             xr.Dataset: A new `xarray.Dataset` with the coordinates of the
@@ -161,35 +158,6 @@ class GenericDatasetAccessor(GenericAccessorBase[xr.Dataset]):
         Raises:
             AssertionError: If an invalid shift amount is provided (e.g., an array
                 with an incorrect shape).
-
-        Examples:
-            >>> import xarray as xr
-            >>> x = np.arange(2)
-            >>> y = np.arange(3)
-            >>> XX, YY = np.meshgrid(x, y)
-            >>> ds = xr.Dataset(
-            ...     coords={"x_coord": (("y", "x"), XX), "y_coord": (("y", "x"), YY)},
-            ...     data_vars={"data": (("y", "x"), np.random.rand(3, 2))}
-            ... )
-            >>> # Shift both x_coord and y_coord by 1.0
-            >>> shifted_ds = ds.G.shift_meshgrid(dims=("x_coord", "y_coord"), shift=1.0)
-            >>> print(shifted_ds["x_coord"].values)
-            [[1. 2.]
-             [1. 2.]
-             [1. 2.]]
-            >>> # Shift x_coord by 0.5 and y_coord by -0.5
-            >>> shifted_ds_individual = ds.G.shift_meshgrid(
-            ...     dims=("x_coord", "y_coord"), shift=np.array([0.5, -0.5])
-            ... )
-            >>> print(shifted_ds_individual["y_coord"].values)
-            [[-0.5 -0.5]
-             [ 0.5  0.5]
-             [ 1.5  1.5]]
-
-        See Also:
-            `.GenericDatasetAccessor.scale_meshgrid`: For applying multiplicative scaling.
-            `.GenericDatasetAccessor.transform_meshgrid`: For arbitrary transformations using a
-                function or matrix.
         """
         shift_array = np.ones((len(dims),)) * shift if isinstance(shift, float) else shift
 
@@ -217,17 +185,11 @@ class GenericDatasetAccessor(GenericAccessorBase[xr.Dataset]):
         Args:
             dims (tuple[str, ...]): A tuple of strings specifying the names of the dimensions whose
                 coordinates will be scaled.
-            scale (float | NDArray[np.floating]): The amount(s) by which to scale the coordinates.
-
-                - If a `float`, the same scalar scaling factor is applied uniformly to all
-                  specified dimensions.
-                - If an `NDArray[np.floating]`, it can be a 1D array or a 2D matrix.
-                  If 1D, its length must equal `len(dims)`. Each element represents the scaling
-                  factor for the corresponding dimension. This is converted internally into a
-                  diagonal scaling matrix. If 2D, it must be a square matrix of shape
-                  `(len(dims), len(dims))`. This matrix represents a linear transformation
-                  (e.g., rotation, shear, non-uniform scaling) to be applied to the stacked
-                  coordinate vectors.
+            scale (float | NDArray[np.floating]): The amount(s) by which to scale
+                the coordinates. A float applies the same scale factor to every
+                dimension. A one-dimensional array applies one factor per
+                dimension, and a two-dimensional square array is treated as a
+                linear transformation matrix.
 
         Returns:
             xr.Dataset: A new `xarray.Dataset` with the coordinates of the
@@ -237,39 +199,6 @@ class GenericDatasetAccessor(GenericAccessorBase[xr.Dataset]):
         Raises:
             AssertionError: If an invalid scale amount is provided (e.g., an array
                 with an incorrect shape).
-
-        Examples:
-            >>> import xarray as xr
-            >>> x = np.arange(2)
-            >>> y = np.arange(3)
-            >>> XX, YY = np.meshgrid(x, y)
-            >>> ds = xr.Dataset(
-            ...     coords={"x_coord": (("y", "x"), XX), "y_coord": (("y", "x"), YY)},
-            ...     data_vars={"data": (("y", "x"), np.random.rand(3, 2))}
-            ... )
-            >>> # Scale both x_coord and y_coord by 2.0
-            >>> scaled_ds = ds.G.scale_meshgrid(dims=("x_coord", "y_coord"), scale=2.0)
-            >>> print(scaled_ds["x_coord"].values)
-            [[0. 2.]
-             [0. 2.]
-             [0. 2.]]
-            >>> # Scale x_coord by 0.5 and y_coord by 1.5 (using 1D array)
-            >>> scaled_ds_individual = ds.G.scale_meshgrid(
-            ...     dims=("x_coord", "y_coord"), scale=np.array([0.5, 1.5])
-            ... )
-            >>> print(scaled_ds_individual["x_coord"].values)
-            [[0.  0.5]
-             [0.  0.5]
-             [0.  0.5]]
-            >>> print(scaled_ds_individual["y_coord"].values)
-            [[0.  0. ]
-             [1.5 1.5]
-             [3.  3. ]]
-
-        See Also:
-            `~.GenericDatasetAccessor.shift_meshgrid`: For applying additive shifts.
-            `~.GenericDatasetAccessor.transform_meshgrid`: For arbitrary transformations using a
-                function or matrix.
         """
         if not isinstance(scale, np.ndarray):
             n_dims = len(dims)
@@ -308,21 +237,10 @@ class GenericDatasetAccessor(GenericAccessorBase[xr.Dataset]):
                 the order of columns in the stacked coordinate array passed to `transform`.
             transform (NDArray[np.floating] | Callable[[NDArray[np.floating]], NDArray[np.floating]]):
                 The transformation to apply to the stacked meshgrid coordinates.
-                This can be one of two types:
-
-                - `NDArray[np.floating]`: A 2D NumPy array representing a **linear transformation
-                  matrix**. This matrix will be right-multiplied onto the stacked coordinate array.
-                  Its shape must be `(len(dims), len(dims))`. This is suitable for operations like
-                  rotation, scaling (including non-uniform), and shearing.
-                - `Callable[[NDArray[np.floating]], NDArray[np.floating]]`: A
-                  function that takes a single NumPy array as input and returns
-                  a NumPy array. The input array will have the shape
-                  `(..., len(dims))`, where `...` represents the original
-                  meshgrid dimensions. The function must return an array of
-                  the *same shape* as the input, containing the transformed
-                  coordinate values. This allows for arbitrary, non-linear
-                  transformations (e.g., spherical to Cartesian conversion,
-                  custom distortions).
+                This can be either a two-dimensional NumPy array representing
+                a linear transformation matrix with shape `(len(dims), len(dims))`,
+                or a callable that accepts and returns an array with shape
+                `(..., len(dims))` for arbitrary non-linear transformations.
 
         Returns:
             xr.Dataset: A new `xarray.Dataset` object with the specified
@@ -334,55 +252,6 @@ class GenericDatasetAccessor(GenericAccessorBase[xr.Dataset]):
                 shape.
             ValueError: If the `transform` callable does not return an array
                 of the expected shape.
-
-        Examples:
-            >>> import xarray as xr
-            >>> x = np.arange(2)
-            >>> y = np.arange(3)
-            >>> XX, YY = np.meshgrid(x, y)
-            >>> ds = xr.Dataset(
-            ...     coords={"x_coord": (("y", "x"), XX), "y_coord": (("y", "x"), YY)},
-            ...     data_vars={"data": (("y", "x"), np.random.rand(3, 2))}
-            ... )
-
-            >>> # Example 1: Linear transformation (rotation by 90 degrees)
-            >>> # Rotate [x, y] to [-y, x]
-            >>> rotation_matrix = np.array([[0, 1], [-1, 0]])
-            >>> rotated_ds = ds.G.transform_meshgrid(dims=("x_coord", "y_coord"),
-                transform=rotation_matrix)
-            >>> print("Rotated x_coord:\\n", rotated_ds["x_coord"].values)
-            Rotated x_coord:
-             [[ 0.  0.]
-             [-1. -1.]
-             [-2. -2.]]
-            >>> print("Rotated y_coord:\\n", rotated_ds["y_coord"].values)
-            Rotated y_coord:
-             [[0. 1.]
-             [0. 1.]
-             [0. 1.]]
-
-            >>> # Example 2: Non-linear transformation (squaring each coordinate)
-            >>> def square_coords(coords_array: NDArray[np.floating]) -> NDArray[np.floating]:
-            ...     return coords_array**2
-            >>> squared_ds = ds.G.transform_meshgrid(dims=("x_coord", "y_coord"),
-                transform=square_coords)
-            >>> print("Squared x_coord:\\n", squared_ds["x_coord"].values)
-            Squared x_coord:
-             [[0. 1.]
-             [0. 1.]
-             [0. 1.]]
-            >>> print("Squared y_coord:\\n", squared_ds["y_coord"].values)
-            Squared y_coord:
-             [[0. 0.]
-             [1. 1.]
-             [4. 4.]]
-
-        See Also:
-            `~.GenericDatasetAccessor.shift_meshgrid`: A specialized linear transformation for
-                additive shifts.
-            `~.GenericDatasetAccessor.scale_meshgrid`: A specialized linear transformation for
-                multiplicative scaling.
-            `numpy.meshgrid`: For understanding how meshgrid coordinates are typically structured.
         """  # noqa: E501
         assert isinstance(self._obj, xr.Dataset)
         as_ndarray = np.stack([self._obj.data_vars[d].values for d in dims], axis=-1)
@@ -413,7 +282,7 @@ class GenericDatasetAccessor(GenericAccessorBase[xr.Dataset]):
         rounded coordinates as their integer indices.
 
         Args:
-            coords_to_round (dict[str, list[float] | NDArray[np.floatiing]]):
+            coords_to_round (dict[str, list[float] | NDArray[np.floating]]):
                 A dictionary where keys are dimension names (strings) and values
                 are the target coordinate points (floats or arrays of floats)
                 to be rounded to the nearest existing coordinate in the dataset.

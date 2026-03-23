@@ -55,7 +55,9 @@ include = [
 
 [tool.uv]
 managed = true
-dev-dependencies = [
+
+[dependency-groups]
+dev = [
   "colorama>=0.4.6",
   "ruff>=0.8.0",
   "pytest>=7.3.2",
