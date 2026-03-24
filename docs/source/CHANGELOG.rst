@@ -12,14 +12,27 @@ primarily indicate new features and documentation.
 5.0.3 (2026-XX-XX)
 ^^^^^^^^^^^^^^^^^^
 
+* Update
+
+* Refactoring
+
+  * moved `convert_to_kspace` out of `utilities.conversion.core` into `utilities.conversion.api`
+  * split lower-level coordinate conversion responsibilities into more focused modules
+  * updated package exports and API references to match the new conversion entry point
+  * cleaned up analysis and accessor utilities, including `_bin` behavior and meshgrid-related helpers
+  * improved plotting utilities, especially colorbar removal behavior
+  * applied Ruff- and typing-driven fixes across analysis, fitting, plotting, conversion, and loader code
+  * updated tests to reflect the refactors and adjusted a few expected numeric values
+  * refreshed documentation links, Sphinx configuration, API docs, and changelog scaffolding
+  * migrated `uv` development dependencies to dependency groups
 
 5.0.2 (2025-12-23)
 ^^^^^^^^^^^^^^^^^^
 
 * Module structure refactoring
 
-  * areps.utilities.conversion.forward moves to arpes.analysis.forward_conversion
-  * apply_dataarray and lift_dataarray move to arpes.analysis.value_transform from areps.utilities.xarray
+  * `areps.utilities.conversion.forward` moves to `arpes.analysis.forward_conversion`
+  * `apply_dataarray` and `lift_dataarray` move to `arpes.analysis.value_transform` from `areps.utilities.xarray`
 
 * Refactoring by introducing Enum (SpectrumType, AngleUnit)
 
