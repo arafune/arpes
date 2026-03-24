@@ -9,7 +9,7 @@ Primary (X.-.-) version numbers are used to denote backwards
 incompatibilities between versions, while minor (-.X.-) numbers
 primarily indicate new features and documentation.
 
-5.1.0 (2026-03-24)
+5.0.3 (2026-XX-XX)
 ^^^^^^^^^^^^^^^^^^
 
 * Prodigy XY data loader
@@ -24,12 +24,6 @@ primarily indicate new features and documentation.
   * Updated tests for the XY loader
   * Updated docstrings and type annotations
   * DSNP_UMCS plugin: do not assume presence of the "nonenergy" coordinate
-
-
-5.0.3 (2026-XX-XX)
-^^^^^^^^^^^^^^^^^^
-
-* Update
 
 * Refactoring
 
