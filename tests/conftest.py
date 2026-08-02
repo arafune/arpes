@@ -14,6 +14,7 @@ from arpes.configuration.manager import config_manager
 from arpes.fits import AffineBroadenedFD
 from arpes.io import example_data
 from tests.utils import cache_loader
+from arpes.preparation import normalize_dim
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
@@ -122,12 +123,13 @@ def phi_values(near_ef: xr.DataArray) -> xr.DataArray:
 def fitresult_fermi_edge_correction(dataarray_map: xr.DataArray) -> xr.Dataset:
     fmap = dataarray_map
     cut = fmap.sum("theta", keep_attrs=True).sel(eV=slice(-0.2, 0.1), phi=slice(-0.25, 0.3))
+    cut = normalize_dim(cut, "phi")
     params = AffineBroadenedFD().make_params(
-        center=0,
+        center=-0.01,
         width=0.005,
         sigma=0.02,
-        const_bkg=200000,
-        lin_slope=0,
+        const_bkg=5.5,
+        lin_slope=-1.5,
     )
     model = AffineBroadenedFD() + ConstantModel()
     return cut.S.modelfit(
