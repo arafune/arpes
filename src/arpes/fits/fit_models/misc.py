@@ -80,6 +80,7 @@ class LogRenormalizationModel(Model):
     @staticmethod
     def log_renormalization(  # noqa: PLR0913
         x: NDArray[np.floating],
+        *,
         kF: float = 1.6,  # noqa:  N803
         kD: float = 1.6,  # noqa:  N803
         kC: float = 1.7,  # noqa:  N803

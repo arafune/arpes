@@ -300,6 +300,7 @@ class BandEdgeBGModel(Model):
         width: float = 0.05,
         amplitude: float = 1,
         gamma: float = 0.1,
+        *,
         lor_center: float = 0,
         lin_slope: float = 0,
         const_bkg: float = 0,

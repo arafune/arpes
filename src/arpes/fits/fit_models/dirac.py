@@ -27,6 +27,7 @@ class DiracDispersionModel(Model):
         self,
         x: NDArray[np.floating],
         kd: float = 1.6,
+        *,
         amplitude_1: float = 1,
         amplitude_2: float = 1,
         center: float = 0,

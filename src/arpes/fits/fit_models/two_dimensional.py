@@ -32,6 +32,7 @@ class Gaussian2DModel(Model):
     def gaussian_2d_bkg(  # noqa: PLR0913
         x: NDArray[np.floating] | xr.DataArray,
         y: NDArray[np.floating] | xr.DataArray,
+        *,
         amplitude: float = 1,
         xc: float = 0,
         yc: float = 0,
@@ -91,6 +92,7 @@ class EffectiveMassModel(Model):
     def effective_mass_bkg(  # noqa: PLR0913
         eV: NDArray[np.floating],  # noqa: N803
         kp: NDArray[np.floating],
+        *,
         m_star: float = 0,
         k_center: float = 0,
         eV_center: float = 0,  # noqa: N803
