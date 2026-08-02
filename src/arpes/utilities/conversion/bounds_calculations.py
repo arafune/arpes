@@ -22,6 +22,7 @@ __all__ = ("full_angles_to_k",)
 
 def full_angles_to_k(  # noqa: PLR0913
     kinetic_energy: NDArray[np.floating] | float,
+    *,
     phi: float | NDArray[np.floating],
     psi: float | NDArray[np.floating],
     alpha: float | NDArray[np.floating],
