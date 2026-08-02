@@ -251,15 +251,11 @@ def save_plot_provenance(plot_fn: Callable[P, R]) -> Callable[P, R]:
             workspace_name = get_workspace_name()
 
             if not workspace_name or workspace_name not in path:
-                warnings.warn(
-                    (
-                        f"Plotting function {
-                            getattr(plot_fn, '__name__', type(plot_fn).__name__)
-                        } appears not to abide by "
-                        "practice of placing plots into designated workspaces."
-                    ),
-                    stacklevel=2,
-                )
+                warning_msg = "Plotting function "
+                warning_msg += f"{getattr(plot_fn, '__name__', type(plot_fn).__name__)}"
+                warning_msg += "appears not to abide by "
+                warning_msg += "practice of placing plots into designated workspaces."
+                warnings.warn(warning_msg, stacklevel=2)
 
             provenance_context: Provenance = cast(
                 "Provenance",
