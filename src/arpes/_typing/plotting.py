@@ -190,18 +190,18 @@ class MPLPlotKwargs(MPLPlotKwargsBasic, total=False):
 
 class ColorbarParam(TypedDict, total=False):
     alpha: float
-    orientation: None | Orientation
+    orientation: Orientation | None
     ticklocation: Literal["auto", "right", "top", "bottom"]
     extend: Literal["neither", "both", "min", "max"]
-    extendfrac: None | Literal["auto"] | float | tuple[float, float] | list[float]
+    extendfrac: Literal["auto"] | float | tuple[float, float] | list[float] | None
     spacing: Literal["uniform", "proportional"]
-    ticks: None | Sequence[float] | Locator
+    ticks: Sequence[float] | Locator | None
     format: str | None
     drawedges: bool
     label: str
-    boundaries: None | Sequence[float]
-    values: None | Sequence[float]
-    location: None | Literal["left", "right", "top", "bottom"]
+    boundaries: Sequence[float] | None
+    values: Sequence[float] | None
+    location: Literal["left", "right", "top", "bottom"] | None
     cmap: Colormap
     norm: Normalize
 
@@ -283,7 +283,7 @@ class MPLTextParam(TypedDict, total=False):
     ma: Literal["left", "center", "right"]
     parse_math: bool
     path_effects: list[AbstractPathEffect]
-    picker: None | bool | float | Callable
+    picker: bool | float | Callable | None
     position: tuple[float, float]
     rasterized: bool
     rotation: float | Orientation
@@ -395,7 +395,7 @@ class QuadmeshParam(TypedDict, total=False):
     transOffset: Transform
     offsets: ArrayLike
     path_effects: list[AbstractPathEffect]
-    picker: None | bool | float
+    picker: bool | float | None
     pickradius: float
     rasterized: bool
     sketch_params: tuple[float, float, float]

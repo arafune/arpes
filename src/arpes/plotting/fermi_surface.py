@@ -77,7 +77,7 @@ def magnify_circular_regions_plot(  # noqa: PLR0913
     magnified_points: NDArray[np.floating] | list[float],
     mag: float = 10,
     radius: float = 0.05,
-    # below this two can be treated as kwargs?
+    *,
     cmap: Colormap | ColorType = "viridis",
     color: ColorType | list[ColorType] = "blue",
     edgecolor: ColorType | list[ColorType] = "red",

@@ -362,7 +362,7 @@ def convert_coordinates(
         if isinstance(c, float):
             return c
         assert isinstance(c, np.ndarray)
-        index_list: list[None | slice] = [np.newaxis] * len(old_dims)
+        index_list: list[slice | None] = [np.newaxis] * len(old_dims)
         assert old_dims.index(cname) is not None
         index_list[old_dims.index(cname)] = slice(None, None)
         return c[tuple(index_list)]
