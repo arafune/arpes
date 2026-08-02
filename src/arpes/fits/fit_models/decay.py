@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
     from arpes._typing.fits import ModelArgs
 
-__all__ = ("ExponentialDecayCModel", "TwoExponentialDecayCModel")
+__all__ = ["ExponentialDecayCModel"]
 
 
 class ExponentialDecayCModel(Model):
@@ -83,67 +83,5 @@ class ExponentialDecayCModel(Model):
     __init__.__doc__ = (
         "A model for fitting an exponential decay with a constant background."
         + lf.models.COMMON_INIT_DOC
-    )
-    guess.__doc__ = lf.models.COMMON_GUESS_DOC
-
-
-class TwoExponentialDecayCModel(Model):
-    """A model for fitting an exponential decay with a constant background."""
-
-    @staticmethod
-    def twoexponential_decay_c(  # noqa: PLR0913
-        x: NDArray[np.floating],
-        amp: float,
-        t0: float,
-        tau1: float,
-        tau2: float,
-        const_bkg: float,
-    ) -> NDArray[np.floating]:
-        """Like `exponential_decay_c`, except with two timescales.
-
-        This is meant to model if two different quasiparticle decay channels are allowed,
-        represented by `tau1` and `tau2`.
-        """
-        dx = x - t0
-        y = const_bkg + amp * (1 - np.exp(-dx / tau1)) * np.exp(-dx / tau2)
-        f = y.copy()
-        f[dx < 0] = const_bkg
-        f[dx >= 0] = y[dx >= 0]
-        return f
-
-    def __init__(self, **kwargs: Unpack[ModelArgs]) -> None:
-        """Defer to lmfit for initialization."""
-        kwargs.setdefault("prefix", "")
-        kwargs.setdefault("independent_vars", ["x"])
-        kwargs.setdefault("nan_policy", "raise")
-        super().__init__(self.twoexponential_decay_c, **kwargs)
-
-        # amp is also a parameter, but we have no hint for it
-        self.set_param_hint("tau1", min=0.0)
-        self.set_param_hint("tau2", min=0.0)
-        # t0 is also a parameter, but we have no hint for it
-        self.set_param_hint("const_bkg")
-
-    def guess(
-        self,
-        data: NDArray[np.floating] | xr.DataArray,
-        x: NDArray[np.floating] | xr.DataArray,
-        **kwargs: float,
-    ) -> lf.Parameters:
-        """Placeholder for making better heuristic guesses here."""
-        if isinstance(x, xr.DataArray):
-            x = x.values
-        pars: lf.Parameters = self.make_params()
-
-        pars[f"{self.prefix}tau1"].set(value=0.2)  # 200fs
-        pars[f"{self.prefix}tau2"].set(value=1)  # 1ps
-        pars[f"{self.prefix}t0"].set(value=0)
-        pars[f"{self.prefix}const_bkg"].set(value=data.mean())
-        pars[f"{self.prefix}amp"].set(value=data.max() - data.mean())
-
-        return update_param_vals(pars, self.prefix, **kwargs)
-
-    __init__.__doc__ = (
-        "Like `exponential_decay_c`, except with two timescales." + lf.models.COMMON_INIT_DOC
     )
     guess.__doc__ = lf.models.COMMON_GUESS_DOC

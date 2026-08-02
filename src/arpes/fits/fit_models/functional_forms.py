@@ -172,7 +172,14 @@ def gstepb_mult_lorentzian(  # noqa: PLR0913
     lorcenter: float = 0,
 ) -> NDArray[np.float64]:
     """A Lorentzian multiplied by a gstepb background."""
-    return gstepb(x, center, width, erf_amp, lin_slope, const_bkg) * lorentzian(
+    return gstepb(
+        x,
+        center,
+        width,
+        erf_amp=erf_amp,
+        lin_slope=lin_slope,
+        const_bkg=const_bkg,
+    ) * lorentzian(
         x=x,
         sigma=gamma,
         center=lorcenter,
