@@ -16,12 +16,13 @@ from logging import DEBUG, INFO
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, Unpack, cast, runtime_checkable
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
 from matplotlib import colors, gridspec
 from matplotlib.axes import Axes
-from matplotlib.cm import ScalarMappable, get_cmap
+from matplotlib.cm import ScalarMappable
 from matplotlib.colorbar import Colorbar
 from matplotlib.colors import Colormap
 from matplotlib.lines import Line2D
@@ -480,7 +481,7 @@ def pcolormesh_mask(
         kwargs.setdefault(k, v)  # type: ignore[misc]
 
     if "cmap" in kwargs and isinstance(kwargs["cmap"], str):
-        kwargs["cmap"] = get_cmap(name=kwargs["cmap"])
+        kwargs["cmap"] = mpl.colormaps.get_cmap(cmap=kwargs["cmap"])
     assert "cmap" in kwargs
     assert isinstance(kwargs["cmap"], Colormap)
     kwargs["cmap"].set_bad("k", alpha=0)
@@ -524,7 +525,7 @@ def imshow_mask(
         kwargs.setdefault(k, v)  # type: ignore[misc]
 
     if "cmap" in kwargs and isinstance(kwargs["cmap"], str):
-        kwargs["cmap"] = plt.get_cmap(name=kwargs["cmap"])
+        kwargs["cmap"] = mpl.colormaps.get_cmap(cmap=kwargs["cmap"])
 
     assert "cmap" in kwargs
     assert isinstance(kwargs["cmap"], Colormap)

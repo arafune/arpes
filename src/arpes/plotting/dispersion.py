@@ -6,6 +6,7 @@ import warnings
 from collections import defaultdict
 from typing import TYPE_CHECKING, Literal, TypedDict, Unpack
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
@@ -145,11 +146,11 @@ def cut_dispersion_plot(  # noqa: PLR0913, PLR0915  # type: ignore[arg-type]
         "title",
         "{} Cut Through Symmetry Points".format(data.S.label.replace("_", " ")),
     )
-    kwargs.setdefault("cmap", plt.get_cmap("Blues"))
+    kwargs.setdefault("cmap", mpl.colormaps.get_cmap("Blues"))
     title = kwargs.pop("title")
     ax.set_title(title)
 
-    colormap = plt.get_cmap("Blues")
+    colormap = mpl.colormaps.get_cmap("Blues")
 
     # color fermi surface
     fermi_surface = data.S.fat_sel(eV=0.0)
