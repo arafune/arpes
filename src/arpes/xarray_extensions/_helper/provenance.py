@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 def unlayer(
-    prov: Provenance | None | str,
+    prov: Provenance | str | None,
 ) -> tuple[list[Provenance] | list[str], Provenance | str | None]:
     """Extracts the current layer of provenance and identifies the next parent.
 
