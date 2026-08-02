@@ -182,6 +182,8 @@ ignore = [
   "FIX002", # line-contains-todo
   "G004",   # logging-f-string
   #
+  "PLR0917", #PLR0917 too many positional arguments in function call (Should be removed this line in future)
+  #
   "CPY001", # missing-copyright-notice (CPY001)
 ]
 

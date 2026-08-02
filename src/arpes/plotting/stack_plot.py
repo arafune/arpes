@@ -59,6 +59,7 @@ logger = setup_logger(__name__, LOGLEVEL)
 @save_plot_provenance
 def waterfall_dispersion(  # noqa: PLR0913
     data: xr.DataArray,
+    *,
     scale_factor: float = 1.0,
     stack_axis: str = "phi",
     ax: Axes | None = None,
@@ -66,7 +67,6 @@ def waterfall_dispersion(  # noqa: PLR0913
     cmap: Colormap | str = "black",
     figsize: tuple[float, float] = (7, 5),
     prune: Literal["lower", "uppder", "both"] | None = "both",
-    *,
     reverse: bool = True,
     **kwargs: Unpack[MPLPlotKwargsBasic],
 ) -> tuple[Figure | None, Axes, Axes] | tuple[Figure | None, Axes]:
@@ -279,6 +279,7 @@ def _set_right_axis(
 @save_plot_provenance
 def offset_scatter_plot(  # noqa: PLR0913
     data: xr.Dataset,
+    *,
     name_to_plot: str = "",
     stack_axis: str = "",
     ax: Axes | None = None,
@@ -288,7 +289,6 @@ def offset_scatter_plot(  # noqa: PLR0913
     fermi_level: float | None = None,
     loc: LEGENDLOCATION = "upper left",
     figsize: tuple[float, float] = (11, 5),
-    *,
     color: Colormap | str = "black",
     aux_errorbars: bool = True,
     **kwargs: Unpack[ColorbarParam],

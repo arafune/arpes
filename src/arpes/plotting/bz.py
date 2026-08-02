@@ -202,13 +202,13 @@ def plot_data_to_bz(
 def plot_data_to_bz2d(  # noqa: PLR0913
     data_array: xr.DataArray,
     cell: Cell,
+    *,
     rotate: float | None = None,
     shift: NDArray[np.float64] | None = None,
     scale: float | None = None,
     ax: Axes | None = None,
     out: str | Path = "",
     bz_number: Sequence[float] | None = None,
-    *,
     mask: bool = True,
     **kwargs: Incomplete,
 ) -> Path | tuple[Figure | None, Axes]:

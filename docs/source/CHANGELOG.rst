@@ -36,6 +36,8 @@ primarily indicate new features and documentation.
   * updated tests to reflect the refactors and adjusted a few expected numeric values
   * refreshed documentation links, Sphinx configuration, API docs, and changelog scaffolding
   * migrated `uv` development dependencies to dependency groups
+  * Tidy up some fitting functions
+    * Remove TwoExponentialDecayCModel
 
 5.0.2 (2025-12-23)
 ^^^^^^^^^^^^^^^^^^

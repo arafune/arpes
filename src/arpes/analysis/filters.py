@@ -147,6 +147,7 @@ def savitzky_golay_filter(  # noqa: PLR0913
     window_length: int = 3,
     polyorder: int = 2,
     deriv: int = 0,
+    *,
     mode: Literal["mirror", "constant", "nearest", "wrap", "interp"] = "interp",
     cval: float = 0.0,
     dim: Hashable = "",

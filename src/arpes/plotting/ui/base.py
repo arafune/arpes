@@ -231,12 +231,12 @@ def image_with_pointer(
 def profile_curve(  # noqa: PLR0913
     data: xr.DataArray,
     stream: PointerX | PointerY,
+    *,
     orientation: Literal["x", "y"],
     plot_lim: tuple[float | None, float],
     profile_size: int,
     line_color: str = "#1f77b4",
     line_width: int = 2,
-    *,
     log: bool,
 ) -> DynamicMap:
     """Generate a dynamic cross-sectional profile curve from a 2D DataArray.

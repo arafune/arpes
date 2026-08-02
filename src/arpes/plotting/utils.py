@@ -788,6 +788,7 @@ class AnchoredHScaleBar(AnchoredOffsetbox):
 
     def __init__(  # noqa: PLR0913
         self,
+        *,
         size: float = 1,
         extent: float = 0.03,
         label: str = "",
@@ -799,7 +800,6 @@ class AnchoredHScaleBar(AnchoredOffsetbox):
         sep: int = 2,
         prop: FontProperties | None = None,
         label_color: ColorType | None = None,
-        *,
         frameon: bool = True,
         **kwargs: Incomplete,
     ) -> None:

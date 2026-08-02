@@ -613,7 +613,7 @@ class GenericDataArrayAccessor(GenericAccessorBase[xr.DataArray]):
         """
         assert isinstance(self._obj, xr.DataArray)
 
-        return plot_movie(self._obj, time_dim, out=out, **kwargs)
+        return plot_movie(self._obj, time_dim=time_dim, out=out, **kwargs)
 
     def map_axes(
         self,

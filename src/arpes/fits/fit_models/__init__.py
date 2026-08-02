@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from .decay import ExponentialDecayCModel, TwoExponentialDecayCModel
+from .decay import ExponentialDecayCModel
 from .dirac import DiracDispersionModel
 from .fermi_edge import (
     AffineBroadenedFD,

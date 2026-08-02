@@ -26,11 +26,11 @@ __all__ = (
 
 
 def fermi_dirac(
-    x: NDArray[np.floating],
+    x: NDArray[np.float64],
     center: float = 0,
     width: float = 0.05,
     scale: float = 1,
-) -> NDArray[np.floating]:
+) -> NDArray[np.float64]:
     r"""Fermi edge, with somewhat arbitrary normalization.
 
     :math:`\frac{scale}{\exp\left(\frac{x-center}{width} +1\right)}`
@@ -41,13 +41,14 @@ def fermi_dirac(
 
 
 def affine_broadened_fd(  # noqa: PLR0913
-    x: NDArray[np.floating],
+    x: NDArray[np.float64],
     center: float = 0,
     width: float = 0.003,
+    *,
     sigma: float = 0.02,
     const_bkg: float = 1,
     lin_slope: float = 0,
-) -> NDArray[np.floating]:
+) -> NDArray[np.float64]:
     """Fermi function convoled with a Gaussian together with affine background.
 
     Args:
@@ -75,13 +76,14 @@ def affine_broadened_fd(  # noqa: PLR0913
 
 
 def gstepb(  # noqa: PLR0913
-    x: NDArray[np.floating],
+    x: NDArray[np.float64],
     center: float = 0,
     width: float = 1,
+    *,
     erf_amp: float = 1,
     lin_slope: float = 0,
     const_bkg: float = 0,
-) -> NDArray[np.floating]:
+) -> NDArray[np.float64]:
     """Complementary error function as a approximate of the Fermi function convoled with a Gaussian.
 
     This accurately represents low temperature steps where thermal broadening is
@@ -102,11 +104,11 @@ def gstepb(  # noqa: PLR0913
 
 
 def gstep(
-    x: NDArray[np.floating],
+    x: NDArray[np.float64],
     center: float = 0,
     width: float = 1,
     erf_amp: float = 1,
-) -> NDArray[np.floating]:
+) -> NDArray[np.float64]:
     r"""Fermi function convolved with a Gaussian.
 
     :math:`\frac{erf\_amp}{2} \tims \mathrm{erfc}\left(\frac{(x-center)}{w}\right)
@@ -124,15 +126,16 @@ def gstep(
 
 
 def band_edge_bkg(  # noqa: PLR0913
-    x: NDArray[np.floating],
+    x: NDArray[np.float64],
     center: float = 0,
     width: float = 0.05,
+    *,
     amplitude: float = 1,
     gamma: float = 0.1,
     lor_center: float = 0,
     lin_slope: float = 0,
     const_bkg: float = 0,
-) -> NDArray[np.floating]:
+) -> NDArray[np.float64]:
     """Lorentzian plus affine background multiplied into fermi edge with overall offset.
 
     Todo: Reconsidering the Need.
@@ -147,28 +150,36 @@ def band_edge_bkg(  # noqa: PLR0913
 
 
 def fermi_dirac_affine(
-    x: NDArray[np.floating],
+    x: NDArray[np.float64],
     center: float = 0,
     width: float = 0.05,
     lin_slope: float = 0,
     const_bkg: float = 1,
-) -> NDArray[np.floating]:
+) -> NDArray[np.float64]:
     """Fermi step edge with a linear background above the Fermi level."""
     return (const_bkg + lin_slope * (x - center)) * fermi_dirac(x=x, center=center, width=width)
 
 
 def gstepb_mult_lorentzian(  # noqa: PLR0913
-    x: NDArray[np.floating],
+    x: NDArray[np.float64],
     center: float = 0,
     width: float = 1,
+    *,
     erf_amp: float = 1,
     lin_slope: float = 0,
     const_bkg: float = 0,
     gamma: float = 1,
     lorcenter: float = 0,
-) -> NDArray[np.floating]:
+) -> NDArray[np.float64]:
     """A Lorentzian multiplied by a gstepb background."""
-    return gstepb(x, center, width, erf_amp, lin_slope, const_bkg) * lorentzian(
+    return gstepb(
+        x,
+        center,
+        width,
+        erf_amp=erf_amp,
+        lin_slope=lin_slope,
+        const_bkg=const_bkg,
+    ) * lorentzian(
         x=x,
         sigma=gamma,
         center=lorcenter,

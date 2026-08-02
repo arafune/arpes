@@ -44,6 +44,7 @@ __all__ = ("plot_movie", "plot_movie_and_evolution")
 
 
 def output_animation(  # noqa: PLR0913
+    *,
     anim: FuncAnimation,
     data: xr.DataArray,
     update_func: Callable[[int], Iterable[Artist]] | None = None,
@@ -135,6 +136,7 @@ def _configure_axes_and_labels(
 @save_plot_provenance
 def plot_movie_and_evolution(  # noqa: PLR0913
     data: xr.DataArray,
+    *,
     time_dim: str = "delay",
     interval_ms: float = 100,
     fig_ax: tuple[Figure | None, NDArray[np.object_] | None] | None = None,
@@ -279,6 +281,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913
 @save_plot_provenance
 def plot_movie(  # noqa: PLR0913
     data: xr.DataArray,
+    *,
     time_dim: str = "delay",
     interval_ms: float = 100,
     fig_ax: tuple[Figure | None, Axes | None] | None = None,
