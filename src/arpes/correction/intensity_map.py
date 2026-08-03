@@ -76,7 +76,8 @@ def shift(  # noqa: PLR0913
     Note:
         zero_nans is removed.  Use DataArray.fillna(0), if needed.
     """
-    assert shift_axis, "shift_by must take shift_axis argument."
+    if not (shift_axis):
+        raise ValueError('shift_by must take shift_axis argument.')
     shift_amount, mean_shift, by_axis = _compute_shift_amount(
         data=data,
         other=other,
@@ -151,22 +152,23 @@ def _compute_shift_amount(
             - mean_shift: The mean value of `other` (0 if not shifting coords).
             - by_axis: The determined `by_axis` name.
     """
-    assert other.ndim == 1, "`other` must be a 1D array."
+    if not (other.ndim == 1):
+        raise ValueError('`other` must be a 1D array.')
 
     mean_shift: float = 0.0
 
     if isinstance(other, xr.DataArray):
         by_axis = str(other.dims[0])
-        assert len(other.coords[by_axis]) == len(data.coords[by_axis]), (
-            "Mismatch in coordinate length."
-        )
+        if not (len(other.coords[by_axis]) == len(data.coords[by_axis])):
+            raise ValueError('Mismatch in coordinate length.')
         if shift_coords:
             mean_shift = float(np.mean(other.values))
             other = other - mean_shift
         shift_amount = -other.values / data.G.stride(generic_dim_names=False)[shift_axis]
 
     else:  # other is np.ndarray
-        assert isinstance(other, np.ndarray)
+        if not isinstance(other, np.ndarray):
+            raise TypeError('Expected other to be instance of np.ndarray')
         if not by_axis:
             if data.ndim == TWO_DIMENSION:
                 by_axis = str(set(data.dims).difference({shift_axis}).pop())
@@ -175,7 +177,8 @@ def _compute_shift_amount(
                 msg = 'When np.ndarray is used as `other`, "by_axis" is required.'
                 raise TypeError(msg)
         logger.debug(f"Using {by_axis} as by_axis for shift.")
-        assert other.shape[0] == len(data.coords[by_axis]), "Mismatch in coordinate length."
+        if not (other.shape[0] == len(data.coords[by_axis])):
+            raise ValueError('Mismatch in coordinate length.')
         if shift_coords:
             mean_shift = float(np.mean(other))
             other = other - mean_shift
@@ -202,12 +205,13 @@ def shift_by(
     Returns:
         NDArray[np.floating]: The shifted array.
     """
-    assert axis != by_axis, "`axis` and `by_axis` must be different."
+    if not (axis != by_axis):
+        raise ValueError('`axis` and `by_axis` must be different.')
     arr_copy = arr.copy()
-    assert isinstance(value, np.ndarray)
-    assert value.shape == (arr.shape[by_axis],), (
-        "`value` must have the same length as `arr` along `by_axis`."
-    )
+    if not isinstance(value, np.ndarray):
+        raise TypeError('Expected value to be instance of np.ndarray')
+    if not (value.shape == (arr.shape[by_axis],)):
+        raise ValueError('`value` must have the same length as `arr` along `by_axis`.')
     for axis_idx in range(arr.shape[by_axis]):
         slc = (slice(None),) * by_axis + (axis_idx,) + (slice(None),) * (arr.ndim - by_axis - 1)
         shift_amount = (0,) * axis + (value[axis_idx],) + (0,) * (arr.ndim - axis - 1)

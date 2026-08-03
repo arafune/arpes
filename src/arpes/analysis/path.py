@@ -61,13 +61,15 @@ def discretize_path(
     elif isinstance(scaling, xr.Dataset):
         scaling = {str(k): scaling[k].item() for k in scaling.data_vars}
     else:
-        assert isinstance(scaling, dict)
+        if not isinstance(scaling, dict):
+            raise TypeError('Expected scaling to be instance of dict')
 
     order = list(path.data_vars)
     if isinstance(scaling, dict):
         scaling = np.array(float(scaling[d]) for d in order)
 
-    assert isinstance(scaling, np.ndarray | float)
+    if not isinstance(scaling, np.ndarray | float):
+        raise TypeError('Expected scaling to be instance of np.ndarray | float')
 
     def as_vec(ds: xr.Dataset) -> NDArray[np.float64]:
         return np.array([ds[k].item() for k in order])
@@ -290,7 +292,8 @@ def slice_along_path(  # noqa: PLR0913
         },
         as_dataset=True,
     )
-    assert isinstance(converted_ds, xr.Dataset)
+    if not isinstance(converted_ds, xr.Dataset):
+        raise TypeError('Expected converted_ds to be instance of xr.Dataset')
 
     if (
         axis_name in arr.dims and len(parsed_interpolation_points) == TWO_DIMENSION

@@ -299,7 +299,8 @@ def provenance(
         record: An annotation to add.
     """
     if isinstance(parents, list):
-        assert len(parents) == 1
+        if not (len(parents) == 1):
+            raise ValueError('Assertion failed: len(parents) == 1')
         parents = parents[0]
 
     if "id" not in child_arr.attrs:

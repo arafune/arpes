@@ -52,7 +52,8 @@ def spin_colored_spectrum(
     """
     if ax is None:
         _, ax = plt.subplots(figsize=(6, 4))
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
     as_intensity = to_intensity_polarization(spin_dr)
     intensity = as_intensity.intensity
     pol = as_intensity.polarization.copy(deep=True)
@@ -92,7 +93,8 @@ def spin_colored_spectrum(
 
 def _polarization_colorbar(ax: Axes | None = None) -> colorbar.Colorbar:
     """Makes a colorbar which is appropriate for "polarization" (e.g. spin) data."""
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
     return colorbar.Colorbar(
         ax,
         cmap="RdBu",
@@ -115,7 +117,8 @@ def spin_difference_spectrum(
     """Plots a spin difference spectrum."""
     if ax is None:
         _, ax = plt.subplots(figsize=(6, 4))
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
     try:
         as_intensity = to_intensity_polarization(spin_dr)
     except AssertionError:
@@ -170,7 +173,8 @@ def spin_polarized_spectrum(  # noqa: PLR0913
     """Plots a simple spin polarized spectrum using curves for the up and down components."""
     if ax is None:
         _, ax = plt.subplots(2, 1, sharex=True)
-    assert ax is not None
+    if not (ax is not None):
+        raise ValueError('Assertion failed: ax is not None')
 
     if stats:
         spin_dr = bootstrap(lambda x: x)(spin_dr, N=100)
@@ -301,14 +305,18 @@ def hue_brightness_plot(
 
 
     """
-    assert "intensity" in data
-    assert "polarization" in data
+    if not ("intensity" in data):
+        raise ValueError('Assertion failed: "intensity" in data')
+    if not ("polarization" in data):
+        raise ValueError('Assertion failed: "polarization" in data')
 
     fig: Figure | None = None
     if ax is None:
         fig, ax = plt.subplots(figsize=kwargs.get("figsize", (7, 5)))
-    assert isinstance(ax, Axes)
-    assert isinstance(fig, Figure)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
+    if not isinstance(fig, Figure):
+        raise TypeError('Expected fig to be instance of Figure')
     x, y = data.coords[data.intensity.dims[0]].values, data.coords[data.intensity.dims[1]].values
     extent = (y[0], y[-1], x[0], x[-1])
     ax.imshow(

@@ -58,7 +58,8 @@ class InterpretationItem:
         if isinstance(dset, Subset):
             dset = dset.dataset
 
-        assert dset.is_indexed is True
+        if not (dset.is_indexed is True):
+            raise ValueError('Assertion failed: dset.is_indexed is True')
         return dset
 
     def show(
@@ -176,7 +177,8 @@ class Interpretation:
             n_rows = math.ceil(n_items**0.5)
             layout = (n_rows, n_rows)
 
-        assert isinstance(n_items, int)
+        if not isinstance(n_items, int):
+            raise TypeError('Expected n_items to be instance of int')
         _, axes = plt.subplots(*layout, figsize=(layout[0] * 3, layout[1] * 4))
 
         items_with_nones = list(items) + [None] * (np.prod(layout) - n_items)

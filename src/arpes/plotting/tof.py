@@ -64,16 +64,17 @@ def plot_with_std(
     """
     if not name_to_plot:
         var_names = [k for k in data_set.data_vars if "_std" not in str(k)]
-        assert len(var_names) == 1
+        if not (len(var_names) == 1):
+            raise ValueError('Assertion failed: len(var_names) == 1')
         name_to_plot = str(var_names[0])
-        assert (name_to_plot + "_std") in data_set.data_vars, (
-            "Has 'mean_and_deviation' been applied?"
-        )
+        if not ((name_to_plot + "_std") in data_set.data_vars):
+            raise ValueError("Has 'mean_and_deviation' been applied?")
 
     fig: Figure | None = None
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize)
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
 
     data_set.data_vars[name_to_plot].S.plot(ax=ax, **kwargs)
     x, y = data_set.data_vars[name_to_plot].coords["eV"], data_set.data_vars[name_to_plot].values
@@ -112,16 +113,17 @@ def scatter_with_std(
     """
     if not name_to_plot:
         var_names = [k for k in data.data_vars if "_std" not in str(k)]
-        assert len(var_names) == 1
+        if not (len(var_names) == 1):
+            raise ValueError('Assertion failed: len(var_names) == 1')
         name_to_plot = str(var_names[0])
-        assert (name_to_plot + "_std") in data.data_vars, (
-            "Has 'mean_and_deviation' been applied to the data?"
-        )
+        if not ((name_to_plot + "_std") in data.data_vars):
+            raise ValueError("Has 'mean_and_deviation' been applied to the data?")
 
     fig: Figure | None = None
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize)
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
     x, y = data.data_vars[name_to_plot].coords["eV"], data.data_vars[name_to_plot].values
 
     std = data.data_vars[name_to_plot + "_std"].values

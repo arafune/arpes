@@ -146,7 +146,8 @@ def convert_coordinates(
     Returns:
         XrTypes
     """
-    assert isinstance(arr, xr.DataArray)
+    if not isinstance(arr, xr.DataArray):
+        raise TypeError('Expected arr to be instance of xr.DataArray')
     ordered_source_dimensions = arr.dims
 
     grid_interpolator = grid_interpolator_from_dataarray(
@@ -171,7 +172,8 @@ def convert_coordinates(
         with contextlib.suppress(ValueError):
             meshed_coordinates = [arr.S.lookup_offset_coord("eV"), *meshed_coordinates]
     old_coord_names = [str(dim) for dim in arr.dims if dim not in target_coordinates]
-    assert isinstance(coordinate_transform["transforms"], dict)
+    if not isinstance(coordinate_transform['transforms'], dict):
+        raise TypeError("Expected coordinate_transform['transforms'] to be instance of dict")
     transforms: dict[str, Callable[..., NDArray[np.floating]]] = coordinate_transform["transforms"]
     logger.debug(f"transforms is {transforms}")
     old_coordinate_transforms = [

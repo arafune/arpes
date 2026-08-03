@@ -179,7 +179,8 @@ def calculate_shirley_background(
         energy_range = slice(None, None)
 
     xps_array = xps if isinstance(xps, xr.DataArray) else normalize_to_spectrum(xps)
-    assert isinstance(xps_array, xr.DataArray)
+    if not isinstance(xps_array, xr.DataArray):
+        raise TypeError('Expected xps_array to be instance of xr.DataArray')
     xps_for_calc = xps_array.sel(eV=energy_range)
 
     bkg = calculate_shirley_background_full_range(xps_for_calc, eps, max_iters, n_samples)

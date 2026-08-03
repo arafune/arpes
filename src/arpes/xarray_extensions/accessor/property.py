@@ -170,7 +170,8 @@ class ARPESPhysicalProperty(Generic[DataType]):
         Note:
             This "work_function" should *NOT* be used for k-conversion!
         """
-        assert isinstance(self._obj, xr.DataArray | xr.Dataset)
+        if not isinstance(self._obj, xr.DataArray | xr.Dataset):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray | xr.Dataset')
         if "sample_workfunction" in self._obj.attrs:
             return self._obj.attrs["sample_workfunction"]
         return 4.3
@@ -184,7 +185,8 @@ class ARPESPhysicalProperty(Generic[DataType]):
         Note:
             Use this value for k-conversion.
         """
-        assert isinstance(self._obj, xr.DataArray | xr.Dataset)
+        if not isinstance(self._obj, xr.DataArray | xr.Dataset):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray | xr.Dataset')
         if "workfunction" in self._obj.attrs:
             return self._obj.attrs["workfunction"]
         return 4.401
@@ -192,7 +194,8 @@ class ARPESPhysicalProperty(Generic[DataType]):
     @property
     def inner_potential(self) -> float:
         """The inner potential, if present in metadata. Otherwise, 10 eV is assumed."""
-        assert isinstance(self._obj, xr.DataArray | xr.Dataset)
+        if not isinstance(self._obj, xr.DataArray | xr.Dataset):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray | xr.Dataset')
         if "inner_potential" in self._obj.attrs:
             return self._obj.attrs["inner_potential"]
         return 10
@@ -223,7 +226,8 @@ class ARPESPhysicalProperty(Generic[DataType]):
         Returns: float | xr.DataArray
             Photon energy in eV unit.  (for hv_map type, xr.DataArray is returned.)
         """
-        assert isinstance(self._obj, xr.DataArray | xr.Dataset)
+        if not isinstance(self._obj, xr.DataArray | xr.Dataset):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray | xr.Dataset')
         try:
             return float(self._obj.coords["hv"])
         except TypeError:
@@ -615,7 +619,8 @@ class ARPESInfoProperty(ARPESPhysicalProperty[DataType]):
     @property
     def spectrum_type(self) -> SpectrumType:
         """Spectrum type (cut, map, hv_map, ucut, spem and xps)."""
-        assert isinstance(self._obj, xr.DataArray | xr.Dataset)
+        if not isinstance(self._obj, xr.DataArray | xr.Dataset):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray | xr.Dataset')
 
         raw = self._obj.attrs.get("spectrum_type")
         if isinstance(raw, SpectrumType):
@@ -695,7 +700,8 @@ class ARPESOffsetProperty(ARPESAngleProperty[DataType]):
                     * coords["physical_long_x"] seems to be just x_offset.
 
         """
-        assert isinstance(self._obj, xr.DataArray | xr.Dataset)
+        if not isinstance(self._obj, xr.DataArray | xr.Dataset):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray | xr.Dataset')
         if "long_x" not in self._obj.coords:
             msg = "Logical offsets can currently only be accessed for hierarchical"
             msg += " motor systems like nanoARPES."
@@ -724,7 +730,8 @@ class ARPESOffsetProperty(ARPESAngleProperty[DataType]):
     def lookup_offset(self, attr_name: str) -> float:
         """Return the offset value."""
         symmetry_points = self.symmetry_points()
-        assert isinstance(symmetry_points, dict)
+        if not isinstance(symmetry_points, dict):
+            raise TypeError('Expected symmetry_points to be instance of dict')
         if "G" in symmetry_points:
             gamma_point = symmetry_points["G"]  # {"phi": 0.405}  (cut)
             if attr_name in gamma_point:
@@ -810,7 +817,8 @@ class ARPESOffsetProperty(ARPESAngleProperty[DataType]):
             >>> ds.attrs['theta_offset']
             -0.1
         """
-        assert isinstance(self._obj, xr.Dataset | xr.DataArray)
+        if not isinstance(self._obj, xr.Dataset | xr.DataArray):
+            raise TypeError('Expected self._obj to be instance of xr.Dataset | xr.DataArray')
         for k, v in offsets.items():
             self._obj.attrs[f"{k}_offset"] = v
 
@@ -964,7 +972,8 @@ class ARPESProvenanceProperty(Generic[DataType]):
         """Return id object of the parent object."""
         if not self.history:
             return None
-        assert self.history is not None
+        if not (self.history is not None):
+            raise ValueError('Assertion failed: self.history is not None')
         for a_history in reversed(self.history):
             if "parent_id" in a_history:
                 return a_history["parent_id"]
@@ -986,7 +995,8 @@ class ARPESPropertyBase(
             True if the data is explicitly a "ucut" or "spem" or contains "X", "Y", or "Z"
             dimensions. False otherwise.
         """
-        assert isinstance(self._obj, xr.DataArray | xr.Dataset)
+        if not isinstance(self._obj, xr.DataArray | xr.Dataset):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray | xr.Dataset')
 
         if self.spectrum_type.is_intrinsically_spatial:
             return True
@@ -1003,7 +1013,8 @@ class ARPESPropertyBase(
         Returns:
             True if the data is k-space converted. False otherwise.
         """
-        assert isinstance(self._obj, xr.DataArray | xr.Dataset)
+        if not isinstance(self._obj, xr.DataArray | xr.Dataset):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray | xr.Dataset')
         return not any(d in {"phi", "theta", "beta", "angle"} for d in self._obj.dims)
 
     @property
@@ -1176,7 +1187,8 @@ class ARPESProperty(ARPESPropertyBase[DataType]):
             transformed_dict: dict[str, str] = {}
             for k, v in conditions.items():
                 if k == "polarrization":
-                    assert isinstance(v, (float | str))
+                    if not isinstance(v, float | str):
+                        raise TypeError('Expected v to be instance of float | str')
                     transformed_dict[k] = {
                         "p": "Linear Horizontal",
                         "s": "Linear Vertical",

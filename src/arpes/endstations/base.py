@@ -250,7 +250,8 @@ class EndstationBase:
                 max_different_values = n_different_values
                 scan_coord = possible_scan_coord
 
-        assert isinstance(scan_coord, str)
+        if not isinstance(scan_coord, str):
+            raise TypeError('Expected scan_coord to be instance of str')
 
         for f in frames:
             f.coords[scan_coord] = f.attrs[scan_coord]

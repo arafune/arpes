@@ -160,8 +160,10 @@ def shift_by(
     Returns:
         xr.DataArray: The DataArray with shifted coordinates.
     """
-    assert isinstance(data, xr.DataArray)
-    assert coord_name in data.coords
+    if not isinstance(data, xr.DataArray):
+        raise TypeError('Expected data to be instance of xr.DataArray')
+    if not (coord_name in data.coords):
+        raise ValueError('Assertion failed: coord_name in data.coords')
     shifted_coords = {coord_name: data.coords[coord_name] + shift_value}
     shifted_data = data.assign_coords(**shifted_coords)
     provenance_: Provenance = shifted_data.attrs.get("provenance", {})
@@ -192,7 +194,8 @@ def corrected_coords(
     corrected_data = data.copy(deep=True)
 
     for correction_type in correction_types:
-        assert correction_type in get_args(CoordsOffset)
+        if not (correction_type in get_args(CoordsOffset)):
+            raise ValueError('Assertion failed: correction_type in get_args(CoordsOffset)')
 
         if "_offset" in correction_type:
             coord_name: LiteralString = correction_type.split("_offset")[0]
@@ -232,7 +235,8 @@ def _apply_beta_theta_offset(
     data: xr.DataArray,
     correction_type: str,
 ) -> xr.DataArray:
-    assert correction_type in {"beta", "theta"}
+    if not (correction_type in {"beta", "theta"}):
+        raise ValueError('Assertion failed: correction_type in {"beta", "theta"}')
     axis = "psi" if data.S.is_slit_vertical else "phi"
     if correction_type == "beta":
         axis = "phi" if data.S.is_slit_vertical else "psi"

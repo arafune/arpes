@@ -120,7 +120,8 @@ def switched_angle_unit(data: DataType) -> DataType:
     if isinstance(data, xr.DataArray):
         return cast("DataType", switched_angle_unit_imp(data))
 
-    assert isinstance(data, xr.Dataset)
+    if not isinstance(data, xr.Dataset):
+        raise TypeError('Expected data to be instance of xr.Dataset')
 
     data = data.copy(deep=True)
     if data.S.angle_unit is AngleUnit.RAD:
@@ -164,7 +165,8 @@ def switch_angle_unit(data: DataType) -> None:
         data.attrs.update(new.attrs)
         return
 
-    assert isinstance(data, xr.Dataset)
+    if not isinstance(data, xr.Dataset):
+        raise TypeError('Expected data to be instance of xr.Dataset')
     new = switched_angle_unit(data)
     data.coords.update(new.coords)
     data.attrs.clear()

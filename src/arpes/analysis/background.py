@@ -24,8 +24,10 @@ def calculate_background_hull(
     breakpoints: list[float | None] | None = None,
 ) -> xr.DataArray:
     """Calculates background using the convex hull of the data (intensity as a Z axis)."""
-    assert isinstance(arr, xr.DataArray)
-    assert len(arr.dims) == 1
+    if not isinstance(arr, xr.DataArray):
+        raise TypeError('Expected arr to be instance of xr.DataArray')
+    if not (len(arr.dims) == 1):
+        raise ValueError('Assertion failed: len(arr.dims) == 1')
     if breakpoints:
         breakpoints = [None, *breakpoints, None]
         dim = arr.dims[0]

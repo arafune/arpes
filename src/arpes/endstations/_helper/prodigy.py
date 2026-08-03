@@ -64,7 +64,8 @@ def parse_setscale(
     Returns:
         tuple[IgorSetscaleFlag, str, float, float, str]
     """
-    assert "SetScale" in line
+    if not ("SetScale" in line):
+        raise ValueError('Assertion failed: "SetScale" in line')
     flag: IgorSetscaleFlag
     dim: str
     num1: float

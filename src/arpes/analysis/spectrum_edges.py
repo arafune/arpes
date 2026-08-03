@@ -81,7 +81,8 @@ def find_spectrum_energy_edges(
         - Investigate optimal parameters for edge detection.
             (e.g., Gaussian filter size, thresholds).
     """
-    assert isinstance(data, xr.DataArray)
+    if not isinstance(data, xr.DataArray):
+        raise TypeError('Expected data to be instance of xr.DataArray')
     energy_marginal = data.sum([d for d in data.dims if d != "eV"])
 
     embed_size = 20
@@ -120,7 +121,8 @@ def find_spectrum_angular_edges(
         Angle position
     """
     angular_dim: str = "pixel" if "pixel" in data.dims else angle_name
-    assert isinstance(data, xr.DataArray)
+    if not isinstance(data, xr.DataArray):
+        raise TypeError('Expected data to be instance of xr.DataArray')
     phi_marginal = data.sum(
         [d for d in data.dims if d != angular_dim],
     )
@@ -265,10 +267,13 @@ def zero_spectrometer_edges(
         - Add tests.
 
     """
-    assert isinstance(data, xr.DataArray)
+    if not isinstance(data, xr.DataArray):
+        raise TypeError('Expected data to be instance of xr.DataArray')
     if low is not None:
-        assert high is not None
-        assert len(low) == len(high) == TWO_DIMENSION
+        if not (high is not None):
+            raise ValueError('Assertion failed: high is not None')
+        if not (len(low) == len(high) == TWO_DIMENSION):
+            raise ValueError('Assertion failed: len(low) == len(high) == TWO_DIMENSION')
 
         low_edges = low
         high_edges = high
@@ -286,7 +291,8 @@ def zero_spectrometer_edges(
         else:
             cut_margin = int(0.08 / data.G.stride(generic_dim_names=False)[angular_dim])
     elif isinstance(cut_margin, float):
-        assert angular_dim == "phi"
+        if not (angular_dim == "phi"):
+            raise ValueError('Assertion failed: angular_dim == "phi"')
         cut_margin = int(
             cut_margin / data.G.stride(generic_dim_names=False)[angular_dim],
         )

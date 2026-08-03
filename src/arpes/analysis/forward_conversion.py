@@ -99,7 +99,8 @@ def convert_coordinate_forward(
         The location of the desired coordinate in **momentum**.
     """
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-    assert data.spectrum_type in {"cut", "map"}, 'spectrum type must be "cut" or "map"'
+    if not (data.spectrum_type in {"cut", "map"}):
+        raise ValueError('spectrum type must be "cut" or "map"')
     if data.spectrum_type == "map":
         if "eV" in coords:  # TODO: correction is required for "cut" data
             coords = dict(coords)
@@ -195,7 +196,8 @@ def convert_through_angular_pair(  # noqa: PLR0913
     Returns:
         The momentum cut passing first through `first_point` and then through `second_point`.
     """
-    assert data.S.spectrum_type is SpectrumType.MAP
+    if not (data.S.spectrum_type is SpectrumType.MAP):
+        raise ValueError('Assertion failed: data.S.spectrum_type is SpectrumType.MAP')
     k_first_point = convert_coordinate_forward(data, first_point, **k_coords)
     k_second_point = convert_coordinate_forward(data, second_point, **k_coords)
 
@@ -204,9 +206,12 @@ def convert_through_angular_pair(  # noqa: PLR0913
         msg = f"Two point {k_dims} momentum conversion is not supported yet."
         raise NotImplementedError(msg)
 
-    assert k_dims == set(cut_specification.keys()).union(transverse_specification.keys())
-    assert "ky" in transverse_specification  # You must use ky as the transverse coordinate for now
-    assert len(cut_specification) == 1
+    if not (k_dims == set(cut_specification.keys()).union(transverse_specification.keys())):
+        raise ValueError('Assertion failed: k_dims == set(cut_specification.keys()).union(transverse_specification.keys())')
+    if not ("ky" in transverse_specification):
+        raise ValueError('Assertion failed: "ky" in transverse_specification')
+    if not (len(cut_specification) == 1):
+        raise ValueError('Assertion failed: len(cut_specification) == 1')
 
     offset_ang = np.arctan2(
         k_second_point["ky"] - k_first_point["ky"],
@@ -296,7 +301,8 @@ def convert_through_angular_point(
         **k_coords,
     )
     all_momentum_dims = set(location_in_kspace.keys())
-    assert all_momentum_dims == set(cut_specification.keys()).union(transverse_specification.keys())
+    if not (all_momentum_dims == set(cut_specification.keys()).union(transverse_specification.keys())):
+        raise ValueError('Assertion failed: all_momentum_dims == set(cut_specification.keys()).union(transverse_specification.keys())')
 
     # adjust output coordinate ranges
     transverse_specification = {
@@ -361,9 +367,11 @@ def convert_coordinates(
     ) -> NDArray[np.floating] | float:
         if isinstance(c, float):
             return c
-        assert isinstance(c, np.ndarray)
+        if not isinstance(c, np.ndarray):
+            raise TypeError('Expected c to be instance of np.ndarray')
         index_list: list[slice | None] = [np.newaxis] * len(old_dims)
-        assert old_dims.index(cname) is not None
+        if not (old_dims.index(cname) is not None):
+            raise ValueError('Assertion failed: old_dims.index(cname) is not None')
         index_list[old_dims.index(cname)] = slice(None, None)
         return c[tuple(index_list)]
 
@@ -559,7 +567,8 @@ def _broadcast_by_dim_location(
         return np.ones(target_shape) * data
     # else we are dealing with an actual array
     the_slice: list[slice | None] = [None] * len(target_shape)
-    assert dim_location is not None
+    if not (dim_location is not None):
+        raise ValueError('Assertion failed: dim_location is not None')
     the_slice[dim_location] = slice(None, None, None)
     the_slice = [np.newaxis if s is None else s for s in the_slice]
     return np.asarray(data)[tuple(the_slice)]

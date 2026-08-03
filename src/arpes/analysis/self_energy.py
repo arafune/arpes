@@ -52,7 +52,8 @@ def get_peak_parameter(
             peak_like_components = [
                 c for c in first_item.model.components if isinstance(c, peak_like)
             ]
-            assert len(peak_like_components) == 1
+            if not (len(peak_like_components) == 1):
+                raise ValueError('Assertion failed: len(peak_like_components) == 1')
 
             return data.F.p(f"{peak_like_components[0].prefix}{parameter_name}")
         return data.F.p(parameter_name)
@@ -103,7 +104,8 @@ def estimate_bare_band(
         centers = dispersion
 
     mom_options = [d for d in dispersion.dims if d in {"k", "kp", "kx", "ky", "kz"}]
-    assert len(mom_options) <= 1
+    if not (len(mom_options) <= 1):
+        raise ValueError('Assertion failed: len(mom_options) <= 1')
     fit_dimension = "eV" if "eV" in dispersion.dims else mom_options[0]
 
     if not bare_band_specification:
@@ -117,7 +119,8 @@ def estimate_bare_band(
     elif bare_band_specification == "ransac_linear":
         min_samples = len(centers.coords[fit_dimension]) // 10
         residual = initial_linear_fit.residual
-        assert residual is not None
+        if not (residual is not None):
+            raise ValueError('Assertion failed: residual is not None')
         residual_threshold = np.median(np.abs(residual)) * 1
         _, inliers = ransac(
             np.stack([centers.coords[fit_dimension], centers]).T,
@@ -223,13 +226,15 @@ def to_self_energy(
 
     if isinstance(dispersion, xr.Dataset):
         dispersion = dispersion.results
-    assert isinstance(dispersion, xr.DataArray)
+    if not isinstance(dispersion, xr.DataArray):
+        raise TypeError('Expected dispersion to be instance of xr.DataArray')
     from_mdcs = "eV" in dispersion.dims  # if eV is in the dimensions, then we fitted MDCs
     estimated_bare_band = estimate_bare_band(dispersion, bare_band_specification="ransac_linear")
 
     if not fermi_velocity:
         fermi_velocity = local_fermi_velocity(estimated_bare_band)
-    assert isinstance(fermi_velocity, float)
+    if not isinstance(fermi_velocity, float):
+        raise TypeError('Expected fermi_velocity to be instance of float')
 
     imaginary_part = get_peak_parameter(dispersion, "fwhm") / 2
     centers = get_peak_parameter(dispersion, "center")
@@ -269,12 +274,14 @@ def fit_for_self_energy(
     Returns:
         The self energy resulting from curve-fitting.
     """
-    assert data.S.is_kspace
+    if not (data.S.is_kspace):
+        raise ValueError('Assertion failed: data.S.is_kspace')
     model = LorentzianModel() + LinearModel()
     if method == "mdc":
         possible_mometum_dims = ("kp", "kx", "ky", "kz")
         mom_axis = next(str(dim) for dim in data.dims if dim in possible_mometum_dims)
-        assert mom_axis is not None
+        if not (mom_axis is not None):
+            raise ValueError('Assertion failed: mom_axis is not None')
         model = LorentzianModel() + LinearModel()
         fit_results = data.S.modelfit(coords=mom_axis, model=model, **kwargs)
     else:

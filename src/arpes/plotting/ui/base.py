@@ -117,7 +117,8 @@ class BaseUI(ABC):
             method to construct its specific user interface components.
         """
         data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-        assert len(data.dims) <= TWO_DIMENSION
+        if not (len(data.dims) <= TWO_DIMENSION):
+            raise ValueError('Assertion failed: len(data.dims) <= TWO_DIMENSION')
         self.pane_kwargs = default_plot_kwargs(**kwargs)
 
         self.data: xr.DataArray = data
@@ -188,15 +189,18 @@ def image_with_pointer(
     """
     kwargs = default_plot_kwargs(**kwargs)
 
-    assert data.ndim == TWO_DIMENSION
+    if not (data.ndim == TWO_DIMENSION):
+        raise ValueError('Assertion failed: data.ndim == TWO_DIMENSION')
     data = fix_xarray_to_fit_with_holoview(data)
     max_coords = data.G.argmax_coords()
 
     posx = posx or PointerX(x=max_coords[data.dims[0]])
     posy = posy or PointerY(y=max_coords[data.dims[1]])
 
-    assert isinstance(posx, PointerX)
-    assert isinstance(posy, PointerY)
+    if not isinstance(posx, PointerX):
+        raise TypeError('Expected posx to be instance of PointerX')
+    if not isinstance(posy, PointerY):
+        raise TypeError('Expected posy to be instance of PointerY')
 
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
 

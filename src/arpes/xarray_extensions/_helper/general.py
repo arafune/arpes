@@ -32,7 +32,8 @@ def round_coordinates_impl(
 
     Assumes `data` is a concrete xarray object (DataArray or Dataset).
     """
-    assert isinstance(data, xr.DataArray | xr.Dataset)
+    if not isinstance(data, xr.DataArray | xr.Dataset):
+        raise TypeError('Expected data to be instance of xr.DataArray | xr.Dataset')
     rounded = {
         k: v.item()
         for k, v in data.sel(coords_to_round, method="nearest").coords.items()
@@ -114,7 +115,8 @@ def apply_over_impl(
 
     Assumes `data` is a concrete xarray object (DataArray or Dataset).
     """
-    assert isinstance(data, xr.DataArray | xr.Dataset)
+    if not isinstance(data, xr.DataArray | xr.Dataset):
+        raise TypeError('Expected data to be instance of xr.DataArray | xr.Dataset')
 
     data = data.copy(deep=True) if copy else data
 

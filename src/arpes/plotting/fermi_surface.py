@@ -106,13 +106,15 @@ def magnify_circular_regions_plot(  # noqa: PLR0913
         A tuple of figure and axes, or the path to the saved plot.
     """
     data_arr = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-    assert isinstance(data_arr, xr.DataArray)
+    if not isinstance(data_arr, xr.DataArray):
+        raise TypeError('Expected data_arr to be instance of xr.DataArray')
 
     fig: Figure | None = None
     if ax is None:
         fig, ax = plt.subplots(figsize=kwargs.pop("figsize", (7, 5)))
 
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
 
     mesh = data_arr.S.plot(ax=ax, cmap=cmap)
     clim = list(mesh.get_clim())

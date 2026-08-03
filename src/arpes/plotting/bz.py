@@ -229,8 +229,10 @@ def plot_data_to_bz2d(  # noqa: PLR0913
     Returns:
         [TODO:description]
     """
-    assert data_array.S.is_kspace, "You must k-space convert data before plotting to BZs"
-    assert isinstance(data_array, xr.DataArray), "data_array must be xr.DataArray, not Dataset"
+    if not (data_array.S.is_kspace):
+        raise ValueError('You must k-space convert data before plotting to BZs')
+    if not isinstance(data_array, xr.DataArray):
+        raise TypeError('data_array must be xr.DataArray, not Dataset')
 
     if bz_number is None:
         bz_number = (0, 0)
@@ -239,7 +241,8 @@ def plot_data_to_bz2d(  # noqa: PLR0913
     if ax is None:
         fig, ax = plt.subplots(figsize=(9, 9))
         bz_plot(cell, paths="all", ax=ax)
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
 
     icell = cell.reciprocal()
 
@@ -294,7 +297,8 @@ def bz2d_segments(
     """Calculates the line segments corresponding to a 2D BZ."""
     segments_x = []
     segments_y = []
-    assert cell.rank == TWO_DIMENSION
+    if not (cell.rank == TWO_DIMENSION):
+        raise ValueError('Assertion failed: cell.rank == TWO_DIMENSION')
 
     for points, _ in twocell_to_bz1(cell)[0]:
         transformed_points = apply_transformations(points, transformations)

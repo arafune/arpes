@@ -53,7 +53,7 @@ def test_returns_two_axes_when_scale_zero(test_data):
 
 
 def test_negative_scale_factor_raises(test_data):
-    with pytest.raises(AssertionError, match="scale factor should be positive"):
+    with pytest.raises((AssertionError, TypeError, ValueError), match="scale factor should be positive"):
         waterfall_dispersion(test_data, scale_factor=-1)
 
 

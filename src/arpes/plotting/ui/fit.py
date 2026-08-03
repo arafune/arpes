@@ -75,7 +75,8 @@ def fit_inspection(
     kwargs = default_plot_kwargs(**kwargs)
     kwargs.setdefault("profile_view_height", 200)
 
-    assert any(str(i).endswith("modelfit_data") for i in dataset.data_vars)
+    if not (any(str(i).endswith("modelfit_data") for i in dataset.data_vars)):
+        raise ValueError('Assertion failed: any(str(i).endswith("modelfit_data") for i in dataset.data_vars)')
     if any(str(i).startswith("modelfit_data") for i in dataset.data_vars):
         exp_data = dataset["modelfit_data"]
     else:

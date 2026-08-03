@@ -153,7 +153,8 @@ def relative_change(
     """
     # Ensure DataArray + optional delay normalization
     spectrum = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-    assert isinstance(spectrum, xr.DataArray)
+    if not isinstance(spectrum, xr.DataArray):
+        raise TypeError('Expected spectrum to be instance of xr.DataArray')
     if normalize_delay:
         spectrum = normalize_dim(spectrum, "delay")
 
@@ -161,8 +162,10 @@ def relative_change(
     delay_start: float = np.min(spectrum.coords["delay"]).values.item()
     if t0 is None:
         t0 = find_t_for_max_intensity(spectrum)
-    assert t0 is not None
-    assert t0 - buffer_fs > delay_start
+    if not (t0 is not None):
+        raise ValueError('Assertion failed: t0 is not None')
+    if not (t0 - buffer_fs > delay_start):
+        raise ValueError('Assertion failed: t0 - buffer_fs > delay_start')
 
     # Subtraction
     before_t0 = spectrum.sel(delay=slice(None, t0 - buffer_fs))
@@ -194,9 +197,12 @@ def find_t_for_max_intensity(
 
     """
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-    assert isinstance(data, xr.DataArray)
-    assert "delay" in data.dims
-    assert "eV" in data.dims
+    if not isinstance(data, xr.DataArray):
+        raise TypeError('Expected data to be instance of xr.DataArray')
+    if not ("delay" in data.dims):
+        raise ValueError('Assertion failed: "delay" in data.dims')
+    if not ("eV" in data.dims):
+        raise ValueError('Assertion failed: "eV" in data.dims')
     sum_dims = set(data.dims)
     sum_dims.remove("delay")
     sum_dims.remove("eV")

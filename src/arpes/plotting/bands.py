@@ -51,14 +51,16 @@ def plot_with_bands(
     if ax is None:
         _, ax = plt.subplots(figsize=(8, 5))
 
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
 
     if not title:
         title = data.S.label.replace("_", " ")
 
     mesh: AxesImage = data.S.plot(ax=ax, **kwargs)
     mesh_colorbar = mesh.colorbar
-    assert isinstance(mesh_colorbar, colorbar.Colorbar)
+    if not isinstance(mesh_colorbar, colorbar.Colorbar):
+        raise TypeError('Expected mesh_colorbar to be instance of colorbar.Colorbar')
     mesh_colorbar.set_label(label_for_colorbar(data))
 
     if data.S.is_differentiated:

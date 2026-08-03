@@ -45,7 +45,8 @@ def remap_coords_to(
         keep_attrs=True,
     )  # sum is not so fast, but ensures there is data
 
-    assert arr.S.is_kspace == reference_arr.S.is_kspace
+    if not (arr.S.is_kspace == reference_arr.S.is_kspace):
+        raise ValueError('Assertion failed: arr.S.is_kspace == reference_arr.S.is_kspace')
 
     full_coords = arr.S.full_coords
     full_reference_coords = reference_arr.S.full_coords

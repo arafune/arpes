@@ -53,14 +53,16 @@ def vstack_data(
     """
     if not all(new_dim in data.attrs for data in arr_list):
         logger.debug(f"{new_dim} is not included")
-        assert all(new_dim in data.coords for data in arr_list)
+        if not (all(new_dim in data.coords for data in arr_list)):
+            raise ValueError('Assertion failed: all(new_dim in data.coords for data in arr_list)')
     else:
         arr_list = [data.assign_coords({new_dim: data.attrs[new_dim]}) for data in arr_list]
 
     if sort:
         arr_list = sorted(arr_list, key=lambda x: x.coords[new_dim].values.item())
 
-    assert is_homogeneous_dataarray_list(arr_list) or is_homogeneous_dataset_list(arr_list)
+    if not (is_homogeneous_dataarray_list(arr_list) or is_homogeneous_dataset_list(arr_list)):
+        raise ValueError('Assertion failed: is_homogeneous_dataarray_list(arr_list) or is_homogeneous_dataset_list(arr_list)')
     concatenated_data: DataType = cast("DataType", xr.concat(arr_list, dim=new_dim))
     if new_dim in concatenated_data.attrs:
         del concatenated_data.attrs[new_dim]
@@ -79,7 +81,8 @@ def sort_axis(data: xr.DataArray, axis_name: str) -> xr.DataArray:
         xr.DataArray: The sorted xarray data.orts slices of `data` along `axis_name` so that they
             lie in order.
     """
-    assert isinstance(data, xr.DataArray)
+    if not isinstance(data, xr.DataArray):
+        raise TypeError('Expected data to be instance of xr.DataArray')
     copied = data.copy(deep=True)
     coord = data.coords[axis_name].values
     order = np.argsort(coord)
@@ -141,7 +144,8 @@ def normalize_dim(
     """
     dims: list[str]
     dims = [dim_or_dims] if isinstance(dim_or_dims, str) else dim_or_dims
-    assert isinstance(dims, list)
+    if not isinstance(dims, list):
+        raise TypeError('Expected dims to be instance of list')
 
     summed_arr = arr.fillna(arr.mean()).sum(
         [d for d in arr.dims if d not in dims],
@@ -200,7 +204,8 @@ def normalize_max(
             values * max_value,
             keep_attrs=keep_attrs,
         )
-    assert isinstance(data, xr.DataArray)
+    if not isinstance(data, xr.DataArray):
+        raise TypeError('Expected data to be instance of xr.DataArray')
     return data
 
 
@@ -216,7 +221,8 @@ def normalize_total(data: XrTypes, *, total_intensity: float = 1000000) -> xr.Da
         xr.DataArray
     """
     data_array = normalize_to_spectrum(data)
-    assert isinstance(data_array, xr.DataArray)
+    if not isinstance(data_array, xr.DataArray):
+        raise TypeError('Expected data_array to be instance of xr.DataArray')
     return data_array / (data_array.sum(data.dims) / total_intensity)
 
 
@@ -279,7 +285,8 @@ def transform_dataarray_axis(  # noqa: PLR0913
 
     ds = dataset.copy()
     transform_spectra = {k: v for k, v in ds.data_vars.items() if old_axis_name in v.dims}
-    assert isinstance(transform_spectra, dict)
+    if not isinstance(transform_spectra, dict):
+        raise TypeError('Expected transform_spectra to be instance of dict')
 
     ds.coords[new_axis_name] = new_axis
 
@@ -326,7 +333,8 @@ def transform_dataarray_axis(  # noqa: PLR0913
         if remove_old:
             del ds[name]
         else:
-            assert prep_name(name) != name, "You must make sure names don't collide"
+            if not (prep_name(name) != name):
+                raise ValueError("You must make sure names don't collide")
 
     new_ds = xr.merge([ds, *new_dataarrays])
 

@@ -104,7 +104,8 @@ class ARPESDatasetFitToolAccessor:
             stacklevel=2,
         )
 
-        assert isinstance(self._obj, xr.Dataset)
+        if not isinstance(self._obj, xr.Dataset):
+            raise TypeError('Expected self._obj to be instance of xr.Dataset')
         if any(str(i).startswith("modelfit_best_fit") for i in self._obj.data_vars):
             return list(
                 set(self._obj["modelfit_data"].dims).difference(
@@ -197,7 +198,8 @@ class ARPESFitToolsAccessor:
         Producing a scalar metric of the error for all model result instances in
         the collection.
         """
-        assert isinstance(self._obj, xr.DataArray)
+        if not isinstance(self._obj, xr.DataArray):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray')
 
         return self._obj.G.map(safe_error)
 
@@ -217,7 +219,8 @@ class ARPESFitToolsAccessor:
         Todo:
             Test
         """
-        assert isinstance(self._obj, xr.DataArray)
+        if not isinstance(self._obj, xr.DataArray):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray')
         stacked = self._obj.stack(dim={"by_error": self._obj.dims})
 
         error = stacked.F.mean_square_error()
@@ -246,7 +249,8 @@ class ARPESFitToolsAccessor:
         Memo:
             Work after xarray-lmfit migration.
         """
-        assert isinstance(self._obj, xr.DataArray)
+        if not isinstance(self._obj, xr.DataArray):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray')
         return self._obj.G.map(param_getter(param_name), otypes=[float])
 
     def s(self, param_name: str) -> xr.DataArray:
@@ -267,7 +271,8 @@ class ARPESFitToolsAccessor:
         Memo:
             Work after xarray-lmfit migration.
         """
-        assert isinstance(self._obj, xr.DataArray)
+        if not isinstance(self._obj, xr.DataArray):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray')
         return self._obj.G.map(param_stderr_getter(param_name), otypes=[float])
 
     @property
@@ -300,7 +305,8 @@ class ARPESFitToolsAccessor:
             would contain `"a_"`.
         """
         collected_band_names: set[str] = set()
-        assert isinstance(self._obj, xr.DataArray)
+        if not isinstance(self._obj, xr.DataArray):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray')
         for item in self._obj.values.ravel():
             if item is None:
                 continue
@@ -326,7 +332,8 @@ class ARPESFitToolsAccessor:
             Work after xarray-lmfit migration.
         """
         collected_parameter_names: set[str] = set()
-        assert isinstance(self._obj, xr.DataArray)
+        if not isinstance(self._obj, xr.DataArray):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray')
         for item in self._obj.values.ravel():
             if item is None:
                 continue

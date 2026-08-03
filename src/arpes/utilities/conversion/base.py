@@ -92,7 +92,8 @@ class CoordinateConverter:
         cache computations as they arrive. This is the technique that is used in
         ConvertKxKy below
         """
-        assert isinstance(arr, xr.DataArray)
+        if not isinstance(arr, xr.DataArray):
+            raise TypeError('Expected arr to be instance of xr.DataArray')
 
     @property
     def is_slit_vertical(self) -> bool:
@@ -138,9 +139,8 @@ class CoordinateConverter:
 
         Useful if the transform is the identity.
         """
-        assert isinstance(self.dim_order, (list | tuple)), (
-            f"self.dim_oder should be list | tuple, but {type(self.dim_order)}"
-        )
+        if not isinstance(self.dim_order, list | tuple):
+            raise TypeError('Expected self.dim_order to be instance of list | tuple')
         return args[self.dim_order.index(str(axis_name))]
 
     @abstractmethod

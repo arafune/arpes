@@ -267,6 +267,71 @@ def test_plot_movie_and_evolution_with_labels(another_sample_data: xr.DataArray)
     assert ax[1].get_xlabel() == labels[1]
 
 
+def test_output_animation_requires_update_func_and_fig(sample_data: xr.DataArray):
+    """output_animation should raise ValueError when update_func or fig are missing for non-path outputs."""
+    from arpes.plotting.movie import output_animation
+
+    with pytest.raises(ValueError, match="Both 'update_func' and 'fig' must be provided"):
+        # out=0 triggers the numeric snapshot branch after validation; update_func/fig are intentionally None
+        output_animation(anim=None, data=sample_data, update_func=None, fig=None, time_dim="delay", out=0)
+
+
+def test_initialize_figure_and_axes_invalid_ax():
+    """_initialize_figure_and_axes should raise when ax is None or too short."""
+    from arpes.plotting.movie import _initialize_figure_and_axes
+    import matplotlib.pyplot as plt
+
+    fig = plt.figure()
+    # ax is None -> RuntimeError
+    with pytest.raises(RuntimeError):
+        _initialize_figure_and_axes((fig, None), figsize=(9.0, 5.0), width_ratio=(1.0, 4.4))
+
+    # ax is list of length 1 -> TypeError about expecting two Axes
+    with pytest.raises(TypeError, match="Expected 'ax' to be an array-like with two Axes"):
+        _initialize_figure_and_axes((fig, [object()]), figsize=(9.0, 5.0), width_ratio=(1.0, 4.4))
+
+
+def test_plot_movie_invalid_ndim(another_sample_data: xr.DataArray):
+    """plot_movie should raise ValueError if data.ndim is not 3."""
+    from arpes.plotting.movie import plot_movie
+
+    # Create 2D data (missing time dimension)
+    two_d = another_sample_data.isel(delay=0).squeeze()
+    with pytest.raises(ValueError, match="Expected data with ndim"):
+        plot_movie(two_d, out=None)
+
+
+def test_plot_movie_and_evolution_invalid_ndim(another_sample_data: xr.DataArray):
+    """plot_movie_and_evolution should raise ValueError if data.ndim is not 3."""
+    from arpes.plotting.movie import plot_movie_and_evolution
+
+    two_d = another_sample_data.isel(delay=0).squeeze()
+    with pytest.raises(ValueError, match="Expected data with ndim"):
+        plot_movie_and_evolution(two_d, out=None)
+
+
+def test_plot_movie_invalid_ax_type(another_sample_data: xr.DataArray):
+    """plot_movie should raise TypeError when an invalid ax is provided in fig_ax."""
+    from arpes.plotting.movie import plot_movie
+    import matplotlib.pyplot as plt
+
+    fig = plt.figure()
+    bad_ax = object()
+    with pytest.raises(TypeError, match="ax must be a matplotlib.axes.Axes instance"):
+        plot_movie(another_sample_data, fig_ax=(fig, bad_ax), out=None)
+
+
+def test_initialize_figure_and_axes_fig_type_error():
+    """_initialize_figure_and_axes should raise TypeError when fig is not a Figure."""
+    from arpes.plotting.movie import _initialize_figure_and_axes
+
+    import matplotlib.pyplot as plt
+    fig_real, axes = plt.subplots(nrows=1, ncols=2)
+    bad_fig = object()
+    with pytest.raises(TypeError, match="fig is not a matplotlib.figure.Figure"):
+        _initialize_figure_and_axes((bad_fig, axes), figsize=(9.0, 5.0), width_ratio=(1.0, 4.4))
+
+
 def test_plot_movie_and_evolution_is_subtracted_true(another_sample_data: xr.DataArray):
     """Test when data.S.is_subtracted is True."""
     another_sample_data.attrs["subtracted"] = True
@@ -315,3 +380,20 @@ def test_plot_movie_and_evolution_is_subtracted_true_with_labels(another_sample_
     # Verify that the labels are correctly applied
     assert ax[0].get_xlabel() == labels[0]
     assert ax[0].get_ylabel() == labels[1]
+
+
+def test_plot_movie_fig_and_data_type_checks(another_sample_data: xr.DataArray):
+    """plot_movie should raise TypeError for invalid fig and data types."""
+    from arpes.plotting.movie import plot_movie
+    import matplotlib.pyplot as plt
+
+    fig_real, ax_real = plt.subplots()
+    bad_fig = object()
+    # bad fig
+    with pytest.raises(TypeError, match="fig must be a matplotlib.figure.Figure instance"):
+        plot_movie(another_sample_data, fig_ax=(bad_fig, ax_real), out=None)
+
+    # bad data
+    bad_data = object()
+    with pytest.raises(TypeError, match="data must be an xarray.DataArray"):
+        plot_movie(bad_data, fig_ax=(fig_real, ax_real), out=None)

@@ -43,7 +43,8 @@ def remove_incoherent_background(
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     if fermi_level is None:
         fermi_level = data.S.find_spectrum_energy_edges().max()
-    assert isinstance(fermi_level, float)
+    if not isinstance(fermi_level, float):
+        raise TypeError('Expected fermi_level to be instance of float')
     logger.debug(f"fermi_level: {fermi_level}")
 
     background = data.sel(eV=slice(fermi_level + 0.1, None))

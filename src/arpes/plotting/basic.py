@@ -42,7 +42,8 @@ def make_overview(
     Returns: tuple[Figure, list[Axes]]
         Overview of ARPES data.
     """
-    assert isinstance(data_all, Sequence)
+    if not isinstance(data_all, Sequence):
+        raise TypeError('Expected data_all to be instance of Sequence')
     num_figs = len(data_all)
     nrows = num_figs // ncols
     if num_figs % ncols:

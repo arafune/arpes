@@ -205,9 +205,11 @@ def bootstrap_counts(
     Returns:
         A `xr.Dataset` which has the mean and standard error for the resampled named array.
     """
-    assert data.name is not None or name is not None
+    if not (data.name is not None or name is not None):
+        raise ValueError('Assertion failed: data.name is not None or name is not None')
     name = str(data.name) if data.name is not None else name
-    assert isinstance(name, str)
+    if not isinstance(name, str):
+        raise TypeError('Expected name to be instance of str')
     desc_fragment = f" {name}"
 
     resampled_sets = [

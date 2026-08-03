@@ -91,7 +91,8 @@ class IgorExportEndstation(SESEndstation):
         scan_desc = scan_desc or {}
 
         data_loc = scan_desc.get("path", scan_desc.get("file"))
-        assert data_loc is not None
+        if not (data_loc is not None):
+            raise ValueError('Assertion failed: data_loc is not None')
         if not Path(data_loc).exists():
             data_path = get_data_path()
             if data_path is not None:

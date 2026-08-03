@@ -47,7 +47,8 @@ def fit_fermi_edge(
     Returns:
         The Fermi edge location.
     """
-    assert isinstance(data, xr.DataArray)
+    if not isinstance(data, xr.DataArray):
+        raise TypeError('Expected data to be instance of xr.DataArray')
     if energy_range is None:
         energy_range = slice(-0.1, 0.1)
 
@@ -101,7 +102,8 @@ def normalize_by_fermi_distribution(
             center=rigid_shift,
             width=K_BOLTZMANN_EV_KELVIN * data.S.temp,
         )
-    assert isinstance(distrib, np.ndarray)
+    if not isinstance(distrib, np.ndarray):
+        raise TypeError('Expected distrib to be instance of np.ndarray')
     # don't boost by more than 90th percentile of input, by default
     max_gain = (
         max_gain or min(
@@ -228,7 +230,8 @@ def rebin(
         shape = {}
         for k, v in bin_width.items():
             shape[k] = len(data.coords[k]) // v
-    assert bool(shape), "Set shape/bin_width"
+    if not (bool(shape)):
+        raise ValueError('Set shape/bin_width')
     for bin_axis, bins in shape.items():
         data = _bin(data, bin_axis, bins, method)
     return data

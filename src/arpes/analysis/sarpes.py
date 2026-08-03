@@ -23,11 +23,16 @@ def normalize_sarpes_photocurrent(data: xr.Dataset) -> xr.Dataset:
     Returns:
         Scaled data. Independently, photocurrent up and down channels are used to perform scaling.
     """
-    assert isinstance(data, xr.Dataset)
-    assert "down" in data.data_vars
-    assert "up" in data.data_vars
-    assert "photocurrent_up" in data.data_vars
-    assert "photocurrent_down" in data.data_vars
+    if not isinstance(data, xr.Dataset):
+        raise TypeError('Expected data to be instance of xr.Dataset')
+    if not ("down" in data.data_vars):
+        raise ValueError('Assertion failed: "down" in data.data_vars')
+    if not ("up" in data.data_vars):
+        raise ValueError('Assertion failed: "up" in data.data_vars')
+    if not ("photocurrent_up" in data.data_vars):
+        raise ValueError('Assertion failed: "photocurrent_up" in data.data_vars')
+    if not ("photocurrent_down" in data.data_vars):
+        raise ValueError('Assertion failed: "photocurrent_down" in data.data_vars')
 
     copied = data.copy(deep=True)
     copied.down.values = (copied.down * (copied.photocurrent_up / copied.photocurrent_down)).values
@@ -50,9 +55,12 @@ def to_up_down(data: xr.Dataset) -> xr.Dataset:
     Returns:
         The data after conversion to up-down representation.
     """
-    assert isinstance(data, xr.Dataset)
-    assert "intensity" in data.data_vars
-    assert "polarization" in data.data_vars
+    if not isinstance(data, xr.Dataset):
+        raise TypeError('Expected data to be instance of xr.Dataset')
+    if not ("intensity" in data.data_vars):
+        raise ValueError('Assertion failed: "intensity" in data.data_vars')
+    if not ("polarization" in data.data_vars):
+        raise ValueError('Assertion failed: "polarization" in data.data_vars')
 
     return xr.Dataset(
         data_vars={
@@ -81,10 +89,13 @@ def to_intensity_polarization(
     Returns:
         The data after conversion to intensity-polarization representation.
     """
-    assert isinstance(data, xr.Dataset)
+    if not isinstance(data, xr.Dataset):
+        raise TypeError('Expected data to be instance of xr.Dataset')
 
-    assert "up" in data.data_vars
-    assert "down" in data.data_vars
+    if not ("up" in data.data_vars):
+        raise ValueError('Assertion failed: "up" in data.data_vars')
+    if not ("down" in data.data_vars):
+        raise ValueError('Assertion failed: "down" in data.data_vars')
 
     intensity = data.up + data.down
 

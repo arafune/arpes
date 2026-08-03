@@ -61,7 +61,8 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
     def __init__(self, xarray_obj: xr.DataArray) -> None:
         """Initialize."""
         self._obj: xr.DataArray = xarray_obj
-        assert isinstance(self._obj, xr.DataArray)
+        if not isinstance(self._obj, xr.DataArray):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray')
 
     def corrected_coords(
         self,
@@ -148,7 +149,8 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
         **kwargs: Unpack[LabeledFermiSurfaceParam],
     ) -> Path | tuple[Figure | None, Axes]:
         """Provides a reference plot of the approximate Fermi surface."""
-        assert isinstance(self._obj, xr.DataArray)
+        if not isinstance(self._obj, xr.DataArray):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray')
         out = kwargs.get("out")
         if out is not None and isinstance(out, bool):
             out = pattern.format(f"{self.label}_fs")
@@ -183,7 +185,8 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
             the plot.Provides a reference plot for a Fermi edge reference.
 
         """
-        assert isinstance(self._obj, xr.DataArray)
+        if not isinstance(self._obj, xr.DataArray):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray')
         if out is not None and isinstance(out, bool):
             out = pattern.format(f"{self.label}_fermi_edge_reference")
         return fermi_edge_reference(self._obj, out=out, **kwargs)
@@ -264,7 +267,8 @@ class ARPESDataArrayAccessor(ARPESDataArrayAccessorBase):
         out: str | Path = "",
         **kwargs: Unpack[PColorMeshKwargs],
     ) -> Axes | Path:
-        assert isinstance(self._obj, xr.DataArray)
+        if not isinstance(self._obj, xr.DataArray):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray')
         label = self._obj.attrs["id"] if use_id else self.label
         if isinstance(out, bool):
             out = pattern.format(f"{label}_spectrum_reference")

@@ -53,7 +53,8 @@ class SESEndstation(EndstationBase):
             )
 
         original_data_loc = scan_desc.get("path", scan_desc.get("file"))
-        assert original_data_loc
+        if not (original_data_loc):
+            raise ValueError('Assertion failed: original_data_loc')
         config_manager = get_config_manager()
         if not Path(original_data_loc).exists():
             if config_manager.data_path is not None:
@@ -132,7 +133,8 @@ class SESEndstation(EndstationBase):
         scan_desc = scan_desc or {}
 
         data_loc = scan_desc.get("path", scan_desc.get("file"))
-        assert data_loc is not None
+        if not (data_loc is not None):
+            raise ValueError('Assertion failed: data_loc is not None')
         config_manager = get_config_manager()
         if not Path(data_loc).exists():
             if config_manager.data_path is not None:

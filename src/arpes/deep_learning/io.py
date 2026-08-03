@@ -55,8 +55,10 @@ def to_portable_bin(arr: NDArray[np.floating], path: Path) -> None:
     """
     path.mkdir(parents=True, exist_ok=True)
     json_path, arr_path = path / "portability.json", path / "arr.bin"
-    assert not json_path.exists()
-    assert not arr_path.exists()
+    if not (not json_path.exists()):
+        raise ValueError('Assertion failed: not json_path.exists()')
+    if not (not arr_path.exists()):
+        raise ValueError('Assertion failed: not arr_path.exists()')
 
     with Path(json_path).open("w", encoding="UTF-8") as f:
         json.dump(

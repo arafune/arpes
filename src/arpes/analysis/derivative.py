@@ -69,8 +69,10 @@ def _vector_diff(
 
     slice1: list[slice] | tuple[slice, ...] = [slice(None)] * arr.ndim
     slice2: list[slice] | tuple[slice, ...] = [slice(None)] * arr.ndim
-    assert isinstance(slice1, list)
-    assert isinstance(slice2, list)
+    if not isinstance(slice1, list):
+        raise TypeError('Expected slice1 to be instance of list')
+    if not isinstance(slice2, list):
+        raise TypeError('Expected slice2 to be instance of list')
     for dim, delta_val in enumerate(delta):
         if delta_val != 0:
             if delta_val < 0:
@@ -81,8 +83,10 @@ def _vector_diff(
                 slice2[dim] = slice(None, -delta_val)
 
     slice1, slice2 = tuple(slice1), tuple(slice2)
-    assert isinstance(slice1, tuple)
-    assert isinstance(slice2, tuple)
+    if not isinstance(slice1, tuple):
+        raise TypeError('Expected slice1 to be instance of tuple')
+    if not isinstance(slice2, tuple):
+        raise TypeError('Expected slice2 to be instance of tuple')
     return (
         _vector_diff(arr[slice1] - arr[slice2], delta, n - 1)
         if n > 1
@@ -115,7 +119,8 @@ def minimum_gradient(
         The gradient of the original intensity, which enhances the peak position.
     """
     arr = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-    assert isinstance(arr, xr.DataArray)
+    if not isinstance(arr, xr.DataArray):
+        raise TypeError('Expected arr to be instance of xr.DataArray')
     smooth_ = _nothing_to_array if smooth_fn is None else smooth_fn
     arr = smooth_(arr)
     arr = arr.assign_attrs(data.attrs)
@@ -137,7 +142,8 @@ def _gradient_modulus(
     Returns: xr.DataArray
     """
     spectrum = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-    assert isinstance(spectrum, xr.DataArray)
+    if not isinstance(spectrum, xr.DataArray):
+        raise TypeError('Expected spectrum to be instance of xr.DataArray')
     values: NDArray[np.floating] = spectrum.values
     gradient_vector = np.zeros(shape=(8, *values.shape))
 
@@ -174,8 +180,10 @@ def curvature1d(
     Returns:
         The curvature of the intensity of the original data.
     """
-    assert isinstance(arr, xr.DataArray)
-    assert alpha > 0
+    if not isinstance(arr, xr.DataArray):
+        raise TypeError('Expected arr to be instance of xr.DataArray')
+    if not (alpha > 0):
+        raise ValueError('Assertion failed: alpha > 0')
     dim = dim or str(arr.dims[0])
     smooth_ = _nothing_to_array if smooth_fn is None else smooth_fn
     arr = smooth_(arr)
@@ -228,9 +236,12 @@ def curvature2d(
 
     It should essentially same as the ``curvature`` function, but the ``weight`` argument is added.
     """
-    assert isinstance(arr, xr.DataArray)
-    assert alpha > 0
-    assert weight2d != 0
+    if not isinstance(arr, xr.DataArray):
+        raise TypeError('Expected arr to be instance of xr.DataArray')
+    if not (alpha > 0):
+        raise ValueError('Assertion failed: alpha > 0')
+    if not (weight2d != 0):
+        raise ValueError('Assertion failed: weight2d != 0')
     dx, dy = tuple(float(arr.coords[str(d)][1] - arr.coords[str(d)][0]) for d in arr.dims[:2])
     weight = (dx / dy) ** 2
     arr = smooth_fn(arr) if smooth_fn is not None else arr
@@ -300,7 +311,8 @@ def dn_along_axis(
     Returns:
         The nth derivative data.
     """
-    assert isinstance(arr, xr.DataArray)
+    if not isinstance(arr, xr.DataArray):
+        raise TypeError('Expected arr to be instance of xr.DataArray')
     dim = dim or str(arr.dims[0])
     smooth_ = _nothing_to_array if smooth_fn is None else smooth_fn
     dn_arr = smooth_(arr)

@@ -128,8 +128,10 @@ def waterfall_dispersion(  # noqa: PLR0913
             ax_right.yaxis.label.set_text(stack_axis)
 
     """
-    assert data.ndim == TWO_DIMENSION
-    assert scale_factor >= 0, "scale factor should be positive."
+    if not (data.ndim == TWO_DIMENSION):
+        raise ValueError('Assertion failed: data.ndim == TWO_DIMENSION')
+    if not (scale_factor >= 0):
+        raise ValueError('scale factor should be positive.')
 
     fig: Figure | None = None
     if ax is None:
@@ -316,18 +318,22 @@ def offset_scatter_plot(  # noqa: PLR0913
     Raises:
         ValueError
     """
-    assert isinstance(data, xr.Dataset)
+    if not isinstance(data, xr.Dataset):
+        raise TypeError('Expected data to be instance of xr.Dataset')
 
     if not name_to_plot:
         var_names = [k for k in data.data_vars if "_std" not in str(k)]  # => ["spectrum"]
-        assert len(var_names) == 1
+        if not (len(var_names) == 1):
+            raise ValueError('Assertion failed: len(var_names) == 1')
         name_to_plot = str(var_names[0])
-        assert (name_to_plot + "_std") in data.data_vars, "Has 'mean_and_deviation' been applied?"
+        if not ((name_to_plot + "_std") in data.data_vars):
+            raise ValueError("Has 'mean_and_deviation' been applied?")
 
     msg = "In order to produce a stack plot, data must be image-like."
     msg += "Passed data included dimensions:"
     msg += f" {data.data_vars[name_to_plot].dims}"
-    assert len(data.data_vars[name_to_plot].dims) == TWO_DIMENSION, msg
+    if not (len(data.data_vars[name_to_plot].dims) == TWO_DIMENSION):
+        raise ValueError('Assertion failed: len(data.data_vars[name_to_plot].dims) == TWO_DIMENSION')
 
     fig: Figure | None = None
     if ax is None:
@@ -335,7 +341,8 @@ def offset_scatter_plot(  # noqa: PLR0913
 
     inset_ax = inset_axes(ax, width="40%", height="5%", loc=loc)
 
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
 
     stack_axis = stack_axis or str(data.data_vars[name_to_plot].dims[0])
 
@@ -475,7 +482,8 @@ def flat_stack_plot(  # noqa: PLR0913 #pragma: no cover
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize)
     ax_inset = inset_axes(ax, width="40%", height="5%", loc=loc)
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
     if not stack_axis:
         stack_axis = str(data.dims[0])
 
@@ -503,10 +511,12 @@ def flat_stack_plot(  # noqa: PLR0913 #pragma: no cover
                 **kwargs,
             )
         else:
-            assert mode == "scatter"
+            if not (mode == "scatter"):
+                raise ValueError('Assertion failed: mode == "scatter"')
             kwargs["color"] = _color_for_plot(color, i, len(data.coords[stack_axis]))
             ax.scatter(horizontal, marginal.values, **kwargs)
-    assert isinstance(color, str | Colormap)
+    if not isinstance(color, str | Colormap):
+        raise TypeError('Expected color to be instance of str | Colormap')
     matplotlib.colorbar.Colorbar(
         ax_inset,
         orientation="horizontal",
@@ -584,7 +594,8 @@ def stack_dispersion_plot(  # noqa: PLR0913  # pragma: no cover
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize)
 
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
     if not title:
         title = (
             f"ID: {data_arr.S.parent_id} Stack"
@@ -754,7 +765,8 @@ def _rebinning(
     3. determine the name of the other.
     """
     data_arr = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-    assert isinstance(data_arr, xr.DataArray)
+    if not isinstance(data_arr, xr.DataArray):
+        raise TypeError('Expected data_arr to be instance of xr.DataArray')
     if len(data.dims) != TWO_DIMENSION:
         msg = "In order to produce a stack plot, data must be image-like."
         msg += f"Passed data included dimensions: {data.dims}"

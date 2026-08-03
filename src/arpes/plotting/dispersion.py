@@ -101,8 +101,10 @@ def cut_dispersion_plot(  # noqa: PLR0913, PLR0915  # type: ignore[arg-type]
         "low": 40,
     }.get(quality, 100)
 
-    assert "eV" in data.dims
-    assert e_floor is not None
+    if not ("eV" in data.dims):
+        raise ValueError('Assertion failed: "eV" in data.dims')
+    if not (e_floor is not None):
+        raise ValueError('Assertion failed: e_floor is not None')
 
     new_dim_order = list(data.dims)
     new_dim_order.remove("eV")
@@ -140,7 +142,8 @@ def cut_dispersion_plot(  # noqa: PLR0913, PLR0915  # type: ignore[arg-type]
     if ax is None:
         fig: FigureBase = plt.figure(figsize=(7, 7))
         ax = fig.add_subplot(1, 1, 1, projection="3d")
-    assert isinstance(ax, Axes3D)
+    if not isinstance(ax, Axes3D):
+        raise TypeError('Expected ax to be instance of Axes3D')
 
     kwargs.setdefault(
         "title",
@@ -340,7 +343,8 @@ def hv_reference_scan(
     out = kwargs.pop("out", None)
 
     lfs = labeled_fermi_surface(fs, **kwargs)
-    assert isinstance(lfs, tuple)
+    if not isinstance(lfs, tuple):
+        raise TypeError('Expected lfs to be instance of tuple')
     _, ax = lfs
 
     all_scans = data.attrs["df"]
@@ -398,7 +402,8 @@ def reference_scan_fermi_surface(
 
     out = kwargs.pop("out", None)
     lfs = labeled_fermi_surface(fs, **kwargs)
-    assert isinstance(lfs, tuple)
+    if not isinstance(lfs, tuple):
+        raise TypeError('Expected lfs to be instance of tuple')
     _, ax = lfs
 
     referenced_scans = data.S.referenced_scans
@@ -436,11 +441,13 @@ def labeled_fermi_surface(  # noqa: PLR0913
     fermi_energy: float = 0,
 ) -> Path | tuple[Figure | None, Axes]:
     """Plots a Fermi surface with high symmetry points annotated onto it."""
-    assert isinstance(data, xr.DataArray)
+    if not isinstance(data, xr.DataArray):
+        raise TypeError('Expected data to be instance of xr.DataArray')
     fig = None
     if ax is None:
         fig, ax = plt.subplots(figsize=(7.0, 7.0))
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
 
     if not title:
         title = "{} Fermi Surface".format(data.S.label.replace("_", " "))
@@ -525,7 +532,8 @@ def fancy_dispersion(
     """
     if ax is None:
         _, ax = plt.subplots(figsize=(8, 5))
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
     if not title:
         title = data.S.label.replace("_", " ")
 
@@ -544,7 +552,8 @@ def fancy_dispersion(
     marker_color = "RdBu" if data.S.is_differentiated else "red"
     if include_symmetry_points:
         for point_name, point_locations in data.attrs.get("symmetry_points", {}).items():
-            assert isinstance(point_locations, list | tuple)
+            if not isinstance(point_locations, list | tuple):
+                raise TypeError('Expected point_locations to be instance of list | tuple')
             for single_location in point_locations:
                 coords = (
                     single_location[original_x_label],
@@ -597,10 +606,12 @@ def scan_var_reference_plot(
     Returns:
         Axes | Path: The Axes object containing the plot, or the file path if the plot is saved.
     """
-    assert isinstance(data, xr.DataArray)
+    if not isinstance(data, xr.DataArray):
+        raise TypeError('Expected data to be instance of xr.DataArray')
     if ax is None:
         _, ax = plt.subplots(figsize=(8, 5))
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
     if not title:
         title = data.S.label.replace("_", " ")
 

@@ -37,8 +37,10 @@ def normalize_to_spectrum(data: DataWithCoords) -> xr.DataArray:
             stacklevel=2,
         )
         if "up" in data.data_vars:
-            assert isinstance(data.up, xr.DataArray)
+            if not isinstance(data.up, xr.DataArray):
+                raise TypeError("Dataset 'up' variable is not an xarray.DataArray")
             return data.up
         return data.S.spectrum
-    assert isinstance(data, xr.DataArray)
+    if not isinstance(data, xr.DataArray):
+        raise TypeError("data must be an xarray.DataArray")
     return data

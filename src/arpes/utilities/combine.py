@@ -32,10 +32,13 @@ def concat_along_phi(
     Returns:
         Concatenated ARPES array
     """
-    assert isinstance(arr_a, xr.DataArray)
-    assert isinstance(arr_b, xr.DataArray)
+    if not isinstance(arr_a, xr.DataArray):
+        raise TypeError('Expected arr_a to be instance of xr.DataArray')
+    if not isinstance(arr_b, xr.DataArray):
+        raise TypeError('Expected arr_b to be instance of xr.DataArray')
     if occupation_ratio is not None:
-        assert 0 <= occupation_ratio <= 1, "occupation_ratio should be between 0 and 1 (or None)."
+        if not (0 <= occupation_ratio <= 1):
+            raise ValueError('occupation_ratio should be between 0 and 1 (or None).')
     id_arr_a = attach_id(arr_a)
     id_arr_b = attach_id(arr_b)
     arr_a = arr_a.G.with_values(arr_a.values * enhance_a)
@@ -57,9 +60,8 @@ def concat_along_phi(
             raise RuntimeError(
                 msg,
             )
-        assert left_arr.coords["phi"].values.max() < right_arr.coords["phi"].values.max(), (
-            'Cannot combine them. Try "occupation_ration=None"'
-        )
+        if not (left_arr.coords["phi"].values.max() < right_arr.coords["phi"].values.max()):
+            raise ValueError('Cannot combine them. Try "occupation_ration=None"')
         seam_phi = (
             left_arr.coords["phi"].values.max() - right_arr.coords["phi"].values.min()
         ) * occupation_ratio + right_arr.coords["phi"].values.min()

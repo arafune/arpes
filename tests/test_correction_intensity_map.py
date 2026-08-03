@@ -79,7 +79,7 @@ def test_shift_extend_coords_max(sample_data: xr.DataArray):
 
 def test_shift_axis_required(sample_data: xr.DataArray):
     shift_vals = np.ones(sample_data.sizes["y"])
-    with pytest.raises(AssertionError):
+    with pytest.raises((AssertionError, TypeError, ValueError)):
         shift(sample_data, shift_vals, shift_axis="")
 
 

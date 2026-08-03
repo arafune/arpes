@@ -52,7 +52,8 @@ def add_endstation(endstation_cls: type[EndstationBase]) -> None:
     You can use this to add a plugin after the original search if it is defined in another
     module or in a notebook.
     """
-    assert endstation_cls.PRINCIPAL_NAME is not None
+    if not (endstation_cls.PRINCIPAL_NAME is not None):
+        raise ValueError('Assertion failed: endstation_cls.PRINCIPAL_NAME is not None')
     for alias in endstation_cls.ALIASES:
         if alias in _ENDSTATION_ALIASES:
             continue

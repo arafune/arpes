@@ -83,7 +83,8 @@ class BL10012SARPESEndstation(SynchrotronEndstation, HemisphericalEndstation, SE
         if scan_desc is None:
             scan_desc = {}
         original_data_loc = scan_desc.get("path", scan_desc.get("file"))
-        assert isinstance(original_data_loc, str | Path)
+        if not isinstance(original_data_loc, str | Path):
+            raise TypeError('Expected original_data_loc to be instance of str | Path')
 
         p = Path(original_data_loc)
 

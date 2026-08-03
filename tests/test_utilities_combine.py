@@ -76,7 +76,7 @@ def test_concat_same_phi_min_raises(mock_dataarrays):
 def test_invalid_occupation_ratio(mock_dataarrays):
     """Test assertion error when occupation_ratio is outside [0, 1]."""
     arr_a, arr_b = mock_dataarrays
-    with pytest.raises(AssertionError):
+    with pytest.raises((AssertionError, TypeError, ValueError)):
         concat_along_phi(arr_a, arr_b, occupation_ratio=1.5)
 
 

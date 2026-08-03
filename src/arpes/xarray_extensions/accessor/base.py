@@ -142,7 +142,8 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase[xr.DataArray]):
         Returns (bool):
             Return True if the data is subtracted.
         """
-        assert isinstance(self._obj, xr.DataArray)
+        if not isinstance(self._obj, xr.DataArray):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray')
         if self._obj.attrs.get("subtracted"):
             return True
 
@@ -252,8 +253,10 @@ class GenericAccessorBase(Generic[DataType]):
             category=DeprecationWarning,
             stacklevel=2,
         )
-        assert isinstance(self._obj, xr.DataArray | xr.Dataset)
-        assert len(self._obj.dims) == 1
+        if not isinstance(self._obj, xr.DataArray | xr.Dataset):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray | xr.Dataset')
+        if not (len(self._obj.dims) == 1):
+            raise ValueError('Assertion failed: len(self._obj.dims) == 1')
 
         dim = self._obj.dims[0]
         if as_coordinate_name is None:
@@ -278,7 +281,8 @@ class GenericAccessorBase(Generic[DataType]):
             ((0, 0), {'phi': -0.2178031280148764, 'eV': 9.0})
             which shows the relationship between pixel position and physical (like "eV" and "phi").
         """
-        assert isinstance(self._obj, xr.DataArray | xr.Dataset)
+        if not isinstance(self._obj, xr.DataArray | xr.Dataset):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray | xr.Dataset')
         dim_names = dim_names or tuple(self._obj.dims)
         dim_names = [dim_names] if isinstance(dim_names, str) else dim_names
         coords_list = [self._obj.coords[d].values for d in dim_names]

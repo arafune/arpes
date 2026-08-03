@@ -107,7 +107,8 @@ def align(
     if len(a.dims) == 1:
         return align1d(a, b, **kwargs)
 
-    assert len(a.dims) == TWO_DIMENSION
+    if not (len(a.dims) == TWO_DIMENSION):
+        raise ValueError('Assertion failed: len(a.dims) == TWO_DIMENSION')
     return align2d(a, b, **kwargs)
 
 

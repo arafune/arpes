@@ -118,7 +118,8 @@ def radial_edcs_along_pocket(
     data_array = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     fermi_surface_dims = list(data_array.dims)
 
-    assert "eV" in fermi_surface_dims
+    if not ("eV" in fermi_surface_dims):
+        raise ValueError('Assertion failed: "eV" in fermi_surface_dims')
     fermi_surface_dims.remove("eV")
 
     center_point: dict[Hashable, float] = {k: v for k, v in kwargs.items() if k in data_array.dims}
@@ -187,7 +188,8 @@ def curves_along_pocket(
         the coordinates of each slice around the pocket center.
     """
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-    assert isinstance(data, xr.DataArray)
+    if not isinstance(data, xr.DataArray):
+        raise TypeError('Expected data to be instance of xr.DataArray')
     fermi_surface_dims = list(data.dims)
     if "eV" in fermi_surface_dims:
         fermi_surface_dims.remove("eV")
@@ -263,7 +265,8 @@ def find_kf_by_mdc(
         slice_data if isinstance(slice_data, xr.DataArray) else normalize_to_spectrum(slice_data)
     )
 
-    assert isinstance(slice_data, xr.DataArray)
+    if not isinstance(slice_data, xr.DataArray):
+        raise TypeError('Expected slice_data to be instance of xr.DataArray')
     if "eV" in slice_data.dims:
         slice_arr = slice_data.sum("eV")
 

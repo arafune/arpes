@@ -48,5 +48,5 @@ def test_remove_background_hull_linear(lorentzian_linear_bg: xr.DataArray):
 
 
 def test_invalid_input():
-    with pytest.raises(AssertionError):
+    with pytest.raises((AssertionError, TypeError, ValueError)):
         calculate_background_hull(np.array([1, 2, 3]))

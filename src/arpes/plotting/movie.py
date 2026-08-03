@@ -74,13 +74,13 @@ def output_animation(  # noqa: PLR0913
     if out is Ellipsis:
         return anim
 
-    if isinstance(out, str | Path):
+    if isinstance(out, (str, Path)):
         logger.debug(msg=f"path_for_plot is {path_for_plot(out)}")
         anim.save(str(path_for_plot(out)))
         return path_for_plot(out)
 
-    assert update_func is not None
-    assert fig is not None
+    if update_func is None or fig is None:
+        raise ValueError("Both 'update_func' and 'fig' must be provided when 'out' is not a path or Ellipsis.")
     if isinstance(out, Number):
         index: int = data.indexes[time_dim].get_indexer([out], method="nearest")[0]
         update_func(index)
@@ -102,10 +102,14 @@ def _initialize_figure_and_axes(
         figsize=figsize,
         width_ratios=width_ratio,
     )
-    assert ax is not None
-    assert isinstance(ax[0], Axes)
-    assert isinstance(ax[1], Axes)
-    assert isinstance(fig, Figure)
+    if ax is None:
+        raise RuntimeError("Failed to create axes for plotting.")
+    if not (hasattr(ax, '__len__') and len(ax) >= 2):
+        raise TypeError("Expected 'ax' to be an array-like with two Axes objects.")
+    if not isinstance(ax[0], Axes) or not isinstance(ax[1], Axes):
+        raise TypeError("Elements of 'ax' are not matplotlib.axes.Axes instances.")
+    if not isinstance(fig, Figure):
+        raise TypeError("fig is not a matplotlib.figure.Figure instance.")
     return fig, ax
 
 
@@ -147,7 +151,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913
     labels: tuple[str, str, str] | None = None,
     **kwargs: Unpack[PColorMeshKwargs],
 ) -> Path | HTML | Figure | FuncAnimation:
-    """Create an animatied plot of ARPES data with time evolution at certain position.
+    """Create an animated plot of ARPES data with time evolution at certain position.
 
     This function uses matplotlib's pcolormesh to create the plots.
 
@@ -181,7 +185,8 @@ def plot_movie_and_evolution(  # noqa: PLR0913
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
 
     fig, ax = _initialize_figure_and_axes(fig_ax, figsize, width_ratio)
-    assert data.ndim == TWO_DIMENSION + 1
+    if data.ndim != TWO_DIMENSION + 1:
+        raise ValueError(f"Expected data with ndim == {TWO_DIMENSION + 1}, got {data.ndim}")
 
     kwargs.setdefault(
         "cmap",
@@ -197,7 +202,8 @@ def plot_movie_and_evolution(  # noqa: PLR0913
             method="nearest",
         ).transpose(..., time_dim)
     else:
-        assert isinstance(evolution_at[1], tuple)
+        if not isinstance(evolution_at[1], tuple):
+            raise TypeError('Expected evolution_at[1] to be instance of tuple')
         start, half_width = evolution_at[1]
         evolution_data = (
             data.sel(
@@ -321,10 +327,14 @@ def plot_movie(  # noqa: PLR0913
     figsize = figsize or (9.0, 5.0)
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     fig, ax = fig_ax or plt.subplots(figsize=figsize)
-    assert isinstance(ax, Axes)
-    assert isinstance(fig, Figure)
-    assert isinstance(data, xr.DataArray)
-    assert data.ndim == TWO_DIMENSION + 1
+    if not isinstance(ax, Axes):
+        raise TypeError("ax must be a matplotlib.axes.Axes instance.")
+    if not isinstance(fig, Figure):
+        raise TypeError("fig must be a matplotlib.figure.Figure instance.")
+    if not isinstance(data, xr.DataArray):
+        raise TypeError("data must be an xarray.DataArray.")
+    if data.ndim != TWO_DIMENSION + 1:
+        raise ValueError(f"Expected data with ndim == {TWO_DIMENSION + 1}, got {data.ndim}")
 
     kwargs.setdefault(
         "cmap",
@@ -394,10 +404,10 @@ def plot_movie(  # noqa: PLR0913
 
 
 def _replace_after_col(array: NDArray[np.floating], col_num: int) -> NDArray[np.floating]:
-    """Replace elements in the array with NaN af ter a specified column.
+    """Replace elements in the array with NaN after a specified column.
 
     Args:
-        array (NDArray[np.floating): The input array.
+        array (NDArray[np.floating]): The input array.
         col_num (int): The column number after which elements will be replaced with NaN.
 
     Returns:

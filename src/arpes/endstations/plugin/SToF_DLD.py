@@ -53,7 +53,8 @@ class SToFDLDEndstation(EndstationBase):
         data_loc = Path(scan_desc["file"])
         if not data_loc.is_absolute():
             data_path = get_data_path()
-            assert data_path is not None
+            if not (data_path is not None):
+                raise ValueError('Assertion failed: data_path is not None')
             data_loc = Path(data_path) / data_loc
 
         f = h5py.File(data_loc, "r")

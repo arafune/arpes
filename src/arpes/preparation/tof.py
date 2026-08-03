@@ -52,7 +52,8 @@ def convert_to_kinetic_energy(
     new_dim_order[0] = "eV"
 
     timing: NDArray[np.floating] = dataarray.coords["time"].values
-    assert timing[1] > timing[0]
+    if not (timing[1] > timing[0]):
+        raise ValueError('Assertion failed: timing[1] > timing[0]')
     t_min, t_max = timing.min().item(), timing.max().item()
 
     # Prep arrays

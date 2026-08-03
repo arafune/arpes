@@ -236,8 +236,10 @@ class ConvertKp(CoordinateConverter):
             self.compute_k_tot(binding_energy)
         self.phi = np.zeros_like(kp)
         par_tot = isinstance(self.k_tot, np.ndarray) and len(self.k_tot) != 1
-        assert self.k_tot is not None
-        assert len(self.k_tot) == len(kp) or len(self.k_tot) == 1
+        if not (self.k_tot is not None):
+            raise ValueError('Assertion failed: self.k_tot is not None')
+        if not (len(self.k_tot) == len(kp) or len(self.k_tot) == 1):
+            raise ValueError('Assertion failed: len(self.k_tot) == len(kp) or len(self.k_tot) == 1')
         _small_angle_arcsin(
             kp / np.cos(polar_angle),
             self.k_tot,
@@ -248,7 +250,8 @@ class ConvertKp(CoordinateConverter):
         )
         if isinstance(self.calibration, DetectorCalibration):
             self.phi = self.calibration.correct_detector_angle(eV=binding_energy, phi=self.phi)
-        assert self.phi is not None
+        if not (self.phi is not None):
+            raise ValueError('Assertion failed: self.phi is not None')
         return self.phi
 
     def conversion_for(
@@ -295,7 +298,8 @@ class ConvertKxKy(CoordinateConverter):
         self.direct_angles = ("phi", next(d for d in ["psi", "beta", "theta"] if d in arr.indexes))
         if self.direct_angles[1] != "psi":
             # psi allows for either orientation
-            assert (self.direct_angles[1] == "theta") != (not self.is_slit_vertical)
+            if not ((self.direct_angles[1] == "theta") != (not self.is_slit_vertical)):
+                raise ValueError('Assertion failed: (self.direct_angles[1] == "theta") != (not self.is_slit_vertical)')
         # determine which other angles constitute equivalent sets
         opposite_direct_angle = "theta" if "psi" in self.direct_angles else "psi"
         if self.is_slit_vertical:
@@ -445,8 +449,10 @@ class ConvertKxKy(CoordinateConverter):
         self.phi = np.zeros_like(ky)
         offset = self.arr.S.phi_offset + self.arr.S.lookup_offset_coord(self.parallel_angles[0])
         par_tot = isinstance(self.k_tot, np.ndarray) and len(self.k_tot) != 1
-        assert self.k_tot is not None
-        assert len(self.k_tot) == len(self.phi) or len(self.k_tot) == 1
+        if not (self.k_tot is not None):
+            raise ValueError('Assertion failed: self.k_tot is not None')
+        if not (len(self.k_tot) == len(self.phi) or len(self.k_tot) == 1):
+            raise ValueError('Assertion failed: len(self.k_tot) == len(self.phi) or len(self.k_tot) == 1')
         if scan_angle == "psi":
             if self.is_slit_vertical:
                 _exact_arcsin(ky, kx, self.k_tot, self.phi, offset, par_tot=par_tot, negate=False)
@@ -483,8 +489,10 @@ class ConvertKxKy(CoordinateConverter):
         scan_angle = self.direct_angles[1]
         self.perp_angle = np.zeros_like(kx)
         par_tot = isinstance(self.k_tot, np.ndarray) and len(self.k_tot) != 1
-        assert self.k_tot is not None
-        assert len(self.k_tot) == len(self.perp_angle) or len(self.k_tot) == 1
+        if not (self.k_tot is not None):
+            raise ValueError('Assertion failed: self.k_tot is not None')
+        if not (len(self.k_tot) == len(self.perp_angle) or len(self.k_tot) == 1):
+            raise ValueError('Assertion failed: len(self.k_tot) == len(self.perp_angle) or len(self.k_tot) == 1')
         if scan_angle == "psi":
             if self.is_slit_vertical:
                 offset = self.arr.S.psi_offset - self.arr.S.lookup_offset_coord(

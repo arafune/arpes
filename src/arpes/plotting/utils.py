@@ -129,8 +129,10 @@ def mod_plot_to_ax(
         mod (lmfit.model.Model): Fitting model function
         **kwargs(): pass to "ax.plot"
     """
-    assert isinstance(data_arr, xr.DataArray)
-    assert isinstance(ax, Axes)
+    if not isinstance(data_arr, xr.DataArray):
+        raise TypeError('Expected data_arr to be instance of xr.DataArray')
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
     with unchanged_limits(ax):
         xs: NDArray[np.floating] = data_arr.coords[data_arr.dims[0]].values
         ys: NDArray[np.floating] = mod.eval(x=xs)
@@ -218,7 +220,8 @@ def data_to_axis_units(
     """Converts from data coordinates to axis coordinates (figure pixcels)."""
     if ax is None:
         ax = plt.gca()
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
     return ax.transAxes.inverted().transform(ax.transData.transform(points))
 
 
@@ -229,7 +232,8 @@ def axis_to_data_units(
     """Converts from axis coordinate to data coorinates."""
     if ax is None:
         ax = plt.gca()
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
     return ax.transData.inverted().transform(ax.transAxes.transform(points))
 
 
@@ -269,15 +273,18 @@ def summarize(
         3: (2, 2),  # one extra here
         4: (3, 2),  # corresponds to 4 choose 2 axes
     }
-    assert len(data.dims) <= len(axes_shapes_for_dims)
+    if not (len(data.dims) <= len(axes_shapes_for_dims)):
+        raise ValueError('Assertion failed: len(data.dims) <= len(axes_shapes_for_dims)')
     if axes is None:
         n_rows, n_cols = axes_shapes_for_dims.get(len(data.dims), (3, 2))
         _, axes = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(8, 8))
-    assert isinstance(axes, np.ndarray)
+    if not isinstance(axes, np.ndarray):
+        raise TypeError('Expected axes to be instance of np.ndarray')
     flat_axes = axes.ravel()
     combinations = list(itertools.combinations(data.dims, 2))
     for axi, combination in zip(flat_axes, combinations, strict=False):
-        assert isinstance(axi, Axes)
+        if not isinstance(axi, Axes):
+            raise TypeError('Expected axi to be instance of Axes')
         data.sum(combination).S.plot(ax=axi)
         fancy_labels(axi)
 
@@ -372,7 +379,8 @@ def quick_tex(
     """
     if ax is None:
         _, ax = plt.subplots()
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
 
     invisible_axes(ax)
     ax.text(0.2, 0.2, latex_fragment, fontsize=fontsize)
@@ -390,10 +398,12 @@ def lineplot_arr(
     """Convenience method to plot an array with a mask over some other data."""
     if mask_kwargs is None:
         mask_kwargs = {}
-    assert isinstance(arr, xr.DataArray)
+    if not isinstance(arr, xr.DataArray):
+        raise TypeError('Expected arr to be instance of xr.DataArray')
     if ax is None:
         _, ax = plt.subplots()
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
 
     xs = None
     if arr is not None:
@@ -425,7 +435,8 @@ def plot_arr(
 ) -> Axes | None:
     """Convenience method to plot an array with a mask over some other data."""
     to_plot = arr if mask is None else mask
-    assert isinstance(to_plot, xr.Dataset)
+    if not isinstance(to_plot, xr.Dataset):
+        raise TypeError('Expected to_plot to be instance of xr.Dataset')
     try:
         n_dims = len(to_plot.dims)
     except AttributeError:
@@ -437,10 +448,12 @@ def plot_arr(
             _, quad = imshow_arr(arr, ax=ax, over=over, **kwargs)
         if mask is not None:
             over = quad if over is None else over
-            assert isinstance(mask, xr.DataArray)
+            if not isinstance(mask, xr.DataArray):
+                raise TypeError('Expected mask to be instance of xr.DataArray')
             imshow_mask(mask, ax=ax, over=over, **kwargs)
     if n_dims == 1:
-        assert isinstance(mask, list | None)
+        if not isinstance(mask, list | None):
+            raise TypeError('Expected mask to be instance of list | None')
         ax = lineplot_arr(arr, ax=ax, mask=mask, **kwargs)
 
     return ax
@@ -465,11 +478,13 @@ def pcolormesh_mask(
 
     Todo: Consider better handling of NaN values and transparency.
     """
-    assert over is not None
+    if not (over is not None):
+        raise ValueError('Assertion failed: over is not None')
 
     if ax is None:
         ax = plt.gca()
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
 
     default_kwargs = {
         "alpha": 1.0,
@@ -482,8 +497,10 @@ def pcolormesh_mask(
 
     if "cmap" in kwargs and isinstance(kwargs["cmap"], str):
         kwargs["cmap"] = mpl.colormaps.get_cmap(cmap=kwargs["cmap"])
-    assert "cmap" in kwargs
-    assert isinstance(kwargs["cmap"], Colormap)
+    if not ("cmap" in kwargs):
+        raise ValueError('Assertion failed: "cmap" in kwargs')
+    if not isinstance(kwargs['cmap'], Colormap):
+        raise TypeError("Expected kwargs['cmap'] to be instance of Colormap")
     kwargs["cmap"].set_bad("k", alpha=0)
     masked_data = np.where(np.isnan(mask.values), np.nan, mask.values)
 
@@ -505,11 +522,13 @@ def imshow_mask(
 
     Todo: Consider using pcolormesh or removing this function.
     """
-    assert over is not None
+    if not (over is not None):
+        raise ValueError('Assertion failed: over is not None')
 
     if ax is None:
         ax = plt.gca()
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
 
     default_kwargs: IMshowParam = {
         "origin": "lower",
@@ -527,8 +546,10 @@ def imshow_mask(
     if "cmap" in kwargs and isinstance(kwargs["cmap"], str):
         kwargs["cmap"] = mpl.colormaps.get_cmap(cmap=kwargs["cmap"])
 
-    assert "cmap" in kwargs
-    assert isinstance(kwargs["cmap"], Colormap)
+    if not ("cmap" in kwargs):
+        raise ValueError('Assertion failed: "cmap" in kwargs')
+    if not isinstance(kwargs['cmap'], Colormap):
+        raise TypeError("Expected kwargs['cmap'] to be instance of Colormap")
     kwargs["cmap"].set_bad("k", alpha=0)
 
     ax.imshow(
@@ -560,7 +581,8 @@ def imshow_arr(
     fig: Figure | None = None
     if ax is None:
         fig, ax = plt.subplots()
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
 
     x, y = arr.coords[arr.dims[0]].values, arr.coords[arr.dims[1]].values
     default_kwargs: IMshowParam = {
@@ -574,12 +596,18 @@ def imshow_arr(
     }
     for k, v in default_kwargs.items():
         kwargs.setdefault(k, v)  # type: ignore[misc]
-    assert "alpha" in kwargs
-    assert "cmap" in kwargs
-    assert "vmin" in kwargs
-    assert "vmax" in kwargs
-    assert isinstance(kwargs["vmin"], float)
-    assert isinstance(kwargs["vmax"], float)
+    if not ("alpha" in kwargs):
+        raise ValueError('Assertion failed: "alpha" in kwargs')
+    if not ("cmap" in kwargs):
+        raise ValueError('Assertion failed: "cmap" in kwargs')
+    if not ("vmin" in kwargs):
+        raise ValueError('Assertion failed: "vmin" in kwargs')
+    if not ("vmax" in kwargs):
+        raise ValueError('Assertion failed: "vmax" in kwargs')
+    if not isinstance(kwargs['vmin'], float):
+        raise TypeError("Expected kwargs['vmin'] to be instance of float")
+    if not isinstance(kwargs['vmax'], float):
+        raise TypeError("Expected kwargs['vmax'] to be instance of float")
     if over is None:
         if kwargs["alpha"] != 1:
             norm = colors.Normalize(vmin=kwargs["vmin"], vmax=kwargs["vmax"])
@@ -668,15 +696,18 @@ def insert_cut_locator(
     Todo: Follow the docs.  (Rename from inset_cut_locator)
     """
     quad = data.S.plot(ax=ax)
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
 
     ax.set_xlabel("")
     ax.set_ylabel("")
     with contextlib.suppress(Exception):
         quad.colorbar.remove()
 
-    assert isinstance(data, xr.Dataset | xr.DataArray)
-    assert isinstance(reference_data, xr.Dataset | xr.DataArray)
+    if not isinstance(data, xr.Dataset | xr.DataArray):
+        raise TypeError('Expected data to be instance of xr.Dataset | xr.DataArray')
+    if not isinstance(reference_data, xr.Dataset | xr.DataArray):
+        raise TypeError('Expected reference_data to be instance of xr.Dataset | xr.DataArray')
     # add more as necessary
     missing_dim_resolvers = {
         "theta": lambda: reference_data.S.theta,
@@ -716,7 +747,8 @@ def insert_cut_locator(
     )
 
     if missing_dims:
-        assert reference_data is not None
+        if not (reference_data is not None):
+            raise ValueError('Assertion failed: reference_data is not None')
         logger.info(missing_dims)
 
     if n_cut_dims == TWO_DIMENSION:
@@ -772,7 +804,8 @@ def calculate_aspect_ratio(data: xr.DataArray) -> float:
     """Calculate the aspect ratio which should be used for plotting some data based on extent."""
     data_arr = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
 
-    assert len(data.dims_arr) == TWO_DIMENSION
+    if not (len(data.dims_arr) == TWO_DIMENSION):
+        raise ValueError('Assertion failed: len(data.dims_arr) == TWO_DIMENSION')
 
     x_extent = np.ptp(data_arr.coords[data_arr.dims[0]].values)
     y_extent = np.ptp(data_arr.coords[data_arr.dims[1]].values)
@@ -807,7 +840,8 @@ class AnchoredHScaleBar(AnchoredOffsetbox):
         """Setup the scale bar and coordinate transforms to the parent axis."""
         if not ax:
             ax = plt.gca()
-        assert isinstance(ax, Axes)
+        if not isinstance(ax, Axes):
+            raise TypeError('Expected ax to be instance of Axes')
         trans = ax.get_xaxis_transform()
 
         size_bar = AuxTransformBox(trans)
@@ -862,7 +896,8 @@ def savefig(
 
     """
     desired_path = Path(desired_path)
-    assert isinstance(desired_path, Path)
+    if not isinstance(desired_path, Path):
+        raise TypeError('Expected desired_path to be instance of Path')
     if not desired_path.suffix:
         paper = True
 
@@ -918,10 +953,8 @@ def savefig(
         return for_data.attrs.get("provenance", {})
 
     if data is not None:
-        assert isinstance(
-            data,
-            list | tuple | set,
-        )
+        if not isinstance(data, list | tuple | set):
+            raise TypeError('Expected data to be instance of list | tuple | set')
         provenance_context["jupyter_context"] = get_recent_history(1)
         provenance_context["data"] = [extract_provenance(d) for d in data]
     else:
@@ -1158,8 +1191,10 @@ def label_for_dim(
             "spectrum": "Intensity ( arb. )",
         }
         if isinstance(data, xr.Dataset | xr.DataArray):
-            assert isinstance(data, xr.Dataset | xr.DataArray)
-            assert isinstance(data, HasSAccessor)
+            if not isinstance(data, xr.Dataset | xr.DataArray):
+                raise TypeError('Expected data to be instance of xr.Dataset | xr.DataArray')
+            if not isinstance(data, HasSAccessor):
+                raise TypeError('Expected data to be instance of HasSAccessor')
             if data.S.energy_notation == "Final":
                 raw_dim_names["eV"] = r"Final State Energy ( eV )"
             else:
@@ -1188,7 +1223,8 @@ def label_for_dim(
             "spectrum": "Intensity ( arb. )",
         }
         if isinstance(data, xr.DataArray | xr.Dataset):
-            assert isinstance(data, HasSAccessor)
+            if not isinstance(data, HasSAccessor):
+                raise TypeError('Expected data to be instance of HasSAccessor')
             if data.S.energy_notation == "Final":
                 raw_dim_names["eV"] = "Final State Energy ( eV )"
             else:
@@ -1219,7 +1255,8 @@ def fancy_labels(
         return
 
     ax = ax_or_ax_set
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
     ax.set_xlabel(label_for_dim(data=data, dim_name=ax.get_xlabel()))
 
     with contextlib.suppress(Exception):
