@@ -33,10 +33,11 @@ class DetectorCalibration:
 
     def __init__(self, left: list[dict[str, float]], right: list[dict[str, float]]) -> None:
         """Build the edges for the calibration from a path for the left and right sides."""
-        assert set(left[0].keys()) == {
+        if not (set(left[0].keys()) == {
             "phi",
             "eV",
-        }
+        }):
+            raise ValueError('Assertion failed: set(left[0].keys()) == {\n            "phi",\n            "eV",\n        }')
         self._left_edge = build_edge_from_list(left)
         self._right_edge = build_edge_from_list(right)
         # if the edges were passed incorrectly then do it ourselves

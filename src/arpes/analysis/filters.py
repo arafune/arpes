@@ -102,7 +102,8 @@ def boxcar_filter_arr(
     Returns:
         smoothed data.
     """
-    assert isinstance(arr, xr.DataArray)
+    if not isinstance(arr, xr.DataArray):
+        raise TypeError('Expected arr to be instance of xr.DataArray')
     if size is None:
         size = {}
 
@@ -173,9 +174,8 @@ def savitzky_golay_filter(  # noqa: PLR0913
     axis = data.dims.index(dim) if dim else -1
     dim = dim or data.dims[0]
     coords_diffs = np.diff(data.coords[dim])
-    assert np.allclose(coords_diffs, coords_diffs[0], rtol=1e-5, atol=1e-6), (
-        f"The coordinates must be equally spaced. Consider to use interpolation. f{coords_diffs}"
-    )
+    if not (np.allclose(coords_diffs, coords_diffs[0], rtol=1e-5, atol=1e-6)):
+        raise ValueError('Assertion failed: np.allclose(coords_diffs, coords_diffs[0], rtol=1e-5, atol=1e-6)')
     return data.G.with_values(
         savgol_filter(
             data,

@@ -33,7 +33,8 @@ def shim_wave_note(path: str | Path) -> dict[str, Any]:
     h5_out = subprocess.getoutput(cmd)
 
     split_data = h5_out[h5_out.index("DATA {") :]
-    assert len(split_data.split('"')) == 3  # noqa: PLR2004
+    if not (len(split_data.split('"')) == 3):
+        raise ValueError('Assertion failed: len(split_data.split(\'"\')) == 3')
     data = split_data.split('"')[1]
 
     # remove stuff below the end of the header

@@ -167,7 +167,8 @@ class SPDEndstation(HemisphericalEndstation, SingleFileEndstation):
                 {"ID_" + str(an_array.attrs["id"]).zfill(3): an_array for an_array in data},
             )
             for spectrum in dataset:
-                assert isinstance(spectrum, xr.DataArray)
+                if not isinstance(spectrum, xr.DataArray):
+                    raise TypeError('Expected spectrum to be instance of xr.DataArray')
                 provenance_from_file(
                     child_arr=spectrum,
                     file=str(frame_path),

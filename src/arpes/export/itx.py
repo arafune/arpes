@@ -97,7 +97,8 @@ def convert_itx_format(
         stacklevel=2,
     )
 
-    assert isinstance(arr, xr.DataArray)
+    if not isinstance(arr, xr.DataArray):
+        raise TypeError('Expected arr to be instance of xr.DataArray')
     if "User Comment" in arr.attrs:
         arr.attrs["User Comment"] += ";" + _user_comment_from_attrs(arr)
     else:

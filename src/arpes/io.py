@@ -77,7 +77,8 @@ def load_data(
             stacklevel=2,
         )
     except ValueError:
-        assert isinstance(file, (str | Path))
+        if not isinstance(file, str | Path):
+            raise TypeError('Expected file to be instance of str | Path')
         file = str(Path(file).absolute())
 
     desc: ScanDesc = {
@@ -195,7 +196,8 @@ def stitch(
     """
     list_of_files = _df_or_list_to_files(df_or_list)
     if not built_axis_name:
-        assert isinstance(attr_or_axis, str)
+        if not isinstance(attr_or_axis, str):
+            raise TypeError('Expected attr_or_axis to be instance of str')
         built_axis_name = attr_or_axis
     if not list_of_files:
         msg = "Must supply at least one file to stitch"
@@ -214,13 +216,15 @@ def stitch(
             value = data.coords[attr_or_axis]
         loaded.append(data.assign_coords({built_axis_name: value}))
 
-    assert all(isinstance(data, xr.DataArray) for data in loaded) or all(
+    if not (all(isinstance(data, xr.DataArray) for data in loaded) or all(
         isinstance(data, xr.Dataset) for data in loaded
-    )
+    )):
+        raise ValueError('Assertion failed: all(isinstance(data, xr.DataArray) for data in loaded) or all(\n        isinstance(data, xr.Dataset) for data in loaded\n    )')
 
     if sort:
         loaded.sort(key=lambda x: np.min(x.coords[built_axis_name].values))
-    assert isinstance(loaded, Iterable)
+    if not isinstance(loaded, Iterable):
+        raise TypeError('Expected loaded to be instance of Iterable')
     concatenated = xr.concat(loaded, dim=built_axis_name)
     if "id" in concatenated.attrs:
         del concatenated.attrs["id"]
@@ -249,10 +253,11 @@ def _df_or_list_to_files(
     """
     if isinstance(df_or_list, pd.DataFrame):
         return list(df_or_list.index)
-    assert not isinstance(
+    if not (not isinstance(
         df_or_list,
         list | tuple,
-    ), "Expected an iterable for a list of the scans to stitch together"
+    )):
+        raise ValueError('Expected an iterable for a list of the scans to stitch together')
     return list(df_or_list)
 
 
@@ -307,10 +312,12 @@ def easy_pickle(data_or_str: str | object, name: str = "") -> object:
     """
     # we are loading data
     if isinstance(data_or_str, str) or not name:
-        assert isinstance(data_or_str, str)
+        if not isinstance(data_or_str, str):
+            raise TypeError('Expected data_or_str to be instance of str')
         return load_pickle(data_or_str)
     # we are saving data
-    assert isinstance(name, str)
+    if not isinstance(name, str):
+        raise TypeError('Expected name to be instance of str')
     save_pickle(data_or_str, name)
     return None
 
@@ -349,7 +356,8 @@ def load_scan(
     """
     note: dict[str, str | float] | ScanDesc = scan_desc.get("note", scan_desc)
     full_note: ScanDesc = copy.deepcopy(scan_desc)
-    assert isinstance(note, dict)
+    if not isinstance(note, dict):
+        raise TypeError('Expected note to be instance of dict')
     full_note.update(cast("ScanDesc", note))
 
     endstation_cls = resolve_endstation(retry=retry, **full_note)

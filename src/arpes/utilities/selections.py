@@ -86,7 +86,8 @@ def fat_sel(
     logger.debug(f"kwargs: {kwargs}")
     if widths is None:
         widths = {}
-    assert isinstance(widths, dict)
+    if not isinstance(widths, dict):
+        raise TypeError('Expected widths to be instance of dict')
     default_widths = DEFAULT_RADII
 
     if data.S.angle_unit is AngleUnit.DEG:
@@ -158,16 +159,20 @@ def select_around_data(
     Returns:
         The binned selection around the desired point or points.
     """
-    assert mode in {"sum", "mean"}, "mode parameter should be either sum or mean."
-    assert isinstance(points, dict | xr.Dataset)
+    if not (mode in {"sum", "mean"}):
+        raise ValueError('mode parameter should be either sum or mean.')
+    if not isinstance(points, dict | xr.Dataset):
+        raise TypeError('Expected points to be instance of dict | xr.Dataset')
     radius = radius or {}
     if isinstance(points, xr.Dataset):
         points = {k: points[k].item() for k in points.data_vars}
-    assert isinstance(points, dict)
+    if not isinstance(points, dict):
+        raise TypeError('Expected points to be instance of dict')
     radius = _radius(points, radius)
     logger.debug(f"radius: {radius}")
 
-    assert isinstance(radius, dict)
+    if not isinstance(radius, dict):
+        raise TypeError('Expected radius to be instance of dict')
     logger.debug(f"iter(points.values()): {iter(points.values())}")
 
     along_dims = next(iter(points.values())).dims
@@ -230,8 +235,10 @@ def select_around(
     Returns:
         The binned selection around the desired point.
     """
-    assert mode in {"sum", "mean"}, "mode parameter should be either sum or mean."
-    assert isinstance(point, dict | xr.Dataset)
+    if not (mode in {"sum", "mean"}):
+        raise ValueError('mode parameter should be either sum or mean.')
+    if not isinstance(point, dict | xr.Dataset):
+        raise TypeError('Expected point to be instance of dict | xr.Dataset')
     radius = _radius(point, radius)
     stride = data.G.stride(generic_dim_names=False)
     nearest_sel_params: dict[Hashable, float] = {}
@@ -339,7 +346,8 @@ def select_disk_mask(
     data_array = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
 
     raveled = data_array.G.ravel()
-    assert around is not None
+    if not (around is not None):
+        raise ValueError('Assertion failed: around is not None')
 
     dim_order = list(around.keys())
     dist = np.sqrt(
@@ -385,7 +393,8 @@ def select_disk(
     """
     data_array = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     mask = select_disk_mask(data_array, radius, outer_radius=outer_radius, around=around, flat=True)
-    assert around is not None
+    if not (around is not None):
+        raise ValueError('Assertion failed: around is not None')
 
     if invert:
         mask = np.logical_not(mask)

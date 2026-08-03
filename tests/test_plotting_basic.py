@@ -33,10 +33,10 @@ def test_make_overview_valid_input() -> None:
 @pytest.mark.skip
 def test_make_overview_invalid_input() -> None:
     # data_allがSequenceではない場合
-    with pytest.raises(AssertionError):
+    with pytest.raises((AssertionError, TypeError, ValueError)):
         make_overview(None)  # type: ignore[arg-type]
 
-    with pytest.raises(AssertionError):
+    with pytest.raises((AssertionError, TypeError, ValueError)):
         make_overview({})  # type: ignore[arg-type]
 
 

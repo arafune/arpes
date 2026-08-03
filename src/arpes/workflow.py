@@ -146,7 +146,8 @@ def go_to_workspace(workspace: WorkSpaceType | None = None) -> None:
     workspace = workspace or config_manager.config["WORKSPACE"]
 
     if workspace:
-        assert "path" in workspace
+        if not ("path" in workspace):
+            raise ValueError('Assertion failed: "path" in workspace')
         path = Path(workspace["path"])
 
     _open_path(path)
@@ -202,7 +203,8 @@ class DataProvider:
 
     @publishers.setter
     def publishers(self, new_publishers: dict[str, object]) -> None:
-        assert isinstance(new_publishers, dict)
+        if not isinstance(new_publishers, dict):
+            raise TypeError('Expected new_publishers to be instance of dict')
         self._write_pickled("publishers", new_publishers)
 
     @property
@@ -211,7 +213,8 @@ class DataProvider:
 
     @consumers.setter
     def consumers(self, new_consumers: dict[str, object]) -> None:
-        assert isinstance(new_consumers, dict)
+        if not isinstance(new_consumers, dict):
+            raise TypeError('Expected new_consumers to be instance of dict')
         self._write_pickled("consumers", new_consumers)
 
     def __init__(self, path: Path, workspace_name: str | None = None) -> None:
@@ -266,7 +269,8 @@ class DataProvider:
         workspace: WorkSpaceType | None = None,
     ) -> DataProvider:
         if workspace is not None:
-            assert "path" in workspace
+            if not ("path" in workspace):
+                raise ValueError('Assertion failed: "path" in workspace')
             return cls(
                 path=Path(workspace["path"]),
                 workspace_name=workspace.get("name", "no_name"),

@@ -52,7 +52,8 @@ def plot_parameter(  # noqa: PLR0913
     """
     if ax is None:
         _, ax = plt.subplots(figsize=figsize)
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
 
     ds = fit_data.F.param_as_dataset(param_name)
     x_name = ds.value.dims[0]

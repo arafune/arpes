@@ -89,9 +89,11 @@ class FallbackEndstation(EndstationBase):
         """Delegates to a dynamically chosen plugin for loading."""
         scan_desc = {} if scan_desc is None else scan_desc
         if not file:
-            assert "file" in scan_desc
+            if not ("file" in scan_desc):
+                raise ValueError('Assertion failed: "file" in scan_desc')
             file = scan_desc["file"]
-        assert isinstance(file, str | Path)
+        if not isinstance(file, str | Path):
+            raise TypeError('Expected file to be instance of str | Path')
         associated_loader = FallbackEndstation.determine_associated_loader(file)
         try:
             file_number = int(file)

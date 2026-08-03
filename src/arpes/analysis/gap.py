@@ -149,7 +149,8 @@ def normalize_by_fermi_dirac(  # noqa: PLR0913
     # <== NEED TO CHECK (What it the type of without_background ?)
 
     without_background_arr = normalize_to_spectrum(without_background)
-    assert isinstance(without_background_arr, xr.DataArray)
+    if not isinstance(without_background_arr, xr.DataArray):
+        raise TypeError('Expected without_background_arr to be instance of xr.DataArray')
     if temperature_axis:
         divided = without_background_arr.G.map_axes(
             temperature_axis,
@@ -193,7 +194,8 @@ def _shift_energy_interpolate(
         closest_to_zero = data_arr.coords["eV"].sel(eV=0, method="nearest")
         shift = -closest_to_zero
 
-    assert isinstance(shift, xr.DataArray)
+    if not isinstance(shift, xr.DataArray):
+        raise TypeError('Expected shift to be instance of xr.DataArray')
     stride = data_arr.G.stride("eV", generic_dim_names=False)
 
     if np.abs(shift) >= stride:
@@ -203,7 +205,8 @@ def _shift_energy_interpolate(
         shift = shift - stride * n_strides
 
     new_axis = new_axis + shift
-    assert shift is not None
+    if not (shift is not None):
+        raise ValueError('Assertion failed: shift is not None')
 
     weight = float(shift / stride)
     new_values = new_values + data_arr.values * (1 - weight)
@@ -241,7 +244,8 @@ def symmetrize(
 
     if subpixel:
         data = _shift_energy_interpolate(data)
-    assert isinstance(data, xr.DataArray)
+    if not isinstance(data, xr.DataArray):
+        raise TypeError('Expected data to be instance of xr.DataArray')
 
     above = data.sel(eV=slice(0, None))
     below = data.sel(eV=slice(None, 0)).copy(deep=True)

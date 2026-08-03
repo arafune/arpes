@@ -137,7 +137,8 @@ class FITSEndstation(EndstationBase):
                 msg,
             )
         original_data_loc = scan_desc.get("path", scan_desc.get("file"))
-        assert original_data_loc
+        if not (original_data_loc):
+            raise ValueError('Assertion failed: original_data_loc')
         data_path = config_manager.data_path
         if not Path(original_data_loc).exists():
             if data_path is not None:

@@ -226,7 +226,8 @@ class SpectromicroscopyElettraEndstation(
                 scan_coord = possible_scan_coord
                 best_coordinates = coordinates
 
-        assert scan_coord is not None
+        if not (scan_coord is not None):
+            raise ValueError('Assertion failed: scan_coord is not None')
 
         fs = []
         for c, f in zip(best_coordinates, frames, strict=True):
@@ -252,10 +253,12 @@ class SpectromicroscopyElettraEndstation(
                 msg,
             )
         original_data_loc = scan_desc.get("path", scan_desc.get("file"))
-        assert original_data_loc is not None
+        if not (original_data_loc is not None):
+            raise ValueError('Assertion failed: original_data_loc is not None')
         if not Path(original_data_loc).exists():
             data_path = get_data_path()
-            assert data_path is not None
+            if not (data_path is not None):
+                raise ValueError('Assertion failed: data_path is not None')
             original_data_loc = Path(data_path) / original_data_loc
         p = Path(original_data_loc)
         if p.parent.parent.stem in ([*list(self._SEARCH_DIRECTORIES), "data"]):

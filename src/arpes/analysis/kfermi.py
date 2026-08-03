@@ -33,7 +33,8 @@ def kfermi_from_mdcs(mdc_results: XrTypes, param: str = "") -> NDArray[np.float6
     """
     real_param_name: set[str] | str = set()
     mdc_results = mdc_results if isinstance(mdc_results, xr.DataArray) else mdc_results.results
-    assert isinstance(mdc_results, xr.DataArray)
+    if not isinstance(mdc_results, xr.DataArray):
+        raise TypeError('Expected mdc_results to be instance of xr.DataArray')
     param_names = mdc_results.F.parameter_names
 
     if param in param_names and param is not None:
@@ -43,7 +44,8 @@ def kfermi_from_mdcs(mdc_results: XrTypes, param: str = "") -> NDArray[np.float6
         if not param:
             best_names = [p for p in best_names if param in p]
 
-        assert len(best_names) == 1
+        if not (len(best_names) == 1):
+            raise ValueError('Assertion failed: len(best_names) == 1')
         real_param_name = best_names[0]
 
     def nan_sieve(_: xr.DataArray, x: xr.DataArray) -> bool:

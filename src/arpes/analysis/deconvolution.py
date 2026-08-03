@@ -154,7 +154,8 @@ def make_psf(
     """
     strides = data.G.stride(generic_dim_names=False)
     logger.debug(f"strides: {strides}")
-    assert set(strides) == set(sigmas)
+    if not (set(strides) == set(sigmas)):
+        raise ValueError('Assertion failed: set(strides) == set(sigmas)')
     pixels: dict[Hashable, int] = dict(
         zip(
             data.dims,

@@ -49,5 +49,6 @@ def safe_error(model_result_instance: ModelResult | None) -> float:
     """
     if model_result_instance is None:
         return np.nan
-    assert isinstance(model_result_instance.residual, np.ndarray)
+    if not isinstance(model_result_instance.residual, np.ndarray):
+        raise TypeError('Expected model_result_instance.residual to be instance of np.ndarray')
     return (model_result_instance.residual**2).mean()

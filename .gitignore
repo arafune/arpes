@@ -179,3 +179,4 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 uv.lock
+*.bak

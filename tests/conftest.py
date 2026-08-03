@@ -16,6 +16,10 @@ from arpes.io import example_data
 from tests.utils import cache_loader
 from arpes.preparation import normalize_dim
 
+# Ensure package initialization (registers xarray accessors like .S and .G)
+from arpes.configuration.interface import get_config_manager  # noqa: E402
+get_config_manager().initialize()
+
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
 

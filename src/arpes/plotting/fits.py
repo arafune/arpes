@@ -38,10 +38,12 @@ def plot_fit(model_result: lf.model.ModelResult, ax: Axes | None = None) -> Axes
     """
     if ax is None:
         _, ax = plt.subplots()
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
     x = model_result.userkws[model_result.model.independent_vars[0]]
     ax2 = ax.twinx()
-    assert isinstance(ax2, Axes)
+    if not isinstance(ax2, Axes):
+        raise TypeError('Expected ax2 to be instance of Axes')
     ax2.grid(visible=False)
     ax2.axhline(0, color="green", linestyle="--", alpha=0.5)
 

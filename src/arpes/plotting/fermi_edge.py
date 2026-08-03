@@ -52,7 +52,8 @@ def fermi_edge_reference(
         "Not automatically correcting for slit shape distortions to the Fermi edge",
         stacklevel=2,
     )
-    assert isinstance(data_arr, xr.DataArray)
+    if not isinstance(data_arr, xr.DataArray):
+        raise TypeError('Expected data_arr to be instance of xr.DataArray')
     if len(data_arr.dims) > TWO_DIMENSION:
         sum_dimensions: set[str] = {"cycle", "phi", "kp", "kx"}
         sum_dimensions.intersection_update(set(data_arr.dims))
@@ -60,7 +61,8 @@ def fermi_edge_reference(
             *list(sum_dimensions),
             keep_attrs=True,
         )
-        assert any(str(d) == "eV" for d in data_for_fit.dims)
+        if not (any(str(d) == "eV" for d in data_for_fit.dims)):
+            raise ValueError('Assertion failed: any(str(d) == "eV" for d in data_for_fit.dims)')
     else:
         data_for_fit = data_arr
     edge_fit = fit_fermi_edge(data_for_fit, energy_range=energy_range)
@@ -75,7 +77,8 @@ def fermi_edge_reference(
 
     if ax is None:
         _, ax = plt.subplots(figsize=(8, 5))
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
 
     if not title:
         title = data_arr.S.label.replace("_", " ")

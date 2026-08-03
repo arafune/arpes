@@ -137,7 +137,8 @@ def get_recent_history(n_items: int = 10) -> list[str]:
     """Fetches recent cell evaluations for context on provenance outputs."""
     try:
         ipython = get_ipython()
-        assert isinstance(ipython, InteractiveShell)
+        if not isinstance(ipython, InteractiveShell):
+            raise TypeError('Expected ipython to be instance of InteractiveShell')
         return [
             _[-1]
             for _ in list(
@@ -147,7 +148,7 @@ def get_recent_history(n_items: int = 10) -> list[str]:
                 ),
             )
         ]
-    except (AttributeError, AssertionError):
+    except (AttributeError, AssertionError, TypeError):
         return ["No accessible history."]
 
 
@@ -157,11 +158,13 @@ def get_recent_logs(n_bytes: int = 1000) -> list[str]:
 
     try:
         ipython = get_ipython()
-        assert isinstance(ipython, InteractiveShell)
+        if not isinstance(ipython, InteractiveShell):
+            raise TypeError('Expected ipython to be instance of InteractiveShell')
         logging_started = get_logging_started()
         if logging_started:
             logging_file = get_logging_file()
-            assert isinstance(logging_file, str | Path)
+            if not isinstance(logging_file, str | Path):
+                raise TypeError('Expected logging_file to be instance of str | Path')
             with Path(logging_file).open("rb") as file:
                 try:
                     file.seek(-n_bytes, SEEK_END)
@@ -177,7 +180,7 @@ def get_recent_logs(n_bytes: int = 1000) -> list[str]:
             )[0][-1]
             return [_.decode() for _ in lines] + [final_cell]
 
-    except (AttributeError, AssertionError):
+    except (AttributeError, AssertionError, TypeError):
         pass
 
     return ["No logging available. Logging is only available inside Jupyter."]

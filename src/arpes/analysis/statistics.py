@@ -50,7 +50,8 @@ def mean_and_deviation(
                 axis = pref_axis
                 break
 
-    assert axis in data.dims
+    if not (axis in data.dims):
+        raise ValueError('Assertion failed: axis in data.dims')
     return xr.Dataset(
         data_vars={name: data.mean(axis), name + "_std": data.std(axis)},
         attrs=data.attrs,

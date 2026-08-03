@@ -95,7 +95,8 @@ def lift_dataarray_to_generic(
     def func_wrapper(data: DataType, *args: P.args, **kwargs: P.kwargs) -> DataType:
         if isinstance(data, xr.DataArray):
             return func(data, *args, **kwargs)
-        assert isinstance(data, xr.Dataset)
+        if not isinstance(data, xr.Dataset):
+            raise TypeError('Expected data to be instance of xr.Dataset')
         new_vars = {datavar: func(data[datavar], *args, **kwargs) for datavar in data.data_vars}
 
         for var_name, var in new_vars.items():

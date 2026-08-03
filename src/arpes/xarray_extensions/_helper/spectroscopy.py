@@ -37,7 +37,8 @@ def sum_other_impl(
 
     Assumes `data` is a concrete xarray object (DataArray or Dataset).
     """
-    assert isinstance(dim_or_dims, list)
+    if not isinstance(dim_or_dims, list):
+        raise TypeError('Expected dim_or_dims to be instance of list')
 
     return data.sum(
         [d for d in data.dims if d not in dim_or_dims],
@@ -73,7 +74,8 @@ def mean_other_impl(
 
     Assumes `data` is a concrete xarray object (DataArray or Dataset).
     """
-    assert isinstance(dim_or_dims, list)
+    if not isinstance(dim_or_dims, list):
+        raise TypeError('Expected dim_or_dims to be instance of list')
 
     return data.mean(
         [d for d in data.dims if d not in dim_or_dims],

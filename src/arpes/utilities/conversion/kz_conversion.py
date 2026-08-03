@@ -95,7 +95,8 @@ class ConvertKpKz(CoordinateConverter):
             Thus the keys are "kp", "kx", and "eV", but not "phi"
         """
         resolution = resolution if resolution is not None else {}
-        assert resolution is not None
+        if not (resolution is not None):
+            raise ValueError('Assertion failed: resolution is not None')
         bounds = bounds if bounds is not None else {}
 
         coordinates = {k: v.values for k, v in self.arr.coords.items() if k == "eV"}
@@ -176,7 +177,8 @@ class ConvertKpKz(CoordinateConverter):
             return self.phi
         if self.hv is None:
             self.kspace_to_hv(binding_energy, kp, kz)
-        assert self.hv is not None
+        if not (self.hv is not None):
+            raise ValueError('Assertion failed: self.hv is not None')
         if self.arr.S.energy_notation is EnergyNotation.BINDING:
             kinetic_energy = binding_energy + self.hv - self.arr.S.analyzer_work_function
         else:  # self.arr.S.energy_notation is EnergyNotation.FINAL:

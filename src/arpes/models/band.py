@@ -102,7 +102,8 @@ class Band:
         clean: bool = True,
     ) -> xr.DataArray | NDArray[np.floating]:
         """Converts the underlying data into an array representation."""
-        assert isinstance(self._data, xr.Dataset)
+        if not isinstance(self._data, xr.Dataset):
+            raise TypeError('Expected self._data to be instance of xr.Dataset')
         if not clean:
             return self._data[var_name].values
 
@@ -119,46 +120,53 @@ class Band:
     def center(self) -> xr.DataArray:
         """Gets the peak location along the band."""
         center_array = self.get_dataarray("center")
-        assert isinstance(center_array, xr.DataArray)
+        if not isinstance(center_array, xr.DataArray):
+            raise TypeError('Expected center_array to be instance of xr.DataArray')
         return center_array
 
     @property
     def center_stderr(self) -> NDArray[np.floating]:
         """Gets the peak location stderr along the band."""
         center_stderr = self.get_dataarray("center_stderr", clean=False)
-        assert isinstance(center_stderr, np.ndarray)
+        if not isinstance(center_stderr, np.ndarray):
+            raise TypeError('Expected center_stderr to be instance of np.ndarray')
         return center_stderr
 
     @property
     def sigma(self) -> xr.DataArray:
         """Gets the peak width along the band."""
         sigma_array = self.get_dataarray("sigma", clean=True)
-        assert isinstance(sigma_array, xr.DataArray)
+        if not isinstance(sigma_array, xr.DataArray):
+            raise TypeError('Expected sigma_array to be instance of xr.DataArray')
         return sigma_array
 
     @property
     def amplitude(self) -> xr.DataArray:
         """Gets the peak amplitude along the band."""
         amplitude_array = self.get_dataarray("amplitude", clean=True)
-        assert isinstance(amplitude_array, xr.DataArray)
+        if not isinstance(amplitude_array, xr.DataArray):
+            raise TypeError('Expected amplitude_array to be instance of xr.DataArray')
         return amplitude_array
 
     @property
     def indexes(self) -> Indexes:
         """Fetches the indices of the originating data (after fit reduction)."""
-        assert isinstance(self._data, xr.Dataset)
+        if not isinstance(self._data, xr.Dataset):
+            raise TypeError('Expected self._data to be instance of xr.Dataset')
         return self._data.center.indexes
 
     @property
     def coords(self) -> DataArrayCoordinates:
         """Fetches the coordinates of the originating data (after fit reduction)."""
-        assert isinstance(self._data, xr.Dataset)
+        if not isinstance(self._data, xr.Dataset):
+            raise TypeError('Expected self._data to be instance of xr.Dataset')
         return self._data.center.coords
 
     @property
     def dims(self) -> tuple[str, ...]:
         """Fetches the dimensions of the originating data (after fit reduction)."""
-        assert isinstance(self._data, xr.Dataset)
+        if not isinstance(self._data, xr.Dataset):
+            raise TypeError('Expected self._data to be instance of xr.Dataset')
         return self._data.center.dims
 
     @staticmethod
@@ -186,7 +194,8 @@ class MultifitBand(Band):
 
     def get_dataarray(self, var_name: str, *, clean: bool = True) -> xr.DataArray:
         """Converts the underlying data into an array representation."""
-        assert isinstance(self._data, xr.DataArray | xr.Dataset)
+        if not isinstance(self._data, xr.DataArray | xr.Dataset):
+            raise TypeError('Expected self._data to be instance of xr.DataArray | xr.Dataset')
         full_var_name = self.label + var_name
         if not clean:
             pass

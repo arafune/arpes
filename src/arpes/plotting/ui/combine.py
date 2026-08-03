@@ -62,9 +62,12 @@ class TailorApp(BaseUI):
             **kwargs: Additional parameters for the UI, such as pane_kwargs.
         """
         super().__init__(data, data_b, **kwargs)
-        assert isinstance(data_b, xr.DataArray), "Data must be an xarray DataArray."
-        assert data.ndim == TWO_DIMENSION, "Data must be two dimensions."
-        assert data_b.ndim == TWO_DIMENSION, "Data must be two dimensions."
+        if not isinstance(data_b, xr.DataArray):
+            raise TypeError('Data must be an xarray DataArray.')
+        if not (data.ndim == TWO_DIMENSION):
+            raise ValueError('Data must be two dimensions.')
+        if not (data_b.ndim == TWO_DIMENSION):
+            raise ValueError('Data must be two dimensions.')
 
         self._build()
 

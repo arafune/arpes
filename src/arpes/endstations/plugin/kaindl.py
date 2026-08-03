@@ -120,8 +120,10 @@ class KaindlEndstation(HemisphericalEndstation, SESEndstation):
             )
 
         original_data_loc = scan_desc.get("path", scan_desc.get("file"))
-        assert original_data_loc is not None
-        assert original_data_loc != ""
+        if not (original_data_loc is not None):
+            raise ValueError('Assertion failed: original_data_loc is not None')
+        if not (original_data_loc != ""):
+            raise ValueError('Assertion failed: original_data_loc != ""')
         p = Path(original_data_loc)
         if not p.exists():
             data_path = get_data_path()
@@ -148,15 +150,18 @@ class KaindlEndstation(HemisphericalEndstation, SESEndstation):
             return super().concatenate_frames(frames)
 
         # determine which axis to stitch them together along, and then do this
-        assert scan_desc
+        if not (scan_desc):
+            raise ValueError('Assertion failed: scan_desc')
         original_filename = scan_desc.get("path", scan_desc.get("file"))
-        assert original_filename is not None
+        if not (original_filename is not None):
+            raise ValueError('Assertion failed: original_filename is not None')
 
         internal_match = re.match(
             r"([a-zA-Z0-9\w+_]+)_[0-9][0-9][0-9]\.pxt",
             Path(original_filename).name,
         )
-        assert internal_match is not None
+        if not (internal_match is not None):
+            raise ValueError('Assertion failed: internal_match is not None')
         if internal_match.groups():
             motors_path = str(
                 Path(original_filename).parent / f"{internal_match.groups()[0]}_Motor_Pos.txt",
@@ -192,14 +197,17 @@ class KaindlEndstation(HemisphericalEndstation, SESEndstation):
             data (xr.DataSet): [TODO:description]
             scan_desc (ScanDesc): [TODO:description]
         """
-        assert scan_desc
+        if not (scan_desc):
+            raise ValueError('Assertion failed: scan_desc')
         original_filename = scan_desc.get("path", scan_desc.get("file"))
-        assert original_filename
+        if not (original_filename):
+            raise ValueError('Assertion failed: original_filename')
         internal_match = re.match(
             r"([a-zA-Z0-9\w+_]+_[0-9][0-9][0-9])\.pxt",
             Path(original_filename).name,
         )
-        assert internal_match is not None
+        if not (internal_match is not None):
+            raise ValueError('Assertion failed: internal_match is not None')
         all_filenames: list[Path] = find_kaindl_files_associated(Path(original_filename))
         all_filenames = [f.parent / f"{f.stem}_AI.txt" for f in all_filenames]
 

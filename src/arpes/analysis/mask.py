@@ -95,7 +95,8 @@ def polys_to_mask(
         grid = grid.reshape(list(shape)[::-1]).T
 
         mask = grid if mask is None else np.logical_or(mask, grid)
-    assert isinstance(mask, np.ndarray)
+    if not isinstance(mask, np.ndarray):
+        raise TypeError('Expected mask to be instance of np.ndarray')
 
     if invert:
         mask = np.logical_not(mask)
@@ -179,7 +180,8 @@ def apply_mask(
     if isinstance(mask, dict):
         fermi = mask.get("fermi", None)
         dims: tuple[str, ...] = mask.get("dims", data.dims)
-        assert isinstance(mask, dict)
+        if not isinstance(mask, dict):
+            raise TypeError('Expected mask to be instance of dict')
         mask_arr: NDArray[np.bool_] = polys_to_mask(
             mask_dict=mask,
             coords=data.coords,

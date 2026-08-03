@@ -141,7 +141,8 @@ class EffectiveMassModel(Model):
         **kwargs: Incomplete,
     ) -> lf.Parameters:
         """Use heuristics to estimate the model parameters."""
-        assert isinstance(eV, xr.DataArray)
+        if not isinstance(eV, xr.DataArray):
+            raise TypeError('Expected eV to be instance of xr.DataArray')
         momentum = kp.values
         eV_arr = eV.values
         data_arr = data.values

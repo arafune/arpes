@@ -325,8 +325,10 @@ def find_clean_coords(
         else:
             rest_shape = shape
 
-        assert len(offset) == len(delta)
-        assert len(delta) == len(rest_shape)
+        if not (len(offset) == len(delta)):
+            raise ValueError('Assertion failed: len(offset) == len(delta)')
+        if not (len(delta) == len(rest_shape)):
+            raise ValueError('Assertion failed: len(delta) == len(rest_shape)')
 
         # Build the actually coordinates
         coords = [

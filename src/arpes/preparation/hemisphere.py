@@ -41,7 +41,8 @@ def stitch_maps(
     for i, (lower, higher) in enumerate(pairwise(coord1)):
         if higher > first_repair_coordinate:
             break
-        assert isinstance(i, int)
+        if not isinstance(i, int):
+            raise TypeError('Expected i to be instance of int')
         delta_low, delta_high = lower - first_repair_coordinate, higher - first_repair_coordinate
     if abs(delta_low) < abs(delta_high):
         delta = delta_low

@@ -174,7 +174,7 @@ def test_vstack_data_missing_new_dim_in_both():
     data1 = xr.DataArray([1, 2, 3], dims=["phi"])
     data2 = xr.DataArray([4, 5, 6], dims=["phi"])
 
-    with pytest.raises(AssertionError):
+    with pytest.raises((AssertionError, TypeError, ValueError)):
         vstack_data([data1, data2], "new_dim")
 
 

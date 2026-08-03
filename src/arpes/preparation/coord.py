@@ -27,7 +27,8 @@ def disambiguate_coordinates(
     """
     coords_set: dict[str, list[xr.DataArray]] = collections.defaultdict(list)
     for spectrum in datasets:
-        assert isinstance(spectrum, xr.DataArray)
+        if not isinstance(spectrum, xr.DataArray):
+            raise TypeError('Expected spectrum to be instance of xr.DataArray')
         for c in possibly_clashing_coordinates:
             if c in spectrum.coords:
                 coords_set[c].append(spectrum.coords[c])
@@ -47,7 +48,8 @@ def disambiguate_coordinates(
 
     after_deconflict: list[xr.DataArray] = []
     for spectrum in datasets:
-        assert isinstance(spectrum, xr.DataArray)
+        if not isinstance(spectrum, xr.DataArray):
+            raise TypeError('Expected spectrum to be instance of xr.DataArray')
         spectrum_name = next(iter(spectrum.data_vars.keys()))
         to_rename = {
             name: str(name) + "-" + spectrum_name for name in spectrum.dims if name in conflicted

@@ -76,7 +76,8 @@ def find_e_fermi_linear_dos(
     """
     if guess is None:
         guess = edc.eV.values[len(edc.eV) // 2]
-    assert isinstance(guess, float)
+    if not isinstance(guess, float):
+        raise TypeError('Expected guess to be instance of float')
 
     edc = edc - np.percentile(edc.values, (20,))[0]
     # Note that xr.Dataset.values is method not instance.
@@ -88,7 +89,8 @@ def find_e_fermi_linear_dos(
     if plot:
         if ax is None:
             _, ax = plt.subplots()
-        assert isinstance(ax, Axes)
+        if not isinstance(ax, Axes):
+            raise TypeError('Expected ax to be instance of Axes')
         edc.S.plot(ax=ax)
         ax.axvline(chemical_potential, linestyle="--", color="red")
         ax.axvline(guess, linestyle="--", color="gray")
@@ -109,7 +111,8 @@ def apply_direct_fermi_edge_correction(
         **kwargs,
     )
 
-    assert isinstance(correction, xr.Dataset)
+    if not isinstance(correction, xr.Dataset):
+        raise TypeError('Expected correction to be instance of xr.Dataset')
     shift_amount = -correction / arr.G.stride(generic_dim_names=False)["eV"]  # pylint: disable=invalid-unary-operand-type
     energy_axis_index = list(arr.dims).index("eV")
 
@@ -168,7 +171,8 @@ def build_direct_fermi_edge_correction(
     Returns:
         The array of fitted edge coordinates.
     """
-    assert len(arr.dims) == TWO_DIMENSION, "arr should be 2D."
+    if not (len(arr.dims) == TWO_DIMENSION):
+        raise ValueError('arr should be 2D.')
     edge_fit = fit_fermi_edge(arr, energy_range=energy_range).modelfit_result
 
     def sieve(_: Incomplete, v: Incomplete) -> bool:
@@ -257,7 +261,8 @@ def apply_photon_energy_fermi_edge_correction(
     """
     if correction is None:
         correction = build_photon_energy_fermi_edge_correction(arr, **kwargs)
-    assert isinstance(correction, xr.Dataset)
+    if not isinstance(correction, xr.Dataset):
+        raise TypeError('Expected correction to be instance of xr.Dataset')
     correction_values = correction.G.map(lambda x: x.params["center"].value)
     if "corrections" not in arr.attrs:
         arr.attrs["corrections"] = {}
@@ -303,7 +308,8 @@ def apply_quadratic_fermi_edge_correction(
     offset: float | None = None,
 ) -> xr.DataArray:
     """Applies a Fermi edge correction using a quadratic fit for the edge."""
-    assert isinstance(arr, xr.DataArray)
+    if not isinstance(arr, xr.DataArray):
+        raise TypeError('Expected arr to be instance of xr.DataArray')
     if correction is None:
         correction = build_quadratic_fermi_edge_correction(arr)
 

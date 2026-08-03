@@ -100,7 +100,8 @@ def plot_spatial_reference(  # noqa: PLR0913, C901, PLR0912, PLR0915  # Might be
     reference_map = reference_map.S.mean_other(["x", "y", "z"])
 
     ref_dims: tuple[Hashable, ...] = reference_map.dims[::-1]
-    assert len(reference_map.dims) == TWO_DIMENSION
+    if not (len(reference_map.dims) == TWO_DIMENSION):
+        raise ValueError('Assertion failed: len(reference_map.dims) == TWO_DIMENSION')
     reference_map.S.plot(ax=ax, cmap="Blues")
 
     cmap = mpl.colormaps.get_cmap("Reds")
@@ -222,7 +223,8 @@ def reference_scan_spatial(
     """
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
 
-    assert isinstance(data, xr.DataArray)
+    if not isinstance(data, xr.DataArray):
+        raise TypeError('Expected data to be instance of xr.DataArray')
 
     dims = [d for d in data.dims if d in {"cycle", "phi", "eV"}]
 

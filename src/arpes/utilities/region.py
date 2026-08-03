@@ -194,7 +194,8 @@ def region_sel(
         }
 
         options_for_dim = options.get(dimension_name, list(DesignatedRegions))
-        assert selector in options_for_dim
+        if not (selector in options_for_dim):
+            raise ValueError('Assertion failed: selector in options_for_dim')
 
         # now we need to resolve out the region
         resolution_methods = {

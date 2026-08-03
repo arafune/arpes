@@ -86,7 +86,8 @@ def fit_for_effective_mass(
     fit_results = data.S.modelfit(coords="eV", model=model, **fit_kwargs)
     if mom_dim in {"phi", "beta", "theta"}:
         forward = convert_coordinates_to_kspace_forward(data)
-        assert isinstance(forward, xr.Dataset)
+        if not isinstance(forward, xr.Dataset):
+            raise TypeError('Expected forward to be instance of xr.Dataset')
         final_mom = next(dim for dim in ["kx", "ky", "kp", "kz"] if dim in forward)
         eVs = fit_results.results.F.p("a_center").values
         kps = [
@@ -414,7 +415,8 @@ def fit_patterned_bands(  # noqa: PLR0913
         # initial value for the amplitude from the approximate peak location
         params = params or {}
         dims = dims or ()
-        assert band is not None
+        if not (band is not None):
+            raise ValueError('Assertion failed: band is not None')
         coord_name = next(d for d in dims if d in coord_dict)
         partial_band_locations = list(
             _interpolate_intersecting_fragments(
@@ -540,7 +542,8 @@ def fit_bands(
     Todo:
         Deep refactoring. The current version may not work.
     """
-    assert direction in {"edc", "mdc", "EDC", "MDC"}
+    if not (direction in {"edc", "mdc", "EDC", "MDC"}):
+        raise ValueError('Assertion failed: direction in {"edc", "mdc", "EDC", "MDC"}')
 
     directions, broadcast_direction = list(arr.dims), "eV"
 
@@ -630,7 +633,8 @@ def _interpolate_intersecting_fragments(
         coord_index ([TODO:type]): [TODO:description]
         points ([TODO:type]): [TODO:description]
     """
-    assert len(points[0]) == TWO_DIMENSION
+    if not (len(points[0]) == TWO_DIMENSION):
+        raise ValueError('Assertion failed: len(points[0]) == TWO_DIMENSION')
 
     for point_low, point_high in pairwise(points):
         coord_other_index = 1 - coord_index

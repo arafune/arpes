@@ -96,7 +96,8 @@ class ConfigManager:
             )
             return
         mod = importlib.util.module_from_spec(spec)
-        assert spec.loader is not None
+        if not (spec.loader is not None):
+            raise ValueError('Assertion failed: spec.loader is not None')
         loader: Loader = spec.loader
         loader.exec_module(mod)
 
@@ -156,7 +157,8 @@ class ConfigManager:
     # --- Workspace management ---
     def enter_workspace(self, name: str) -> None:
         """Switches to a named workspace if it exists."""
-        assert isinstance(self.config["WORKSPACE"], dict)
+        if not isinstance(self.config['WORKSPACE'], dict):
+            raise TypeError("Expected self.config['WORKSPACE'] to be instance of dict")
         current: dict[str, str | Path] = self.config["WORKSPACE"]
         if not current.get("path"):
             self.detect_workspace()
@@ -198,13 +200,15 @@ class ConfigManager:
     @property
     def workspace_path(self) -> Path:
         """Returns the current workspace path as a Path object."""
-        assert isinstance(self.config["WORKSPACE"], dict)
+        if not isinstance(self.config['WORKSPACE'], dict):
+            raise TypeError("Expected self.config['WORKSPACE'] to be instance of dict")
         return Path(self.config["WORKSPACE"]["path"])
 
     @property
     def workspace_name(self) -> str | Path:
         """Returns the current workspace name."""
-        assert isinstance(self.config["WORKSPACE"], dict)
+        if not isinstance(self.config['WORKSPACE'], dict):
+            raise TypeError("Expected self.config['WORKSPACE'] to be instance of dict")
         return self.config["WORKSPACE"]["name"]
 
     def set_workspace(self, base_path: str | Path) -> None:

@@ -295,8 +295,10 @@ class SpectralFunction:
         if omega is None:
             omega = np.linspace(-1000, 1000, 2000, dtype=np.float64)
 
-        assert isinstance(k, np.ndarray)
-        assert isinstance(omega, np.ndarray)
+        if not isinstance(k, np.ndarray):
+            raise TypeError('Expected k to be instance of np.ndarray')
+        if not isinstance(omega, np.ndarray):
+            raise TypeError('Expected omega to be instance of np.ndarray')
 
         self.temperature = temperature
         self.omega = omega

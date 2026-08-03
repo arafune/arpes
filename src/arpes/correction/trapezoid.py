@@ -331,9 +331,12 @@ def trapezoid(
     Returns:
         xr.DataArray: The corrected data.
     """
-    assert isinstance(data, xr.DataArray)
-    assert "phi" in data.coords, "The data must have a phi coordinate."
-    assert len(corners) == len(("LL", "UL", "LR", "UR"))
+    if not isinstance(data, xr.DataArray):
+        raise TypeError('Expected data to be instance of xr.DataArray')
+    if not ("phi" in data.coords):
+        raise ValueError('The data must have a phi coordinate.')
+    if not (len(corners) == len(("LL", "UL", "LR", "UR"))):
+        raise ValueError('Assertion failed: len(corners) == len(("LL", "UL", "LR", "UR"))')
     eV_max, eV_min = data.coords["eV"].max().item, data.coords["eV"].min().item
     if _is_all_floats(corners):
         trapezoid_corners = [
@@ -352,7 +355,8 @@ def trapezoid(
         rectangle_phis = [trapezoid_corners[1]["phi"], trapezoid_corners[3]["phi"]]
     elif rectangle_phis is None and not from_trapezoid:
         rectangle_phis = [data.coords["phi"].min().item(), data.coords["phi"].max().item()]
-    assert isinstance(rectangle_phis, list)
+    if not isinstance(rectangle_phis, list):
+        raise TypeError('Expected rectangle_phis to be instance of list')
 
     logger.debug("Determining dimensions.")
     data = data.transpose("eV", "phi", ...)
@@ -407,7 +411,8 @@ def trapezoid(
             "transforms": transforms,
         },
     )
-    assert isinstance(result, xr.DataArray)
+    if not isinstance(result, xr.DataArray):
+        raise TypeError('Expected result to be instance of xr.DataArray')
     logger.debug("Reassigning index-like coordinates.")
     return result.assign_attrs(data.attrs)
 

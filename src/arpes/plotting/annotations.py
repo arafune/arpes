@@ -183,8 +183,10 @@ def annotate_cuts(
     )
 
     converted_coordinates = convert_coordinates_to_kspace_forward(data)
-    assert isinstance(converted_coordinates, xr.Dataset)
-    assert len(plotted_axes) == TWO_DIMENSION
+    if not isinstance(converted_coordinates, xr.Dataset):
+        raise TypeError('Expected converted_coordinates to be instance of xr.Dataset')
+    if not (len(plotted_axes) == TWO_DIMENSION):
+        raise ValueError('Assertion failed: len(plotted_axes) == TWO_DIMENSION')
 
     for k, v in kwargs.items():
         selected = converted_coordinates.sel({k: v}, method="nearest")
@@ -223,12 +225,14 @@ def annotate_point(
         }.get(kwargs["label"], "")
         kwargs.pop("label")
 
-    assert isinstance(delta, tuple)
+    if not isinstance(delta, tuple):
+        raise TypeError('Expected delta to be instance of tuple')
     if "color" not in kwargs:
         kwargs["color"] = "red"
 
     if len(delta) == TWO_DIMENSION:
-        assert isinstance(ax, Axes)
+        if not isinstance(ax, Axes):
+            raise TypeError('Expected ax to be instance of Axes')
         dx, dy = tuple(delta)
         pos_x, pos_y = tuple(location)
         ax.plot(
@@ -244,7 +248,8 @@ def annotate_point(
             **kwargs,
         )
     else:
-        assert isinstance(ax, Axes3D)
+        if not isinstance(ax, Axes3D):
+            raise TypeError('Expected ax to be instance of Axes3D')
         dx, dy, dz = tuple(delta)
         pos_x, pos_y, pos_z = tuple(location)
         ax.plot(

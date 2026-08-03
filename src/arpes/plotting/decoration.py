@@ -51,21 +51,24 @@ def h_gradient_fill(
     """
     if ax is None:
         ax = plt.gca()
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
 
     alpha = float(kwargs.get("alpha", 1.0))
     kwargs.setdefault("aspect", "auto")
     kwargs.setdefault("origin", "lower")
     step = kwargs.pop("step", None)
     xlim, ylim = ax.get_xlim(), ax.get_ylim()
-    assert fill_color
+    if not (fill_color):
+        raise ValueError('Assertion failed: fill_color')
 
     z = np.empty((1, 100, 4), dtype=float)
 
     rgb = colorConverter.to_rgb(fill_color)
     z[:, :, :3] = rgb
     z[:, :, -1] = np.linspace(0, alpha, 100)[None, :]
-    assert x1 < x2
+    if not (x1 < x2):
+        raise ValueError('Assertion failed: x1 < x2')
     xmin, xmax, (ymin, ymax) = x1, x2, ylim
     kwargs.setdefault("extent", (xmin, xmax, ymin, ymax))
 
@@ -121,20 +124,23 @@ def v_gradient_fill(
         ax = plt.gca()
 
     alpha = float(kwargs.get("alpha", 1.0))
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
     kwargs.setdefault("aspect", "auto")
     kwargs.setdefault("origin", "lower")
     step = kwargs.pop("step", None)
 
     xlim, ylim = ax.get_xlim(), ax.get_ylim()
-    assert fill_color
+    if not (fill_color):
+        raise ValueError('Assertion failed: fill_color')
 
     z = np.empty((100, 1, 4), dtype=float)
 
     rgb = colorConverter.to_rgb(fill_color)
     z[:, :, :3] = rgb
     z[:, :, -1] = np.linspace(0, alpha, 100)[:, None]
-    assert y1 < y2
+    if not (y1 < y2):
+        raise ValueError('Assertion failed: y1 < y2')
     (xmin, xmax), ymin, ymax = xlim, y1, y2
     kwargs.setdefault("extent", (xmin, xmax, ymin, ymax))
     im: AxesImage = ax.imshow(

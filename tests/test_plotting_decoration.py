@@ -155,12 +155,12 @@ def test_v_gradient_fill_with_default_ax(monkeypatch):
 def test_h_gradient_fill_invalid_range():
     fig, ax = plt.subplots()
 
-    with pytest.raises(AssertionError):
+    with pytest.raises((AssertionError, TypeError, ValueError)):
         h_gradient_fill(3.0, 1.0, None, fill_color="blue", ax=ax)
 
 
 def test_v_gradient_fill_invalid_range():
     fig, ax = plt.subplots()
 
-    with pytest.raises(AssertionError):
+    with pytest.raises((AssertionError, TypeError, ValueError)):
         v_gradient_fill(5.0, 2.0, None, fill_color="red", ax=ax)

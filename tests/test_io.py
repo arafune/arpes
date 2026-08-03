@@ -63,7 +63,7 @@ def test_load_and_save_pickle(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
 
 @pytest.mark.skip
 def test_stitch_invalid_input():
-    with pytest.raises(AssertionError):
+    with pytest.raises((AssertionError, TypeError, ValueError)):
         io._df_or_list_to_files("not a list")
 
 

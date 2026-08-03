@@ -136,12 +136,14 @@ def plot_core_levels(  # noqa: PLR0913
     fig: Figure | None = None
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize)
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
     data.S.plot(ax=ax, **kwargs)
 
     if core_levels is None:
         core_levels = approximate_core_levels(data, binning=binning, promenance=promenance)
-    assert core_levels is not None
+    if not (core_levels is not None):
+        raise ValueError('Assertion failed: core_levels is not None')
     for core_level in core_levels:
         ax.axvline(core_level, ymin=0.1, ymax=0.25, color="red", ls="-")
 
@@ -175,8 +177,10 @@ def plot_dos(
             axes.
     """
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-    assert isinstance(data, xr.DataArray)
-    assert data.ndim == TWO_DIMENSION
+    if not isinstance(data, xr.DataArray):
+        raise TypeError('Expected data to be instance of xr.DataArray')
+    if not (data.ndim == TWO_DIMENSION):
+        raise ValueError('Assertion failed: data.ndim == TWO_DIMENSION')
     dos = data.S.sum_other(["eV"], keep_attrs=True)
     kwargs.setdefault(
         "norm",
@@ -222,8 +226,10 @@ def plot_dos(
         ax0.set_xlabel(str(data.dims[1]))
         ax1.set_xlabel("Intensity")
     ax0.set_ylabel(str(data.dims[0]))
-    assert "norm" in kwargs
-    assert isinstance(kwargs["norm"], Normalize | None)
+    if not ("norm" in kwargs):
+        raise ValueError('Assertion failed: "norm" in kwargs')
+    if not isinstance(kwargs['norm'], Normalize | None):
+        raise TypeError("Expected kwargs['norm'] to be instance of Normalize | None")
 
     if out:
         savefig(str(out), dpi=400)

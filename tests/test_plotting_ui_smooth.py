@@ -162,7 +162,7 @@ class TestSmoothingApp:
 
     def test_init_raises_assertion_for_high_dim_data(self):
         high_dim_data = xr.DataArray([[[[1, 2], [3, 4]]]], dims=["a", "b", "c", "d"])
-        with pytest.raises(AssertionError):
+        with pytest.raises((AssertionError, TypeError, ValueError)):
             SmoothingApp(high_dim_data)
 
     def test_smoothing_func_selection_updates_widgets(self, sample_data_1d):

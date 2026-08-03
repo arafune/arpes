@@ -145,12 +145,14 @@ def convert_to_kspace(  # noqa: PLR0913
         xr.DataArray: Converted ARPES (k-space) data.
     """
     coords = {} if coords is None else coords
-    assert coords is not None
+    if not (coords is not None):
+        raise ValueError('Assertion failed: coords is not None')
     coords.update(kwargs)
 
     bounds = bounds or {}
     arr = arr if isinstance(arr, xr.DataArray) else normalize_to_spectrum(arr)
-    assert isinstance(arr, xr.DataArray)
+    if not isinstance(arr, xr.DataArray):
+        raise TypeError('Expected arr to be instance of xr.DataArray')
     if arr.S.angle_unit is AngleUnit.DEG:
         arr = arr.S.switched_angle_unit()
     logger.debug(f"bounds (covnert_to_kspace): {bounds}")
@@ -196,7 +198,8 @@ def convert_to_kspace(  # noqa: PLR0913
             # ('chi', 'phi',): ConvertKxKy,
             ("hv", "phi"): ConvertKpKz,
         }.get(tupled_momentum_compatibles)
-    assert convert_cls is not None, "Cannot select convert class"
+    if not (convert_cls is not None):
+        raise ValueError('Cannot select convert class')
 
     converter: CoordinateConverter = convert_cls(
         arr=arr,
@@ -221,7 +224,8 @@ def convert_to_kspace(  # noqa: PLR0913
             "transforms": {str(dim): converter.conversion_for(dim) for dim in arr.dims},
         },
     )
-    assert isinstance(result, xr.DataArray)
+    if not isinstance(result, xr.DataArray):
+        raise TypeError('Expected result to be instance of xr.DataArray')
     return result
 
 
@@ -268,7 +272,8 @@ def _chunk_convert(
         )
         if "eV" not in kchunk.dims:
             kchunk = kchunk.expand_dims("eV")
-        assert isinstance(kchunk, xr.DataArray)
+        if not isinstance(kchunk, xr.DataArray):
+            raise TypeError('Expected kchunk to be instance of xr.DataArray')
         finished.append(kchunk)
         low_idx = high_idx
         high_idx = min(len(arr.eV), high_idx + chunk_thickness)

@@ -53,7 +53,8 @@ def grid_interpolator_from_dataarray(
 
     This is principally used for coordinate translations.
     """
-    assert isinstance(arr, xr.DataArray)
+    if not isinstance(arr, xr.DataArray):
+        raise TypeError('Expected arr to be instance of xr.DataArray')
     flip_axes: set[str] = set()
     for d in arr.dims:
         c = arr.coords[d]

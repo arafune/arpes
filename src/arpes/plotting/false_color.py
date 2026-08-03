@@ -53,7 +53,8 @@ def false_color_plot(  # noqa: PLR0913
     fig: Figure | None = None
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize)
-    assert isinstance(ax, Axes)
+    if not isinstance(ax, Axes):
+        raise TypeError('Expected ax to be instance of Axes')
 
     def normalize_channel(channel: NDArray[np.floating]) -> NDArray[np.float64]:
         channel -= np.percentile(channel, 100 * pmin)

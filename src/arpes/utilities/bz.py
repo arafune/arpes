@@ -239,7 +239,8 @@ def axis_along(data: XrTypes, symbol: str) -> float:
         if np.abs(dD) > max_value:
             max_value = np.abs(dD)
             max_dim = d
-    assert isinstance(max_dim, float)
+    if not isinstance(max_dim, float):
+        raise TypeError('Expected max_dim to be instance of float')
     return max_dim
 
 
@@ -342,7 +343,8 @@ def reduced_bz_E_mask(
         if np.all(poly_points[:, i] == poly_points[0, i]):
             skip_col = i
 
-    assert skip_col is not None
+    if not (skip_col is not None):
+        raise ValueError('Assertion failed: skip_col is not None')
     selector_val = poly_points[0, skip_col]
     poly_points = np.concatenate(
         (poly_points[:, 0:skip_col], poly_points[:, skip_col + 1 :]),

@@ -73,7 +73,8 @@ class GenericDatasetAccessor(GenericAccessorBase[xr.Dataset]):
             to be accessed via the `.G` property of an `xarray.Dataset` object.
         """
         self._obj = xarray_obj
-        assert isinstance(self._obj, xr.Dataset)
+        if not isinstance(self._obj, xr.Dataset):
+            raise TypeError('Expected self._obj to be instance of xr.Dataset')
 
     def filter_vars(
         self,
@@ -122,7 +123,8 @@ class GenericDatasetAccessor(GenericAccessorBase[xr.Dataset]):
         See Also:
             :py:meth:`xarray.Dataset.drop_vars`: To explicitly remove variables by name.
         """
-        assert isinstance(self._obj, xr.Dataset)  # ._obj.data_vars
+        if not isinstance(self._obj, xr.Dataset):
+            raise TypeError('Expected self._obj to be instance of xr.Dataset')
         return xr.Dataset(
             data_vars={k: v for k, v in self._obj.data_vars.items() if f(k, v)},
             attrs=self._obj.attrs,
@@ -162,7 +164,8 @@ class GenericDatasetAccessor(GenericAccessorBase[xr.Dataset]):
         shift_array = np.ones((len(dims),)) * shift if isinstance(shift, float) else shift
 
         def transform(data: NDArray[np.floating]) -> NDArray[np.floating]:
-            assert isinstance(shift_array, np.ndarray)
+            if not isinstance(shift_array, np.ndarray):
+                raise TypeError('Expected shift_array to be instance of np.ndarray')
             new_shift: NDArray[np.floating] = shift_array
             for _ in range(len(dims)):
                 new_shift = np.expand_dims(new_shift, axis=0)
@@ -253,7 +256,8 @@ class GenericDatasetAccessor(GenericAccessorBase[xr.Dataset]):
             ValueError: If the `transform` callable does not return an array
                 of the expected shape.
         """  # noqa: E501
-        assert isinstance(self._obj, xr.Dataset)
+        if not isinstance(self._obj, xr.Dataset):
+            raise TypeError('Expected self._obj to be instance of xr.Dataset')
         as_ndarray = np.stack([self._obj.data_vars[d].values for d in dims], axis=-1)
 
         if isinstance(transform, np.ndarray):
@@ -397,13 +401,15 @@ class GenericDataArrayAccessor(GenericAccessorBase[xr.DataArray]):
             to be accessed via the `.G` property of an `xarray.DataArray` object.
         """
         self._obj: xr.DataArray = xarray_obj
-        assert isinstance(self._obj, xr.DataArray)
+        if not isinstance(self._obj, xr.DataArray):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray')
 
     def argmax_coords(self) -> dict[Hashable, float]:
         """Return dict representing the position for maximum value."""
         data: xr.DataArray = self._obj
         raveled = data.argmax(None)
-        assert isinstance(raveled, xr.DataArray)
+        if not isinstance(raveled, xr.DataArray):
+            raise TypeError('Expected raveled to be instance of xr.DataArray')
         idx = raveled.item()
         flat_indices = np.unravel_index(idx, data.values.shape)
         return {d: data.coords[d][flat_indices[i]].item() for i, d in enumerate(data.dims)}
@@ -420,7 +426,8 @@ class GenericDataArrayAccessor(GenericAccessorBase[xr.DataArray]):
             A dictionary mapping between coordinate names and their coordinate arrays.
             Additionally, there is a key "data" which maps to the `.values` attribute of the array.
         """
-        assert isinstance(self._obj, xr.DataArray)
+        if not isinstance(self._obj, xr.DataArray):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray')
 
         dims = self._obj.dims
         coords_as_list = [self._obj.coords[d].values for d in dims]
@@ -431,7 +438,8 @@ class GenericDataArrayAccessor(GenericAccessorBase[xr.DataArray]):
                 strict=True,
             ),
         )
-        assert "data" not in raveled_coordinates
+        if not ("data" not in raveled_coordinates):
+            raise ValueError('Assertion failed: "data" not in raveled_coordinates')
         raveled_coordinates["data"] = self._obj.values.ravel()
 
         return raveled_coordinates
@@ -510,12 +518,14 @@ class GenericDataArrayAccessor(GenericAccessorBase[xr.DataArray]):
             `numpy.meshgrid`: The core NumPy function for creating coordinate grids.
             `~.GenericDataArrayAccessor.ravel`: For flattening the data and coordinates.
         """
-        assert isinstance(self._obj, xr.DataArray)  # ._obj.values is used.
+        if not isinstance(self._obj, xr.DataArray):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray')
 
         dims = self._obj.dims
         coords_as_list = [self._obj.coords[d].values for d in dims]
         meshed_coordinates = dict(zip(dims, list(np.meshgrid(*coords_as_list)), strict=True))
-        assert "data" not in meshed_coordinates
+        if not ("data" not in meshed_coordinates):
+            raise ValueError('Assertion failed: "data" not in meshed_coordinates')
         meshed_coordinates["data"] = self._obj.values
 
         if as_dataset:
@@ -557,7 +567,8 @@ class GenericDataArrayAccessor(GenericAccessorBase[xr.DataArray]):
         Todo:
             - Add unit tests to ensure the method behaves as expected.
         """
-        assert isinstance(self._obj, xr.DataArray)
+        if not isinstance(self._obj, xr.DataArray):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray')
         low, high = np.percentile(self._obj.values, [clip, 100 - clip])
         copied = self._obj.copy(deep=True)
         copied.values[copied.values < low] = low
@@ -611,7 +622,8 @@ class GenericDataArrayAccessor(GenericAccessorBase[xr.DataArray]):
             # Generate an animation
             animation = data.G.as_movie(time_dim="delay")
         """
-        assert isinstance(self._obj, xr.DataArray)
+        if not isinstance(self._obj, xr.DataArray):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray')
 
         return plot_movie(self._obj, time_dim=time_dim, out=out, **kwargs)
 
@@ -763,7 +775,8 @@ class GenericDataArrayAccessor(GenericAccessorBase[xr.DataArray]):
                 )
 
             dest.loc[coord] = new_value
-        assert isinstance(dest, xr.DataArray)
+        if not isinstance(dest, xr.DataArray):
+            raise TypeError('Expected dest to be instance of xr.DataArray')
         return dest
 
     def map(
@@ -862,7 +875,8 @@ class GenericDataArrayAccessor(GenericAccessorBase[xr.DataArray]):
 
         ToDo: Test
         """
-        assert isinstance(self._obj, xr.DataArray)
+        if not isinstance(self._obj, xr.DataArray):
+            raise TypeError('Expected self._obj to be instance of xr.DataArray')
         if keep_attrs:
             return xr.DataArray(
                 data=new_values.reshape(self._obj.values.shape),
