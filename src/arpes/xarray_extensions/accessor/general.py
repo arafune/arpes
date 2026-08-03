@@ -13,7 +13,7 @@ import xarray as xr
 from arpes.analysis.value_transform import apply_dataarray
 from arpes.correction import coords, intensity_map
 from arpes.debug import setup_logger
-from arpes.plotting.movie import plot_movie
+from arpes.plotting.movie import movie
 
 if TYPE_CHECKING:
     from collections.abc import (
@@ -613,7 +613,7 @@ class GenericDataArrayAccessor(GenericAccessorBase[xr.DataArray]):
         """
         assert isinstance(self._obj, xr.DataArray)
 
-        return plot_movie(self._obj, time_dim=time_dim, out=out, **kwargs)
+        return movie(self._obj, time_dim=time_dim, out=out, **kwargs)
 
     def map_axes(
         self,

@@ -286,7 +286,7 @@ class ConvertTrapezoidalCorrection(CoordinateConverter):
 def trapezoid(
     data: xr.DataArray,
     corners: list[dict[str, float] | float],
-    rectangle_phis: list[float] | None = None,
+    rectangle_phis: list[float] | tuple[float, float] | None = None,
     *,
     from_trapezoid: bool = True,
 ) -> xr.DataArray:
@@ -352,7 +352,7 @@ def trapezoid(
         rectangle_phis = [trapezoid_corners[1]["phi"], trapezoid_corners[3]["phi"]]
     elif rectangle_phis is None and not from_trapezoid:
         rectangle_phis = [data.coords["phi"].min().item(), data.coords["phi"].max().item()]
-    assert isinstance(rectangle_phis, list)
+    assert isinstance(rectangle_phis, (list, tuple))
 
     logger.debug("Determining dimensions.")
     data = data.transpose("eV", "phi", ...)

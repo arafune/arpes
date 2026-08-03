@@ -9,6 +9,7 @@ requirements.lock
 # JS Ecosystem
 node_modules/
 
+*.bak
 
 # Lanzara Group Internal Utilities
 arpes/tight_binding/**

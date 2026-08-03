@@ -182,7 +182,7 @@ class EndstationBase:
           extension.
         """
         warnings.warn(
-            "Thisi is the EndstationBase's `first_find_file`. "
+            "This is the EndstationBase's `first_find_file`. "
             "While it would be the result of best effort for serching the `first file` in"
             "the directrory, but the resultant file may not agree with what you really expected."
             "Considering the explicit file name specification, or writing your own code to"

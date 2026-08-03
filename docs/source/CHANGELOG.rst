@@ -39,6 +39,19 @@ primarily indicate new features and documentation.
   * Tidy up some fitting functions
     * Remove TwoExponentialDecayCModel
 
+* Breaking change in plotting
+
+  * API change: the movie creation function was renamed for conciseness.
+  * The function previously available as `arpes.plotting.movie.plot_movie` was
+    renamed to `movie` in `arpes.plotting.movie` and can be called as
+    `arpes.plotting.movie(...)` for convenience.
+  * The top-level symbol `arpes.plotting.plot_movie` has been removed. Callers
+    should update imports to `from arpes.plotting import movie` or
+    `from arpes.plotting.movie import movie`.
+  * Backwards-compatible aliases (`plot_movie`) remain in the module to ease
+    migration, but clients should migrate to the new name; the alias may be
+    removed in a future release.
+
 5.0.2 (2025-12-23)
 ^^^^^^^^^^^^^^^^^^
 
