@@ -53,7 +53,6 @@ __all__ = [
     "waterfall_dispersion",
 ]
 
-#
 if TYPE_CHECKING:
     from .annotations import annotate_cuts, annotate_experimental_conditions, annotate_point
     from .bands import plot_with_bands
