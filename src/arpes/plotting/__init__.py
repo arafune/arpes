@@ -31,6 +31,7 @@ __all__ = [
     "make_reference_plots",
     "movie",
     "offset_scatter_plot",
+    "output_animation",
     "plot_core_levels",
     "plot_dispersion",
     "plot_dos",
@@ -52,7 +53,7 @@ __all__ = [
     "waterfall_dispersion",
 ]
 
-# TYPE_CHECKING 用に明示的インポート
+#
 if TYPE_CHECKING:
     from .annotations import annotate_cuts, annotate_experimental_conditions, annotate_point
     from .bands import plot_with_bands
@@ -91,6 +92,7 @@ if TYPE_CHECKING:
         profile_view,
     )
     from .utils import fancy_labels, remove_colorbars, savefig, simple_ax_grid
+
 # Bind `movie` directly to the package namespace when possible so callers
 # can write `arpes.plotting.movie(...)`. If the import fails during partial
 # initialization, `__getattr__` provides the lazy-import fallback.
@@ -134,6 +136,7 @@ def __getattr__(name: str) -> Any:  # noqa: ANN401
         "magnify_circular_regions_plot": "arpes.plotting.fermi_surface",
         "evolution_movie": "arpes.plotting.movie",
         "movie": "arpes.plotting.movie",
+        "output_animation": "arpes.plotting.movie",
         "plot_parameter": "arpes.plotting.parameter",
         "plot_spatial_reference": "arpes.plotting.spatial",
         "reference_scan_spatial": "arpes.plotting.spatial",

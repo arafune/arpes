@@ -18,7 +18,6 @@ from matplotlib.colors import Colormap
 from matplotlib.ticker import FixedLocator, MaxNLocator
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
-from arpes._typing.plotting import MPLPlotKwargsBasic
 from arpes.analysis import rebin
 from arpes.constants import TWO_DIMENSION
 from arpes.debug import setup_logger
