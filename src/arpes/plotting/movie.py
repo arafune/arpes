@@ -40,7 +40,7 @@ LOGLEVEL = LOGLEVELS[1]
 logger = setup_logger(__name__, LOGLEVEL)
 
 
-__all__ = ("movie", "plot_movie_and_evolution")
+__all__ = ("movie", "output_animation", "plot_movie_and_evolution")
 
 
 def output_animation(  # noqa: PLR0913
