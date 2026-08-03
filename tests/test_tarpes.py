@@ -14,7 +14,7 @@ from arpes.analysis import tarpes
 from arpes.plotting.movie import (
     _replace_after_col,
     _replace_after_row,
-    plot_movie,
+    movie,
     plot_movie_and_evolution,
 )
 
@@ -292,7 +292,7 @@ def test_plot_movie_and_evolution_is_subtracted_true_with_labels(another_sample_
     """Test when data.S.is_subtracted is True and labels are provided."""
     another_sample_data.attrs["subtracted"] = True
     labels = ("Custom X-axis", "Custom Y-axis")
-    result = plot_movie(
+    result = movie(
         data=another_sample_data,
         labels=labels,
         out=None,  # Return HTML

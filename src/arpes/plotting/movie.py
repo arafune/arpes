@@ -40,7 +40,7 @@ LOGLEVEL = LOGLEVELS[1]
 logger = setup_logger(__name__, LOGLEVEL)
 
 
-__all__ = ("plot_movie", "plot_movie_and_evolution")
+__all__ = ("movie", "plot_movie_and_evolution")
 
 
 def output_animation(  # noqa: PLR0913
@@ -134,7 +134,7 @@ def _configure_axes_and_labels(
 
 
 @save_plot_provenance
-def plot_movie_and_evolution(  # noqa: PLR0913
+def evolution_movie(  # noqa: PLR0913
     data: xr.DataArray,
     *,
     time_dim: str = "delay",
@@ -279,7 +279,7 @@ def plot_movie_and_evolution(  # noqa: PLR0913
 
 
 @save_plot_provenance
-def plot_movie(  # noqa: PLR0913
+def movie(  # noqa: PLR0913
     data: xr.DataArray,
     *,
     time_dim: str = "delay",
@@ -417,3 +417,10 @@ def _replace_after_row(array: NDArray[np.floating], row_num: int) -> NDArray[np.
         NDArray[np.floating]: The modified array with NaN values after the specified row.
     """
     return np.where(np.arange(array.shape[0])[:, None] >= row_num, np.nan, array)
+
+
+# Backwards-compatible aliases
+# The public function was renamed to `movie` for conciseness; provide aliases
+# so existing call sites continue to work until callers are migrated.
+plot_movie = movie
+plot_movie_and_evolution = evolution_movie
