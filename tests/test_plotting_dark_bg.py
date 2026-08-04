@@ -3,6 +3,7 @@
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+import pytest
 from matplotlib.cm import ScalarMappable
 from matplotlib.colorbar import Colorbar
 
@@ -15,6 +16,12 @@ from arpes.plotting.dark_bg import (
     get_dark_mode_params,
 )
 from arpes.plotting.utils import get_colorbars
+
+
+@pytest.fixture(autouse=True)
+def close_figure():
+    yield
+    plt.close("all")
 
 
 def test_dark_background_contextmanager():
