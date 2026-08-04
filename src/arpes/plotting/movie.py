@@ -5,7 +5,6 @@ from __future__ import annotations
 import contextlib
 import warnings
 from logging import DEBUG, INFO
-from numbers import Number
 from pathlib import Path
 from typing import TYPE_CHECKING, ParamSpec, TypeVar, Unpack
 
@@ -91,14 +90,14 @@ def output_animation(  # noqa: PLR0913
     if out is Ellipsis:
         return anim
 
-    if isinstance(out, str | Path):
+    if isinstance(out, (str, Path)):
         logger.debug(msg=f"path_for_plot is {path_for_plot(out)}")
         anim.save(str(path_for_plot(out)))
         return path_for_plot(out)
 
     assert update_func is not None
     assert fig is not None
-    if isinstance(out, Number):
+    if isinstance(out, (int, float)):
         index: int = data.indexes[time_dim].get_indexer([out], method="nearest")[0]
         update_func(index)
         fig.canvas.draw()
@@ -158,7 +157,7 @@ def _construct_animation_for_evolution(  # noqa: PLR0913
     fig_ax: tuple[Figure | None, NDArray[np.object_] | None] | None = None,
     figsize: tuple[float, float] | None = None,
     width_ratio: tuple[float, float] | None = None,
-    evolution_at: tuple[str, float] | tuple[str, tuple[float, float]] = ("phi", 0.0),
+    evolution_at: tuple[str, int | float] | tuple[str, tuple[float, float]] = ("phi", 0.0),
     labels: tuple[str, str, str] | None = None,
     **kwargs: Unpack[PColorMeshKwargs],
 ) -> tuple[FuncAnimation, Figure, Callable[[int], Iterable[Artist]], xr.DataArray]:
@@ -182,7 +181,7 @@ def _construct_animation_for_evolution(  # noqa: PLR0913
         ),
     )
 
-    if isinstance(evolution_at[1], Number):
+    if isinstance(evolution_at[1], (int, float)):
         evolution_data: xr.DataArray = data.sel(
             {evolution_at[0]: evolution_at[1]},
             method="nearest",
@@ -352,106 +351,6 @@ def movie(  # noqa: PLR0913
         anim=anim,
         data=data,
         update_func=update_func,
-        fig=fig,
-        time_dim=time_dim,
-        out=out,
-    )
-    """Create an animated movie of a 3D dataset using one dimension as "time".
-
-    This function uses matplotlib's pcolormesh to create the plots.
-
-    Args:
-        data (xr.DataArray): ARPES data containing time-series data to animate.
-        time_dim (str): Dimension name for time, default is "delay".
-        interval_ms (float): Delay between frames in milliseconds,  default 100.
-        fig_ax (tuple[Figure, Axes]): matplotlib Figure and Axes objects, optional.
-        out (str | Path | Number | EllipsisType): Change output style.  If str or Path is set,
-            saving the animation. If the numerical value is set, the snapshot image (Figure object)
-            is returned (but not saved, use fig.save) and if nothing is set (or set None), return
-            the HTML object to display the animation.  and if ... is set, return the
-            FuncAnimation object itself.  Default is None.
-        figsize (tuple[float, float]): Size of the movie figure, optional.
-        labels (tuple[str, str]): The label for x- and y-axis. (optional)
-        kwargs: Additional keyword arguments for `pcolormesh`.
-
-    Returns:
-        Path | HTML: The path to the saved animation or the animation object itself
-
-    Raises:
-        TypeError: If the argument types are incorrect.
-    """
-    config_manager = get_config_manager()
-    # Use Agg backend during animation construction to avoid GUI backends.
-    with _use_mpl_backend("Agg"):
-        figsize = figsize or (9.0, 5.0)
-        data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-        fig, ax = fig_ax or plt.subplots(figsize=figsize)
-        assert isinstance(ax, Axes)
-        assert isinstance(fig, Figure)
-        assert isinstance(data, xr.DataArray)
-        assert data.ndim == TWO_DIMENSION + 1
-
-        kwargs.setdefault(
-            "cmap",
-            config_manager.settings.get("interactive", {}).get(
-                "palette",
-                "viridis",
-            ),
-        )
-
-        if data.S.is_subtracted:
-            kwargs["cmap"] = "RdBu_r"
-            kwargs["vmax"] = np.max(
-                [
-                    np.abs(kwargs.get("vmin", data.min().item())),
-                    np.abs(kwargs.get("vmax", data.max().item())),
-                ],
-            )
-            kwargs["vmin"] = -kwargs["vmax"]
-        arpes_data = data.isel({time_dim: 0})
-        arpes_mesh: QuadMesh = ax.pcolormesh(
-            arpes_data.coords[arpes_data.dims[1]].values,
-            arpes_data.coords[arpes_data.dims[0]].values,
-            arpes_data.values,
-            **kwargs,
-        )
-        if labels:
-            ax.set_xlabel(labels[0])
-            ax.set_ylabel(labels[1])
-        else:
-            ax.set_xlabel(str(arpes_data.dims[1]))
-            ax.set_ylabel(str(arpes_data.dims[0]))
-
-        arpes_mesh.set_animated(True)
-
-        _ = fig.colorbar(arpes_mesh, ax=ax)
-
-        title: Text = ax.set_title(f"pump probe delay={data.coords[time_dim].values[0]: >9.3f}")
-
-        def init() -> Iterable[Artist]:
-            return (arpes_mesh,)
-
-        def update(frame: int) -> Iterable[Artist]:
-            title.set_text(f"pump probe delay={data.coords[time_dim].values[frame]: >9.3f}")
-            arpes_mesh.set_array(data.isel({time_dim: frame}).values.ravel())
-            arpes_mesh.set_animated(True)
-            return (arpes_mesh,)
-
-        anim: FuncAnimation = FuncAnimation(
-            fig=fig,
-            func=update,
-            init_func=init,
-            frames=data.sizes[time_dim],
-            blit=True,
-            interval=interval_ms,
-        )
-
-    # backend restored by context manager
-
-    return output_animation(
-        anim=anim,
-        data=data,
-        update_func=update,
         fig=fig,
         time_dim=time_dim,
         out=out,
