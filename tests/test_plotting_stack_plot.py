@@ -12,6 +12,12 @@ from matplotlib.figure import Figure
 from arpes.plotting.stack_plot import _get_colors, waterfall_dispersion
 
 
+@pytest.fixture(autouse=True)
+def close_figure():
+    yield
+    plt.close("all")
+
+
 @pytest.fixture
 def test_data():
     eV = np.linspace(0.0, 5.0, 100)
@@ -39,30 +45,32 @@ def test_get_colors():
     assert isinstance(colors[0][3], np.float64)
 
 
-def test_basic_output_structure(test_data):
+def test_basic_output_structure(test_data: xr.DataArray):
     fig, ax, ax_right = waterfall_dispersion(test_data)
     assert isinstance(fig, Figure)
     assert isinstance(ax, Axes)
     assert isinstance(ax_right, Axes)
 
 
-def test_returns_two_axes_when_scale_zero(test_data):
+def test_returns_two_axes_when_scale_zero(test_data: xr.DataArray):
     fig, ax = waterfall_dispersion(test_data, scale_factor=0)
     assert isinstance(fig, Figure)
     assert isinstance(ax, Axes)
 
 
-def test_negative_scale_factor_raises(test_data):
+def test_negative_scale_factor_raises(test_data: xr.DataArray):
     with pytest.raises(AssertionError, match="scale factor should be positive"):
         waterfall_dispersion(test_data, scale_factor=-1)
 
 
-def test_right_axis_label(test_data):
+def test_right_axis_label(test_data: xr.DataArray):
     fig, ax, ax_right = waterfall_dispersion(test_data)
+    assert isinstance(fig, Figure)
+    assert isinstance(ax, Axes)
     assert ax_right.get_ylabel() == "phi"
 
 
-def test_plot_modes(test_data):
+def test_plot_modes(test_data: xr.DataArray):
     for mode in ["line", "fill_between", "hide_line"]:
         fig, ax, ax_right = waterfall_dispersion(test_data, mode=mode)
         assert isinstance(fig, Figure)
@@ -70,40 +78,44 @@ def test_plot_modes(test_data):
         assert isinstance(ax_right, Axes)
 
 
-def test_plot_with_reverse_falsel(test_data):
+def test_plot_with_reverse_falsel(test_data: xr.DataArray):
     fig, ax, ax_right = waterfall_dispersion(test_data, reverse=False)
+    assert isinstance(fig, Figure)
+    assert isinstance(ax, Axes)
     assert ax_right.yaxis.get_inverted() == np.False_
 
 
-def test_custom_cmap_string(test_data):
+def test_custom_cmap_string(test_data: xr.DataArray):
     fig, ax, ax_right = waterfall_dispersion(test_data, cmap="viridis")
     assert isinstance(fig, Figure)
+    assert isinstance(ax, Axes)
 
 
-def test_custom_cmap_color_string(test_data):
+def test_custom_cmap_color_string(test_data: xr.DataArray):
     fig, ax, ax_right = waterfall_dispersion(test_data, cmap="blue")
     assert isinstance(fig, Figure)
 
 
-def test_returns_correct_stack_axis(test_data):
+def test_returns_correct_stack_axis(test_data: xr.DataArray):
     fig, ax, ax_right = waterfall_dispersion(test_data)
     right_label = ax_right.get_ylabel()
     assert right_label == "phi"
 
 
-def test_plot_called(test_data):
+def test_plot_called(test_data: xr.DataArray):
     with patch("matplotlib.pyplot.Axes.plot", autospec=True) as mock_plot:
         _, ax, _ = waterfall_dispersion(test_data)
         assert mock_plot.call_count >= len(test_data.coords["phi"])
 
 
-def test_fill_between_called_in_fill_mode(test_data):
+def test_fill_between_called_in_fill_mode(test_data: xr.DataArray):
     with patch("matplotlib.axes.Axes.fill_between", autospec=True) as mock_fill:
         _, ax, _ = waterfall_dispersion(test_data, mode="fill_between")
         assert mock_fill.call_count >= len(test_data.coords["phi"])
+        assert isinstance(ax, Axes)
 
 
-def test_fill_between_called_in_hide_lines(test_data):
+def test_fill_between_called_in_hide_lines(test_data: xr.DataArray):
     with patch("matplotlib.axes.Axes.fill_between", autospec=True) as mock_fill:
         _, ax, _ = waterfall_dispersion(test_data, mode="hide_lines")
         assert mock_fill.call_count >= len(test_data.coords["phi"])
