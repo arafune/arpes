@@ -151,6 +151,116 @@ def _configure_axes_and_labels(
     ax[1].set_ylabel("")
 
 
+def _construct_animation_for_evolution(
+    data: xr.DataArray,
+    *,
+    time_dim: str = "delay",
+    interval_ms: float = 100,
+    fig_ax: tuple[Figure | None, NDArray[np.object_] | None] | None = None,
+    figsize: tuple[float, float] | None = None,
+    width_ratio: tuple[float, float] | None = None,
+    evolution_at: tuple[str, float] | tuple[str, tuple[float, float]] = ("phi", 0.0),
+    labels: tuple[str, str, str] | None = None,
+    **kwargs: Unpack[PColorMeshKwargs],
+) -> tuple[FuncAnimation, Figure, Callable[[int], "Iterable[Artist]"], xr.DataArray]:
+    """Build FuncAnimation for evolution_movie and return anim, fig, update_only_arpes_mesh, data.
+
+    This extracts shared creation logic used by both wrappers.
+    """
+    config_manager = get_config_manager()
+    figsize = figsize or (9.0, 5.0)
+    width_ratio = width_ratio or (1.0, 4.4)
+    data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
+
+    fig, ax = _initialize_figure_and_axes(fig_ax, figsize, width_ratio)
+    assert data.ndim == TWO_DIMENSION + 1
+
+    kwargs.setdefault(
+        "cmap",
+        config_manager.settings.get("interactive", {}).get(
+            "palette",
+            "viridis",
+        ),
+    )
+
+    if isinstance(evolution_at[1], Number):
+        evolution_data: xr.DataArray = data.sel(
+            {evolution_at[0]: evolution_at[1]},
+            method="nearest",
+        ).transpose(..., time_dim)
+    else:
+        assert isinstance(evolution_at[1], tuple)
+        start, half_width = evolution_at[1]
+        evolution_data = (
+            data.sel(
+                {
+                    evolution_at[0]: slice(
+                        start - half_width,
+                        start + half_width,
+                    ),
+                },
+            )
+            .mean(dim=evolution_at[0], keep_attrs=True)
+            .transpose(..., time_dim)
+        )
+
+    if data.S.is_subtracted:
+        kwargs["cmap"] = "RdBu_r"
+        kwargs["vmax"] = np.max(
+            [
+                np.abs(kwargs.get("vmin", data.min().item())),
+                np.abs(kwargs.get("vmax", data.max().item())),
+            ],
+        )
+        kwargs["vmin"] = -kwargs["vmax"]
+    kwargs["animated"] = True
+    arpes_data = data.isel({time_dim: 0})
+    arpes_mesh: QuadMesh = ax[0].pcolormesh(
+        arpes_data.coords[arpes_data.dims[1]].values,
+        arpes_data.coords[arpes_data.dims[0]].values,
+        arpes_data.values,
+        **kwargs,
+    )
+
+    evolution_mesh: QuadMesh = ax[1].pcolormesh(
+        evolution_data.coords[evolution_data.dims[1]].values,
+        evolution_data.coords[evolution_data.dims[0]].values,
+        evolution_data.values,
+        **kwargs,
+    )
+
+    _configure_axes_and_labels(ax, arpes_data, evolution_data, labels)
+
+    fig.colorbar(arpes_mesh, ax=ax[1])
+
+    fig.tight_layout()
+
+    def init() -> Iterable[Artist]:
+        return (arpes_mesh, evolution_mesh)
+
+    def update(frame: int) -> Iterable[Artist]:
+        arpes_mesh.set_array(data.isel({time_dim: frame}).values.ravel())
+        evolution_mesh.set_array(
+            _replace_after_col(evolution_data.values, col_num=frame + 1).ravel(),
+        )
+        return (arpes_mesh, evolution_mesh)
+
+    def update_only_arpes_mesh(frame: int) -> Iterable[Artist]:
+        arpes_mesh.set_array(data.isel({time_dim: frame}).values.ravel())
+        evolution_mesh.set_array(evolution_data.values.ravel())
+        return (arpes_mesh, evolution_mesh)
+
+    anim: FuncAnimation = FuncAnimation(
+        fig=fig,
+        func=update,
+        init_func=init,
+        frames=data.sizes[time_dim],
+        interval=interval_ms,
+    )
+
+    return anim, fig, update_only_arpes_mesh, data
+
+
 @save_plot_provenance
 def evolution_movie(  # noqa: PLR0913
     data: xr.DataArray,
@@ -165,135 +275,24 @@ def evolution_movie(  # noqa: PLR0913
     labels: tuple[str, str, str] | None = None,
     **kwargs: Unpack[PColorMeshKwargs],
 ) -> Path | HTML | Figure | FuncAnimation:
-    """Create an animatied plot of ARPES data with time evolution at certain position.
+    """Create an animated plot showing ARPES and its evolution (thin wrapper).
 
-    This function uses matplotlib's pcolormesh to create the plots.
-
-    Args:
-        data (xr.DataArray): ARPES data containing time-series data to animate.
-        time_dim (str): Dimension name for time, default is "delay"
-        interval_ms (float): Delay between frames in milliseconds,  default 100.
-        fig_ax (tuple[Figure, Axes]): matplotlib Figure and Axes objects, optional.
-        out (str | Path | Number | EllipsisType): Change output style.  If str or Path is set,
-            saving the animation. If the numerical value is set, the snapshot image (Figure object)
-            is returned (but not saved, use fig.save) and if nothing is set (or set None), return
-            the HTML object to display the animation.  and if ... is set, return the
-            FuncAnimation object itself.  Default is None.
-        figsize (tuple[float, float]): Size of the movie figure, optional.
-        width_ratio (tuple[float, float]): Width ratio of ARPES data and Time evolution data.
-        evolution_at (tuple[str, float] | tuple[str, tuple[float, float]): Position for time
-            evolution data, and the value.  if when the latter is tuple of two floats, the first
-            value is the center value and the second value is the half-width of the range.
-        labels (tuple[str, str, str]): Labels for the x- of left side panel, x-of right side panel
-            and y axes of the ARPES data.
-        kwargs: Additional keyword arguments for `pcolormesh`
-
-    Returns:
-        Path | HTML: The path to the saved animation or the animation object itself.
+    Delegates the heavy lifting to _construct_animation_for_evolution.
     """
-    config_manager = get_config_manager()
-    # Create the animation using the Agg backend to avoid GUI backends during rendering.
     with _use_mpl_backend("Agg"):
-        figsize = figsize or (9.0, 5.0)
-        width_ratio = width_ratio or (1.0, 4.4)
-        data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-
-        fig, ax = _initialize_figure_and_axes(fig_ax, figsize, width_ratio)
-        assert data.ndim == TWO_DIMENSION + 1
-
-        kwargs.setdefault(
-            "cmap",
-            config_manager.settings.get("interactive", {}).get(
-                "palette",
-                "viridis",
-            ),
-        )
-
-        if isinstance(evolution_at[1], Number):
-            evolution_data: xr.DataArray = data.sel(
-                {evolution_at[0]: evolution_at[1]},
-                method="nearest",
-            ).transpose(..., time_dim)
-        else:
-            assert isinstance(evolution_at[1], tuple)
-            start, half_width = evolution_at[1]
-            evolution_data = (
-                data.sel(
-                    {
-                        evolution_at[0]: slice(
-                            start - half_width,
-                            start + half_width,
-                        ),
-                    },
-                )
-                .mean(dim=evolution_at[0], keep_attrs=True)
-                .transpose(..., time_dim)
-            )
-
-        if data.S.is_subtracted:
-            kwargs["cmap"] = "RdBu_r"
-            kwargs["vmax"] = np.max(
-                [
-                    np.abs(kwargs.get("vmin", data.min().item())),
-                    np.abs(kwargs.get("vmax", data.max().item())),
-                ],
-            )
-            kwargs["vmin"] = -kwargs["vmax"]
-        kwargs["animated"] = True
-        arpes_data = data.isel({time_dim: 0})
-        arpes_mesh: QuadMesh = ax[0].pcolormesh(
-            arpes_data.coords[arpes_data.dims[1]].values,
-            arpes_data.coords[arpes_data.dims[0]].values,
-            arpes_data.values,
+        anim, fig, update_func, data = _construct_animation_for_evolution(
+            data,
+            time_dim=time_dim,
+            interval_ms=interval_ms,
+            fig_ax=fig_ax,
+            figsize=figsize,
+            width_ratio=width_ratio,
+            evolution_at=evolution_at,
+            labels=labels,
             **kwargs,
         )
 
-        evolution_mesh: QuadMesh = ax[1].pcolormesh(
-            evolution_data.coords[evolution_data.dims[1]].values,
-            evolution_data.coords[evolution_data.dims[0]].values,
-            evolution_data.values,
-            **kwargs,
-        )
-
-        _configure_axes_and_labels(ax, arpes_data, evolution_data, labels)
-
-        fig.colorbar(arpes_mesh, ax=ax[1])
-
-        fig.tight_layout()
-
-        def init() -> Iterable[Artist]:
-            return (arpes_mesh, evolution_mesh)
-
-        def update(frame: int) -> Iterable[Artist]:
-            arpes_mesh.set_array(data.isel({time_dim: frame}).values.ravel())
-            evolution_mesh.set_array(
-                _replace_after_col(evolution_data.values, col_num=frame + 1).ravel(),
-            )
-            return (arpes_mesh, evolution_mesh)
-
-        def update_only_arpes_mesh(frame: int) -> Iterable[Artist]:
-            arpes_mesh.set_array(data.isel({time_dim: frame}).values.ravel())
-            evolution_mesh.set_array(evolution_data.values.ravel())
-            return (arpes_mesh, evolution_mesh)
-
-        anim: FuncAnimation = FuncAnimation(
-            fig=fig,
-            func=update,
-            init_func=init,
-            frames=data.sizes[time_dim],
-            interval=interval_ms,
-        )
-
-    # backend restored by context manager
-
-    return output_animation(
-        anim=anim,
-        data=data,
-        update_func=update_only_arpes_mesh,
-        fig=fig,
-        time_dim=time_dim,
-        out=out,
-    )
+    return output_animation(anim=anim, data=data, update_func=update_func, fig=fig, time_dim=time_dim, out=out)
 
 
 @save_plot_provenance
@@ -308,6 +307,22 @@ def movie(  # noqa: PLR0913
     labels: tuple[str, str] | None = None,
     **kwargs: Unpack[PColorMeshKwargs],
 ) -> Path | HTML | Figure | FuncAnimation:
+    """Create an animated movie of a 3D dataset using one dimension as "time" (thin wrapper).
+
+    Delegates the heavy lifting to _construct_animation_for_movie.
+    """
+    with _use_mpl_backend("Agg"):
+        anim, fig, update_func, data = _construct_animation_for_movie(
+            data,
+            time_dim=time_dim,
+            interval_ms=interval_ms,
+            fig_ax=fig_ax,
+            figsize=figsize,
+            labels=labels,
+            **kwargs,
+        )
+
+    return output_animation(anim=anim, data=data, update_func=update_func, fig=fig, time_dim=time_dim, out=out)
     """Create an animated movie of a 3D dataset using one dimension as "time".
 
     This function uses matplotlib's pcolormesh to create the plots.
@@ -421,6 +436,87 @@ def _replace_after_col(array: NDArray[np.floating], col_num: int) -> NDArray[np.
         NDArray[np.floating]: The modified array with NaN values after the specified column.
     """
     return np.where(np.arange(array.shape[1])[:, None] >= col_num, np.nan, array.T).T
+
+
+def _construct_animation_for_movie(
+    data: xr.DataArray,
+    *,
+    time_dim: str = "delay",
+    interval_ms: float = 100,
+    fig_ax: tuple[Figure | None, Axes | None] | None = None,
+    figsize: tuple[float, float] | None = None,
+    labels: tuple[str, str] | None = None,
+    **kwargs: Unpack[PColorMeshKwargs],
+) -> tuple[FuncAnimation, Figure, Callable[[int], "Iterable[Artist]"], xr.DataArray]:
+    """Construct animation for the single-panel `movie` variant.
+
+    Returns: anim, fig, update_func, data
+    """
+    config_manager = get_config_manager()
+    figsize = figsize or (9.0, 5.0)
+    data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
+    fig, ax = fig_ax or plt.subplots(figsize=figsize)
+    assert isinstance(ax, Axes)
+    assert isinstance(fig, Figure)
+    assert isinstance(data, xr.DataArray)
+    assert data.ndim == TWO_DIMENSION + 1
+
+    kwargs.setdefault(
+        "cmap",
+        config_manager.settings.get("interactive", {}).get(
+            "palette",
+            "viridis",
+        ),
+    )
+
+    if data.S.is_subtracted:
+        kwargs["cmap"] = "RdBu_r"
+        kwargs["vmax"] = np.max(
+            [
+                np.abs(kwargs.get("vmin", data.min().item())),
+                np.abs(kwargs.get("vmax", data.max().item())),
+            ],
+        )
+        kwargs["vmin"] = -kwargs["vmax"]
+    arpes_data = data.isel({time_dim: 0})
+    arpes_mesh: QuadMesh = ax.pcolormesh(
+        arpes_data.coords[arpes_data.dims[1]].values,
+        arpes_data.coords[arpes_data.dims[0]].values,
+        arpes_data.values,
+        **kwargs,
+    )
+    if labels:
+        ax.set_xlabel(labels[0])
+        ax.set_ylabel(labels[1])
+    else:
+        ax.set_xlabel(str(arpes_data.dims[1]))
+        ax.set_ylabel(str(arpes_data.dims[0]))
+
+    arpes_mesh.set_animated(True)
+
+    _ = fig.colorbar(arpes_mesh, ax=ax)
+
+    title: Text = ax.set_title(f"pump probe delay={data.coords[time_dim].values[0]: >9.3f}")
+
+    def init() -> Iterable[Artist]:
+        return (arpes_mesh,)
+
+    def update(frame: int) -> Iterable[Artist]:
+        title.set_text(f"pump probe delay={data.coords[time_dim].values[frame]: >9.3f}")
+        arpes_mesh.set_array(data.isel({time_dim: frame}).values.ravel())
+        arpes_mesh.set_animated(True)
+        return (arpes_mesh,)
+
+    anim: FuncAnimation = FuncAnimation(
+        fig=fig,
+        func=update,
+        init_func=init,
+        frames=data.sizes[time_dim],
+        blit=True,
+        interval=interval_ms,
+    )
+
+    return anim, fig, update, data
 
 
 def _replace_after_row(array: NDArray[np.floating], row_num: int) -> NDArray[np.floating]:
