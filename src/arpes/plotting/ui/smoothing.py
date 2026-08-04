@@ -120,7 +120,7 @@ class SmoothingApp(BaseUI):
 
         self.output_button = pn.widgets.Button(
             label="Apply",
-            button_type="primary",
+            color="primary",
         )
         self.output_button.on_click(self._on_apply)
 
