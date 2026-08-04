@@ -7,6 +7,9 @@ from numbers import Number
 from pathlib import Path
 from typing import TYPE_CHECKING, Unpack
 
+import contextlib
+import warnings
+
 import matplotlib as mpl
 import numpy as np
 import xarray as xr
@@ -41,6 +44,21 @@ logger = setup_logger(__name__, LOGLEVEL)
 
 
 __all__ = ("movie", "output_animation", "plot_movie_and_evolution")
+
+
+@contextlib.contextmanager
+def _use_mpl_backend(name: str = "Agg"):
+    """Temporarily set the matplotlib backend and restore previous value.
+
+    Using mpl.use directly can have global side effects; this context manager
+    ensures the previous backend is restored even when exceptions occur.
+    """
+    prev = mpl.get_backend()
+    mpl.use(name)
+    try:
+        yield
+    finally:
+        mpl.use(prev)
 
 
 def output_animation(  # noqa: PLR0913
@@ -174,99 +192,99 @@ def evolution_movie(  # noqa: PLR0913
         Path | HTML: The path to the saved animation or the animation object itself.
     """
     config_manager = get_config_manager()
-    backend = mpl.get_backend()
-    mpl.use("Agg")
-    figsize = figsize or (9.0, 5.0)
-    width_ratio = width_ratio or (1.0, 4.4)
-    data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
+    # Create the animation using the Agg backend to avoid GUI backends during rendering.
+    with _use_mpl_backend("Agg"):
+        figsize = figsize or (9.0, 5.0)
+        width_ratio = width_ratio or (1.0, 4.4)
+        data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
 
-    fig, ax = _initialize_figure_and_axes(fig_ax, figsize, width_ratio)
-    assert data.ndim == TWO_DIMENSION + 1
+        fig, ax = _initialize_figure_and_axes(fig_ax, figsize, width_ratio)
+        assert data.ndim == TWO_DIMENSION + 1
 
-    kwargs.setdefault(
-        "cmap",
-        config_manager.settings.get("interactive", {}).get(
-            "palette",
-            "viridis",
-        ),
-    )
+        kwargs.setdefault(
+            "cmap",
+            config_manager.settings.get("interactive", {}).get(
+                "palette",
+                "viridis",
+            ),
+        )
 
-    if isinstance(evolution_at[1], Number):
-        evolution_data: xr.DataArray = data.sel(
-            {evolution_at[0]: evolution_at[1]},
-            method="nearest",
-        ).transpose(..., time_dim)
-    else:
-        assert isinstance(evolution_at[1], tuple)
-        start, half_width = evolution_at[1]
-        evolution_data = (
-            data.sel(
-                {
-                    evolution_at[0]: slice(
-                        start - half_width,
-                        start + half_width,
-                    ),
-                },
+        if isinstance(evolution_at[1], Number):
+            evolution_data: xr.DataArray = data.sel(
+                {evolution_at[0]: evolution_at[1]},
+                method="nearest",
+            ).transpose(..., time_dim)
+        else:
+            assert isinstance(evolution_at[1], tuple)
+            start, half_width = evolution_at[1]
+            evolution_data = (
+                data.sel(
+                    {
+                        evolution_at[0]: slice(
+                            start - half_width,
+                            start + half_width,
+                        ),
+                    },
+                )
+                .mean(dim=evolution_at[0], keep_attrs=True)
+                .transpose(..., time_dim)
             )
-            .mean(dim=evolution_at[0], keep_attrs=True)
-            .transpose(..., time_dim)
+
+        if data.S.is_subtracted:
+            kwargs["cmap"] = "RdBu_r"
+            kwargs["vmax"] = np.max(
+                [
+                    np.abs(kwargs.get("vmin", data.min().item())),
+                    np.abs(kwargs.get("vmax", data.max().item())),
+                ],
+            )
+            kwargs["vmin"] = -kwargs["vmax"]
+        kwargs["animated"] = True
+        arpes_data = data.isel({time_dim: 0})
+        arpes_mesh: QuadMesh = ax[0].pcolormesh(
+            arpes_data.coords[arpes_data.dims[1]].values,
+            arpes_data.coords[arpes_data.dims[0]].values,
+            arpes_data.values,
+            **kwargs,
         )
 
-    if data.S.is_subtracted:
-        kwargs["cmap"] = "RdBu_r"
-        kwargs["vmax"] = np.max(
-            [
-                np.abs(kwargs.get("vmin", data.min().item())),
-                np.abs(kwargs.get("vmax", data.max().item())),
-            ],
+        evolution_mesh: QuadMesh = ax[1].pcolormesh(
+            evolution_data.coords[evolution_data.dims[1]].values,
+            evolution_data.coords[evolution_data.dims[0]].values,
+            evolution_data.values,
+            **kwargs,
         )
-        kwargs["vmin"] = -kwargs["vmax"]
-    kwargs["animated"] = True
-    arpes_data = data.isel({time_dim: 0})
-    arpes_mesh: QuadMesh = ax[0].pcolormesh(
-        arpes_data.coords[arpes_data.dims[1]].values,
-        arpes_data.coords[arpes_data.dims[0]].values,
-        arpes_data.values,
-        **kwargs,
-    )
 
-    evolution_mesh: QuadMesh = ax[1].pcolormesh(
-        evolution_data.coords[evolution_data.dims[1]].values,
-        evolution_data.coords[evolution_data.dims[0]].values,
-        evolution_data.values,
-        **kwargs,
-    )
+        _configure_axes_and_labels(ax, arpes_data, evolution_data, labels)
 
-    _configure_axes_and_labels(ax, arpes_data, evolution_data, labels)
+        fig.colorbar(arpes_mesh, ax=ax[1])
 
-    fig.colorbar(arpes_mesh, ax=ax[1])
+        fig.tight_layout()
 
-    fig.tight_layout()
+        def init() -> Iterable[Artist]:
+            return (arpes_mesh, evolution_mesh)
 
-    def init() -> Iterable[Artist]:
-        return (arpes_mesh, evolution_mesh)
+        def update(frame: int) -> Iterable[Artist]:
+            arpes_mesh.set_array(data.isel({time_dim: frame}).values.ravel())
+            evolution_mesh.set_array(
+                _replace_after_col(evolution_data.values, col_num=frame + 1).ravel(),
+            )
+            return (arpes_mesh, evolution_mesh)
 
-    def update(frame: int) -> Iterable[Artist]:
-        arpes_mesh.set_array(data.isel({time_dim: frame}).values.ravel())
-        evolution_mesh.set_array(
-            _replace_after_col(evolution_data.values, col_num=frame + 1).ravel(),
+        def update_only_arpes_mesh(frame: int) -> Iterable[Artist]:
+            arpes_mesh.set_array(data.isel({time_dim: frame}).values.ravel())
+            evolution_mesh.set_array(evolution_data.values.ravel())
+            return (arpes_mesh, evolution_mesh)
+
+        anim: FuncAnimation = FuncAnimation(
+            fig=fig,
+            func=update,
+            init_func=init,
+            frames=data.sizes[time_dim],
+            interval=interval_ms,
         )
-        return (arpes_mesh, evolution_mesh)
 
-    def update_only_arpes_mesh(frame: int) -> Iterable[Artist]:
-        arpes_mesh.set_array(data.isel({time_dim: frame}).values.ravel())
-        evolution_mesh.set_array(evolution_data.values.ravel())
-        return (arpes_mesh, evolution_mesh)
-
-    anim: FuncAnimation = FuncAnimation(
-        fig=fig,
-        func=update,
-        init_func=init,
-        frames=data.sizes[time_dim],
-        interval=interval_ms,
-    )
-
-    mpl.use(backend)
+    # backend restored by context manager
 
     return output_animation(
         anim=anim,
@@ -315,73 +333,72 @@ def movie(  # noqa: PLR0913
         TypeError: If the argument types are incorrect.
     """
     config_manager = get_config_manager()
-    backend = mpl.get_backend()
-    mpl.use("Agg")
+    # Use Agg backend during animation construction to avoid GUI backends.
+    with _use_mpl_backend("Agg"):
+        figsize = figsize or (9.0, 5.0)
+        data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
+        fig, ax = fig_ax or plt.subplots(figsize=figsize)
+        assert isinstance(ax, Axes)
+        assert isinstance(fig, Figure)
+        assert isinstance(data, xr.DataArray)
+        assert data.ndim == TWO_DIMENSION + 1
 
-    figsize = figsize or (9.0, 5.0)
-    data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
-    fig, ax = fig_ax or plt.subplots(figsize=figsize)
-    assert isinstance(ax, Axes)
-    assert isinstance(fig, Figure)
-    assert isinstance(data, xr.DataArray)
-    assert data.ndim == TWO_DIMENSION + 1
-
-    kwargs.setdefault(
-        "cmap",
-        config_manager.settings.get("interactive", {}).get(
-            "palette",
-            "viridis",
-        ),
-    )
-
-    if data.S.is_subtracted:
-        kwargs["cmap"] = "RdBu_r"
-        kwargs["vmax"] = np.max(
-            [
-                np.abs(kwargs.get("vmin", data.min().item())),
-                np.abs(kwargs.get("vmax", data.max().item())),
-            ],
+        kwargs.setdefault(
+            "cmap",
+            config_manager.settings.get("interactive", {}).get(
+                "palette",
+                "viridis",
+            ),
         )
-        kwargs["vmin"] = -kwargs["vmax"]
-    arpes_data = data.isel({time_dim: 0})
-    arpes_mesh: QuadMesh = ax.pcolormesh(
-        arpes_data.coords[arpes_data.dims[1]].values,
-        arpes_data.coords[arpes_data.dims[0]].values,
-        arpes_data.values,
-        **kwargs,
-    )
-    if labels:
-        ax.set_xlabel(labels[0])
-        ax.set_ylabel(labels[1])
-    else:
-        ax.set_xlabel(str(arpes_data.dims[1]))
-        ax.set_ylabel(str(arpes_data.dims[0]))
 
-    arpes_mesh.set_animated(True)
+        if data.S.is_subtracted:
+            kwargs["cmap"] = "RdBu_r"
+            kwargs["vmax"] = np.max(
+                [
+                    np.abs(kwargs.get("vmin", data.min().item())),
+                    np.abs(kwargs.get("vmax", data.max().item())),
+                ],
+            )
+            kwargs["vmin"] = -kwargs["vmax"]
+        arpes_data = data.isel({time_dim: 0})
+        arpes_mesh: QuadMesh = ax.pcolormesh(
+            arpes_data.coords[arpes_data.dims[1]].values,
+            arpes_data.coords[arpes_data.dims[0]].values,
+            arpes_data.values,
+            **kwargs,
+        )
+        if labels:
+            ax.set_xlabel(labels[0])
+            ax.set_ylabel(labels[1])
+        else:
+            ax.set_xlabel(str(arpes_data.dims[1]))
+            ax.set_ylabel(str(arpes_data.dims[0]))
 
-    _ = fig.colorbar(arpes_mesh, ax=ax)
-
-    title: Text = ax.set_title(f"pump probe delay={data.coords[time_dim].values[0]: >9.3f}")
-
-    def init() -> Iterable[Artist]:
-        return (arpes_mesh,)
-
-    def update(frame: int) -> Iterable[Artist]:
-        title.set_text(f"pump probe delay={data.coords[time_dim].values[frame]: >9.3f}")
-        arpes_mesh.set_array(data.isel({time_dim: frame}).values.ravel())
         arpes_mesh.set_animated(True)
-        return (arpes_mesh,)
 
-    anim: FuncAnimation = FuncAnimation(
-        fig=fig,
-        func=update,
-        init_func=init,
-        frames=data.sizes[time_dim],
-        blit=True,
-        interval=interval_ms,
-    )
+        _ = fig.colorbar(arpes_mesh, ax=ax)
 
-    mpl.use(backend)
+        title: Text = ax.set_title(f"pump probe delay={data.coords[time_dim].values[0]: >9.3f}")
+
+        def init() -> Iterable[Artist]:
+            return (arpes_mesh,)
+
+        def update(frame: int) -> Iterable[Artist]:
+            title.set_text(f"pump probe delay={data.coords[time_dim].values[frame]: >9.3f}")
+            arpes_mesh.set_array(data.isel({time_dim: frame}).values.ravel())
+            arpes_mesh.set_animated(True)
+            return (arpes_mesh,)
+
+        anim: FuncAnimation = FuncAnimation(
+            fig=fig,
+            func=update,
+            init_func=init,
+            frames=data.sizes[time_dim],
+            blit=True,
+            interval=interval_ms,
+        )
+
+    # backend restored by context manager
 
     return output_animation(
         anim=anim,
@@ -422,5 +439,18 @@ def _replace_after_row(array: NDArray[np.floating], row_num: int) -> NDArray[np.
 # Backwards-compatible aliases
 # The public function was renamed to `movie` for conciseness; provide aliases
 # so existing call sites continue to work until callers are migrated.
-plot_movie = movie
+def plot_movie(*args, **kwargs):
+    """Deprecated alias for movie(...).
+
+    Emits a DeprecationWarning recommending arpes.plotting.movie.movie and
+    forwards the call to the new function.
+    """
+    warnings.warn(
+        "arpes.plotting.movie.plot_movie is deprecated; use arpes.plotting.movie.movie instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return movie(*args, **kwargs)
+
+
 plot_movie_and_evolution = evolution_movie
