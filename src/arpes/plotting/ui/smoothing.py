@@ -105,22 +105,22 @@ class SmoothingApp(BaseUI):
         }
 
         self.smoothing_select = pn.widgets.Select(
-            name="Smoothing Function",
+            label="Smoothing Function",
             options=list(
                 self.smoothing_funcs,
             ),
         )
 
         self.output_name = pn.widgets.TextInput(
-            name="Output Name",
+            label="Output Name",
             placeholder="e.g., smoothed1",
         )
 
         self._update_plot()
 
         self.output_button = pn.widgets.Button(
-            name="Apply",
-            button_type="primary",
+            label="Apply",
+            color="primary",
         )
         self.output_button.on_click(self._on_apply)
 
@@ -344,7 +344,7 @@ class DifferentiateApp(SmoothingApp):
         }
 
         self.derivation_select = pn.widgets.Select(
-            name="Derivative Function",
+            label="Derivative Function",
             options=list(
                 self.derivative_funcs,
             ),
@@ -525,9 +525,9 @@ def _derivative_slider(data: xr.DataArray) -> dict[Hashable, pn.widgets.Widget]:
         dict[str, pn.widgets.Widget]: A dictionary of slider widgets.
     """
     return {
-        "axis": pn.widgets.Select(name="axis", options=list(data.dims)),
+        "axis": pn.widgets.Select(label="axis", options=list(data.dims)),
         "derivative_order": pn.widgets.IntSlider(
-            name="Derivative Order",
+            label="Derivative Order",
             value=1,
             start=1,
             end=10,
@@ -546,17 +546,17 @@ def _savgol_deriv_slider(data: xr.DataArray) -> dict[Hashable, pn.widgets.Widget
         dict[str, pn.widgets.Widget]: A dictionary of slider widgets.
     """
     return {
-        "axis": pn.widgets.Select(name="axis", options=list(data.dims)),
-        "order": pn.widgets.IntSlider(value=1, start=1, end=6, step=1, name="Order"),
+        "axis": pn.widgets.Select(label="axis", options=list(data.dims)),
+        "order": pn.widgets.IntSlider(value=1, start=1, end=6, step=1, label="Order"),
         "window_length": pn.widgets.IntSlider(
-            name="Window Length",
+            label="Window Length",
             start=1,
             end=25,
             step=2,
             value=5,
         ),
         "polyorder": pn.widgets.IntSlider(
-            name="Polyorder",
+            label="Polyorder",
             start=0,
             end=6,
             step=1,
@@ -575,9 +575,9 @@ def _max_curvature_1d_slider(data: xr.DataArray) -> dict[Hashable, pn.widgets.Wi
         dict[str, pn.widgets.Widget]: A dictionary of slider widgets.
     """
     return {
-        "axis": pn.widgets.Select(name="axis", options=list(data.dims)),
+        "axis": pn.widgets.Select(label="axis", options=list(data.dims)),
         "coefficient a": pn.widgets.FloatSlider(
-            name="Coefficient a",
+            label="Coefficient a",
             value=0.1,
             start=0.0,
             end=1,
@@ -595,7 +595,7 @@ def _max_curvature_2d_slider() -> dict[Hashable, pn.widgets.Widget]:
     """
     return {
         "coefficient a": pn.widgets.FloatSlider(
-            name="Coefficient a",
+            label="Coefficient a",
             value=0.1,
             start=0.0,
             end=1,
@@ -603,7 +603,7 @@ def _max_curvature_2d_slider() -> dict[Hashable, pn.widgets.Widget]:
             format="0.0000",
         ),
         "weight_2D": pn.widgets.FloatSlider(
-            name="Weight 2D",
+            label="Weight 2D",
             start=-10.0,
             end=10.0,
             step=0.001,
@@ -621,7 +621,7 @@ def _iteration_slider() -> dict[Hashable, pn.widgets.Widget]:
     """
     return {
         "iteration": pn.widgets.IntSlider(
-            name="Iteration",
+            label="Iteration",
             value=1,
             start=1,
             end=10,
@@ -642,7 +642,7 @@ def _gaussian_slider(data: xr.DataArray) -> dict[Hashable, pn.widgets.Widget]:
     sliders = _iteration_slider()
     for dim in data.dims:
         sliders[dim] = pn.widgets.FloatSlider(
-            name=f"Sigma {dim}",
+            label=f"Sigma {dim}",
             start=0,
             end=round(data.G.stride(generic_dim_names=False)[dim].item() * 100, 2),
             step=0.001,
@@ -664,7 +664,7 @@ def _boxcar_slider(data: xr.DataArray) -> dict[Hashable, pn.widgets.Widget]:
     sliders = _iteration_slider()
     for dim in data.dims:
         sliders[dim] = pn.widgets.FloatSlider(
-            name=f"Kernel Size {dim}",
+            label=f"Kernel Size {dim}",
             start=0.0,
             end=round(data.G.stride(generic_dim_names=False)[dim].item() * 100, 2),
             step=0.001,
@@ -686,14 +686,14 @@ def _savgol_slider(data: xr.DataArray) -> dict[Hashable, pn.widgets.Widget]:
     sliders: dict[Hashable, pn.widgets.Widget] = {}
     for dim in data.dims:
         sliders[f"window_length_{dim}"] = pn.widgets.IntSlider(
-            name=f"Window Length {dim}",
+            label=f"Window Length {dim}",
             start=1,
             end=25,
             step=2,
             value=5,
         )
         sliders[f"polyorder_{dim}"] = pn.widgets.IntSlider(
-            name=f"Polyorder {dim}",
+            label=f"Polyorder {dim}",
             start=0,
             end=6,
             step=1,

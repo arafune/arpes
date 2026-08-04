@@ -19,6 +19,12 @@ from arpes.plotting.movie import (
 )
 
 
+@pytest.fixture(autouse=True)
+def close_figure():
+    yield
+    plt.close("all")
+
+
 @pytest.fixture
 def sample_data(mock_tarpes: list[xr.DataArray]):
     return tarpes.build_crosscorrelation(
