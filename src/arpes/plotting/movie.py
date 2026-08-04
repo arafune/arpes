@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import contextlib
+import warnings
 from logging import DEBUG, INFO
-from numbers import Number
 from pathlib import Path
-from typing import TYPE_CHECKING, Unpack
+from typing import TYPE_CHECKING, ParamSpec, TypeVar, Unpack
 
 import matplotlib as mpl
 import numpy as np
@@ -25,7 +26,7 @@ from arpes.utilities import normalize_to_spectrum
 from .utils import path_for_plot
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable
+    from collections.abc import Callable, Generator, Iterable
     from types import EllipsisType
 
     from matplotlib.artist import Artist
@@ -41,6 +42,21 @@ logger = setup_logger(__name__, LOGLEVEL)
 
 
 __all__ = ("movie", "output_animation", "plot_movie_and_evolution")
+
+
+@contextlib.contextmanager
+def _use_mpl_backend(name: str = "Agg") -> Generator[None, None, None]:
+    """Temporarily set the matplotlib backend and restore previous value.
+
+    Using mpl.use directly can have global side effects; this context manager
+    ensures the previous backend is restored even when exceptions occur.
+    """
+    prev = mpl.get_backend()
+    mpl.use(name)
+    try:
+        yield
+    finally:
+        mpl.use(prev)
 
 
 def output_animation(  # noqa: PLR0913
@@ -74,14 +90,14 @@ def output_animation(  # noqa: PLR0913
     if out is Ellipsis:
         return anim
 
-    if isinstance(out, str | Path):
+    if isinstance(out, (str, Path)):
         logger.debug(msg=f"path_for_plot is {path_for_plot(out)}")
         anim.save(str(path_for_plot(out)))
         return path_for_plot(out)
 
     assert update_func is not None
     assert fig is not None
-    if isinstance(out, Number):
+    if isinstance(out, (int, float)):
         index: int = data.indexes[time_dim].get_indexer([out], method="nearest")[0]
         update_func(index)
         fig.canvas.draw()
@@ -133,49 +149,23 @@ def _configure_axes_and_labels(
     ax[1].set_ylabel("")
 
 
-@save_plot_provenance
-def evolution_movie(  # noqa: PLR0913
+def _construct_animation_for_evolution(  # noqa: PLR0913
     data: xr.DataArray,
     *,
     time_dim: str = "delay",
     interval_ms: float = 100,
     fig_ax: tuple[Figure | None, NDArray[np.object_] | None] | None = None,
-    out: str | Path | float | EllipsisType | None = None,
     figsize: tuple[float, float] | None = None,
     width_ratio: tuple[float, float] | None = None,
-    evolution_at: tuple[str, float] | tuple[str, tuple[float, float]] = ("phi", 0.0),
+    evolution_at: tuple[str, int | float] | tuple[str, tuple[float, float]] = ("phi", 0.0),
     labels: tuple[str, str, str] | None = None,
     **kwargs: Unpack[PColorMeshKwargs],
-) -> Path | HTML | Figure | FuncAnimation:
-    """Create an animatied plot of ARPES data with time evolution at certain position.
+) -> tuple[FuncAnimation, Figure, Callable[[int], Iterable[Artist]], xr.DataArray]:
+    """Build FuncAnimation for evolution_movie and return anim, fig, update_only_arpes_mesh, data.
 
-    This function uses matplotlib's pcolormesh to create the plots.
-
-    Args:
-        data (xr.DataArray): ARPES data containing time-series data to animate.
-        time_dim (str): Dimension name for time, default is "delay"
-        interval_ms (float): Delay between frames in milliseconds,  default 100.
-        fig_ax (tuple[Figure, Axes]): matplotlib Figure and Axes objects, optional.
-        out (str | Path | Number | EllipsisType): Change output style.  If str or Path is set,
-            saving the animation. If the numerical value is set, the snapshot image (Figure object)
-            is returned (but not saved, use fig.save) and if nothing is set (or set None), return
-            the HTML object to display the animation.  and if ... is set, return the
-            FuncAnimation object itself.  Default is None.
-        figsize (tuple[float, float]): Size of the movie figure, optional.
-        width_ratio (tuple[float, float]): Width ratio of ARPES data and Time evolution data.
-        evolution_at (tuple[str, float] | tuple[str, tuple[float, float]): Position for time
-            evolution data, and the value.  if when the latter is tuple of two floats, the first
-            value is the center value and the second value is the half-width of the range.
-        labels (tuple[str, str, str]): Labels for the x- of left side panel, x-of right side panel
-            and y axes of the ARPES data.
-        kwargs: Additional keyword arguments for `pcolormesh`
-
-    Returns:
-        Path | HTML: The path to the saved animation or the animation object itself.
+    This extracts shared creation logic used by both wrappers.
     """
     config_manager = get_config_manager()
-    backend = mpl.get_backend()
-    mpl.use("Agg")
     figsize = figsize or (9.0, 5.0)
     width_ratio = width_ratio or (1.0, 4.4)
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
@@ -191,7 +181,7 @@ def evolution_movie(  # noqa: PLR0913
         ),
     )
 
-    if isinstance(evolution_at[1], Number):
+    if isinstance(evolution_at[1], (int, float)):
         evolution_data: xr.DataArray = data.sel(
             {evolution_at[0]: evolution_at[1]},
             method="nearest",
@@ -266,12 +256,44 @@ def evolution_movie(  # noqa: PLR0913
         interval=interval_ms,
     )
 
-    mpl.use(backend)
+    return anim, fig, update_only_arpes_mesh, data
+
+
+@save_plot_provenance
+def evolution_movie(  # noqa: PLR0913
+    data: xr.DataArray,
+    *,
+    time_dim: str = "delay",
+    interval_ms: float = 100,
+    fig_ax: tuple[Figure | None, NDArray[np.object_] | None] | None = None,
+    out: str | Path | float | EllipsisType | None = None,
+    figsize: tuple[float, float] | None = None,
+    width_ratio: tuple[float, float] | None = None,
+    evolution_at: tuple[str, float] | tuple[str, tuple[float, float]] = ("phi", 0.0),
+    labels: tuple[str, str, str] | None = None,
+    **kwargs: Unpack[PColorMeshKwargs],
+) -> Path | HTML | Figure | FuncAnimation:
+    """Create an animated plot showing ARPES and its evolution (thin wrapper).
+
+    Delegates the heavy lifting to _construct_animation_for_evolution.
+    """
+    with _use_mpl_backend("Agg"):
+        anim, fig, update_func, data = _construct_animation_for_evolution(
+            data,
+            time_dim=time_dim,
+            interval_ms=interval_ms,
+            fig_ax=fig_ax,
+            figsize=figsize,
+            width_ratio=width_ratio,
+            evolution_at=evolution_at,
+            labels=labels,
+            **kwargs,
+        )
 
     return output_animation(
         anim=anim,
         data=data,
-        update_func=update_only_arpes_mesh,
+        update_func=update_func,
         fig=fig,
         time_dim=time_dim,
         out=out,
@@ -290,9 +312,9 @@ def movie(  # noqa: PLR0913
     labels: tuple[str, str] | None = None,
     **kwargs: Unpack[PColorMeshKwargs],
 ) -> Path | HTML | Figure | FuncAnimation:
-    """Create an animated movie of a 3D dataset using one dimension as "time".
+    """Create an animated movie of a 3D dataset using one dimension as "time" (thin wrapper).
 
-    This function uses matplotlib's pcolormesh to create the plots.
+    Delegates the heavy lifting to _construct_animation_for_movie.
 
     Args:
         data (xr.DataArray): ARPES data containing time-series data to animate.
@@ -314,10 +336,55 @@ def movie(  # noqa: PLR0913
     Raises:
         TypeError: If the argument types are incorrect.
     """
-    config_manager = get_config_manager()
-    backend = mpl.get_backend()
-    mpl.use("Agg")
+    with _use_mpl_backend("Agg"):
+        anim, fig, update_func, data = _construct_animation_for_movie(
+            data,
+            time_dim=time_dim,
+            interval_ms=interval_ms,
+            fig_ax=fig_ax,
+            figsize=figsize,
+            labels=labels,
+            **kwargs,
+        )
 
+    return output_animation(
+        anim=anim,
+        data=data,
+        update_func=update_func,
+        fig=fig,
+        time_dim=time_dim,
+        out=out,
+    )
+
+
+def _replace_after_col(array: NDArray[np.floating], col_num: int) -> NDArray[np.floating]:
+    """Replace elements in the array with NaN af ter a specified column.
+
+    Args:
+        array (NDArray[np.floating): The input array.
+        col_num (int): The column number after which elements will be replaced with NaN.
+
+    Returns:
+        NDArray[np.floating]: The modified array with NaN values after the specified column.
+    """
+    return np.where(np.arange(array.shape[1])[:, None] >= col_num, np.nan, array.T).T
+
+
+def _construct_animation_for_movie(  # noqa: PLR0913
+    data: xr.DataArray,
+    *,
+    time_dim: str = "delay",
+    interval_ms: float = 100,
+    fig_ax: tuple[Figure | None, Axes | None] | None = None,
+    figsize: tuple[float, float] | None = None,
+    labels: tuple[str, str] | None = None,
+    **kwargs: Unpack[PColorMeshKwargs],
+) -> tuple[FuncAnimation, Figure, Callable[[int], Iterable[Artist]], xr.DataArray]:
+    """Construct animation for the single-panel `movie` variant.
+
+    Returns: anim, fig, update_func, data
+    """
+    config_manager = get_config_manager()
     figsize = figsize or (9.0, 5.0)
     data = data if isinstance(data, xr.DataArray) else normalize_to_spectrum(data)
     fig, ax = fig_ax or plt.subplots(figsize=figsize)
@@ -381,29 +448,7 @@ def movie(  # noqa: PLR0913
         interval=interval_ms,
     )
 
-    mpl.use(backend)
-
-    return output_animation(
-        anim=anim,
-        data=data,
-        update_func=update,
-        fig=fig,
-        time_dim=time_dim,
-        out=out,
-    )
-
-
-def _replace_after_col(array: NDArray[np.floating], col_num: int) -> NDArray[np.floating]:
-    """Replace elements in the array with NaN af ter a specified column.
-
-    Args:
-        array (NDArray[np.floating): The input array.
-        col_num (int): The column number after which elements will be replaced with NaN.
-
-    Returns:
-        NDArray[np.floating]: The modified array with NaN values after the specified column.
-    """
-    return np.where(np.arange(array.shape[1])[:, None] >= col_num, np.nan, array.T).T
+    return anim, fig, update, data
 
 
 def _replace_after_row(array: NDArray[np.floating], row_num: int) -> NDArray[np.floating]:
@@ -422,5 +467,23 @@ def _replace_after_row(array: NDArray[np.floating], row_num: int) -> NDArray[np.
 # Backwards-compatible aliases
 # The public function was renamed to `movie` for conciseness; provide aliases
 # so existing call sites continue to work until callers are migrated.
-plot_movie = movie
+
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+def plot_movie(*args: P.args, **kwargs: P.kwargs) -> R:
+    """Deprecated alias for movie(...).
+
+    Emits a DeprecationWarning recommending arpes.plotting.movie.movie and
+    forwards the call to the new function.
+    """
+    warnings.warn(
+        "arpes.plotting.movie.plot_movie is deprecated; use arpes.plotting.movie.movie instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return movie(*args, **kwargs)
+
+
 plot_movie_and_evolution = evolution_movie
