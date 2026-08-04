@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
+import contextlib
+import warnings
 from logging import DEBUG, INFO
 from numbers import Number
 from pathlib import Path
-from typing import TYPE_CHECKING, Unpack
-
-import contextlib
-import warnings
+from typing import TYPE_CHECKING, ParamSpec, TypeVar, Unpack
 
 import matplotlib as mpl
 import numpy as np
@@ -28,7 +27,7 @@ from arpes.utilities import normalize_to_spectrum
 from .utils import path_for_plot
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable
+    from collections.abc import Callable, Generator, Iterable
     from types import EllipsisType
 
     from matplotlib.artist import Artist
@@ -47,7 +46,7 @@ __all__ = ("movie", "output_animation", "plot_movie_and_evolution")
 
 
 @contextlib.contextmanager
-def _use_mpl_backend(name: str = "Agg"):
+def _use_mpl_backend(name: str = "Agg") -> Generator[None, None, None]:
     """Temporarily set the matplotlib backend and restore previous value.
 
     Using mpl.use directly can have global side effects; this context manager
@@ -151,7 +150,7 @@ def _configure_axes_and_labels(
     ax[1].set_ylabel("")
 
 
-def _construct_animation_for_evolution(
+def _construct_animation_for_evolution(  # noqa: PLR0913
     data: xr.DataArray,
     *,
     time_dim: str = "delay",
@@ -162,7 +161,7 @@ def _construct_animation_for_evolution(
     evolution_at: tuple[str, float] | tuple[str, tuple[float, float]] = ("phi", 0.0),
     labels: tuple[str, str, str] | None = None,
     **kwargs: Unpack[PColorMeshKwargs],
-) -> tuple[FuncAnimation, Figure, Callable[[int], "Iterable[Artist]"], xr.DataArray]:
+) -> tuple[FuncAnimation, Figure, Callable[[int], Iterable[Artist]], xr.DataArray]:
     """Build FuncAnimation for evolution_movie and return anim, fig, update_only_arpes_mesh, data.
 
     This extracts shared creation logic used by both wrappers.
@@ -292,7 +291,14 @@ def evolution_movie(  # noqa: PLR0913
             **kwargs,
         )
 
-    return output_animation(anim=anim, data=data, update_func=update_func, fig=fig, time_dim=time_dim, out=out)
+    return output_animation(
+        anim=anim,
+        data=data,
+        update_func=update_func,
+        fig=fig,
+        time_dim=time_dim,
+        out=out,
+    )
 
 
 @save_plot_provenance
@@ -310,6 +316,26 @@ def movie(  # noqa: PLR0913
     """Create an animated movie of a 3D dataset using one dimension as "time" (thin wrapper).
 
     Delegates the heavy lifting to _construct_animation_for_movie.
+
+    Args:
+        data (xr.DataArray): ARPES data containing time-series data to animate.
+        time_dim (str): Dimension name for time, default is "delay".
+        interval_ms (float): Delay between frames in milliseconds,  default 100.
+        fig_ax (tuple[Figure, Axes]): matplotlib Figure and Axes objects, optional.
+        out (str | Path | Number | EllipsisType): Change output style.  If str or Path is set,
+            saving the animation. If the numerical value is set, the snapshot image (Figure object)
+            is returned (but not saved, use fig.save) and if nothing is set (or set None), return
+            the HTML object to display the animation.  and if ... is set, return the
+            FuncAnimation object itself.  Default is None.
+        figsize (tuple[float, float]): Size of the movie figure, optional.
+        labels (tuple[str, str]): The label for x- and y-axis. (optional)
+        kwargs: Additional keyword arguments for `pcolormesh`.
+
+    Returns:
+        Path | HTML: The path to the saved animation or the animation object itself
+
+    Raises:
+        TypeError: If the argument types are incorrect.
     """
     with _use_mpl_backend("Agg"):
         anim, fig, update_func, data = _construct_animation_for_movie(
@@ -322,7 +348,14 @@ def movie(  # noqa: PLR0913
             **kwargs,
         )
 
-    return output_animation(anim=anim, data=data, update_func=update_func, fig=fig, time_dim=time_dim, out=out)
+    return output_animation(
+        anim=anim,
+        data=data,
+        update_func=update_func,
+        fig=fig,
+        time_dim=time_dim,
+        out=out,
+    )
     """Create an animated movie of a 3D dataset using one dimension as "time".
 
     This function uses matplotlib's pcolormesh to create the plots.
@@ -438,7 +471,7 @@ def _replace_after_col(array: NDArray[np.floating], col_num: int) -> NDArray[np.
     return np.where(np.arange(array.shape[1])[:, None] >= col_num, np.nan, array.T).T
 
 
-def _construct_animation_for_movie(
+def _construct_animation_for_movie(  # noqa: PLR0913
     data: xr.DataArray,
     *,
     time_dim: str = "delay",
@@ -447,7 +480,7 @@ def _construct_animation_for_movie(
     figsize: tuple[float, float] | None = None,
     labels: tuple[str, str] | None = None,
     **kwargs: Unpack[PColorMeshKwargs],
-) -> tuple[FuncAnimation, Figure, Callable[[int], "Iterable[Artist]"], xr.DataArray]:
+) -> tuple[FuncAnimation, Figure, Callable[[int], Iterable[Artist]], xr.DataArray]:
     """Construct animation for the single-panel `movie` variant.
 
     Returns: anim, fig, update_func, data
@@ -535,7 +568,12 @@ def _replace_after_row(array: NDArray[np.floating], row_num: int) -> NDArray[np.
 # Backwards-compatible aliases
 # The public function was renamed to `movie` for conciseness; provide aliases
 # so existing call sites continue to work until callers are migrated.
-def plot_movie(*args, **kwargs):
+
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+def plot_movie(*args: P.args, **kwargs: P.kwargs) -> R:
     """Deprecated alias for movie(...).
 
     Emits a DeprecationWarning recommending arpes.plotting.movie.movie and
