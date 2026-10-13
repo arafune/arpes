@@ -20,7 +20,7 @@ to look for and update provenance entries on arguments and return values.
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import functools
 import json
 import uuid
@@ -140,7 +140,7 @@ def provenance_from_file(
             "record": record,
             "file": file,
             "jupyter_context": get_recent_history(5),
-            "time": datetime.datetime.now(UTC).isoformat(),
+            "time": dt.datetime.now(UTC).isoformat(),
             "version": VERSION,
         },
     )
@@ -202,7 +202,7 @@ def update_provenance(
                         {
                             "what": what,
                             "by": getattr(fn, "__name__", type(fn).__name__),
-                            "time": datetime.datetime.now(UTC).isoformat(),
+                            "time": dt.datetime.now(UTC).isoformat(),
                             "version": VERSION,
                         },
                     )
@@ -261,7 +261,7 @@ def save_plot_provenance(plot_fn: Callable[P, R]) -> Callable[P, R]:
                 "Provenance",
                 {
                     "VERSION": VERSION,
-                    "time": datetime.datetime.now(UTC).isoformat(),
+                    "time": dt.datetime.now(UTC).isoformat(),
                     "jupyter_context": get_recent_history(5),
                     "name": getattr(plot_fn, "__name__", type(plot_fn).__name__),
                     "args": [
@@ -325,7 +325,7 @@ def provenance(
             "jupyter_context": get_recent_history(5),
             "parent_id": parent_id,
             "parents_provanence": parents.attrs.get("provenance"),
-            "time": datetime.datetime.now(UTC).isoformat(),
+            "time": dt.datetime.now(UTC).isoformat(),
             "version": VERSION,
         },
     )
@@ -365,7 +365,7 @@ def provenance_multiple_parents(
             "jupyter_context": get_recent_history(5),
             "parent_id": [p.attrs.get("id") for p in parents],
             "parents_provenance": [p.attrs.get("provenance") for p in parents],
-            "time": datetime.datetime.now(UTC).isoformat(),
+            "time": dt.datetime.now(UTC).isoformat(),
             "version": VERSION,
         },
     )
