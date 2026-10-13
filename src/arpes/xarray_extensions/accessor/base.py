@@ -7,7 +7,6 @@ import warnings
 from logging import DEBUG, INFO
 from typing import (
     TYPE_CHECKING,
-    Generic,
 )
 
 import xarray as xr
@@ -217,7 +216,7 @@ class ARPESDataArrayAccessorBase(ARPESAccessorBase[xr.DataArray]):
         return selections.select_around(data=self._obj, point=point, radius=radius, mode=mode)
 
 
-class GenericAccessorBase(Generic[DataType]):
+class GenericAccessorBase[DataType]:
     """Class for general-purpose utility methods for xarray.Dataset and xarray.DataArray objects.
 
     This class offers functionalities such as coordinate manipulation,

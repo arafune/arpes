@@ -123,7 +123,7 @@ def lift_dataarray_attrs(
     return g
 
 
-def lift_datavar_attrs(
+def lift_datavar_attrs[T, **P](
     f: Callable[Concatenate[dict[str, T], P], dict[str, T]],
 ) -> Callable[Concatenate[DataWithCoords, P], DataWithCoords]:
     """Lifts a function that operates dicts to a function that acts on xr attrs.

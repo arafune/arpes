@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
-    Generic,
     Literal,
     TypeGuard,
     get_args,
@@ -58,7 +57,7 @@ LOGLEVEL = LOGLEVELS[1]
 logger = setup_logger(__name__, LOGLEVEL)
 
 
-class ARPESAngleProperty(Generic[DataType]):
+class ARPESAngleProperty[DataType]:
     """Class for Angle related property.
 
     Attributes:
@@ -149,7 +148,7 @@ class ARPESAngleProperty(Generic[DataType]):
         )
 
 
-class ARPESPhysicalProperty(Generic[DataType]):
+class ARPESPhysicalProperty[DataType]:
     """Class for ARPES physical properties.
 
     Attributes:
@@ -859,7 +858,7 @@ class ARPESOffsetProperty(ARPESAngleProperty[DataType]):
         )
 
 
-class ARPESProvenanceProperty(Generic[DataType]):
+class ARPESProvenanceProperty[DataType]:
     """Class for Provenance related property."""
 
     _obj: DataType

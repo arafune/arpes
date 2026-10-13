@@ -40,7 +40,7 @@ from collections import defaultdict
 from functools import wraps
 from logging import DEBUG, INFO
 from pathlib import Path
-from typing import TYPE_CHECKING, ParamSpec, TypeVar
+from typing import TYPE_CHECKING
 
 import dill
 
@@ -73,11 +73,8 @@ LOGLEVEL = LOGLEVELS[1]
 
 logger = setup_logger(__name__, LOGLEVEL)
 
-P = ParamSpec("P")
-R = TypeVar("R")
 
-
-def with_workspace(f: Callable[P, R]) -> Callable[P, R]:
+def with_workspace[**P, R](f: Callable[P, R]) -> Callable[P, R]:
     """A decorator that wraps a function to ensure it operates within a workspace context.
 
     This decorator manages the workspace settings before and after the execution
