@@ -54,6 +54,6 @@ def test_invalid_attribute_raises_attribute_error() -> None:
 
 
 def test_hasattr_behavior() -> None:
-    """hasattr should reflect lazy-loaded public API correctly."""
+    """Hasattr should reflect lazy-loaded public API correctly."""
     assert hasattr(plotting, "plot_dispersion")
     assert not hasattr(plotting, "definitely_not_here")

@@ -507,6 +507,6 @@ def test_savitzky_golay_multiple_axes(monkeypatch):
     monkeypatch.setattr(smoothing, "savgol_filter_multi", fake_savgol_filter_multi)
 
     app._savitzky_golay_smoothing(
-        data, window_length_x=5, polyorder_x=2, window_length_y=3, polyorder_y=1
+        data, window_length_x=5, polyorder_x=2, window_length_y=3, polyorder_y=1,
     )
     assert called["args"][1] == {"x": (5, 2), "y": (3, 1)}

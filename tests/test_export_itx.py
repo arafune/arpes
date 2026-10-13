@@ -1,9 +1,6 @@
 """Unit test for export/itx.py."""
 
-from pathlib import Path
 
-import numpy as np
-import pytest
 import xarray as xr
 
 from arpes.export.itx import convert_itx_format

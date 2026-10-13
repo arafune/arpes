@@ -1,22 +1,17 @@
 """Unit test for correction.angle_unit module."""
 
-from unittest.mock import MagicMock
 
 import numpy as np
 import pytest
 import xarray as xr
 
-from arpes.xarray_extensions.accessor.spectrum_type import AngleUnit
 from arpes.correction.angle_unit import (
     degree_to_radian,
     radian_to_degree,
     switch_angle_unit,
     switched_angle_unit,
 )
-from arpes.xarray_extensions.accessor.spectroscopy import (
-    ARPESDataArrayAccessor,
-    ARPESDatasetAccessor,
-)
+from arpes.xarray_extensions.accessor.spectrum_type import AngleUnit
 
 
 @pytest.fixture

@@ -582,7 +582,7 @@ class TestMetadata:
         self,
         sandbox_configuration: Incomplete,
         file: str,
-        expected: dict[str, str | None | dict[str, float]],
+        expected: dict[str, str | dict[str, float] | None],
     ) -> None:
         """[TODO:summary].
 

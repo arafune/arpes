@@ -45,7 +45,7 @@ __all__ = ("movie", "output_animation", "plot_movie_and_evolution")
 
 
 @contextlib.contextmanager
-def _use_mpl_backend(name: str = "Agg") -> Generator[None, None, None]:
+def _use_mpl_backend(name: str = "Agg") -> Generator[None]:
     """Temporarily set the matplotlib backend and restore previous value.
 
     Using mpl.use directly can have global side effects; this context manager
