@@ -7,7 +7,7 @@ import re
 import warnings
 from logging import DEBUG, INFO
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, TypeAlias
+from typing import TYPE_CHECKING, Any, Literal
 
 import igor.igorpy as igor
 import numpy as np
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
     from ._typing.base import XrTypes
 
-Wave: TypeAlias = Any  # really, igor.Wave but we do not assume installation
+type Wave = Any  # really, igor.Wave but we do not assume installation
 
 __all__ = (
     "find_ses_files_associated",
