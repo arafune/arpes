@@ -272,7 +272,7 @@ P = ParamSpec("P")
 R = TypeVar("R")
 
 
-def propagate_errors(f: Callable[P, R]) -> Callable[P, R]:
+def propagate_errors[**P, R](f: Callable[P, R]) -> Callable[P, R]:
     """A decorator which provides transparent propagation of statistical errors.
 
     The way that this is accommodated is that the inner function is turned into one which

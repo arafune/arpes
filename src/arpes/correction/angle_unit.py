@@ -94,7 +94,7 @@ def switched_angle_unit_imp(data: xr.DataArray) -> xr.DataArray:
     return degree_to_radian(data_copy)
 
 
-def _convert_angle_attrs(
+def _convert_angle_attrs[AngleValue: (float, np.floating, NDArray[np.floating])](
     attrs: dict[str, AngleValue],
     convert: Callable[[AngleValue], AngleValue],
 ) -> None:
