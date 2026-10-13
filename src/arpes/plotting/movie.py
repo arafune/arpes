@@ -472,7 +472,7 @@ P = ParamSpec("P")
 R = TypeVar("R")
 
 
-def plot_movie(*args: P.args, **kwargs: P.kwargs) -> R:
+def plot_movie[**P](*args: P.args, **kwargs: P.kwargs) -> R:
     """Deprecated alias for movie(...).
 
     Emits a DeprecationWarning recommending arpes.plotting.movie.movie and
