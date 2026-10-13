@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import json
 import urllib.request
 from datetime import UTC
@@ -127,8 +127,8 @@ def generate_logfile_path() -> Path:
     base_name = get_notebook_name() or "unnamed"
     full_name = "{}_{}_{}.log".format(
         base_name,
-        datetime.datetime.now(tz=datetime.UTC).date().isoformat(),
-        datetime.datetime.now(UTC).time().isoformat().split(".")[0].replace(":", "-"),
+        dt.datetime.now(tz=dt.UTC).date().isoformat(),
+        dt.datetime.now(UTC).time().isoformat().split(".")[0].replace(":", "-"),
     )
     return Path("logs") / full_name
 
