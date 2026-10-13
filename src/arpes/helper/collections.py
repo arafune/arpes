@@ -16,7 +16,7 @@ T = TypeVar("T")
 NestedDict = MutableMapping[str, Union[T, "NestedDict[T]"]]
 
 
-def deep_update(destination: NestedDict[T], source: NestedDict[T]) -> NestedDict[T]:
+def deep_update[T](destination: NestedDict[T], source: NestedDict[T]) -> NestedDict[T]:
     """Recursively updates the destination dictionary with values from the source dictionary.
 
     This function ensures that nested dictionaries are merged correctly without
