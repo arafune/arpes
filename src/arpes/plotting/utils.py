@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import contextlib
-import datetime
+import datetime as dt
 import itertools
 import json
 import pickle
@@ -908,7 +908,7 @@ def savefig(
         "Provenance",
         {
             "VERSION": VERSION,
-            "time": datetime.datetime.now(UTC).isoformat(),
+            "time": dt.datetime.now(UTC).isoformat(),
             "jupyter_notebook_name": get_notebook_name(),
             "name": "savefig",
         },
@@ -963,7 +963,7 @@ def path_for_plot(desired_path: str | Path) -> Path:
         filename = (
             Path(figure_path)
             / workspace["name"]
-            / datetime.datetime.now(tz=datetime.UTC).date().isoformat()
+            / dt.datetime.now(tz=dt.UTC).date().isoformat()
             / desired_path
         ).resolve()
         parent_directory = Path(filename).parent
