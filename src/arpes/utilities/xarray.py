@@ -84,7 +84,7 @@ def unwrap_xarray_dict(  # pragma: no cover
     return {k: unwrap_xarray_item(v) for k, v in input_dict.items()}
 
 
-def lift_dataarray_attrs(
+def lift_dataarray_attrs[T, **P](
     f: Callable[Concatenate[dict[str, T], P], dict[str, T]],
 ) -> Callable[Concatenate[xr.DataArray, P], xr.DataArray]:
     """Lifts a function that operates dicts to a function that acts on dataarray attrs.
