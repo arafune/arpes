@@ -7,12 +7,12 @@ import pytest
 import xarray as xr
 
 import arpes.xarray_extensions  # pylint: disable=unused-import, redefined-outer-name  # noqa: F401
-from arpes.utilities.conversion import convert_to_kspace
-from arpes.utilities.conversion.base import CoordinateConverter
 from arpes.analysis.forward_conversion import (
     convert_coordinate_forward,
     convert_through_angular_point,
 )
+from arpes.utilities.conversion import convert_to_kspace
+from arpes.utilities.conversion.base import CoordinateConverter
 
 if TYPE_CHECKING:
     from collections.abc import Hashable

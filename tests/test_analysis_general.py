@@ -4,7 +4,6 @@ import numpy as np
 import pytest
 import xarray as xr
 
-import arpes.xarray_extensions
 from arpes.analysis.general import (
     _bin,
     condense,

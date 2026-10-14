@@ -68,10 +68,9 @@ def test_determine_associated_loader_failure():
         patch(
             "arpes.endstations.plugin.fallback.resolve_endstation",
             side_effect=Exception("Fail"),
-        ),
+        ),pytest.raises(ValueError, match="failed to find a plugin acceptable"),
     ):
-        with pytest.raises(ValueError, match="failed to find a plugin acceptable"):
-            FallbackEndstation.determine_associated_loader("some_file.dat")
+        FallbackEndstation.determine_associated_loader("some_file.dat")
 
 
 def test_load_delegates_and_warns(dummy_loader):

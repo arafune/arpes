@@ -4,8 +4,7 @@ import numpy as np
 import pytest
 import xarray as xr
 
-import arpes.xarray_extensions
-from arpes.xarray_extensions.accessor.spectrum_type import AngleUnit, EnergyNotation, SpectrumType
+from arpes.xarray_extensions.accessor.spectrum_type import EnergyNotation, SpectrumType
 
 
 class TestforProperties:

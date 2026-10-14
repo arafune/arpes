@@ -24,7 +24,7 @@ def _rename_key(
         del d[original_name_k]
 
 
-def rename_keys(
+def rename_keys[T](
     d: dict[str, T],
     keys_dict: dict[str, str],
 ) -> dict[str, T]:
@@ -44,7 +44,7 @@ def rename_keys(
     return d
 
 
-def clean_keys(d: dict[str, T]) -> dict[str, T]:
+def clean_keys[T](d: dict[str, T]) -> dict[str, T]:
     """Renames dict key to fit Pythonic more.
 
     Args:

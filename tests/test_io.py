@@ -83,10 +83,9 @@ def test_load_data_warns_without_location(tmp_path: Path):
 
 
 def test_load_data_deprecated_path_integer_warning():
-    with pytest.warns(DeprecationWarning):
-        with pytest.raises(Exception):
-            # This will not resolve unless a plugin uses int paths
-            io.load_data(123456789)
+    with pytest.warns(DeprecationWarning), pytest.raises(Exception):
+        # This will not resolve unless a plugin uses int paths
+        io.load_data(123456789)
 
 
 def test_load_example_data_invalid_key():

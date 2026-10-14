@@ -415,7 +415,7 @@ def trapezoid(
 T = TypeVar("T")
 
 
-def _is_all_type(corners: list[T], type_: type[T]) -> TypeGuard[list[T]]:
+def _is_all_type[T](corners: list[T], type_: type[T]) -> TypeGuard[list[T]]:
     return all(isinstance(corner, type_) for corner in corners)
 
 

@@ -13,8 +13,8 @@ from lmfit.models import ConstantModel, LinearModel, LorentzianModel, QuadraticM
 from arpes.configuration.manager import config_manager
 from arpes.fits import AffineBroadenedFD
 from arpes.io import example_data
-from tests.utils import cache_loader
 from arpes.preparation import normalize_dim
+from tests.utils import cache_loader
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator

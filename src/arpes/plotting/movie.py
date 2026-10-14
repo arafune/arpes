@@ -45,7 +45,7 @@ __all__ = ("movie", "output_animation", "plot_movie_and_evolution")
 
 
 @contextlib.contextmanager
-def _use_mpl_backend(name: str = "Agg") -> Generator[None, None, None]:
+def _use_mpl_backend(name: str = "Agg") -> Generator[None]:
     """Temporarily set the matplotlib backend and restore previous value.
 
     Using mpl.use directly can have global side effects; this context manager
@@ -472,7 +472,7 @@ P = ParamSpec("P")
 R = TypeVar("R")
 
 
-def plot_movie(*args: P.args, **kwargs: P.kwargs) -> R:
+def plot_movie[**P](*args: P.args, **kwargs: P.kwargs) -> R:
     """Deprecated alias for movie(...).
 
     Emits a DeprecationWarning recommending arpes.plotting.movie.movie and

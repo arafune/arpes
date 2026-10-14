@@ -9,8 +9,6 @@ import numpy as np
 import xarray as xr
 from lmfit.models import Model, update_param_vals
 
-from arpes._typing.base import XrTypes
-
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
@@ -63,12 +61,12 @@ class ExponentialDecayCModel(Model):
 
     def guess(
         self,
-        data: NDArray[np.floating] | XrTypes,
+        data: NDArray[np.floating] | xr.DataArray | xr.Dataset,
         x: NDArray[np.floating] | xr.DataArray,
         **kwargs: float,
     ) -> lf.Parameters:
         """Estimate initial model parameter values from data."""
-        if isinstance(data, XrTypes):
+        if isinstance(data, xr.DataArray | xr.Dataset):
             data = np.asarray(data.values)
         if isinstance(x, xr.DataArray):
             x = x.values

@@ -218,7 +218,7 @@ def update_provenance(
     return update_provenance_decorator
 
 
-def save_plot_provenance(plot_fn: Callable[P, R]) -> Callable[P, R]:
+def save_plot_provenance[**P, R](plot_fn: Callable[P, R]) -> Callable[P, R]:
     """A decorator that automates saving the provenance information for a particular plot.
 
     A plotting function creates an image or movie resource at some location on the

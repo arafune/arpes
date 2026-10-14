@@ -11,7 +11,6 @@ from __future__ import annotations
 from typing import (
     TYPE_CHECKING,
     Literal,
-    TypeAlias,
     TypedDict,
 )
 
@@ -222,7 +221,7 @@ class KspaceCoords(TypedDict, total=False):
     kz: NDArray[np.floating]
 
 
-CoordsOffset: TypeAlias = Literal[
+type CoordsOffset = Literal[
     "alpha_offset",
     "beta_offset",
     "chi_offset",

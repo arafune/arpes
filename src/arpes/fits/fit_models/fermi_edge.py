@@ -11,8 +11,6 @@ from lmfit.lineshapes import gaussian
 from lmfit.models import Model, update_param_vals
 from scipy import stats
 
-from arpes._typing.base import XrTypes
-
 from .functional_forms import (
     affine_broadened_fd,
     band_edge_bkg,
@@ -75,12 +73,12 @@ class AffineBroadenedFD(Model):
 
     def guess(
         self,
-        data: XrTypes | NDArray[np.floating],
+        data: NDArray[np.floating] | xr.DataArray | xr.Dataset,
         x: NDArray[np.floating] | xr.DataArray,
         **kwargs: float,
     ) -> lf.Parameters:
         """Estimate initial model parameter values from data."""
-        if isinstance(data, XrTypes):
+        if isinstance(data, xr.DataArray | xr.Dataset):
             ymin, ymax = data.min().item(), data.max().item()
         ymin, ymax = min(data), max(data)
         if isinstance(x, xr.DataArray):
@@ -133,7 +131,7 @@ class FermiLorentzianModel(Model):
 
     def guess(
         self,
-        data: XrTypes | NDArray[np.floating],
+        data: xr.DataArray | xr.Dataset | NDArray[np.floating],
         x: NDArray[np.floating] | xr.DataArray,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
@@ -176,7 +174,7 @@ class FermiDiracModel(Model):
 
     def guess(
         self,
-        data: NDArray[np.floating] | XrTypes,
+        data: NDArray[np.floating] | xr.DataArray | xr.Dataset,
         x: NDArray[np.floating] | xr.DataArray,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
@@ -223,7 +221,7 @@ class GStepBModel(Model):
 
     def guess(
         self,
-        data: XrTypes,
+        data: xr.DataArray | xr.Dataset,
         x: NDArray[np.floating] | xr.DataArray,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
@@ -260,7 +258,7 @@ class BandEdgeBModel(Model):
 
     def guess(
         self,
-        data: XrTypes,
+        data: xr.DataArray | xr.Dataset,
         x: NDArray[np.floating] | xr.DataArray,
         **kwargs: float,
     ) -> lf.Parameters:
@@ -341,7 +339,7 @@ class BandEdgeBGModel(Model):
 
     def guess(
         self,
-        data: XrTypes,
+        data: xr.DataArray | xr.Dataset,
         x: NDArray[np.floating] | None = None,
         **kwargs: float,
     ) -> lf.Parameters:
@@ -406,12 +404,12 @@ class GStepBStandardModel(Model):
 
     def guess(
         self,
-        data: XrTypes,
+        data: xr.DataArray | xr.Dataset,
         x: NDArray[np.floating] | xr.DataArray,
         **kwargs: Incomplete,
     ) -> lf.Parameters:
         """Estimate initial model parameter values from data."""
-        if isinstance(data, XrTypes):
+        if isinstance(data, xr.DataArray | xr.Dataset):
             ymin = data.min().item()
             ymean = data.mean()
         else:

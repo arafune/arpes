@@ -111,7 +111,7 @@ def test_clean_outliers_clip():
 
 def test_transform_mean_std():
     arr = xr.DataArray(
-        np.random.rand(4, 5), dims=("x", "y"), coords={"x": np.arange(4), "y": np.arange(5)}
+        np.random.rand(4, 5), dims=("x", "y"), coords={"x": np.arange(4), "y": np.arange(5)},
     )
 
     def fn(data, coord):

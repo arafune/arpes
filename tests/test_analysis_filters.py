@@ -2,7 +2,6 @@ import numpy as np  # noqa: D100
 import pytest
 import xarray as xr
 
-import arpes.xarray_extensions
 from arpes.analysis.filters import boxcar_filter_arr, savgol_filter_multi, savitzky_golay_filter
 
 

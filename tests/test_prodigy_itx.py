@@ -4,7 +4,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-import xarray as xr
 
 from arpes.endstations._helper.prodigy import IgorSetscaleFlag
 from arpes.endstations.prodigy_itx import ProdigyItx

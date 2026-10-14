@@ -192,7 +192,7 @@ def corrected_coords(
     corrected_data = data.copy(deep=True)
 
     for correction_type in correction_types:
-        assert correction_type in get_args(CoordsOffset)
+        assert correction_type in get_args(CoordsOffset.__value__)
 
         if "_offset" in correction_type:
             coord_name: LiteralString = correction_type.split("_offset")[0]
