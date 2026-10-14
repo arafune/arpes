@@ -7,7 +7,7 @@ authors = [
   { name = "Ryuichi Arafune", email = "ryuichi.arafune@gmail.com" },
 ]
 readme = "README.rst"
-requires-python = ">= 3.13"
+requires-python = ">= 3.12"
 
 dependencies = [
   "holoviews>=1.16.0",
@@ -155,14 +155,14 @@ exclude = [
 typeCheckingMode = "standard" # "off", "basic" "standard" "strict"
 include = ["src"]
 
-pythonVersion = "3.13"
+pythonVersion = "3.12"
 pythonPlatform = "All"
 
 reportMissingTypeStubs = false
 reportUnreachable = false
 
 [tool.ruff]
-target-version = "py313"
+target-version = "py312"
 line-length = 100
 indent-width = 4
 
