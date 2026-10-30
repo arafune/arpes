@@ -74,12 +74,12 @@ class TailorApp(BaseUI):
         self.pane_kwargs.setdefault("colorbar", True)
 
         self.output_name = pn.widgets.TextInput(
-            label="Output Name",
+            name="Output Name",
             placeholder="e.g. id1_3",
         )
 
         self.toggle_laminate_mode = pn.widgets.Checkbox(
-            label="Laminate mode",
+            name="Laminate mode",
             value=False,
         )
         self.toggle_laminate_mode.param.watch(
@@ -88,18 +88,18 @@ class TailorApp(BaseUI):
         )
 
         self.output_name = pn.widgets.TextInput(
-            label="Output Name",
+            name="Output Name",
             placeholder="e.g., smoothed1",
         )
 
         self.output_button = pn.widgets.Button(
-            label="Output",
-            color="primary",
+            name="Output",
+            button_type="primary",
         )
         self.output_button.on_click(self._on_apply)
 
         self.ratio_slider = pn.widgets.FloatSlider(
-            label="Ratio",
+            name="Ratio",
             start=0,
             end=1,
             step=0.01,
@@ -111,7 +111,7 @@ class TailorApp(BaseUI):
         )
 
         self.magnification_slider = pn.widgets.FloatSlider(
-            label="Magnification",
+            name="Magnification",
             start=0,
             end=2,
             step=0.0001,
