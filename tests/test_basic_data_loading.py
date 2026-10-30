@@ -1018,7 +1018,9 @@ class TestBasicDataLoading:
         for k in expected["offset_coords"]:
             offset = safefirst(data.S.spectra[0].S.lookup_offset_coord(k))
             assert k
-            assert pytest.approx(offset, 1e-3) == expected["offset_coords"][k]
+            # Extract scalar value from xarray DataArray if needed
+            offset_value = float(offset) if hasattr(offset, 'values') else offset
+            assert pytest.approx(offset_value, 1e-3) == expected["offset_coords"][k]
 
         kspace_data = convert_to_kspace(data.S.spectra[0])
         assert isinstance(kspace_data, xr.DataArray)
