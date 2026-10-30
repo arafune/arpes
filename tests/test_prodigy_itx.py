@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from arpes.endstations._helper.prodigy import IgorSetscaleFlag
-from arpes.endstations.prodigy_itx import ProdigyItx
+from arpes.endstations.prodigy_itx import ProdigyItx, _reorder_dims_for_shape
 
 data_dir = Path(__file__).parent.parent / "src" / "arpes" / "example_data"
 
@@ -42,3 +42,28 @@ class TestItx:
         """Test for convert to xr.DataArray."""
         sample_dataarray = sample_itx.to_dataarray()
         assert sample_dataarray.dims == ("phi", "eV")
+
+
+class TestReorderDimsForShape:
+    """Test _reorder_dims_for_shape helper function."""
+
+    def test_2d_dims_unchanged(self) -> None:
+        """Test that 2D dims are not reordered."""
+        dims = ["phi", "eV"]
+        original_pixels = (40, 341)
+        result = _reorder_dims_for_shape(dims, original_pixels)
+        assert result == dims
+
+    def test_3d_dims_reordered(self) -> None:
+        """Test 3D dims reordering: (phi, eV, cycle) -> (cycle, phi, eV)."""
+        dims = ["phi", "eV", "cycle"]
+        original_pixels = (40, 341, 24)
+        result = _reorder_dims_for_shape(dims, original_pixels)
+        assert result == ["cycle", "phi", "eV"]
+
+    def test_4d_dims_reordered(self) -> None:
+        """Test 4D dims reordering: (phi, eV, cycle, ch2) -> (ch2, cycle, phi, eV)."""
+        dims = ["phi", "eV", "cycle", "ch2"]
+        original_pixels = (40, 341, 24, 4)
+        result = _reorder_dims_for_shape(dims, original_pixels)
+        assert result == ["ch2", "cycle", "phi", "eV"]
