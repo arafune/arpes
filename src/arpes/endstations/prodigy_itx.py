@@ -134,10 +134,14 @@ class ProdigyItx:
         attrs["enegy_unit"] = self.axis_info["y"][3] if "y" in self.axis_info else ""
         attrs["count_unit"] = self.axis_info["d"][3] if "d" in self.axis_info else ""
         logger.debug(f"dims: {dims}")
+
+        reshaped_shape = _pixel_to_shape(self.pixels)
+        reshaped_dims = _reorder_dims_for_shape(dims, self.pixels)
+
         data_array = xr.DataArray(
-            data=self.intensity.reshape(_pixel_to_shape(self.pixels)),
+            data=self.intensity.reshape(reshaped_shape),
             coords=coords,
-            dims=dims,
+            dims=reshaped_dims,
             attrs=attrs,
             name=self.wavename,
         )
@@ -157,6 +161,32 @@ def _pixel_to_shape(pixel: tuple[int, ...]) -> tuple[int, ...]:
     if len(pixel) == TWO_DIMENSION + 1:
         return pixel[2], pixel[0], pixel[1]
     return pixel[3], pixel[2], pixel[0], pixel[1]
+
+
+def _reorder_dims_for_shape(
+    dims: list[str],
+    original_pixels: tuple[int, ...],
+) -> list[str]:
+    """Reorder dims to match the reshaped pixel order.
+
+    Args:
+        dims: Original dimension names in pixel order
+        original_pixels: Original pixel sizes (e.g., (40, 341, 24))
+
+    Returns:
+        Reordered dimension names matching _pixel_to_shape output
+    """
+    if len(original_pixels) == TWO_DIMENSION:
+        return dims
+    if len(original_pixels) == TWO_DIMENSION + 1:
+        # For 3D: (phi, eV, cycle) -> (cycle, phi, eV)
+        # dims is in order [phi, eV, cycle] (x, y, z)
+        # reshaped order is [2, 0, 1] (z, x, y)
+        return [dims[2], dims[0], dims[1]]
+    # For 4D: (ch2, cycle, phi, eV)
+    # dims is in order [phi, eV, cycle, ch2] (x, y, z, w)
+    # reshaped order is [3, 2, 0, 1] (w, z, x, y)
+    return [dims[3], dims[2], dims[0], dims[1]]
 
 
 def load_itx(
